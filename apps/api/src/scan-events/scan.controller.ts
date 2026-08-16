@@ -68,6 +68,12 @@ export class ScanController {
       throw new NotFoundException('QR code not found');
     }
 
+    // Multi-tenant security boundary:
+    // users may only scan assets belonging to their organization.
+    if (qr.asset.organizationId !== req.user.organizationId) {
+      throw new NotFoundException('QR code not found');
+    }
+
     return this.prisma.scanEvent.create({
       data: {
         assetId: qr.assetId,
