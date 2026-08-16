@@ -43,7 +43,17 @@ export class ScanEventsService {
       },
       include: {
         asset: true,
-        user: true,
+        user: {
+          select: {
+            id: true,
+            organizationId: true,
+            email: true,
+            name: true,
+            role: true,
+            createdAt: true,
+            updatedAt: true,
+          },
+        },
       },
     });
   }

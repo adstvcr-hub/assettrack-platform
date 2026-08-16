@@ -5,9 +5,23 @@ import {
   NotFoundException,
   Param,
   Post,
+  Req,
+  UseGuards,
 } from '@nestjs/common';
+import { Request } from 'express';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { PrismaService } from '../prisma/prisma.service';
 import { ScanByCodeDto } from './dto/scan-by-code.dto';
+
+type AuthenticatedRequest = Request & {
+  user: {
+    id: string;
+    organizationId: string;
+    email: string;
+    name: string;
+    role: string;
+  };
+};
 
 @Controller('scan')
 export class ScanController {
@@ -36,10 +50,12 @@ export class ScanController {
     };
   }
 
+  @UseGuards(JwtAuthGuard)
   @Post(':code')
   async scan(
     @Param('code') code: string,
     @Body() dto: ScanByCodeDto,
+    @Req() req: AuthenticatedRequest,
   ) {
     const qr = await this.prisma.qrCode.findUnique({
       where: { code },
@@ -52,27 +68,27 @@ export class ScanController {
       throw new NotFoundException('QR code not found');
     }
 
-    if (dto.userId) {
-      const user = await this.prisma.user.findUnique({
-        where: { id: dto.userId },
-      });
-
-      if (!user) {
-        throw new NotFoundException('User not found');
-      }
-    }
-
     return this.prisma.scanEvent.create({
       data: {
         assetId: qr.assetId,
-        userId: dto.userId,
+        userId: req.user.id,
         notes: dto.notes,
         latitude: dto.latitude,
         longitude: dto.longitude,
       },
       include: {
         asset: true,
-        user: true,
+        user: {
+          select: {
+            id: true,
+            organizationId: true,
+            email: true,
+            name: true,
+            role: true,
+            createdAt: true,
+            updatedAt: true,
+          },
+        },
       },
     });
   }

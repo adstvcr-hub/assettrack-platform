@@ -2,15 +2,10 @@ import {
   IsNumber,
   IsOptional,
   IsString,
-  IsUUID,
   MaxLength,
 } from 'class-validator';
 
 export class ScanByCodeDto {
-  @IsOptional()
-  @IsUUID()
-  userId?: string;
-
   @IsOptional()
   @IsString()
   @MaxLength(1000)

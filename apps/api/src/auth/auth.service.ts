@@ -12,7 +12,6 @@ export class AuthService {
   ) {}
 
   async login(dto: LoginDto) {
-    console.log('[AUTH] login start');
 
     const user = await this.prisma.user.findFirst({
       where: {
@@ -20,20 +19,17 @@ export class AuthService {
       },
     });
 
-    console.log('[AUTH] user found:', !!user);
 
     if (!user) {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    console.log('[AUTH] hash length:', user.passwordHash.length);
 
     const passwordValid = await bcrypt.compare(
       dto.password,
       user.passwordHash,
     );
 
-    console.log('[AUTH] password valid:', passwordValid);
 
     if (!passwordValid) {
       throw new UnauthorizedException('Invalid credentials');
@@ -45,11 +41,9 @@ export class AuthService {
       role: user.role,
     };
 
-    console.log('[AUTH] signing token');
 
     const accessToken = await this.jwtService.signAsync(payload);
 
-    console.log('[AUTH] token created');
 
     return {
       accessToken,
