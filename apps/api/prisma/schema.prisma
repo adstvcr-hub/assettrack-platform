@@ -1,0 +1,103 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum UserRole {
+  OWNER
+  ADMIN
+  USER
+  VIEWER
+}
+
+enum AssetStatus {
+  ACTIVE
+  INACTIVE
+  MAINTENANCE
+  RETIRED
+}
+
+model Organization {
+  id        String   @id @default(uuid())
+  name      String
+  slug      String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  users  User[]
+  assets Asset[]
+
+  @@map("organizations")
+}
+
+model User {
+  id             String       @id @default(uuid())
+  organizationId String
+  email          String
+  name           String
+  role           UserRole     @default(USER)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  scanEvents   ScanEvent[]
+
+  @@unique([organizationId, email])
+  @@index([organizationId])
+  @@map("users")
+}
+
+model Asset {
+  id             String      @id @default(uuid())
+  organizationId String
+  name           String
+  assetTag       String
+  description    String?
+  status         AssetStatus @default(ACTIVE)
+  location       String?
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  qrCode       QrCode?
+  scanEvents   ScanEvent[]
+
+  @@unique([organizationId, assetTag])
+  @@index([organizationId])
+  @@index([status])
+  @@map("assets")
+}
+
+model QrCode {
+  id        String   @id @default(uuid())
+  assetId   String   @unique
+  code      String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  asset Asset @relation(fields: [assetId], references: [id], onDelete: Cascade)
+
+  @@map("qr_codes")
+}
+
+model ScanEvent {
+  id        String   @id @default(uuid())
+  assetId   String
+  userId    String?
+  scannedAt DateTime @default(now())
+  notes     String?
+  latitude  Decimal? @db.Decimal(10, 7)
+  longitude Decimal? @db.Decimal(10, 7)
+
+  asset Asset @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  user  User?  @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([assetId])
+  @@index([userId])
+  @@index([scannedAt])
+  @@map("scan_events")
+}
