@@ -6,6 +6,7 @@ import { PrismaModule } from './prisma/prisma.module';
 import { UsersModule } from './users/users.module';
 import { AssetsModule } from './assets/assets.module';
 import { QrModule } from './qr/qr.module';
+import { ScanEventsModule } from './scan-events/scan-events.module';
 
 @Module({
   imports: [
@@ -17,7 +18,8 @@ import { QrModule } from './qr/qr.module';
     OrganizationsModule,
     UsersModule,
     AssetsModule,
-    QrModule,	
+    QrModule,
+    ScanEventsModule	
   ],
 })
 export class AppModule {}
