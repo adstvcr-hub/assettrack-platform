@@ -1,4 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateUserDto } from './dto/create-user.dto';
 
@@ -15,12 +16,24 @@ export class UsersService {
       throw new NotFoundException('Organization not found');
     }
 
+    const passwordHash = await bcrypt.hash(dto.password, 12);
+
     return this.prisma.user.create({
       data: {
         organizationId: dto.organizationId,
         email: dto.email,
         name: dto.name,
+        passwordHash,
         role: dto.role,
+      },
+      select: {
+        id: true,
+        organizationId: true,
+        email: true,
+        name: true,
+        role: true,
+        createdAt: true,
+        updatedAt: true,
       },
     });
   }
@@ -30,12 +43,30 @@ export class UsersService {
       orderBy: {
         createdAt: 'desc',
       },
+      select: {
+        id: true,
+        organizationId: true,
+        email: true,
+        name: true,
+        role: true,
+        createdAt: true,
+        updatedAt: true,
+      },
     });
   }
 
   async findOne(id: string) {
     const user = await this.prisma.user.findUnique({
       where: { id },
+      select: {
+        id: true,
+        organizationId: true,
+        email: true,
+        name: true,
+        role: true,
+        createdAt: true,
+        updatedAt: true,
+      },
     });
 
     if (!user) {

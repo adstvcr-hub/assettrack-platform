@@ -39,6 +39,7 @@ model User {
   organizationId String
   email          String
   name           String
+  passwordHash   String
   role           UserRole     @default(USER)
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt

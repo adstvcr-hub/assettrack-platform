@@ -7,6 +7,7 @@ import { UsersModule } from './users/users.module';
 import { AssetsModule } from './assets/assets.module';
 import { QrModule } from './qr/qr.module';
 import { ScanEventsModule } from './scan-events/scan-events.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -19,7 +20,8 @@ import { ScanEventsModule } from './scan-events/scan-events.module';
     UsersModule,
     AssetsModule,
     QrModule,
-    ScanEventsModule	
+    ScanEventsModule,
+    AuthModule,	
   ],
 })
 export class AppModule {}

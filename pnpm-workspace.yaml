@@ -3,4 +3,5 @@ packages:
   - "packages/*"
 allowBuilds:
   '@prisma/engines': set this to true or false
+  bcrypt: true
   prisma: set this to true or false
