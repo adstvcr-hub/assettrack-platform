@@ -6,11 +6,13 @@ import {
   Post,
   Req,
   UseGuards,
+  Patch,	
 } from '@nestjs/common';
 import { Request } from 'express';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { AssetsService } from './assets.service';
 import { CreateAssetDto } from './dto/create-asset.dto';
+import { UpdateAssetDto } from './dto/update-asset.dto';
 
 type AuthenticatedRequest = Request & {
   user: {
@@ -25,6 +27,18 @@ type AuthenticatedRequest = Request & {
 @UseGuards(JwtAuthGuard)
 @Controller('assets')
 export class AssetsController {
+   @Patch(':id')
+update(
+  @Param('id') id: string,
+  @Body() dto: UpdateAssetDto,
+  @Req() req: AuthenticatedRequest,
+) {
+  return this.assetsService.update(
+    req.user.organizationId,
+    id,
+    dto,
+  );
+}
   constructor(private readonly assetsService: AssetsService) {}
 
   @Post()
