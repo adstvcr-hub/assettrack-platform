@@ -3,15 +3,11 @@ import {
   IsNotEmpty,
   IsOptional,
   IsString,
-  IsUUID,
   MaxLength,
 } from 'class-validator';
 import { AssetStatus } from '../../generated/prisma/enums';
 
 export class CreateAssetDto {
-  @IsUUID()
-  organizationId!: string;
-
   @IsString()
   @IsNotEmpty()
   @MaxLength(120)

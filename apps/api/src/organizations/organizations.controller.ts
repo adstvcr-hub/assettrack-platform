@@ -1,25 +1,34 @@
-import { Body, Controller, Get, Param, Post } from '@nestjs/common';
-import { CreateOrganizationDto } from './dto/create-organization.dto';
+import {
+  Controller,
+  Get,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
+import { Request } from 'express';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { OrganizationsService } from './organizations.service';
 
+type AuthenticatedRequest = Request & {
+  user: {
+    id: string;
+    organizationId: string;
+    email: string;
+    name: string;
+    role: string;
+  };
+};
+
+@UseGuards(JwtAuthGuard)
 @Controller('organizations')
 export class OrganizationsController {
   constructor(
     private readonly organizationsService: OrganizationsService,
   ) {}
 
-  @Post()
-  create(@Body() dto: CreateOrganizationDto) {
-    return this.organizationsService.create(dto);
-  }
-
-  @Get()
-  findAll() {
-    return this.organizationsService.findAll();
-  }
-
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.organizationsService.findOne(id);
+  @Get('me')
+  findMine(@Req() req: AuthenticatedRequest) {
+    return this.organizationsService.findOne(
+      req.user.organizationId,
+    );
   }
 }

@@ -6,18 +6,10 @@ import { CreateAssetDto } from './dto/create-asset.dto';
 export class AssetsService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(dto: CreateAssetDto) {
-    const organization = await this.prisma.organization.findUnique({
-      where: { id: dto.organizationId },
-    });
-
-    if (!organization) {
-      throw new NotFoundException('Organization not found');
-    }
-
+  create(organizationId: string, dto: CreateAssetDto) {
     return this.prisma.asset.create({
       data: {
-        organizationId: dto.organizationId,
+        organizationId,
         name: dto.name,
         assetTag: dto.assetTag,
         description: dto.description,
@@ -27,17 +19,23 @@ export class AssetsService {
     });
   }
 
-  findAll() {
+  findAll(organizationId: string) {
     return this.prisma.asset.findMany({
+      where: {
+        organizationId,
+      },
       orderBy: {
         createdAt: 'desc',
       },
     });
   }
 
-  async findOne(id: string) {
-    const asset = await this.prisma.asset.findUnique({
-      where: { id },
+  async findOne(organizationId: string, id: string) {
+    const asset = await this.prisma.asset.findFirst({
+      where: {
+        id,
+        organizationId,
+      },
     });
 
     if (!asset) {

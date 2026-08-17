@@ -7,20 +7,12 @@ import { CreateUserDto } from './dto/create-user.dto';
 export class UsersService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(dto: CreateUserDto) {
-    const organization = await this.prisma.organization.findUnique({
-      where: { id: dto.organizationId },
-    });
-
-    if (!organization) {
-      throw new NotFoundException('Organization not found');
-    }
-
+  async create(organizationId: string, dto: CreateUserDto) {
     const passwordHash = await bcrypt.hash(dto.password, 12);
 
     return this.prisma.user.create({
       data: {
-        organizationId: dto.organizationId,
+        organizationId,
         email: dto.email,
         name: dto.name,
         passwordHash,
@@ -38,8 +30,11 @@ export class UsersService {
     });
   }
 
-  findAll() {
+  findAll(organizationId: string) {
     return this.prisma.user.findMany({
+      where: {
+        organizationId,
+      },
       orderBy: {
         createdAt: 'desc',
       },
@@ -55,9 +50,12 @@ export class UsersService {
     });
   }
 
-  async findOne(id: string) {
-    const user = await this.prisma.user.findUnique({
-      where: { id },
+  async findOne(organizationId: string, id: string) {
+    const user = await this.prisma.user.findFirst({
+      where: {
+        id,
+        organizationId,
+      },
       select: {
         id: true,
         organizationId: true,

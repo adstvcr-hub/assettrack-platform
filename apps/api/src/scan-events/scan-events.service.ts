@@ -6,29 +6,26 @@ import { CreateScanEventDto } from './dto/create-scan-event.dto';
 export class ScanEventsService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(dto: CreateScanEventDto) {
-    const asset = await this.prisma.asset.findUnique({
-      where: { id: dto.assetId },
+  async create(
+    organizationId: string,
+    authenticatedUserId: string,
+    dto: CreateScanEventDto,
+  ) {
+    const asset = await this.prisma.asset.findFirst({
+      where: {
+        id: dto.assetId,
+        organizationId,
+      },
     });
 
     if (!asset) {
       throw new NotFoundException('Asset not found');
     }
 
-    if (dto.userId) {
-      const user = await this.prisma.user.findUnique({
-        where: { id: dto.userId },
-      });
-
-      if (!user) {
-        throw new NotFoundException('User not found');
-      }
-    }
-
     return this.prisma.scanEvent.create({
       data: {
         assetId: dto.assetId,
-        userId: dto.userId,
+        userId: authenticatedUserId,
         notes: dto.notes,
         latitude: dto.latitude,
         longitude: dto.longitude,
@@ -36,8 +33,13 @@ export class ScanEventsService {
     });
   }
 
-  findAll() {
+  findAll(organizationId: string) {
     return this.prisma.scanEvent.findMany({
+      where: {
+        asset: {
+          organizationId,
+        },
+      },
       orderBy: {
         scannedAt: 'desc',
       },

@@ -11,10 +11,6 @@ export class CreateScanEventDto {
   assetId!: string;
 
   @IsOptional()
-  @IsUUID()
-  userId?: string;
-
-  @IsOptional()
   @IsString()
   @MaxLength(1000)
   notes?: string;
