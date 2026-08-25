@@ -1,0 +1,28 @@
+FROM node:24-alpine AS base
+
+RUN corepack enable
+
+WORKDIR /app
+
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json ./
+COPY apps/api/package.json ./apps/api/package.json
+
+RUN pnpm install --frozen-lockfile
+
+COPY apps/api ./apps/api
+
+RUN pnpm --filter @assettrack/api exec prisma generate
+RUN pnpm --filter @assettrack/api build
+
+
+FROM node:24-alpine AS runner
+
+RUN corepack enable
+
+WORKDIR /app
+
+COPY --from=base /app /app
+
+ENV NODE_ENV=production
+
+CMD ["pnpm", "--filter", "@assettrack/api", "start"]
