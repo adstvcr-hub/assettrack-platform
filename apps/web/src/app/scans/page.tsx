@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -47,7 +47,7 @@ export default function ScansPage() {
     async function loadScans() {
       try {
         const response = await fetch(
-          'http://localhost:3000/api/v1/scan-events',
+          '${process.env.NEXT_PUBLIC_API_URL}/api/v1/scan-events',
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -278,7 +278,7 @@ export default function ScansPage() {
                       </td>
 
                       <td className="py-4 pr-4 text-slate-600">
-                        {scan.asset?.assetTag ?? '—'}
+                        {scan.asset?.assetTag ?? 'â€”'}
                       </td>
 
                       <td className="py-4 pr-4 text-slate-600">
@@ -286,7 +286,7 @@ export default function ScansPage() {
                       </td>
 
                       <td className="py-4 text-slate-600">
-                        {scan.notes ?? '—'}
+                        {scan.notes ?? 'â€”'}
                       </td>
                     </tr>
                   ))}
@@ -305,3 +305,4 @@ export default function ScansPage() {
     </main>
   );
 }
+

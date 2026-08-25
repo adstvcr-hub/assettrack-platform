@@ -1,5 +1,5 @@
 'use client';
-
+import { API_URL } from '@/lib/api';
 import { FormEvent, use, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
@@ -62,10 +62,10 @@ export default function AssetDetailPage({
         };
 
         const [assetResponse, scansResponse] = await Promise.all([
-          fetch(`http://localhost:3000/api/v1/assets/${id}`, {
+          fetch(`${API_URL}/api/v1/assets/${id}`, {
             headers,
           }),
-          fetch('http://localhost:3000/api/v1/scan-events', {
+          fetch(`${API_URL}/api/v1/scan-events`, {
             headers,
           }),
         ]);
@@ -131,7 +131,7 @@ export default function AssetDetailPage({
 
     try {
       const response = await fetch(
-        `http://localhost:3000/api/v1/assets/${id}`,
+        `${API_URL}/api/v1/assets/${id}`,
         {
           method: 'PATCH',
           headers: {
@@ -179,7 +179,7 @@ export default function AssetDetailPage({
 
   function openQr() {
     window.open(
-      `http://localhost:3000/api/v1/assets/${id}/qr/png`,
+      `${API_URL}/api/v1/assets/${id}/qr/png`,
       '_blank',
     );
   }

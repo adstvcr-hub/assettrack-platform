@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useRouter } from 'next/navigation';
 import { FormEvent, useState } from 'react';
@@ -16,7 +16,7 @@ export default function Home() {
     setMessage('');
 
     try {
-      const response = await fetch('http://localhost:3000/api/v1/auth/login', {
+      const response = await fetch('${process.env.NEXT_PUBLIC_API_URL}/api/v1/auth/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -37,7 +37,12 @@ export default function Home() {
       sessionStorage.setItem('assettrack_token', data.accessToken);
       sessionStorage.setItem('assettrack_user', JSON.stringify(data.user));
 
-      router.push('/dashboard');
+      const next =
+  typeof window !== 'undefined'
+    ? new URLSearchParams(window.location.search).get('next')
+    : null;
+
+router.push(next || '/dashboard');
     } catch {
       setMessage('Unable to connect to AssetTrack API');
     } finally {
@@ -117,3 +122,4 @@ export default function Home() {
     </main>
   );
 }
+

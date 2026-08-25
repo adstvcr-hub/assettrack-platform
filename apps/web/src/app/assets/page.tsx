@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { FormEvent, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -41,7 +41,7 @@ export default function AssetsPage() {
     if (!token) return;
 
     try {
-      const response = await fetch('http://localhost:3000/api/v1/assets', {
+      const response = await fetch('${process.env.NEXT_PUBLIC_API_URL}/api/v1/assets', {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -80,7 +80,7 @@ export default function AssetsPage() {
     setError('');
 
     try {
-      const response = await fetch('http://localhost:3000/api/v1/assets', {
+      const response = await fetch('${process.env.NEXT_PUBLIC_API_URL}/api/v1/assets', {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${token}`,
@@ -121,7 +121,7 @@ export default function AssetsPage() {
 
   function openQr(assetId: string) {
     window.open(
-      `http://localhost:3000/api/v1/assets/${assetId}/qr/png`,
+      `${process.env.NEXT_PUBLIC_API_URL}/api/v1/assets/${assetId}/qr/png`,
       '_blank',
     );
   }
@@ -249,7 +249,7 @@ export default function AssetsPage() {
       </td>
 
       <td className="py-4 pr-4 text-slate-600">
-        {asset.location ?? '—'}
+        {asset.location ?? 'â€”'}
       </td>
 
       <td className="py-4">
@@ -272,3 +272,4 @@ export default function AssetsPage() {
     </main>
   );
 }
+

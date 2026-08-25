@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
@@ -78,10 +78,10 @@ export default function DashboardPage() {
           usersResponse,
           scansResponse,
         ] = await Promise.all([
-          fetch('http://localhost:3000/api/v1/organizations/me', { headers }),
-          fetch('http://localhost:3000/api/v1/assets', { headers }),
-          fetch('http://localhost:3000/api/v1/users', { headers }),
-          fetch('http://localhost:3000/api/v1/scan-events', { headers }),
+          fetch('${process.env.NEXT_PUBLIC_API_URL}/api/v1/organizations/me', { headers }),
+          fetch('${process.env.NEXT_PUBLIC_API_URL}/api/v1/assets', { headers }),
+          fetch('${process.env.NEXT_PUBLIC_API_URL}/api/v1/users', { headers }),
+          fetch('${process.env.NEXT_PUBLIC_API_URL}/api/v1/scan-events', { headers }),
         ]);
 
         if (
@@ -229,7 +229,7 @@ export default function DashboardPage() {
                           {asset.status}
                         </td>
                         <td className="py-4 text-slate-600">
-                          {asset.location ?? '—'}
+                          {asset.location ?? 'â€”'}
                         </td>
                       </tr>
                     ))}
@@ -306,7 +306,7 @@ export default function DashboardPage() {
 
           <p className="text-sm text-slate-500">
             {scan.user?.name ?? 'Unknown user'}
-            {scan.notes ? ` · ${scan.notes}` : ''}
+            {scan.notes ? ` Â· ${scan.notes}` : ''}
           </p>
         </div>
 
@@ -323,3 +323,4 @@ export default function DashboardPage() {
     </main>
   );
 }
+
