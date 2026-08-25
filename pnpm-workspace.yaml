@@ -1,8 +1,9 @@
 packages:
   - "apps/*"
   - "packages/*"
+
 allowBuilds:
-  '@prisma/engines': set this to true or false
+  '@prisma/engines': true
   bcrypt: true
   prisma: true
   unrs-resolver: true
