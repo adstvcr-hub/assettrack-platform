@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import { API_URL } from '@/lib/api';
 
 type Organization = {
   id: string;
@@ -78,10 +79,10 @@ export default function DashboardPage() {
           usersResponse,
           scansResponse,
         ] = await Promise.all([
-          fetch('${process.env.NEXT_PUBLIC_API_URL}/api/v1/organizations/me', { headers }),
-          fetch('${process.env.NEXT_PUBLIC_API_URL}/api/v1/assets', { headers }),
-          fetch('${process.env.NEXT_PUBLIC_API_URL}/api/v1/users', { headers }),
-          fetch('${process.env.NEXT_PUBLIC_API_URL}/api/v1/scan-events', { headers }),
+          fetch(`${API_URL}/api/v1/organizations/me`, { headers }),
+          fetch(`${API_URL}/api/v1/assets`, { headers }),
+          fetch(`${API_URL}/api/v1/users`, { headers }),
+          fetch(`${API_URL}/api/v1/scan-events`, { headers }),
         ]);
 
         if (
