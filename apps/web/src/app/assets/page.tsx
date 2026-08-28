@@ -2,6 +2,7 @@
 
 import { FormEvent, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { API_URL } from '@/lib/api';
 
 type Asset = {
   id: string;
@@ -41,7 +42,7 @@ export default function AssetsPage() {
     if (!token) return;
 
     try {
-      const response = await fetch('${process.env.NEXT_PUBLIC_API_URL}/api/v1/assets', {
+      const response = await fetch('${API_URL}/api/v1/assets', {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -80,7 +81,7 @@ export default function AssetsPage() {
     setError('');
 
     try {
-      const response = await fetch('${process.env.NEXT_PUBLIC_API_URL}/api/v1/assets', {
+      const response = await fetch('${API_URL}/api/v1/assets', {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${token}`,
@@ -121,7 +122,7 @@ export default function AssetsPage() {
 
   function openQr(assetId: string) {
     window.open(
-      `${process.env.NEXT_PUBLIC_API_URL}/api/v1/assets/${assetId}/qr/png`,
+      `${API_URL}/api/v1/assets/${assetId}/qr/png`,
       '_blank',
     );
   }
