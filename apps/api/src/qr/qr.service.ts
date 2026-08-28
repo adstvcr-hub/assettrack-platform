@@ -9,7 +9,10 @@ export class QrService {
 async generatePngForAsset(assetId: string): Promise<Buffer> {
   const qr = await this.getOrCreateForAsset(assetId);
 
-const payload = `http://192.168.100.21:3001/scan?code=${qr.code}`;
+const webUrl =
+  process.env.PUBLIC_WEB_URL ?? 'http://localhost:3001';
+
+const payload = `${webUrl}/scan?code=${encodeURIComponent(qr.code)}`;
 
   return QRCode.toBuffer(payload, {
     type: 'png',
@@ -20,8 +23,10 @@ const payload = `http://192.168.100.21:3001/scan?code=${qr.code}`;
  async generateImageForAsset(assetId: string) {
   const qr = await this.getOrCreateForAsset(assetId);
 
-  const payload = `http://localhost:3000/api/v1/scan/${qr.code}`;
+ const webUrl =
+  process.env.PUBLIC_WEB_URL ?? 'http://localhost:3001';
 
+const payload = `${webUrl}/scan?code=${encodeURIComponent(qr.code)}`;
   const dataUrl = await QRCode.toDataURL(payload);
 
   return {
