@@ -42,7 +42,7 @@ export default function AssetsPage() {
     if (!token) return;
 
     try {
-      const response = await fetch('${API_URL}/api/v1/assets', {
+      const response = await fetch(`${API_URL}/api/v1/assets`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -81,7 +81,7 @@ export default function AssetsPage() {
     setError('');
 
     try {
-      const response = await fetch('${API_URL}/api/v1/assets', {
+      const response = await fetch(`${API_URL}/api/v1/assets`, {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${token}`,
