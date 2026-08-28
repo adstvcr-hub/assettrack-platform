@@ -11,6 +11,9 @@ import { Request } from 'express';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UsersService } from './users.service';
+import { UserRole } from '../generated/prisma/enums';
+import { Roles } from '../auth/roles.decorator';
+import { RolesGuard } from '../auth/roles.guard';
 
 type AuthenticatedRequest = Request & {
   user: {
@@ -22,11 +25,12 @@ type AuthenticatedRequest = Request & {
   };
 };
 
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
+  @Roles(UserRole.OWNER, UserRole.ADMIN)
   @Post()
   create(
     @Body() dto: CreateUserDto,
