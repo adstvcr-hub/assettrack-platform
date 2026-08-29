@@ -12,10 +12,13 @@ type User = {
   createdAt: string;
   updatedAt: string;
 };
+type CurrentUser = {
+  role: "OWNER" | "ADMIN" | "USER" | "VIEWER";
+};
 
 export default function UsersPage() {
   const router = useRouter();
-
+  const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
   const [users, setUsers] = useState<User[]>([]);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -73,8 +76,14 @@ export default function UsersPage() {
   }
 
   useEffect(() => {
-    loadUsers();
-  }, []);
+  const storedUser = sessionStorage.getItem("assettrack_user");
+
+  if (storedUser) {
+    setCurrentUser(JSON.parse(storedUser));
+  }
+
+  loadUsers();
+}, []);
 
   async function createUser(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -128,7 +137,8 @@ export default function UsersPage() {
       setSaving(false);
     }
   }
-
+const canManageUsers =
+  currentUser?.role === "OWNER" || currentUser?.role === "ADMIN";
   return (
     <main className="min-h-screen bg-slate-100">
       <header className="border-b bg-white">
@@ -154,6 +164,7 @@ export default function UsersPage() {
 
       <section className="mx-auto max-w-7xl px-6 py-10">
         <div className="grid gap-8 lg:grid-cols-[380px_1fr]">
+          {canManageUsers && (
           <form
             onSubmit={createUser}
             className="rounded-xl bg-white p-6 shadow-sm"
@@ -212,6 +223,7 @@ export default function UsersPage() {
               </button>
             </div>
           </form>
+          )}
 
           <div className="rounded-xl bg-white p-6 shadow-sm">
             <h2 className="text-xl font-bold text-slate-900">
