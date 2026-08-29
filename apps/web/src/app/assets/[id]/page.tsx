@@ -269,8 +269,8 @@ const canManageAssets =
 
                     <input
 
-  value={assetTag}
-  onChange={(event) => setAssetTag(event.target.value)}
+  value={name}
+  onChange={(event) => setName(event.target.value)}
   disabled={!canManageAssets}
   className="w-full rounded-lg border border-slate-300 px-4 py-3 disabled:bg-slate-100 disabled:text-slate-500"
   required
