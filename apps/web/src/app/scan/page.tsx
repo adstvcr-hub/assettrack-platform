@@ -236,25 +236,25 @@ async function startScanner() {
 
       <section className="mx-auto max-w-5xl px-6 py-10">
         <div className="grid gap-8 lg:grid-cols-2">
-          <div className="rounded-xl bg-white p-6 shadow-sm">
-            <h2 className="text-xl font-bold text-slate-900">
+          <div className="rounded-xl border border-slate-700 bg-slate-900 p-6 shadow-lg">
+            <h2 className="text-xl font-bold text-white">
               Camera
             </h2>
 
-            <p className="mt-2 text-sm text-slate-500">
+            <p className="mt-2 text-sm text-slate-300">
               Point the camera at an AssetTrack QR code.
             </p>
 
             <div
               id="qr-reader"
-              className="mt-6 overflow-hidden rounded-xl"
+              className="mt-6 min-h-64 overflow-hidden rounded-xl border-2 border-emerald-500 bg-slate-950"
             />
 
             <div className="mt-6 flex gap-3">
               <button
                 onClick={startScanner}
                 disabled={scanning}
-                className="rounded-lg bg-slate-900 px-4 py-3 font-semibold text-white disabled:opacity-50"
+                className="rounded-lg bg-emerald-500 px-4 py-3 font-bold text-slate-950 transition hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 Start camera
               </button>
@@ -262,20 +262,20 @@ async function startScanner() {
               <button
                 onClick={stopScanner}
                 disabled={!scanning}
-                className="rounded-lg border border-slate-300 px-4 py-3 font-semibold text-slate-700 disabled:opacity-50"
+                className="rounded-lg border border-slate-600 bg-slate-800 px-4 py-3 font-semibold text-white transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 Stop
               </button>
             </div>
           </div>
 
-          <div className="rounded-xl bg-white p-6 shadow-sm">
-            <h2 className="text-xl font-bold text-slate-900">
+          <div className="rounded-xl border border-slate-700 bg-slate-900 p-6 shadow-lg">
+            <h2 className="text-xl font-bold text-white">
               Record scan
             </h2>
 
             <div className="mt-6">
-              <label className="mb-2 block text-sm font-medium text-slate-700">
+             <label className="mb-2 block text-sm font-semibold text-slate-200">
                 QR code
               </label>
 
@@ -285,12 +285,12 @@ async function startScanner() {
                   setQrCode(event.target.value.toUpperCase())
                 }
                 placeholder="ATQR-..."
-                className="w-full rounded-lg border border-slate-300 px-4 py-3"
+                className="w-full rounded-lg border border-slate-600 bg-slate-950 px-4 py-3 text-white placeholder:text-slate-500 focus:border-emerald-400 focus:outline-none"
               />
             </div>
 
             <div className="mt-5">
-              <label className="mb-2 block text-sm font-medium text-slate-700">
+              <label className="mb-2 block text-sm font-semibold text-slate-200">
                 Notes
               </label>
 
@@ -298,14 +298,14 @@ async function startScanner() {
                 value={notes}
                 onChange={(event) => setNotes(event.target.value)}
                 placeholder="Optional notes about this scan"
-                className="min-h-32 w-full rounded-lg border border-slate-300 px-4 py-3"
+                className="min-h-32 w-full rounded-lg border border-slate-600 bg-slate-950 px-4 py-3 text-white placeholder:text-slate-500 focus:border-emerald-400 focus:outline-none"
               />
             </div>
 
             <button
               onClick={submitScan}
               disabled={submitting || !qrCode}
-              className="mt-6 w-full rounded-lg bg-slate-900 px-4 py-3 font-semibold text-white disabled:opacity-50"
+              className="mt-6 w-full rounded-lg bg-emerald-500 px-4 py-3 font-bold text-slate-950 transition hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {submitting ? 'Recording...' : 'Record scan'}
             </button>
