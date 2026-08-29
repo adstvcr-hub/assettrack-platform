@@ -85,8 +85,6 @@ if (storedUser) {
     event.preventDefault();
 
     const token = await getToken();
-const canManageAssets =
-  currentUser?.role === "OWNER" || currentUser?.role === "ADMIN";
     if (!token) return;
 
     setSaving(true);
