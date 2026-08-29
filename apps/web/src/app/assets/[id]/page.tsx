@@ -13,6 +13,9 @@ type Asset = {
   createdAt: string;
   updatedAt: string;
 };
+type CurrentUser = {
+  role: "OWNER" | "ADMIN" | "USER" | "VIEWER";
+};
 
 type ScanEvent = {
   id: string;
@@ -31,6 +34,7 @@ export default function AssetDetailPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
+  const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
   const { id } = use(params);
   const router = useRouter();
 
@@ -49,7 +53,11 @@ export default function AssetDetailPage({
 
   useEffect(() => {
     const token = sessionStorage.getItem("assettrack_token");
+const storedUser = sessionStorage.getItem("assettrack_user");
 
+if (storedUser) {
+  setCurrentUser(JSON.parse(storedUser));
+}
     if (!token) {
       router.replace("/");
       return;
@@ -199,7 +207,8 @@ async function openQr() {
     throw error;
   }
 }
-
+const canManageAssets =
+  currentUser?.role === "OWNER" || currentUser?.role === "ADMIN";
   return (
     <main className="min-h-screen bg-slate-100">
       <header className="border-b bg-white">
@@ -259,11 +268,13 @@ async function openQr() {
                     </label>
 
                     <input
-                      value={name}
-                      onChange={(event) => setName(event.target.value)}
-                      className="w-full rounded-lg border border-slate-300 px-4 py-3"
-                      required
-                    />
+
+  value={assetTag}
+  onChange={(event) => setAssetTag(event.target.value)}
+  disabled={!canManageAssets}
+  className="w-full rounded-lg border border-slate-300 px-4 py-3 disabled:bg-slate-100 disabled:text-slate-500"
+  required
+/>
                   </div>
 
                   <div>
@@ -284,11 +295,12 @@ async function openQr() {
                       Location
                     </label>
 
-                    <input
-                      value={location}
-                      onChange={(event) => setLocation(event.target.value)}
-                      className="w-full rounded-lg border border-slate-300 px-4 py-3"
-                    />
+                   <input
+  value={location}
+  onChange={(event) => setLocation(event.target.value)}
+  disabled={!canManageAssets}
+  className="w-full rounded-lg border border-slate-300 px-4 py-3 disabled:bg-slate-100 disabled:text-slate-500"
+/>
                   </div>
 
                   <div>
@@ -296,13 +308,14 @@ async function openQr() {
                       Status
                     </label>
 
-                    <select
-                      value={status}
-                      onChange={(event) =>
-                        setStatus(event.target.value as Asset["status"])
-                      }
-                      className="w-full rounded-lg border border-slate-300 px-4 py-3"
-                    >
+                  <select
+  value={status}
+  onChange={(event) =>
+    setStatus(event.target.value as Asset["status"])
+  }
+  disabled={!canManageAssets}
+  className="w-full rounded-lg border border-slate-300 px-4 py-3 disabled:bg-slate-100 disabled:text-slate-500"
+>
                       <option value="ACTIVE">Active</option>
                       <option value="INACTIVE">Inactive</option>
                       <option value="MAINTENANCE">Maintenance</option>
@@ -316,13 +329,14 @@ async function openQr() {
                     Description
                   </label>
 
-                  <textarea
-                    value={description}
-                    onChange={(event) => setDescription(event.target.value)}
-                    className="min-h-32 w-full rounded-lg border border-slate-300 px-4 py-3"
-                  />
+                 <textarea
+  value={description}
+  onChange={(event) => setDescription(event.target.value)}
+  disabled={!canManageAssets}
+  className="min-h-32 w-full rounded-lg border border-slate-300 px-4 py-3 disabled:bg-slate-100 disabled:text-slate-500"
+/>
                 </div>
-
+{canManageAssets && (
                 <button
                   type="submit"
                   disabled={saving}
@@ -330,6 +344,7 @@ async function openQr() {
                 >
                   {saving ? "Saving..." : "Save changes"}
                 </button>
+                )}
               </form>
 
               <div className="space-y-6">
