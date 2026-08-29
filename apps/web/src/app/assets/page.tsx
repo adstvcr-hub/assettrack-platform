@@ -13,9 +13,14 @@ type Asset = {
   location?: string | null;
 };
 
-export default function AssetsPage() {
-  const router = useRouter();
+type CurrentUser = {
+  role: "OWNER" | "ADMIN" | "USER" | "VIEWER";
+};
 
+
+export default function AssetsPage() {
+  const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
+  const router = useRouter();
   const [assets, setAssets] = useState<Asset[]>([]);
   const [name, setName] = useState("");
   const [assetTag, setAssetTag] = useState("");
@@ -67,6 +72,12 @@ export default function AssetsPage() {
   }
 
   useEffect(() => {
+    const storedUser = sessionStorage.getItem("assettrack_user");
+
+if (storedUser) {
+  setCurrentUser(JSON.parse(storedUser));
+}
+    
     loadAssets();
   }, []);
 
@@ -74,7 +85,8 @@ export default function AssetsPage() {
     event.preventDefault();
 
     const token = await getToken();
-
+const canManageAssets =
+  currentUser?.role === "OWNER" || currentUser?.role === "ADMIN";
     if (!token) return;
 
     setSaving(true);
@@ -156,7 +168,8 @@ export default function AssetsPage() {
       throw error;
     }
   }
-
+const canManageAssets =
+  currentUser?.role === "OWNER" || currentUser?.role === "ADMIN";
 
   return (
     <main className="min-h-screen bg-slate-100">
@@ -181,6 +194,7 @@ export default function AssetsPage() {
 
       <section className="mx-auto max-w-7xl px-6 py-10">
         <div className="grid gap-8 lg:grid-cols-[380px_1fr]">
+         {canManageAssets && (
           <form
             onSubmit={createAsset}
             className="rounded-xl bg-white p-6 shadow-sm"
@@ -227,6 +241,7 @@ export default function AssetsPage() {
               </button>
             </div>
           </form>
+          )}
 
           <div className="rounded-xl bg-white p-6 shadow-sm">
             <h2 className="text-xl font-bold text-slate-900">
