@@ -1,5 +1,5 @@
 ﻿'use client';
-
+import { API_URL } from '@/lib/api';
 import { FormEvent, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
@@ -44,7 +44,7 @@ export default function UsersPage() {
 
     try {
       const response = await fetch(
-        '${process.env.NEXT_PUBLIC_API_URL}/api/v1/users',
+        `${API_URL}/api/v1/users`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -88,7 +88,7 @@ export default function UsersPage() {
 
     try {
       const response = await fetch(
-        '${process.env.NEXT_PUBLIC_API_URL}/api/v1/users',
+        `${API_URL}/api/v1/users`,
         {
           method: 'POST',
           headers: {
