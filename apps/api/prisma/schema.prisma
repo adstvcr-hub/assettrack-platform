@@ -67,7 +67,7 @@ model Asset {
   organization  Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   qrCode        QrCode?
   scanEvents    ScanEvent[]
-  refreshTokens RefreshToken[]
+  
 
   @@unique([organizationId, assetTag])
   @@index([organizationId])
@@ -113,9 +113,7 @@ model RefreshToken {
   createdAt DateTime  @default(now())
   revokedAt DateTime?
 
-  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  asset   Asset?  @relation(fields: [assetId], references: [id])
-  assetId String?
+user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([expiresAt])
