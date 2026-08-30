@@ -55,7 +55,8 @@ export const ModelName = {
   User: 'User',
   Asset: 'Asset',
   QrCode: 'QrCode',
-  ScanEvent: 'ScanEvent'
+  ScanEvent: 'ScanEvent',
+  RefreshToken: 'RefreshToken'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -136,6 +137,18 @@ export const ScanEventScalarFieldEnum = {
 } as const
 
 export type ScanEventScalarFieldEnum = (typeof ScanEventScalarFieldEnum)[keyof typeof ScanEventScalarFieldEnum]
+
+
+export const RefreshTokenScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  tokenHash: 'tokenHash',
+  expiresAt: 'expiresAt',
+  createdAt: 'createdAt',
+  revokedAt: 'revokedAt'
+} as const
+
+export type RefreshTokenScalarFieldEnum = (typeof RefreshTokenScalarFieldEnum)[keyof typeof RefreshTokenScalarFieldEnum]
 
 
 export const SortOrder = {

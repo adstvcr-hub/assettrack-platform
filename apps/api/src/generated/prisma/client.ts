@@ -64,3 +64,8 @@ export type QrCode = Prisma.QrCodeModel
  * 
  */
 export type ScanEvent = Prisma.ScanEventModel
+/**
+ * Model RefreshToken
+ * 
+ */
+export type RefreshToken = Prisma.RefreshTokenModel

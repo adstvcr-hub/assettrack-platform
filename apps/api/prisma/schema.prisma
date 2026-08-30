@@ -35,18 +35,19 @@ model Organization {
 }
 
 model User {
-  id             String       @id @default(uuid())
+  id             String   @id @default(uuid())
   organizationId String
   email          String
   name           String
   passwordHash   String
-  role           UserRole     @default(USER)
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
+  role           UserRole @default(USER)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
-  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  scanEvents   ScanEvent[]
-refreshTokens RefreshToken[]
+  organization  Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  scanEvents    ScanEvent[]
+  refreshTokens RefreshToken[]
+
   @@unique([organizationId, email])
   @@index([organizationId])
   @@map("users")
@@ -63,9 +64,10 @@ model Asset {
   createdAt      DateTime    @default(now())
   updatedAt      DateTime    @updatedAt
 
-  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  qrCode       QrCode?
-  scanEvents   ScanEvent[]
+  organization  Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  qrCode        QrCode?
+  scanEvents    ScanEvent[]
+  refreshTokens RefreshToken[]
 
   @@unique([organizationId, assetTag])
   @@index([organizationId])
@@ -95,22 +97,25 @@ model ScanEvent {
   longitude Decimal? @db.Decimal(10, 7)
 
   asset Asset @relation(fields: [assetId], references: [id], onDelete: Cascade)
-  user  User?  @relation(fields: [userId], references: [id], onDelete: SetNull)
+  user  User? @relation(fields: [userId], references: [id], onDelete: SetNull)
 
   @@index([assetId])
   @@index([userId])
   @@index([scannedAt])
   @@map("scan_events")
 }
+
 model RefreshToken {
-  id        String   @id @default(uuid())
+  id        String    @id @default(uuid())
   userId    String
-  tokenHash String   @unique
+  tokenHash String    @unique
   expiresAt DateTime
-  createdAt DateTime @default(now())
+  createdAt DateTime  @default(now())
   revokedAt DateTime?
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  asset   Asset?  @relation(fields: [assetId], references: [id])
+  assetId String?
 
   @@index([userId])
   @@index([expiresAt])
