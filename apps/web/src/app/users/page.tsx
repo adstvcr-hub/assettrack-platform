@@ -1,5 +1,5 @@
 ﻿'use client';
-import { API_URL } from '@/lib/api';
+import { API_URL, authenticatedFetch } from '@/lib/api';
 import { FormEvent, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
@@ -46,8 +46,8 @@ export default function UsersPage() {
     if (!token) return;
 
     try {
-      const response = await fetch(
-        `${API_URL}/api/v1/users`,
+      const response = await authenticatedFetch(
+  `${API_URL}/api/v1/users`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -96,7 +96,7 @@ export default function UsersPage() {
     setError('');
 
     try {
-      const response = await fetch(
+      const response = await authenticatedFetch(
         `${API_URL}/api/v1/users`,
         {
           method: 'POST',
@@ -140,15 +140,15 @@ export default function UsersPage() {
 const canManageUsers =
   currentUser?.role === "OWNER" || currentUser?.role === "ADMIN";
   return (
-    <main className="min-h-screen bg-slate-100">
-      <header className="border-b bg-white">
+    <main className="min-h-screen bg-slate-950 text-white">
+      <header className="border-b border-slate-800 bg-slate-900">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-5">
           <div>
-            <p className="text-sm font-semibold uppercase tracking-[0.2em] text-slate-500">
-              AssetTrack
-            </p>
+            <p className="text-sm font-semibold uppercase tracking-[0.2em] text-emerald-400">
+  AssetTrack
+</p>
 
-            <h1 className="text-2xl font-bold text-slate-900">
+ <h1 className="text-2xl font-bold text-white">
               Users
             </h1>
           </div>

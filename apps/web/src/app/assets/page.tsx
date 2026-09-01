@@ -2,7 +2,7 @@
 
 import { FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { API_URL } from "@/lib/api";
+import { API_URL, authenticatedFetch } from "@/lib/api";
 
 type Asset = {
   id: string;
@@ -47,11 +47,11 @@ export default function AssetsPage() {
     if (!token) return;
 
     try {
-      const response = await fetch(`${API_URL}/api/v1/assets`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await authenticatedFetch(`${API_URL}/api/v1/assets`, {
+  headers: {
+    Authorization: `Bearer ${token}`,
+  },
+});
 
       if (response.status === 401) {
         sessionStorage.clear();
@@ -91,7 +91,7 @@ if (storedUser) {
     setError("");
 
     try {
-      const response = await fetch(`${API_URL}/api/v1/assets`, {
+      const response = await authenticatedFetch(`${API_URL}/api/v1/assets`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -138,8 +138,8 @@ if (storedUser) {
     const qrWindow = window.open("", "_blank");
 
     try {
-      const response = await fetch(
-        `${API_URL}/api/v1/assets/${assetId}/qr/png`,
+      const response = await authenticatedFetch(
+  `${API_URL}/api/v1/assets/${assetId}/qr/png`,
         {
           headers: {
             Authorization: `Bearer ${token}`,

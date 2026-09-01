@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { API_URL } from '@/lib/api';
+import { API_URL, authenticatedFetch } from '@/lib/api';
 
 type Organization = {
   id: string;
@@ -79,10 +79,10 @@ export default function DashboardPage() {
           usersResponse,
           scansResponse,
         ] = await Promise.all([
-          fetch(`${API_URL}/api/v1/organizations/me`, { headers }),
-          fetch(`${API_URL}/api/v1/assets`, { headers }),
-          fetch(`${API_URL}/api/v1/users`, { headers }),
-          fetch(`${API_URL}/api/v1/scan-events`, { headers }),
+          authenticatedFetch(`${API_URL}/api/v1/organizations/me`, { headers }),
+          authenticatedFetch(`${API_URL}/api/v1/assets`, { headers }),
+          authenticatedFetch(`${API_URL}/api/v1/users`, { headers }),
+          authenticatedFetch(`${API_URL}/api/v1/scan-events`, { headers }),
         ]);
 
         if (
@@ -119,11 +119,18 @@ export default function DashboardPage() {
     loadDashboard();
   }, [router]);
 
-  function logout() {
+  async function logout() {
+  try {
+    await fetch(`${API_URL}/api/v1/auth/logout`, {
+      method: 'POST',
+      credentials: 'include',
+    });
+  } finally {
     sessionStorage.removeItem('assettrack_token');
     sessionStorage.removeItem('assettrack_user');
     router.replace('/');
   }
+}
 
   return (
     <main className="min-h-screen bg-slate-100">

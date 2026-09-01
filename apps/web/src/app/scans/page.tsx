@@ -1,5 +1,5 @@
 ﻿'use client';
-import { API_URL } from '@/lib/api';
+import { API_URL, authenticatedFetch } from '@/lib/api';
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
@@ -46,7 +46,7 @@ export default function ScansPage() {
 
     async function loadScans() {
       try {
-        const response = await fetch(
+        const response = await authenticatedFetch(
           `${API_URL}/api/v1/scan-events`,
           {
             headers: {

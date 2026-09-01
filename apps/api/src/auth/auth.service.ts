@@ -66,7 +66,7 @@ export class AuthService {
       },
     });
 
-    return {
+       return {
       accessToken,
       refreshToken,
       user: {
@@ -77,6 +77,20 @@ export class AuthService {
         role: user.role,
       },
     };
+  }
+
+  async logout(refreshToken: string) {
+    const tokenHash = this.hashToken(refreshToken);
+
+    await this.prisma.refreshToken.updateMany({
+      where: {
+        tokenHash,
+        revokedAt: null,
+      },
+      data: {
+        revokedAt: new Date(),
+      },
+    });
   }
 
   async refresh(refreshToken: string) {

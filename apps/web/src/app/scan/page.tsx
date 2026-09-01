@@ -3,6 +3,7 @@
 import { Suspense, useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSearchParams } from 'next/navigation';
+import { API_URL, authenticatedFetch } from '@/lib/api';
 
 function ScanPageContent() {
   const router = useRouter();
@@ -162,8 +163,8 @@ async function startScanner() {
     setMessage('');
 
     try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/v1/scan/${encodeURIComponent(qrCode)}`,
+      const response = await authenticatedFetch(
+  `${API_URL}/api/v1/scan/${encodeURIComponent(qrCode)}`,
         {
           method: 'POST',
           headers: {

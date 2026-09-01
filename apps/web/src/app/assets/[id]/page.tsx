@@ -1,5 +1,5 @@
 "use client";
-import { API_URL } from "@/lib/api";
+import { API_URL, authenticatedFetch } from "@/lib/api";
 import { FormEvent, use, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
@@ -70,10 +70,10 @@ if (storedUser) {
         };
 
         const [assetResponse, scansResponse] = await Promise.all([
-          fetch(`${API_URL}/api/v1/assets/${id}`, {
-            headers,
-          }),
-          fetch(`${API_URL}/api/v1/scan-events`, {
+          authenticatedFetch(`${API_URL}/api/v1/assets/${id}`, {
+  headers,
+}),
+          authenticatedFetch(`${API_URL}/api/v1/scan-events`, {
             headers,
           }),
         ]);
@@ -129,7 +129,7 @@ if (storedUser) {
     setMessage("");
 
     try {
-      const response = await fetch(`${API_URL}/api/v1/assets/${id}`, {
+     const response = await authenticatedFetch(`${API_URL}/api/v1/assets/${id}`, {
         method: "PATCH",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -179,8 +179,8 @@ async function openQr() {
   const qrWindow = window.open('', '_blank');
 
   try {
-    const response = await fetch(
-      `${API_URL}/api/v1/assets/${id}/qr/png`,
+    const response = await authenticatedFetch(
+  `${API_URL}/api/v1/assets/${id}/qr/png`,
       {
         headers: {
           Authorization: `Bearer ${token}`,
