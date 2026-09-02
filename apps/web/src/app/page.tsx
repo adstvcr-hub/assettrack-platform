@@ -6,6 +6,7 @@ import { API_URL } from '@/lib/api';
 
 export default function Home() {
   const router = useRouter();
+  const [organizationSlug, setOrganizationSlug] = useState('assettrack-demo');
   const [email, setEmail] = useState('admin@assettrack.local');
   const [password, setPassword] = useState('');
   const [message, setMessage] = useState('');
@@ -23,10 +24,11 @@ export default function Home() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          email,
-          password,
-        }),
+       body: JSON.stringify({
+  organizationSlug,
+  email,
+  password,
+}),
       });
 
       const data = await response.json();
@@ -70,6 +72,23 @@ export default function Home() {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-5">
+          <div>
+  <label
+    htmlFor="organizationSlug"
+    className="mb-2 block text-sm font-medium text-slate-700"
+  >
+    Organization
+  </label>
+
+  <input
+    id="organizationSlug"
+    type="text"
+    value={organizationSlug}
+    onChange={(event) => setOrganizationSlug(event.target.value)}
+    className="w-full rounded-lg border border-slate-300 px-4 py-3 text-slate-900 outline-none focus:border-slate-900"
+    required
+  />
+</div>
           <div>
             <label
               htmlFor="email"
