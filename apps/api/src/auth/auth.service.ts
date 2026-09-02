@@ -125,23 +125,29 @@ const newRefreshToken = this.generateRefreshToken();
 const newRefreshTokenHash = this.hashToken(newRefreshToken);
 const newRefreshTokenExpiresAt = this.getRefreshTokenExpiry();
 
-await this.prisma.$transaction([
-  this.prisma.refreshToken.update({
+await this.prisma.$transaction(async (tx) => {
+  const revoked = await tx.refreshToken.updateMany({
     where: {
       id: storedToken.id,
+      revokedAt: null,
     },
     data: {
       revokedAt: new Date(),
     },
-  }),
-  this.prisma.refreshToken.create({
+  });
+
+  if (revoked.count !== 1) {
+    throw new UnauthorizedException('Invalid refresh token');
+  }
+
+  await tx.refreshToken.create({
     data: {
       userId: storedToken.user.id,
       tokenHash: newRefreshTokenHash,
       expiresAt: newRefreshTokenExpiresAt,
     },
-  }),
-]);
+  });
+});
 
 return {
   accessToken,
