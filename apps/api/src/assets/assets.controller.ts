@@ -4,6 +4,7 @@ import {
   Get,
   Param,
   Post,
+  Query,
   Req,
   UseGuards,
   Patch,
@@ -16,6 +17,7 @@ import { UpdateAssetDto } from "./dto/update-asset.dto";
 import { UserRole } from "../generated/prisma/enums";
 import { Roles } from "../auth/roles.decorator";
 import { RolesGuard } from "../auth/roles.guard";
+import { AssetsQueryDto } from "./dto/assets-query.dto";
 
 type AuthenticatedRequest = Request & {
   user: {
@@ -47,8 +49,12 @@ export class AssetsController {
   }
 
   @Get()
-  findAll(@Req() req: AuthenticatedRequest) {
-    return this.assetsService.findAll(req.user.organizationId);
+  findAll(@Req() req: AuthenticatedRequest, @Query() query: AssetsQueryDto) {
+    return this.assetsService.findAll(
+      req.user.organizationId,
+      query.page,
+      query.limit,
+    );
   }
 
   @Get(":id")
