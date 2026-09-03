@@ -3,13 +3,14 @@ import {
   Controller,
   Get,
   Post,
+  Query,
   Req,
   UseGuards,
-} from '@nestjs/common';
-import { Request } from 'express';
-import { JwtAuthGuard } from '../auth/jwt-auth.guard';
-import { CreateScanEventDto } from './dto/create-scan-event.dto';
-import { ScanEventsService } from './scan-events.service';
+} from "@nestjs/common";
+import { Request } from "express";
+import { JwtAuthGuard } from "../auth/jwt-auth.guard";
+import { CreateScanEventDto } from "./dto/create-scan-event.dto";
+import { ScanEventsService } from "./scan-events.service";
 
 type AuthenticatedRequest = Request & {
   user: {
@@ -22,15 +23,12 @@ type AuthenticatedRequest = Request & {
 };
 
 @UseGuards(JwtAuthGuard)
-@Controller('scan-events')
+@Controller("scan-events")
 export class ScanEventsController {
   constructor(private readonly scanEventsService: ScanEventsService) {}
 
   @Post()
-  create(
-    @Body() dto: CreateScanEventDto,
-    @Req() req: AuthenticatedRequest,
-  ) {
+  create(@Body() dto: CreateScanEventDto, @Req() req: AuthenticatedRequest) {
     return this.scanEventsService.create(
       req.user.organizationId,
       req.user.id,
@@ -39,9 +37,15 @@ export class ScanEventsController {
   }
 
   @Get()
-  findAll(@Req() req: AuthenticatedRequest) {
+  findAll(
+    @Req() req: AuthenticatedRequest,
+    @Query("page") page = "1",
+    @Query("limit") limit = "25",
+  ) {
     return this.scanEventsService.findAll(
       req.user.organizationId,
+      Number(page),
+      Number(limit),
     );
   }
 }

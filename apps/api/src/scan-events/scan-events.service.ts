@@ -1,6 +1,6 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service';
-import { CreateScanEventDto } from './dto/create-scan-event.dto';
+import { Injectable, NotFoundException } from "@nestjs/common";
+import { PrismaService } from "../prisma/prisma.service";
+import { CreateScanEventDto } from "./dto/create-scan-event.dto";
 
 @Injectable()
 export class ScanEventsService {
@@ -19,7 +19,7 @@ export class ScanEventsService {
     });
 
     if (!asset) {
-      throw new NotFoundException('Asset not found');
+      throw new NotFoundException("Asset not found");
     }
 
     return this.prisma.scanEvent.create({
@@ -33,7 +33,7 @@ export class ScanEventsService {
     });
   }
 
-  findAll(organizationId: string) {
+  findAll(organizationId: string, page = 1, limit = 25) {
     return this.prisma.scanEvent.findMany({
       where: {
         asset: {
@@ -41,8 +41,10 @@ export class ScanEventsService {
         },
       },
       orderBy: {
-        scannedAt: 'desc',
+        scannedAt: "desc",
       },
+      skip: (page - 1) * limit,
+      take: limit,
       include: {
         asset: true,
         user: {
