@@ -7,11 +7,12 @@ import {
   Post,
   Req,
   UseGuards,
-} from '@nestjs/common';
-import { Request } from 'express';
-import { JwtAuthGuard } from '../auth/jwt-auth.guard';
-import { PrismaService } from '../prisma/prisma.service';
-import { ScanByCodeDto } from './dto/scan-by-code.dto';
+} from "@nestjs/common";
+import { Request } from "express";
+import { JwtAuthGuard } from "../auth/jwt-auth.guard";
+import { PrismaService } from "../prisma/prisma.service";
+import { ScanByCodeDto } from "./dto/scan-by-code.dto";
+import { Throttle } from "@nestjs/throttler";
 
 type AuthenticatedRequest = Request & {
   user: {
@@ -23,25 +24,34 @@ type AuthenticatedRequest = Request & {
   };
 };
 
-@Controller('scan')
+@Controller("scan")
 export class ScanController {
   constructor(private readonly prisma: PrismaService) {}
 
-  @Get(':code')
-  async resolve(@Param('code') code: string) {
+  @Throttle({ default: { limit: 30, ttl: 60000 } })
+  @Get(":code")
+  async resolve(@Param("code") code: string) {
     const qr = await this.prisma.qrCode.findUnique({
       where: { code },
       include: {
         asset: {
-          include: {
-            organization: true,
+          select: {
+            id: true,
+            name: true,
+            assetTag: true,
+            status: true,
+            organization: {
+              select: {
+                name: true,
+              },
+            },
           },
         },
       },
     });
 
     if (!qr) {
-      throw new NotFoundException('QR code not found');
+      throw new NotFoundException("QR code not found");
     }
 
     return {
@@ -51,9 +61,9 @@ export class ScanController {
   }
 
   @UseGuards(JwtAuthGuard)
-  @Post(':code')
+  @Post(":code")
   async scan(
-    @Param('code') code: string,
+    @Param("code") code: string,
     @Body() dto: ScanByCodeDto,
     @Req() req: AuthenticatedRequest,
   ) {
@@ -65,13 +75,13 @@ export class ScanController {
     });
 
     if (!qr) {
-      throw new NotFoundException('QR code not found');
+      throw new NotFoundException("QR code not found");
     }
 
     // Multi-tenant security boundary:
     // users may only scan assets belonging to their organization.
     if (qr.asset.organizationId !== req.user.organizationId) {
-      throw new NotFoundException('QR code not found');
+      throw new NotFoundException("QR code not found");
     }
 
     return this.prisma.scanEvent.create({
