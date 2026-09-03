@@ -5,6 +5,7 @@ import * as cookieParser from 'cookie-parser';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  app.getHttpAdapter().getInstance().set('trust proxy', 1);
   app.use(cookieParser());
   const webOrigin =
     process.env.WEB_ORIGIN ?? 'http://localhost:3001';
