@@ -1,7 +1,7 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import * as bcrypt from 'bcrypt';
-import { PrismaService } from '../prisma/prisma.service';
-import { CreateUserDto } from './dto/create-user.dto';
+import { Injectable, NotFoundException } from "@nestjs/common";
+import * as bcrypt from "bcrypt";
+import { PrismaService } from "../prisma/prisma.service";
+import { CreateUserDto } from "./dto/create-user.dto";
 
 @Injectable()
 export class UsersService {
@@ -30,14 +30,16 @@ export class UsersService {
     });
   }
 
-  findAll(organizationId: string) {
+  findAll(organizationId: string, page = 1, limit = 25) {
     return this.prisma.user.findMany({
       where: {
         organizationId,
       },
       orderBy: {
-        createdAt: 'desc',
+        createdAt: "desc",
       },
+      skip: (page - 1) * limit,
+      take: limit,
       select: {
         id: true,
         organizationId: true,
@@ -68,7 +70,7 @@ export class UsersService {
     });
 
     if (!user) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException("User not found");
     }
 
     return user;
