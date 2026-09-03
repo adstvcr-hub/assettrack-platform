@@ -11,6 +11,7 @@ import { Request } from "express";
 import { JwtAuthGuard } from "../auth/jwt-auth.guard";
 import { CreateScanEventDto } from "./dto/create-scan-event.dto";
 import { ScanEventsService } from "./scan-events.service";
+import { ScanEventsQueryDto } from "./dto/scan-events-query.dto";
 
 type AuthenticatedRequest = Request & {
   user: {
@@ -39,13 +40,12 @@ export class ScanEventsController {
   @Get()
   findAll(
     @Req() req: AuthenticatedRequest,
-    @Query("page") page = "1",
-    @Query("limit") limit = "25",
+    @Query() query: ScanEventsQueryDto,
   ) {
     return this.scanEventsService.findAll(
       req.user.organizationId,
-      Number(page),
-      Number(limit),
+      query.page,
+      query.limit,
     );
   }
 }
