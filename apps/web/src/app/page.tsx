@@ -1,54 +1,54 @@
-﻿'use client';
+﻿"use client";
 
-import { useRouter } from 'next/navigation';
-import { FormEvent, useState } from 'react';
-import { API_URL } from '@/lib/api';
+import { useRouter } from "next/navigation";
+import { FormEvent, useState } from "react";
+import { API_URL } from "@/lib/api";
 
 export default function Home() {
   const router = useRouter();
-  const [organizationSlug, setOrganizationSlug] = useState('assettrack-demo');
-  const [email, setEmail] = useState('admin@assettrack.local');
-  const [password, setPassword] = useState('');
-  const [message, setMessage] = useState('');
+  const [organizationSlug, setOrganizationSlug] = useState("assettrack-demo");
+  const [email, setEmail] = useState("admin@assettrack.local");
+  const [password, setPassword] = useState("");
+  const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setLoading(true);
-    setMessage('');
+    setMessage("");
 
     try {
       const response = await fetch(`${API_URL}/api/v1/auth/login`, {
-        method: 'POST',
-        credentials: 'include',
+        method: "POST",
+        credentials: "include",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
-       body: JSON.stringify({
-  organizationSlug,
-  email,
-  password,
-}),
+        body: JSON.stringify({
+          organizationSlug,
+          email,
+          password,
+        }),
       });
 
       const data = await response.json();
 
       if (!response.ok) {
-        setMessage(data.message ?? 'Login failed');
+        setMessage(data.message ?? "Login failed");
         return;
       }
 
-      sessionStorage.setItem('assettrack_token', data.accessToken);
-      sessionStorage.setItem('assettrack_user', JSON.stringify(data.user));
+      sessionStorage.setItem("assettrack_token", data.accessToken);
+      sessionStorage.setItem("assettrack_user", JSON.stringify(data.user));
 
       const next =
-        typeof window !== 'undefined'
-          ? new URLSearchParams(window.location.search).get('next')
+        typeof window !== "undefined"
+          ? new URLSearchParams(window.location.search).get("next")
           : null;
 
-      router.push(next || '/dashboard');
+      router.push(next || "/dashboard");
     } catch {
-      setMessage('Unable to connect to AssetTrack API');
+      setMessage("Unable to connect to AssetTrack API");
     } finally {
       setLoading(false);
     }
@@ -62,9 +62,7 @@ export default function Home() {
             AssetTrack
           </p>
 
-          <h1 className="mt-2 text-3xl font-bold text-slate-900">
-            Sign in
-          </h1>
+          <h1 className="mt-2 text-3xl font-bold text-slate-900">Sign in</h1>
 
           <p className="mt-2 text-sm text-slate-600">
             Access your organization, assets, users, and scan history.
@@ -73,22 +71,22 @@ export default function Home() {
 
         <form onSubmit={handleSubmit} className="space-y-5">
           <div>
-  <label
-    htmlFor="organizationSlug"
-    className="mb-2 block text-sm font-medium text-slate-700"
-  >
-    Organization
-  </label>
+            <label
+              htmlFor="organizationSlug"
+              className="mb-2 block text-sm font-medium text-slate-700"
+            >
+              Organization
+            </label>
 
-  <input
-    id="organizationSlug"
-    type="text"
-    value={organizationSlug}
-    onChange={(event) => setOrganizationSlug(event.target.value)}
-    className="w-full rounded-lg border border-slate-300 px-4 py-3 text-slate-900 outline-none focus:border-slate-900"
-    required
-  />
-</div>
+            <input
+              id="organizationSlug"
+              type="text"
+              value={organizationSlug}
+              onChange={(event) => setOrganizationSlug(event.target.value)}
+              className="w-full rounded-lg border border-slate-300 px-4 py-3 text-slate-900 outline-none focus:border-slate-900"
+              required
+            />
+          </div>
           <div>
             <label
               htmlFor="email"
@@ -130,7 +128,7 @@ export default function Home() {
             disabled={loading}
             className="w-full rounded-lg bg-slate-900 px-4 py-3 font-semibold text-white transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {loading ? 'Signing in...' : 'Sign in'}
+            {loading ? "Signing in..." : "Sign in"}
           </button>
         </form>
 
@@ -143,4 +141,3 @@ export default function Home() {
     </main>
   );
 }
-

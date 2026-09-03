@@ -1,9 +1,9 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
-import { createHash, randomBytes } from 'crypto';
-import * as bcrypt from 'bcrypt';
-import { PrismaService } from '../prisma/prisma.service';
-import { LoginDto } from './dto/login.dto';
+import { Injectable, UnauthorizedException } from "@nestjs/common";
+import { JwtService } from "@nestjs/jwt";
+import { createHash, randomBytes } from "crypto";
+import * as bcrypt from "bcrypt";
+import { PrismaService } from "../prisma/prisma.service";
+import { LoginDto } from "./dto/login.dto";
 
 @Injectable()
 export class AuthService {
@@ -13,11 +13,11 @@ export class AuthService {
   ) {}
 
   private hashToken(token: string) {
-    return createHash('sha256').update(token).digest('hex');
+    return createHash("sha256").update(token).digest("hex");
   }
 
   private generateRefreshToken() {
-    return randomBytes(48).toString('hex');
+    return randomBytes(48).toString("hex");
   }
 
   private getRefreshTokenExpiry() {
@@ -27,26 +27,23 @@ export class AuthService {
   }
 
   async login(dto: LoginDto) {
-   const user = await this.prisma.user.findFirst({
-  where: {
-    email: dto.email,
-    organization: {
-      slug: dto.organizationSlug,
-    },
-  },
-});
+    const user = await this.prisma.user.findFirst({
+      where: {
+        email: dto.email,
+        organization: {
+          slug: dto.organizationSlug,
+        },
+      },
+    });
 
     if (!user) {
-      throw new UnauthorizedException('Invalid credentials');
+      throw new UnauthorizedException("Invalid credentials");
     }
 
-    const passwordValid = await bcrypt.compare(
-      dto.password,
-      user.passwordHash,
-    );
+    const passwordValid = await bcrypt.compare(dto.password, user.passwordHash);
 
     if (!passwordValid) {
-      throw new UnauthorizedException('Invalid credentials');
+      throw new UnauthorizedException("Invalid credentials");
     }
 
     const payload = {
@@ -69,7 +66,7 @@ export class AuthService {
       },
     });
 
-       return {
+    return {
       accessToken,
       refreshToken,
       user: {
@@ -113,7 +110,7 @@ export class AuthService {
       storedToken.revokedAt ||
       storedToken.expiresAt <= new Date()
     ) {
-      throw new UnauthorizedException('Invalid refresh token');
+      throw new UnauthorizedException("Invalid refresh token");
     }
 
     const payload = {
@@ -122,39 +119,39 @@ export class AuthService {
       role: storedToken.user.role,
     };
 
-   const accessToken = await this.jwtService.signAsync(payload);
+    const accessToken = await this.jwtService.signAsync(payload);
 
-const newRefreshToken = this.generateRefreshToken();
-const newRefreshTokenHash = this.hashToken(newRefreshToken);
-const newRefreshTokenExpiresAt = this.getRefreshTokenExpiry();
+    const newRefreshToken = this.generateRefreshToken();
+    const newRefreshTokenHash = this.hashToken(newRefreshToken);
+    const newRefreshTokenExpiresAt = this.getRefreshTokenExpiry();
 
-await this.prisma.$transaction(async (tx) => {
-  const revoked = await tx.refreshToken.updateMany({
-    where: {
-      id: storedToken.id,
-      revokedAt: null,
-    },
-    data: {
-      revokedAt: new Date(),
-    },
-  });
+    await this.prisma.$transaction(async (tx) => {
+      const revoked = await tx.refreshToken.updateMany({
+        where: {
+          id: storedToken.id,
+          revokedAt: null,
+        },
+        data: {
+          revokedAt: new Date(),
+        },
+      });
 
-  if (revoked.count !== 1) {
-    throw new UnauthorizedException('Invalid refresh token');
-  }
+      if (revoked.count !== 1) {
+        throw new UnauthorizedException("Invalid refresh token");
+      }
 
-  await tx.refreshToken.create({
-    data: {
-      userId: storedToken.user.id,
-      tokenHash: newRefreshTokenHash,
-      expiresAt: newRefreshTokenExpiresAt,
-    },
-  });
-});
+      await tx.refreshToken.create({
+        data: {
+          userId: storedToken.user.id,
+          tokenHash: newRefreshTokenHash,
+          expiresAt: newRefreshTokenExpiresAt,
+        },
+      });
+    });
 
-return {
-  accessToken,
-  refreshToken: newRefreshToken,
-};
+    return {
+      accessToken,
+      refreshToken: newRefreshToken,
+    };
   }
 }
