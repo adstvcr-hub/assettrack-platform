@@ -63,7 +63,9 @@ export default function AssetsPage() {
         throw new Error();
       }
 
-      setAssets(await response.json());
+     const data = await response.json();
+
+setAssets(Array.isArray(data) ? data : data.items);
     } catch {
       setError("Unable to load assets");
     } finally {

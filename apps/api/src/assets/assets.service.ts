@@ -43,17 +43,31 @@ export class AssetsService {
     });
   }
 
-  findAll(organizationId: string, page = 1, limit = 25) {
-    return this.prisma.asset.findMany({
-      where: {
-        organizationId,
-      },
-      orderBy: {
-        createdAt: "desc",
-      },
-      skip: (page - 1) * limit,
-      take: limit,
-    });
+  async findAll(organizationId: string, page = 1, limit = 25) {
+    const [items, total] = await this.prisma.$transaction([
+      this.prisma.asset.findMany({
+        where: {
+          organizationId,
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
+        skip: (page - 1) * limit,
+        take: limit,
+      }),
+      this.prisma.asset.count({
+        where: {
+          organizationId,
+        },
+      }),
+    ]);
+    return {
+      items,
+      page,
+      limit,
+      total,
+      totalPages: Math.ceil(total / limit),
+    };
   }
 
   async findOne(organizationId: string, id: string) {
