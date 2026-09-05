@@ -94,7 +94,13 @@ if (storedUser) {
         }
 
         const assetData: Asset = await assetResponse.json();
-        const scansData: ScanEvent[] = await scansResponse.json();
+       const scansData: {
+  items: ScanEvent[];
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+} = await scansResponse.json();
 
         setAsset(assetData);
         setName(assetData.name);
@@ -103,7 +109,9 @@ if (storedUser) {
         setDescription(assetData.description ?? "");
         setStatus(assetData.status);
 
-        setScans(scansData.filter((scan) => scan.assetId === assetData.id));
+        setScans(
+  scansData.items.filter((scan) => scan.assetId === assetData.id),
+);
       } catch (err) {
         setError(err instanceof Error ? err.message : "Unable to load asset");
       } finally {

@@ -40,7 +40,7 @@ type ScanEvent = {
 
 export default function DashboardPage() {
   const router = useRouter();
-
+   
   const [userName, setUserName] = useState('');
   const [organization, setOrganization] = useState<Organization | null>(null);
   const [assets, setAssets] = useState<Asset[]>([]);
@@ -106,9 +106,14 @@ export default function DashboardPage() {
         }
 
         setOrganization(await organizationResponse.json());
-        setAssets(await assetsResponse.json());
-        setUsers(await usersResponse.json());
-        setScans(await scansResponse.json());
+
+const assetsData = await assetsResponse.json();
+const usersData = await usersResponse.json();
+const scansData = await scansResponse.json();
+
+setAssets(assetsData.items);
+setUsers(usersData.items);
+setScans(scansData.items);
       } catch {
         setError('Unable to load dashboard data');
       } finally {

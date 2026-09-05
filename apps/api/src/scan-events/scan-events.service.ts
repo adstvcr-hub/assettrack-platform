@@ -33,32 +33,49 @@ export class ScanEventsService {
     });
   }
 
-  findAll(organizationId: string, page = 1, limit = 25) {
-    return this.prisma.scanEvent.findMany({
-      where: {
-        asset: {
-          organizationId,
-        },
-      },
-      orderBy: {
-        scannedAt: "desc",
-      },
-      skip: (page - 1) * limit,
-      take: limit,
-      include: {
-        asset: true,
-        user: {
-          select: {
-            id: true,
-            organizationId: true,
-            email: true,
-            name: true,
-            role: true,
-            createdAt: true,
-            updatedAt: true,
+  async findAll(organizationId: string, page = 1, limit = 25) {
+    const [items, total] = await this.prisma.$transaction([
+      this.prisma.scanEvent.findMany({
+        where: {
+          asset: {
+            organizationId,
           },
         },
-      },
-    });
+        orderBy: {
+          scannedAt: "desc",
+        },
+        skip: (page - 1) * limit,
+        take: limit,
+        include: {
+          asset: true,
+          user: {
+            select: {
+              id: true,
+              organizationId: true,
+              email: true,
+              name: true,
+              role: true,
+              createdAt: true,
+              updatedAt: true,
+            },
+          },
+        },
+      }),
+      this.prisma.scanEvent.count({
+        where: {
+          asset: {
+            organizationId,
+          },
+        },
+      }),
+    ]);
+
+    return {
+      items,
+      page,
+      limit,
+      total,
+      totalPages: Math.ceil(total / limit),
+    };
   }
 }

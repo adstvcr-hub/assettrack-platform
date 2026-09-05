@@ -66,7 +66,7 @@ export default function ScansPage() {
         }
 
         const data = await response.json();
-        setScans(data);
+        setScans(data.items);
       } catch (err) {
         setError(
           err instanceof Error
