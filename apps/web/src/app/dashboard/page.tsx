@@ -111,9 +111,9 @@ const assetsData = await assetsResponse.json();
 const usersData = await usersResponse.json();
 const scansData = await scansResponse.json();
 
-setAssets(assetsData.items);
-setUsers(usersData.items);
-setScans(scansData.items);
+setAssets(Array.isArray(assetsData) ? assetsData : assetsData.items);
+setUsers(Array.isArray(usersData) ? usersData : usersData.items);
+setScans(Array.isArray(scansData) ? scansData : scansData.items);
       } catch {
         setError('Unable to load dashboard data');
       } finally {
