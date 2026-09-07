@@ -1,14 +1,14 @@
-﻿'use client';
-import { API_URL, authenticatedFetch } from '@/lib/api';
-import { FormEvent, useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+﻿"use client";
+import { API_URL, authenticatedFetch } from "@/lib/api";
+import { FormEvent, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 
 type User = {
   id: string;
   organizationId: string;
   email: string;
   name: string;
-  role: 'OWNER' | 'ADMIN' | 'USER' | 'VIEWER';
+  role: "OWNER" | "ADMIN" | "USER" | "VIEWER";
   createdAt: string;
   updatedAt: string;
 };
@@ -20,20 +20,20 @@ export default function UsersPage() {
   const router = useRouter();
   const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
   const [users, setUsers] = useState<User[]>([]);
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [role, setRole] = useState<User['role']>('USER');
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [role, setRole] = useState<User["role"]>("USER");
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
 
   function getToken() {
-    const token = sessionStorage.getItem('assettrack_token');
+    const token = sessionStorage.getItem("assettrack_token");
 
     if (!token) {
-      router.replace('/');
+      router.replace("/?next=/users");
       return null;
     }
 
@@ -46,46 +46,41 @@ export default function UsersPage() {
     if (!token) return;
 
     try {
-      const response = await authenticatedFetch(
-  `${API_URL}/api/v1/users`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+      const response = await authenticatedFetch(`${API_URL}/api/v1/users`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
         },
-      );
+      });
 
       if (response.status === 401) {
         sessionStorage.clear();
-        router.replace('/');
+        router.replace("/?next=/users");
         return;
       }
 
       if (!response.ok) {
-        throw new Error('Unable to load users');
+        throw new Error("Unable to load users");
       }
 
       const data = await response.json();
 
-setUsers(Array.isArray(data) ? data : data.items);
+      setUsers(Array.isArray(data) ? data : data.items);
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : 'Unable to load users',
-      );
+      setError(err instanceof Error ? err.message : "Unable to load users");
     } finally {
       setLoading(false);
     }
   }
 
   useEffect(() => {
-  const storedUser = sessionStorage.getItem("assettrack_user");
+    const storedUser = sessionStorage.getItem("assettrack_user");
 
-  if (storedUser) {
-    setCurrentUser(JSON.parse(storedUser));
-  }
+    if (storedUser) {
+      setCurrentUser(JSON.parse(storedUser));
+    }
 
-  loadUsers();
-}, []);
+    loadUsers();
+  }, []);
 
   async function createUser(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -95,68 +90,61 @@ setUsers(Array.isArray(data) ? data : data.items);
     if (!token) return;
 
     setSaving(true);
-    setError('');
+    setError("");
 
     try {
-      const response = await authenticatedFetch(
-        `${API_URL}/api/v1/users`,
-        {
-          method: 'POST',
-          headers: {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            name,
-            email,
-            password,
-            role,
-          }),
+      const response = await authenticatedFetch(`${API_URL}/api/v1/users`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
         },
-      );
+        body: JSON.stringify({
+          name,
+          email,
+          password,
+          role,
+        }),
+      });
 
       const data = await response.json();
 
       if (!response.ok) {
         throw new Error(
           Array.isArray(data.message)
-            ? data.message.join(', ')
-            : data.message ?? 'Unable to create user',
+            ? data.message.join(", ")
+            : (data.message ?? "Unable to create user"),
         );
       }
 
-      setName('');
-      setEmail('');
-      setPassword('');
-      setRole('USER');
+      setName("");
+      setEmail("");
+      setPassword("");
+      setRole("USER");
 
       await loadUsers();
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : 'Unable to create user',
-      );
+      setError(err instanceof Error ? err.message : "Unable to create user");
     } finally {
       setSaving(false);
     }
   }
-const canManageUsers =
-  currentUser?.role === "OWNER" || currentUser?.role === "ADMIN";
+  const canManageUsers =
+    currentUser?.role === "OWNER" || currentUser?.role === "ADMIN";
   return (
     <main className="min-h-screen bg-slate-950 text-white">
       <header className="border-b border-slate-800 bg-slate-900">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-5">
           <div>
             <p className="text-sm font-semibold uppercase tracking-[0.2em] text-emerald-400">
-  AssetTrack
-</p>
+              AssetTrack
+            </p>
 
- <h1 className="text-2xl font-bold text-white">
-              Users
-            </h1>
+            <h1 className="text-2xl font-bold text-white">Users</h1>
           </div>
 
           <button
-            onClick={() => router.push('/dashboard')}
+            onClick={() => router.push("/dashboard")}
             className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white"
           >
             Dashboard
@@ -167,64 +155,62 @@ const canManageUsers =
       <section className="mx-auto max-w-7xl px-6 py-10">
         <div className="grid gap-8 lg:grid-cols-[380px_1fr]">
           {canManageUsers && (
-          <form
-            onSubmit={createUser}
-            className="rounded-xl bg-white p-6 shadow-sm"
-          >
-            <h2 className="text-xl font-bold text-slate-900">
-              Add user
-            </h2>
+            <form
+              onSubmit={createUser}
+              className="rounded-xl bg-white p-6 shadow-sm"
+            >
+              <h2 className="text-xl font-bold text-slate-900">Add user</h2>
 
-            <div className="mt-6 space-y-4">
-              <input
-                value={name}
-                onChange={(event) => setName(event.target.value)}
-                placeholder="Full name"
-                className="w-full rounded-lg border border-slate-300 px-4 py-3"
-                required
-              />
+              <div className="mt-6 space-y-4">
+                <input
+                  value={name}
+                  onChange={(event) => setName(event.target.value)}
+                  placeholder="Full name"
+                  className="w-full rounded-lg border border-slate-300 px-4 py-3"
+                  required
+                />
 
-              <input
-                type="email"
-                value={email}
-                onChange={(event) => setEmail(event.target.value)}
-                placeholder="Email"
-                className="w-full rounded-lg border border-slate-300 px-4 py-3"
-                required
-              />
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(event) => setEmail(event.target.value)}
+                  placeholder="Email"
+                  className="w-full rounded-lg border border-slate-300 px-4 py-3"
+                  required
+                />
 
-              <input
-                type="password"
-                value={password}
-                onChange={(event) => setPassword(event.target.value)}
-                placeholder="Temporary password"
-                className="w-full rounded-lg border border-slate-300 px-4 py-3"
-                minLength={8}
-                required
-              />
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(event) => setPassword(event.target.value)}
+                  placeholder="Temporary password"
+                  className="w-full rounded-lg border border-slate-300 px-4 py-3"
+                  minLength={8}
+                  required
+                />
 
-              <select
-                value={role}
-                onChange={(event) =>
-                  setRole(event.target.value as User['role'])
-                }
-                className="w-full rounded-lg border border-slate-300 px-4 py-3"
-              >
-                <option value="USER">User</option>
-                <option value="VIEWER">Viewer</option>
-                <option value="ADMIN">Admin</option>
-                <option value="OWNER">Owner</option>
-              </select>
+                <select
+                  value={role}
+                  onChange={(event) =>
+                    setRole(event.target.value as User["role"])
+                  }
+                  className="w-full rounded-lg border border-slate-300 px-4 py-3"
+                >
+                  <option value="USER">User</option>
+                  <option value="VIEWER">Viewer</option>
+                  <option value="ADMIN">Admin</option>
+                  <option value="OWNER">Owner</option>
+                </select>
 
-              <button
-                type="submit"
-                disabled={saving}
-                className="w-full rounded-lg bg-slate-900 px-4 py-3 font-semibold text-white disabled:opacity-60"
-              >
-                {saving ? 'Creating...' : 'Create user'}
-              </button>
-            </div>
-          </form>
+                <button
+                  type="submit"
+                  disabled={saving}
+                  className="w-full rounded-lg bg-slate-900 px-4 py-3 font-semibold text-white disabled:opacity-60"
+                >
+                  {saving ? "Creating..." : "Create user"}
+                </button>
+              </div>
+            </form>
           )}
 
           <div className="rounded-xl bg-white p-6 shadow-sm">
@@ -232,9 +218,7 @@ const canManageUsers =
               Organization users
             </h2>
 
-            {loading && (
-              <p className="mt-6 text-slate-500">Loading...</p>
-            )}
+            {loading && <p className="mt-6 text-slate-500">Loading...</p>}
 
             {error && (
               <p className="mt-6 rounded-lg bg-red-50 p-4 text-red-700">
@@ -256,10 +240,7 @@ const canManageUsers =
 
                   <tbody>
                     {users.map((user) => (
-                      <tr
-                        key={user.id}
-                        className="border-b last:border-0"
-                      >
+                      <tr key={user.id} className="border-b last:border-0">
                         <td className="py-4 pr-4 font-medium text-slate-900">
                           {user.name}
                         </td>
@@ -287,4 +268,3 @@ const canManageUsers =
     </main>
   );
 }
-

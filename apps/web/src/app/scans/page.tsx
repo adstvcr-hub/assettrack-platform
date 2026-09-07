@@ -43,7 +43,7 @@ export default function ScansPage() {
     const token = sessionStorage.getItem("assettrack_token");
 
     if (!token) {
-      router.replace("/");
+      router.replace("/?next=/scans");
       return;
     }
 
@@ -60,7 +60,7 @@ export default function ScansPage() {
 
         if (response.status === 401) {
           sessionStorage.clear();
-          router.replace("/");
+          router.replace("/?next=/scans");
           return;
         }
 
