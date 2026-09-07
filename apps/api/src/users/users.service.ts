@@ -30,26 +30,38 @@ export class UsersService {
     });
   }
 
-  findAll(organizationId: string, page = 1, limit = 25) {
-    return this.prisma.user.findMany({
-      where: {
-        organizationId,
-      },
-      orderBy: {
-        createdAt: "desc",
-      },
-      skip: (page - 1) * limit,
-      take: limit,
-      select: {
-        id: true,
-        organizationId: true,
-        email: true,
-        name: true,
-        role: true,
-        createdAt: true,
-        updatedAt: true,
-      },
-    });
+  async findAll(organizationId: string, page = 1, limit = 25) {
+    const [items, total] = await this.prisma.$transaction([
+      this.prisma.user.findMany({
+        where: {
+          organizationId,
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
+        select: {
+          id: true,
+          organizationId: true,
+          email: true,
+          name: true,
+          role: true,
+          createdAt: true,
+          updatedAt: true,
+        },
+      }),
+      this.prisma.user.count({
+        where: {
+          organizationId,
+        },
+      }),
+    ]);
+    return {
+      items,
+      page,
+      limit,
+      total,
+      totalPages: Math.ceil(total / limit),
+    };
   }
 
   async findOne(organizationId: string, id: string) {

@@ -65,7 +65,9 @@ export default function UsersPage() {
         throw new Error('Unable to load users');
       }
 
-      setUsers(await response.json());
+      const data = await response.json();
+
+setUsers(Array.isArray(data) ? data : data.items);
     } catch (err) {
       setError(
         err instanceof Error ? err.message : 'Unable to load users',
