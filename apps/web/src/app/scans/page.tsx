@@ -1,7 +1,7 @@
-﻿'use client';
-import { API_URL, authenticatedFetch } from '@/lib/api';
-import { useEffect, useMemo, useState } from 'react';
-import { useRouter } from 'next/navigation';
+﻿"use client";
+import { API_URL, authenticatedFetch } from "@/lib/api";
+import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 
 type ScanEvent = {
   id: string;
@@ -29,25 +29,28 @@ export default function ScansPage() {
 
   const [scans, setScans] = useState<ScanEvent[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
+  const [page, setPage] = useState(1);
+  const [total, setTotal] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
 
-  const [search, setSearch] = useState('');
-  const [assetFilter, setAssetFilter] = useState('ALL');
-  const [userFilter, setUserFilter] = useState('ALL');
-  const [dateFilter, setDateFilter] = useState('');
+  const [search, setSearch] = useState("");
+  const [assetFilter, setAssetFilter] = useState("ALL");
+  const [userFilter, setUserFilter] = useState("ALL");
+  const [dateFilter, setDateFilter] = useState("");
 
   useEffect(() => {
-    const token = sessionStorage.getItem('assettrack_token');
+    const token = sessionStorage.getItem("assettrack_token");
 
     if (!token) {
-      router.replace('/');
+      router.replace("/");
       return;
     }
 
     async function loadScans() {
       try {
         const response = await authenticatedFetch(
-          `${API_URL}/api/v1/scan-events`,
+          `${API_URL}/api/v1/scan-events?page=${page}&limit=5`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -57,21 +60,21 @@ export default function ScansPage() {
 
         if (response.status === 401) {
           sessionStorage.clear();
-          router.replace('/');
+          router.replace("/");
           return;
         }
 
         if (!response.ok) {
-          throw new Error('Unable to load scan history');
+          throw new Error("Unable to load scan history");
         }
 
         const data = await response.json();
         setScans(data.items);
+        setTotal(data.total);
+        setTotalPages(data.totalPages);
       } catch (err) {
         setError(
-          err instanceof Error
-            ? err.message
-            : 'Unable to load scan history',
+          err instanceof Error ? err.message : "Unable to load scan history",
         );
       } finally {
         setLoading(false);
@@ -79,7 +82,7 @@ export default function ScansPage() {
     }
 
     loadScans();
-  }, [router]);
+  }, [router, page]);
 
   const assets = useMemo(() => {
     const unique = new Map<string, { id: string; name: string }>();
@@ -124,30 +127,23 @@ export default function ScansPage() {
         scan.notes?.toLowerCase().includes(term);
 
       const matchesAsset =
-        assetFilter === 'ALL' || scan.assetId === assetFilter;
+        assetFilter === "ALL" || scan.assetId === assetFilter;
 
-      const matchesUser =
-        userFilter === 'ALL' || scan.userId === userFilter;
+      const matchesUser = userFilter === "ALL" || scan.userId === userFilter;
 
       const matchesDate =
         !dateFilter ||
-        new Date(scan.scannedAt).toLocaleDateString('en-CA') ===
-          dateFilter;
+        new Date(scan.scannedAt).toLocaleDateString("en-CA") === dateFilter;
 
-      return (
-        matchesSearch &&
-        matchesAsset &&
-        matchesUser &&
-        matchesDate
-      );
+      return matchesSearch && matchesAsset && matchesUser && matchesDate;
     });
   }, [scans, search, assetFilter, userFilter, dateFilter]);
 
   function clearFilters() {
-    setSearch('');
-    setAssetFilter('ALL');
-    setUserFilter('ALL');
-    setDateFilter('');
+    setSearch("");
+    setAssetFilter("ALL");
+    setUserFilter("ALL");
+    setDateFilter("");
   }
 
   return (
@@ -159,13 +155,11 @@ export default function ScansPage() {
               AssetTrack
             </p>
 
-            <h1 className="text-2xl font-bold text-slate-900">
-              Scan History
-            </h1>
+            <h1 className="text-2xl font-bold text-slate-900">Scan History</h1>
           </div>
 
           <button
-            onClick={() => router.push('/dashboard')}
+            onClick={() => router.push("/dashboard")}
             className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white"
           >
             Dashboard
@@ -177,9 +171,7 @@ export default function ScansPage() {
         <div className="rounded-xl bg-white p-6 shadow-sm">
           <div className="flex flex-col justify-between gap-3 md:flex-row">
             <div>
-              <h2 className="text-xl font-bold text-slate-900">
-                Recent scans
-              </h2>
+              <h2 className="text-xl font-bold text-slate-900">Recent scans</h2>
 
               <p className="mt-1 text-sm text-slate-500">
                 {filteredScans.length} of {scans.length} scans
@@ -239,9 +231,7 @@ export default function ScansPage() {
           </div>
 
           {loading && (
-            <p className="mt-8 text-slate-500">
-              Loading scan history...
-            </p>
+            <p className="mt-8 text-slate-500">Loading scan history...</p>
           )}
 
           {error && (
@@ -265,28 +255,25 @@ export default function ScansPage() {
 
                 <tbody>
                   {filteredScans.map((scan) => (
-                    <tr
-                      key={scan.id}
-                      className="border-b last:border-0"
-                    >
+                    <tr key={scan.id} className="border-b last:border-0">
                       <td className="whitespace-nowrap py-4 pr-4 text-slate-600">
                         {new Date(scan.scannedAt).toLocaleString()}
                       </td>
 
                       <td className="py-4 pr-4 font-medium text-slate-900">
-                        {scan.asset?.name ?? 'Unknown asset'}
+                        {scan.asset?.name ?? "Unknown asset"}
                       </td>
 
                       <td className="py-4 pr-4 text-slate-600">
-                        {scan.asset?.assetTag ?? '-'}
+                        {scan.asset?.assetTag ?? "-"}
                       </td>
 
                       <td className="py-4 pr-4 text-slate-600">
-                        {scan.user?.name ?? 'Unknown user'}
+                        {scan.user?.name ?? "Unknown user"}
                       </td>
 
                       <td className="py-4 text-slate-600">
-                        {scan.notes ?? '-'}
+                        {scan.notes ?? "-"}
                       </td>
                     </tr>
                   ))}
@@ -298,6 +285,30 @@ export default function ScansPage() {
                   No scans match the selected filters.
                 </p>
               )}
+
+              <div className="mt-6 flex items-center justify-between">
+                <button
+                  onClick={() => setPage((current) => Math.max(1, current - 1))}
+                  disabled={page <= 1}
+                  className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  Previous
+                </button>
+
+                <p className="text-sm text-slate-500">
+                  Page {page} of {totalPages} · {total} total scans
+                </p>
+
+                <button
+                  onClick={() =>
+                    setPage((current) => Math.min(totalPages, current + 1))
+                  }
+                  disabled={page >= totalPages}
+                  className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  Next
+                </button>
+              </div>
             </div>
           )}
         </div>
@@ -305,4 +316,3 @@ export default function ScansPage() {
     </main>
   );
 }
-
