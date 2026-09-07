@@ -37,9 +37,11 @@ export class UsersService {
           organizationId,
         },
         orderBy: {
-          createdAt: "desc",
-        },
-        select: {
+  createdAt: "desc",
+},
+skip: (page - 1) * limit,
+take: limit,
+select: {
           id: true,
           organizationId: true,
           email: true,
