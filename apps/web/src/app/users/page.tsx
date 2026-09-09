@@ -28,6 +28,9 @@ export default function UsersPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [page, setPage] = useState(1);
+  const [total, setTotal] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
 
   function getToken() {
     const token = sessionStorage.getItem("assettrack_token");
@@ -46,11 +49,14 @@ export default function UsersPage() {
     if (!token) return;
 
     try {
-      const response = await authenticatedFetch(`${API_URL}/api/v1/users`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
+      const response = await authenticatedFetch(
+        `${API_URL}/api/v1/users?page=${page}&limit=5`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         },
-      });
+      );
 
       if (response.status === 401) {
         sessionStorage.clear();
@@ -65,6 +71,11 @@ export default function UsersPage() {
       const data = await response.json();
 
       setUsers(Array.isArray(data) ? data : data.items);
+
+      if (!Array.isArray(data)) {
+        setTotal(data.total);
+        setTotalPages(data.totalPages);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unable to load users");
     } finally {
@@ -80,7 +91,7 @@ export default function UsersPage() {
     }
 
     loadUsers();
-  }, []);
+  }, [page]);
 
   async function createUser(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -108,7 +119,6 @@ export default function UsersPage() {
       });
 
       const data = await response.json();
-
       if (!response.ok) {
         throw new Error(
           Array.isArray(data.message)
@@ -260,6 +270,31 @@ export default function UsersPage() {
                     ))}
                   </tbody>
                 </table>
+                <div className="mt-6 flex items-center justify-between">
+                  <button
+                    onClick={() =>
+                      setPage((current) => Math.max(1, current - 1))
+                    }
+                    disabled={page <= 1}
+                    className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    Previous
+                  </button>
+
+                  <p className="text-sm text-slate-500">
+                    Page {page} of {totalPages} · {total} total users
+                  </p>
+
+                  <button
+                    onClick={() =>
+                      setPage((current) => Math.min(totalPages, current + 1))
+                    }
+                    disabled={page >= totalPages}
+                    className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    Next
+                  </button>
+                </div>
               </div>
             )}
           </div>
