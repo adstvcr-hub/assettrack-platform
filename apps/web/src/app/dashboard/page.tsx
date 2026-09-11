@@ -1,8 +1,8 @@
-﻿'use client';
+﻿"use client";
 
-import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
-import { API_URL, authenticatedFetch } from '@/lib/api';
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { API_URL, authenticatedFetch } from "@/lib/api";
 
 type Organization = {
   id: string;
@@ -40,21 +40,24 @@ type ScanEvent = {
 
 export default function DashboardPage() {
   const router = useRouter();
-   
-  const [userName, setUserName] = useState('');
+
+  const [userName, setUserName] = useState("");
   const [organization, setOrganization] = useState<Organization | null>(null);
   const [assets, setAssets] = useState<Asset[]>([]);
   const [users, setUsers] = useState<User[]>([]);
   const [scans, setScans] = useState<ScanEvent[]>([]);
+  const [assetTotal, setAssetTotal] = useState(0);
+  const [userTotal, setUserTotal] = useState(0);
+  const [scanTotal, setScanTotal] = useState(0);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    const token = sessionStorage.getItem('assettrack_token');
-    const storedUser = sessionStorage.getItem('assettrack_user');
+    const token = sessionStorage.getItem("assettrack_token");
+    const storedUser = sessionStorage.getItem("assettrack_user");
 
     if (!token || !storedUser) {
-      router.replace('/');
+      router.replace("/");
       return;
     }
 
@@ -63,7 +66,7 @@ export default function DashboardPage() {
       setUserName(user.name);
     } catch {
       sessionStorage.clear();
-      router.replace('/');
+      router.replace("/");
       return;
     }
 
@@ -92,7 +95,7 @@ export default function DashboardPage() {
           scansResponse.status === 401
         ) {
           sessionStorage.clear();
-          router.replace('/');
+          router.replace("/");
           return;
         }
 
@@ -102,20 +105,30 @@ export default function DashboardPage() {
           !usersResponse.ok ||
           !scansResponse.ok
         ) {
-          throw new Error('Failed to load dashboard data');
+          throw new Error("Failed to load dashboard data");
         }
 
         setOrganization(await organizationResponse.json());
 
-const assetsData = await assetsResponse.json();
-const usersData = await usersResponse.json();
-const scansData = await scansResponse.json();
+        const assetsData = await assetsResponse.json();
+        const usersData = await usersResponse.json();
+        const scansData = await scansResponse.json();
 
-setAssets(Array.isArray(assetsData) ? assetsData : assetsData.items);
-setUsers(Array.isArray(usersData) ? usersData : usersData.items);
-setScans(Array.isArray(scansData) ? scansData : scansData.items);
+        setAssets(Array.isArray(assetsData) ? assetsData : assetsData.items);
+        setUsers(Array.isArray(usersData) ? usersData : usersData.items);
+        setScans(Array.isArray(scansData) ? scansData : scansData.items);
+
+        setAssetTotal(
+          Array.isArray(assetsData) ? assetsData.length : assetsData.total,
+        );
+        setUserTotal(
+          Array.isArray(usersData) ? usersData.length : usersData.total,
+        );
+        setScanTotal(
+          Array.isArray(scansData) ? scansData.length : scansData.total,
+        );
       } catch {
-        setError('Unable to load dashboard data');
+        setError("Unable to load dashboard data");
       } finally {
         setLoading(false);
       }
@@ -125,17 +138,17 @@ setScans(Array.isArray(scansData) ? scansData : scansData.items);
   }, [router]);
 
   async function logout() {
-  try {
-    await fetch(`${API_URL}/api/v1/auth/logout`, {
-      method: 'POST',
-      credentials: 'include',
-    });
-  } finally {
-    sessionStorage.removeItem('assettrack_token');
-    sessionStorage.removeItem('assettrack_user');
-    router.replace('/');
+    try {
+      await fetch(`${API_URL}/api/v1/auth/logout`, {
+        method: "POST",
+        credentials: "include",
+      });
+    } finally {
+      sessionStorage.removeItem("assettrack_token");
+      sessionStorage.removeItem("assettrack_user");
+      router.replace("/");
+    }
   }
-}
 
   return (
     <main className="min-h-screen bg-slate-100">
@@ -147,7 +160,7 @@ setScans(Array.isArray(scansData) ? scansData : scansData.items);
             </p>
 
             <h1 className="text-2xl font-bold text-slate-900">
-              {organization?.name ?? 'Dashboard'}
+              {organization?.name ?? "Dashboard"}
             </h1>
           </div>
 
@@ -169,14 +182,10 @@ setScans(Array.isArray(scansData) ? scansData : scansData.items);
           Manage your assets, users, and recent scan activity.
         </p>
 
-        {loading && (
-          <p className="mt-6 text-slate-600">Loading dashboard...</p>
-        )}
+        {loading && <p className="mt-6 text-slate-600">Loading dashboard...</p>}
 
         {error && (
-          <p className="mt-6 rounded-lg bg-red-50 p-4 text-red-700">
-            {error}
-          </p>
+          <p className="mt-6 rounded-lg bg-red-50 p-4 text-red-700">{error}</p>
         )}
 
         {!loading && !error && (
@@ -185,33 +194,31 @@ setScans(Array.isArray(scansData) ? scansData : scansData.items);
               <div className="rounded-xl bg-white p-6 shadow-sm">
                 <p className="text-sm text-slate-500">Assets</p>
                 <p className="mt-2 text-3xl font-bold text-slate-900">
-                  {assets.length}
+                  {assetTotal}
                 </p>
               </div>
 
               <div className="rounded-xl bg-white p-6 shadow-sm">
                 <p className="text-sm text-slate-500">Users</p>
                 <p className="mt-2 text-3xl font-bold text-slate-900">
-                  {users.length}
+                  {userTotal}
                 </p>
               </div>
 
               <div className="rounded-xl bg-white p-6 shadow-sm">
                 <p className="text-sm text-slate-500">Scans</p>
                 <p className="mt-2 text-3xl font-bold text-slate-900">
-                  {scans.length}
+                  {scanTotal}
                 </p>
               </div>
             </div>
 
             <div className="mt-10 rounded-xl bg-white p-6 shadow-sm">
               <div className="mb-5 flex items-center justify-between">
-                <h3 className="text-xl font-bold text-slate-900">
-                  Assets
-                </h3>
+                <h3 className="text-xl font-bold text-slate-900">Assets</h3>
 
                 <button
-                  onClick={() => router.push('/assets')}
+                  onClick={() => router.push("/assets")}
                   className="text-sm font-semibold text-slate-700 hover:text-slate-950"
                 >
                   View all
@@ -242,7 +249,7 @@ setScans(Array.isArray(scansData) ? scansData : scansData.items);
                           {asset.status}
                         </td>
                         <td className="py-4 text-slate-600">
-                          {asset.location ?? 'â€”'}
+                          {asset.location ?? "â€”"}
                         </td>
                       </tr>
                     ))}
@@ -251,14 +258,12 @@ setScans(Array.isArray(scansData) ? scansData : scansData.items);
               </div>
             </div>
 
-                      <div className="mt-8 rounded-xl bg-white p-6 shadow-sm">
+            <div className="mt-8 rounded-xl bg-white p-6 shadow-sm">
               <div className="mb-5 flex items-center justify-between">
-                <h3 className="text-xl font-bold text-slate-900">
-                  Users
-                </h3>
+                <h3 className="text-xl font-bold text-slate-900">Users</h3>
 
                 <button
-                  onClick={() => router.push('/users')}
+                  onClick={() => router.push("/users")}
                   className="text-sm font-semibold text-slate-700 hover:text-slate-950"
                 >
                   View all
@@ -284,9 +289,7 @@ setScans(Array.isArray(scansData) ? scansData : scansData.items);
                         <td className="py-4 pr-4 text-slate-600">
                           {user.email}
                         </td>
-                        <td className="py-4 text-slate-600">
-                          {user.role}
-                        </td>
+                        <td className="py-4 text-slate-600">{user.role}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -294,46 +297,45 @@ setScans(Array.isArray(scansData) ? scansData : scansData.items);
               </div>
             </div>
             <div className="mt-8 rounded-xl bg-white p-6 shadow-sm">
-            <div className="mb-5 flex items-center justify-between">
-           <h3 className="text-xl font-bold text-slate-900">
-    Recent scans
-  </h3>
+              <div className="mb-5 flex items-center justify-between">
+                <h3 className="text-xl font-bold text-slate-900">
+                  Recent scans
+                </h3>
 
-  <button
-    onClick={() => router.push('/scans')}
-    className="text-sm font-semibold text-slate-700 hover:text-slate-950"
-  >
-    View all
-  </button>
-</div>
-                  <div className="space-y-4">
-    {scans.slice(0, 10).map((scan) => (
-      <div
-        key={scan.id}
-        className="flex flex-col justify-between gap-2 border-b pb-4 last:border-0 md:flex-row"
-      >
-        <div>
-          <p className="font-medium text-slate-900">
-            {scan.asset?.name ?? 'Unknown asset'}
-          </p>
+                <button
+                  onClick={() => router.push("/scans")}
+                  className="text-sm font-semibold text-slate-700 hover:text-slate-950"
+                >
+                  View all
+                </button>
+              </div>
+              <div className="space-y-4">
+                {scans.slice(0, 10).map((scan) => (
+                  <div
+                    key={scan.id}
+                    className="flex flex-col justify-between gap-2 border-b pb-4 last:border-0 md:flex-row"
+                  >
+                    <div>
+                      <p className="font-medium text-slate-900">
+                        {scan.asset?.name ?? "Unknown asset"}
+                      </p>
 
-          <p className="text-sm text-slate-500">
-            {scan.user?.name ?? 'Unknown user'}
-            {scan.notes ? ` Â· ${scan.notes}` : ''}
-          </p>
-        </div>
+                      <p className="text-sm text-slate-500">
+                        {scan.user?.name ?? "Unknown user"}
+                        {scan.notes ? ` Â· ${scan.notes}` : ""}
+                      </p>
+                    </div>
 
-        <p className="text-sm text-slate-500">
-          {new Date(scan.scannedAt).toLocaleString()}
-        </p>
-      </div>
-    ))}
-  </div>
-</div>
+                    <p className="text-sm text-slate-500">
+                      {new Date(scan.scannedAt).toLocaleString()}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
           </>
         )}
       </section>
     </main>
   );
 }
-
