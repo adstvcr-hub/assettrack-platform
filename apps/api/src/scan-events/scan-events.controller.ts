@@ -46,6 +46,10 @@ export class ScanEventsController {
       req.user.organizationId,
       query.page,
       query.limit,
+      query.search,
+      query.assetId,
+      query.userId,
+      query.date,
     );
   }
 }

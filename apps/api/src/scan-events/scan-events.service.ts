@@ -33,14 +33,95 @@ export class ScanEventsService {
     });
   }
 
-  async findAll(organizationId: string, page = 1, limit = 25) {
+  async findAll(
+    organizationId: string,
+    page = 1,
+    limit = 25,
+    search?: string,
+    assetId?: string,
+    userId?: string,
+    date?: string,
+  ) {
+    const startDate = date ? new Date(`${date}T00:00:00.000Z`) : undefined;
+    const endDate = date ? new Date(`${date}T23:59:59.999Z`) : undefined;
+
+    const where = {
+      asset: {
+        organizationId,
+      },
+
+      ...(assetId
+        ? {
+            assetId,
+          }
+        : {}),
+
+      ...(userId
+        ? {
+            userId,
+          }
+        : {}),
+
+      ...(date
+        ? {
+            scannedAt: {
+              gte: startDate,
+              lte: endDate,
+            },
+          }
+        : {}),
+
+      ...(search
+        ? {
+            OR: [
+              {
+                notes: {
+                  contains: search,
+                  mode: "insensitive" as const,
+                },
+              },
+              {
+                asset: {
+                  organizationId,
+                  name: {
+                    contains: search,
+                    mode: "insensitive" as const,
+                  },
+                },
+              },
+              {
+                asset: {
+                  organizationId,
+                  assetTag: {
+                    contains: search,
+                    mode: "insensitive" as const,
+                  },
+                },
+              },
+              {
+                user: {
+                  name: {
+                    contains: search,
+                    mode: "insensitive" as const,
+                  },
+                },
+              },
+              {
+                user: {
+                  email: {
+                    contains: search,
+                    mode: "insensitive" as const,
+                  },
+                },
+              },
+            ],
+          }
+        : {}),
+    };
+
     const [items, total] = await this.prisma.$transaction([
       this.prisma.scanEvent.findMany({
-        where: {
-          asset: {
-            organizationId,
-          },
-        },
+        where,
         orderBy: {
           scannedAt: "desc",
         },
@@ -61,12 +142,9 @@ export class ScanEventsService {
           },
         },
       }),
+
       this.prisma.scanEvent.count({
-        where: {
-          asset: {
-            organizationId,
-          },
-        },
+        where,
       }),
     ]);
 
@@ -75,7 +153,7 @@ export class ScanEventsService {
       page,
       limit,
       total,
-      totalPages: Math.ceil(total / limit),
+      totalPages: Math.max(1, Math.ceil(total / limit)),
     };
   }
 }

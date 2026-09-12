@@ -46,7 +46,7 @@ export default function Home() {
           ? new URLSearchParams(window.location.search).get("next")
           : null;
 
-      router.push(next || "/dashboard");
+      window.location.href = next || "/dashboard";
     } catch {
       setMessage("Unable to connect to AssetTrack API");
     } finally {

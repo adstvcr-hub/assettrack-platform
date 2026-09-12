@@ -1,5 +1,12 @@
 import { Type } from "class-transformer";
-import { IsInt, Max, Min } from "class-validator";
+import {
+  IsDateString,
+  IsInt,
+  IsOptional,
+  IsString,
+  Max,
+  Min,
+} from "class-validator";
 
 export class ScanEventsQueryDto {
   @Type(() => Number)
@@ -12,4 +19,20 @@ export class ScanEventsQueryDto {
   @Min(1)
   @Max(100)
   limit = 25;
+
+  @IsOptional()
+  @IsString()
+  search?: string;
+
+  @IsOptional()
+  @IsString()
+  assetId?: string;
+
+  @IsOptional()
+  @IsString()
+  userId?: string;
+
+  @IsOptional()
+  @IsDateString()
+  date?: string;
 }

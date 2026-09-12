@@ -49,8 +49,28 @@ export default function ScansPage() {
 
     async function loadScans() {
       try {
+        const params = new URLSearchParams({
+          page: String(page),
+          limit: "5",
+        });
+
+        if (search.trim()) {
+          params.set("search", search.trim());
+        }
+
+        if (assetFilter !== "ALL") {
+          params.set("assetId", assetFilter);
+        }
+
+        if (userFilter !== "ALL") {
+          params.set("userId", userFilter);
+        }
+
+        if (dateFilter) {
+          params.set("date", dateFilter);
+        }
         const response = await authenticatedFetch(
-          `${API_URL}/api/v1/scan-events?page=${page}&limit=5`,
+          `${API_URL}/api/v1/scan-events?${params.toString()}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -82,7 +102,7 @@ export default function ScansPage() {
     }
 
     loadScans();
-  }, [router, page]);
+  }, [router, page, search, assetFilter, userFilter, dateFilter]);
 
   const assets = useMemo(() => {
     const unique = new Map<string, { id: string; name: string }>();
@@ -114,36 +134,12 @@ export default function ScansPage() {
     return Array.from(unique.values());
   }, [scans]);
 
-  const filteredScans = useMemo(() => {
-    const term = search.trim().toLowerCase();
-
-    return scans.filter((scan) => {
-      const matchesSearch =
-        !term ||
-        scan.asset?.name.toLowerCase().includes(term) ||
-        scan.asset?.assetTag.toLowerCase().includes(term) ||
-        scan.user?.name.toLowerCase().includes(term) ||
-        scan.user?.email.toLowerCase().includes(term) ||
-        scan.notes?.toLowerCase().includes(term);
-
-      const matchesAsset =
-        assetFilter === "ALL" || scan.assetId === assetFilter;
-
-      const matchesUser = userFilter === "ALL" || scan.userId === userFilter;
-
-      const matchesDate =
-        !dateFilter ||
-        new Date(scan.scannedAt).toLocaleDateString("en-CA") === dateFilter;
-
-      return matchesSearch && matchesAsset && matchesUser && matchesDate;
-    });
-  }, [scans, search, assetFilter, userFilter, dateFilter]);
-
   function clearFilters() {
     setSearch("");
     setAssetFilter("ALL");
     setUserFilter("ALL");
     setDateFilter("");
+    setPage(1);
   }
 
   return (
@@ -174,7 +170,7 @@ export default function ScansPage() {
               <h2 className="text-xl font-bold text-slate-900">Recent scans</h2>
 
               <p className="mt-1 text-sm text-slate-500">
-                {filteredScans.length} of {scans.length} scans
+                {scans.length} of {total} scans
               </p>
             </div>
 
@@ -189,14 +185,20 @@ export default function ScansPage() {
           <div className="mt-6 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             <input
               value={search}
-              onChange={(event) => setSearch(event.target.value)}
+              onChange={(event) => {
+                setSearch(event.target.value);
+                setPage(1);
+              }}
               placeholder="Search notes, asset, user..."
               className="rounded-lg border border-slate-300 px-4 py-3"
             />
 
             <select
               value={assetFilter}
-              onChange={(event) => setAssetFilter(event.target.value)}
+              onChange={(event) => {
+                setAssetFilter(event.target.value);
+                setPage(1);
+              }}
               className="rounded-lg border border-slate-300 px-4 py-3"
             >
               <option value="ALL">All assets</option>
@@ -210,7 +212,10 @@ export default function ScansPage() {
 
             <select
               value={userFilter}
-              onChange={(event) => setUserFilter(event.target.value)}
+              onChange={(event) => {
+                setUserFilter(event.target.value);
+                setPage(1);
+              }}
               className="rounded-lg border border-slate-300 px-4 py-3"
             >
               <option value="ALL">All users</option>
@@ -225,7 +230,10 @@ export default function ScansPage() {
             <input
               type="date"
               value={dateFilter}
-              onChange={(event) => setDateFilter(event.target.value)}
+              onChange={(event) => {
+                setDateFilter(event.target.value);
+                setPage(1);
+              }}
               className="rounded-lg border border-slate-300 px-4 py-3"
             />
           </div>
@@ -254,7 +262,7 @@ export default function ScansPage() {
                 </thead>
 
                 <tbody>
-                  {filteredScans.map((scan) => (
+                  {scans.map((scan) => (
                     <tr key={scan.id} className="border-b last:border-0">
                       <td className="whitespace-nowrap py-4 pr-4 text-slate-600">
                         {new Date(scan.scannedAt).toLocaleString()}
@@ -280,7 +288,7 @@ export default function ScansPage() {
                 </tbody>
               </table>
 
-              {filteredScans.length === 0 && (
+              {scans.length === 0 && (
                 <p className="py-10 text-center text-slate-500">
                   No scans match the selected filters.
                 </p>
