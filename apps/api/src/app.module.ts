@@ -11,6 +11,7 @@ import { AuthModule } from "./auth/auth.module";
 import { ThrottlerModule } from "@nestjs/throttler";
 import { APP_GUARD } from "@nestjs/core";
 import { ThrottlerGuard } from "@nestjs/throttler";
+import { OrganizationLocationsModule } from "./organization-locations/organization-locations.module";
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import { ThrottlerGuard } from "@nestjs/throttler";
     QrModule,
     ScanEventsModule,
     AuthModule,
+    OrganizationLocationsModule,
   ],
   providers: [
     {
