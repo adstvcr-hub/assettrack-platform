@@ -95,14 +95,6 @@ export class ScanController {
       scannedAt,
       resolvedTimezone,
     );
-    if (dto.latitude !== undefined && dto.longitude !== undefined) {
-      try {
-        resolvedTimezone = tzlookup(dto.latitude, dto.longitude);
-      } catch (error) {
-        console.warn("Unable to resolve timezone from scan coordinates", error);
-      }
-    }
-
     // Multi-tenant security boundary:
     // users may only scan assets belonging to their organization.
     if (qr.asset.organizationId !== req.user.organizationId) {
