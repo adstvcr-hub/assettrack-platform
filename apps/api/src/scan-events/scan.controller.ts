@@ -79,7 +79,7 @@ export class ScanController {
     if (!qr) {
       throw new NotFoundException("QR code not found");
     }
-    let resolvedTimezone = dto.timezone;
+    let resolvedTimezone = dto.timezone || "UTC";
 
     if (dto.latitude !== undefined && dto.longitude !== undefined) {
       try {
