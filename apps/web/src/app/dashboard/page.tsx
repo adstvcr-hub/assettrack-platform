@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { API_URL, authenticatedFetch } from "@/lib/api";
+import { formatScanDate } from "@/lib/format-scan-date";
 
 type Organization = {
   id: string;
@@ -28,6 +29,7 @@ type User = {
 type ScanEvent = {
   id: string;
   scannedAt: string;
+  timezone?: string | null;
   notes?: string | null;
   asset?: {
     name: string;
@@ -258,7 +260,7 @@ export default function DashboardPage() {
                           {asset.status}
                         </td>
                         <td className="py-4 text-slate-600">
-                          {asset.location ?? "â€”"}
+                          {asset.location ?? "—"}
                         </td>
                       </tr>
                     ))}
@@ -331,12 +333,12 @@ export default function DashboardPage() {
 
                       <p className="text-sm text-slate-500">
                         {scan.user?.name ?? "Unknown user"}
-                        {scan.notes ? ` Â· ${scan.notes}` : ""}
+                        {scan.notes ? ` · ${scan.notes}` : ""}
                       </p>
                     </div>
 
                     <p className="text-sm text-slate-500">
-                      {new Date(scan.scannedAt).toLocaleString()}
+                      {formatScanDate(scan.scannedAt, scan.timezone)}
                     </p>
                   </div>
                 ))}

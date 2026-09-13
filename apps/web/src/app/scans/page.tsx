@@ -2,12 +2,14 @@
 import { API_URL, authenticatedFetch } from "@/lib/api";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { formatScanDate } from "@/lib/format-scan-date";
 
 type ScanEvent = {
   id: string;
   assetId: string;
   userId: string;
   scannedAt: string;
+  timezone?: string | null;
   notes?: string | null;
   latitude?: number | null;
   longitude?: number | null;
@@ -303,7 +305,7 @@ export default function ScansPage() {
                   {scans.map((scan) => (
                     <tr key={scan.id} className="border-b last:border-0">
                       <td className="whitespace-nowrap py-4 pr-4 text-slate-600">
-                        {new Date(scan.scannedAt).toLocaleString()}
+                        {formatScanDate(scan.scannedAt, scan.timezone)}
                       </td>
 
                       <td className="py-4 pr-4 font-medium text-slate-900">
