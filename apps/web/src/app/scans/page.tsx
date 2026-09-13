@@ -46,10 +46,17 @@ export default function ScansPage() {
   const [totalPages, setTotalPages] = useState(1);
 
   const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [assetFilter, setAssetFilter] = useState("ALL");
   const [userFilter, setUserFilter] = useState("ALL");
   const [dateFilter, setDateFilter] = useState("");
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      setDebouncedSearch(search);
+    }, 300);
 
+    return () => clearTimeout(timeout);
+  }, [search]);
   useEffect(() => {
     const token = sessionStorage.getItem("assettrack_token");
 
@@ -65,8 +72,8 @@ export default function ScansPage() {
           limit: "5",
         });
 
-        if (search.trim()) {
-          params.set("search", search.trim());
+        if (debouncedSearch.trim()) {
+          params.set("search", debouncedSearch.trim());
         }
 
         if (assetFilter !== "ALL") {
@@ -115,7 +122,7 @@ export default function ScansPage() {
     }
 
     loadScans();
-  }, [router, page, search, assetFilter, userFilter, dateFilter]);
+  }, [router, page, debouncedSearch, assetFilter, userFilter, dateFilter]);
 
   useEffect(() => {
     const token = sessionStorage.getItem("assettrack_token");
