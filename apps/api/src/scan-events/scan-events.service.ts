@@ -50,7 +50,15 @@ export class ScanEventsService {
     let endDate: Date | undefined;
 
     if (date) {
-      const effectiveTimezone = timezone || "UTC";
+      let effectiveTimezone = timezone || "UTC";
+
+      try {
+        new Intl.DateTimeFormat("en-US", {
+          timeZone: effectiveTimezone,
+        }).format();
+      } catch {
+        effectiveTimezone = "UTC";
+      }
 
       const getUtcForLocalTime = (
         localDate: string,

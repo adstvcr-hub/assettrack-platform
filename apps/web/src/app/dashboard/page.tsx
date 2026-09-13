@@ -164,12 +164,21 @@ export default function DashboardPage() {
             </h1>
           </div>
 
-          <button
-            onClick={logout}
-            className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white"
-          >
-            Sign out
-          </button>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => router.push("/scan")}
+              className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700"
+            >
+              Scan QR
+            </button>
+
+            <button
+              onClick={logout}
+              className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white"
+            >
+              Sign out
+            </button>
+          </div>
         </div>
       </header>
 
