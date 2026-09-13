@@ -13,6 +13,7 @@ import { JwtAuthGuard } from "../auth/jwt-auth.guard";
 import { PrismaService } from "../prisma/prisma.service";
 import { ScanByCodeDto } from "./dto/scan-by-code.dto";
 import { Throttle } from "@nestjs/throttler";
+import tzlookup from "@photostructure/tz-lookup";
 
 type AuthenticatedRequest = Request & {
   user: {
@@ -77,6 +78,15 @@ export class ScanController {
     if (!qr) {
       throw new NotFoundException("QR code not found");
     }
+    let resolvedTimezone = dto.timezone;
+
+    if (dto.latitude !== undefined && dto.longitude !== undefined) {
+      try {
+        resolvedTimezone = tzlookup(dto.latitude, dto.longitude);
+      } catch (error) {
+        console.warn("Unable to resolve timezone from scan coordinates", error);
+      }
+    }
 
     // Multi-tenant security boundary:
     // users may only scan assets belonging to their organization.
@@ -92,7 +102,7 @@ export class ScanController {
         latitude: dto.latitude,
         longitude: dto.longitude,
         locationAccuracy: dto.locationAccuracy,
-        timezone: dto.timezone,
+        timezone: resolvedTimezone,
         timezoneOffset: dto.timezoneOffset,
       },
       include: {
