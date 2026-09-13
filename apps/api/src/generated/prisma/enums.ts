@@ -27,3 +27,27 @@ export const AssetStatus = {
 } as const
 
 export type AssetStatus = (typeof AssetStatus)[keyof typeof AssetStatus]
+
+
+export const OrganizationLocationType = {
+  PLANT: 'PLANT',
+  WAREHOUSE: 'WAREHOUSE',
+  BRANCH: 'BRANCH',
+  CLIENT_SITE: 'CLIENT_SITE',
+  PROJECT_SITE: 'PROJECT_SITE',
+  SERVICE_SITE: 'SERVICE_SITE',
+  OTHER: 'OTHER'
+} as const
+
+export type OrganizationLocationType = (typeof OrganizationLocationType)[keyof typeof OrganizationLocationType]
+
+
+export const LocationSource = {
+  GPS: 'GPS',
+  ORGANIZATION_LOCATION: 'ORGANIZATION_LOCATION',
+  MANUAL: 'MANUAL',
+  DEVICE_TIMEZONE: 'DEVICE_TIMEZONE',
+  UTC_FALLBACK: 'UTC_FALLBACK'
+} as const
+
+export type LocationSource = (typeof LocationSource)[keyof typeof LocationSource]

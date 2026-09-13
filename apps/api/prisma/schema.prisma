@@ -21,6 +21,24 @@ enum AssetStatus {
   RETIRED
 }
 
+enum OrganizationLocationType {
+  PLANT
+  WAREHOUSE
+  BRANCH
+  CLIENT_SITE
+  PROJECT_SITE
+  SERVICE_SITE
+  OTHER
+}
+
+enum LocationSource {
+  GPS
+  ORGANIZATION_LOCATION
+  MANUAL
+  DEVICE_TIMEZONE
+  UTC_FALLBACK
+}
+
 model Organization {
   id        String   @id @default(uuid())
   name      String
@@ -28,10 +46,40 @@ model Organization {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  users  User[]
-  assets Asset[]
+  users     User[]
+  assets    Asset[]
+  locations OrganizationLocation[]
 
   @@map("organizations")
+}
+
+model OrganizationLocation {
+  id             String                   @id @default(uuid())
+  organizationId String
+  name           String
+  type           OrganizationLocationType @default(OTHER)
+
+  country String
+  region  String?
+  city    String?
+  address String?
+
+  latitude  Decimal? @db.Decimal(10, 7)
+  longitude Decimal? @db.Decimal(10, 7)
+  timezone  String?
+
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  scanEvents ScanEvent[]
+
+  @@unique([organizationId, name])
+  @@index([organizationId])
+  @@index([active])
+  @@map("organization_locations")
 }
 
 model User {
@@ -87,24 +135,29 @@ model QrCode {
 }
 
 model ScanEvent {
-  id               String   @id @default(uuid())
-  assetId          String
-  userId           String?
-  scannedAt        DateTime @default(now())
-  notes            String?
-  latitude         Decimal? @db.Decimal(10, 7)
-  longitude        Decimal? @db.Decimal(10, 7)
-  locationAccuracy Decimal? @db.Decimal(10, 2)
-  timezone         String?
-  timezoneOffset   Int?
+  id                     String          @id @default(uuid())
+  assetId                String
+  userId                 String?
+  organizationLocationId String?
+  locationSource         LocationSource?
+  scannedAt              DateTime        @default(now())
+  notes                  String?
+  latitude               Decimal?        @db.Decimal(10, 7)
+  longitude              Decimal?        @db.Decimal(10, 7)
+  locationAccuracy       Decimal?        @db.Decimal(10, 2)
+  timezone               String?
+  timezoneOffset         Int?
 
   asset Asset @relation(fields: [assetId], references: [id], onDelete: Cascade)
   user  User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  organizationLocation OrganizationLocation? @relation(fields: [organizationLocationId], references: [id], onDelete: SetNull)
 
   @@index([assetId])
   @@index([userId])
   @@index([scannedAt])
   @@index([timezone])
+  @@index([organizationLocationId])
   @@map("scan_events")
 }
 

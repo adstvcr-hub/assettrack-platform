@@ -52,6 +52,7 @@ export const AnyNull = runtime.AnyNull
 
 export const ModelName = {
   Organization: 'Organization',
+  OrganizationLocation: 'OrganizationLocation',
   User: 'User',
   Asset: 'Asset',
   QrCode: 'QrCode',
@@ -84,6 +85,26 @@ export const OrganizationScalarFieldEnum = {
 } as const
 
 export type OrganizationScalarFieldEnum = (typeof OrganizationScalarFieldEnum)[keyof typeof OrganizationScalarFieldEnum]
+
+
+export const OrganizationLocationScalarFieldEnum = {
+  id: 'id',
+  organizationId: 'organizationId',
+  name: 'name',
+  type: 'type',
+  country: 'country',
+  region: 'region',
+  city: 'city',
+  address: 'address',
+  latitude: 'latitude',
+  longitude: 'longitude',
+  timezone: 'timezone',
+  active: 'active',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type OrganizationLocationScalarFieldEnum = (typeof OrganizationLocationScalarFieldEnum)[keyof typeof OrganizationLocationScalarFieldEnum]
 
 
 export const UserScalarFieldEnum = {
@@ -130,6 +151,8 @@ export const ScanEventScalarFieldEnum = {
   id: 'id',
   assetId: 'assetId',
   userId: 'userId',
+  organizationLocationId: 'organizationLocationId',
+  locationSource: 'locationSource',
   scannedAt: 'scannedAt',
   notes: 'notes',
   latitude: 'latitude',

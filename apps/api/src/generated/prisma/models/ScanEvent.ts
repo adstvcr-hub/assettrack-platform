@@ -44,6 +44,8 @@ export type ScanEventMinAggregateOutputType = {
   id: string | null
   assetId: string | null
   userId: string | null
+  organizationLocationId: string | null
+  locationSource: $Enums.LocationSource | null
   scannedAt: Date | null
   notes: string | null
   latitude: runtime.Decimal | null
@@ -57,6 +59,8 @@ export type ScanEventMaxAggregateOutputType = {
   id: string | null
   assetId: string | null
   userId: string | null
+  organizationLocationId: string | null
+  locationSource: $Enums.LocationSource | null
   scannedAt: Date | null
   notes: string | null
   latitude: runtime.Decimal | null
@@ -70,6 +74,8 @@ export type ScanEventCountAggregateOutputType = {
   id: number
   assetId: number
   userId: number
+  organizationLocationId: number
+  locationSource: number
   scannedAt: number
   notes: number
   latitude: number
@@ -99,6 +105,8 @@ export type ScanEventMinAggregateInputType = {
   id?: true
   assetId?: true
   userId?: true
+  organizationLocationId?: true
+  locationSource?: true
   scannedAt?: true
   notes?: true
   latitude?: true
@@ -112,6 +120,8 @@ export type ScanEventMaxAggregateInputType = {
   id?: true
   assetId?: true
   userId?: true
+  organizationLocationId?: true
+  locationSource?: true
   scannedAt?: true
   notes?: true
   latitude?: true
@@ -125,6 +135,8 @@ export type ScanEventCountAggregateInputType = {
   id?: true
   assetId?: true
   userId?: true
+  organizationLocationId?: true
+  locationSource?: true
   scannedAt?: true
   notes?: true
   latitude?: true
@@ -225,6 +237,8 @@ export type ScanEventGroupByOutputType = {
   id: string
   assetId: string
   userId: string | null
+  organizationLocationId: string | null
+  locationSource: $Enums.LocationSource | null
   scannedAt: Date
   notes: string | null
   latitude: runtime.Decimal | null
@@ -261,6 +275,8 @@ export type ScanEventWhereInput = {
   id?: Prisma.StringFilter<"ScanEvent"> | string
   assetId?: Prisma.StringFilter<"ScanEvent"> | string
   userId?: Prisma.StringNullableFilter<"ScanEvent"> | string | null
+  organizationLocationId?: Prisma.StringNullableFilter<"ScanEvent"> | string | null
+  locationSource?: Prisma.EnumLocationSourceNullableFilter<"ScanEvent"> | $Enums.LocationSource | null
   scannedAt?: Prisma.DateTimeFilter<"ScanEvent"> | Date | string
   notes?: Prisma.StringNullableFilter<"ScanEvent"> | string | null
   latitude?: Prisma.DecimalNullableFilter<"ScanEvent"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -270,12 +286,15 @@ export type ScanEventWhereInput = {
   timezoneOffset?: Prisma.IntNullableFilter<"ScanEvent"> | number | null
   asset?: Prisma.XOR<Prisma.AssetScalarRelationFilter, Prisma.AssetWhereInput>
   user?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
+  organizationLocation?: Prisma.XOR<Prisma.OrganizationLocationNullableScalarRelationFilter, Prisma.OrganizationLocationWhereInput> | null
 }
 
 export type ScanEventOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   assetId?: Prisma.SortOrder
   userId?: Prisma.SortOrderInput | Prisma.SortOrder
+  organizationLocationId?: Prisma.SortOrderInput | Prisma.SortOrder
+  locationSource?: Prisma.SortOrderInput | Prisma.SortOrder
   scannedAt?: Prisma.SortOrder
   notes?: Prisma.SortOrderInput | Prisma.SortOrder
   latitude?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -285,6 +304,7 @@ export type ScanEventOrderByWithRelationInput = {
   timezoneOffset?: Prisma.SortOrderInput | Prisma.SortOrder
   asset?: Prisma.AssetOrderByWithRelationInput
   user?: Prisma.UserOrderByWithRelationInput
+  organizationLocation?: Prisma.OrganizationLocationOrderByWithRelationInput
 }
 
 export type ScanEventWhereUniqueInput = Prisma.AtLeast<{
@@ -294,6 +314,8 @@ export type ScanEventWhereUniqueInput = Prisma.AtLeast<{
   NOT?: Prisma.ScanEventWhereInput | Prisma.ScanEventWhereInput[]
   assetId?: Prisma.StringFilter<"ScanEvent"> | string
   userId?: Prisma.StringNullableFilter<"ScanEvent"> | string | null
+  organizationLocationId?: Prisma.StringNullableFilter<"ScanEvent"> | string | null
+  locationSource?: Prisma.EnumLocationSourceNullableFilter<"ScanEvent"> | $Enums.LocationSource | null
   scannedAt?: Prisma.DateTimeFilter<"ScanEvent"> | Date | string
   notes?: Prisma.StringNullableFilter<"ScanEvent"> | string | null
   latitude?: Prisma.DecimalNullableFilter<"ScanEvent"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -303,12 +325,15 @@ export type ScanEventWhereUniqueInput = Prisma.AtLeast<{
   timezoneOffset?: Prisma.IntNullableFilter<"ScanEvent"> | number | null
   asset?: Prisma.XOR<Prisma.AssetScalarRelationFilter, Prisma.AssetWhereInput>
   user?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
+  organizationLocation?: Prisma.XOR<Prisma.OrganizationLocationNullableScalarRelationFilter, Prisma.OrganizationLocationWhereInput> | null
 }, "id">
 
 export type ScanEventOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   assetId?: Prisma.SortOrder
   userId?: Prisma.SortOrderInput | Prisma.SortOrder
+  organizationLocationId?: Prisma.SortOrderInput | Prisma.SortOrder
+  locationSource?: Prisma.SortOrderInput | Prisma.SortOrder
   scannedAt?: Prisma.SortOrder
   notes?: Prisma.SortOrderInput | Prisma.SortOrder
   latitude?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -330,6 +355,8 @@ export type ScanEventScalarWhereWithAggregatesInput = {
   id?: Prisma.StringWithAggregatesFilter<"ScanEvent"> | string
   assetId?: Prisma.StringWithAggregatesFilter<"ScanEvent"> | string
   userId?: Prisma.StringNullableWithAggregatesFilter<"ScanEvent"> | string | null
+  organizationLocationId?: Prisma.StringNullableWithAggregatesFilter<"ScanEvent"> | string | null
+  locationSource?: Prisma.EnumLocationSourceNullableWithAggregatesFilter<"ScanEvent"> | $Enums.LocationSource | null
   scannedAt?: Prisma.DateTimeWithAggregatesFilter<"ScanEvent"> | Date | string
   notes?: Prisma.StringNullableWithAggregatesFilter<"ScanEvent"> | string | null
   latitude?: Prisma.DecimalNullableWithAggregatesFilter<"ScanEvent"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -341,6 +368,7 @@ export type ScanEventScalarWhereWithAggregatesInput = {
 
 export type ScanEventCreateInput = {
   id?: string
+  locationSource?: $Enums.LocationSource | null
   scannedAt?: Date | string
   notes?: string | null
   latitude?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -350,12 +378,15 @@ export type ScanEventCreateInput = {
   timezoneOffset?: number | null
   asset: Prisma.AssetCreateNestedOneWithoutScanEventsInput
   user?: Prisma.UserCreateNestedOneWithoutScanEventsInput
+  organizationLocation?: Prisma.OrganizationLocationCreateNestedOneWithoutScanEventsInput
 }
 
 export type ScanEventUncheckedCreateInput = {
   id?: string
   assetId: string
   userId?: string | null
+  organizationLocationId?: string | null
+  locationSource?: $Enums.LocationSource | null
   scannedAt?: Date | string
   notes?: string | null
   latitude?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -367,6 +398,7 @@ export type ScanEventUncheckedCreateInput = {
 
 export type ScanEventUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  locationSource?: Prisma.NullableEnumLocationSourceFieldUpdateOperationsInput | $Enums.LocationSource | null
   scannedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   latitude?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -376,12 +408,15 @@ export type ScanEventUpdateInput = {
   timezoneOffset?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   asset?: Prisma.AssetUpdateOneRequiredWithoutScanEventsNestedInput
   user?: Prisma.UserUpdateOneWithoutScanEventsNestedInput
+  organizationLocation?: Prisma.OrganizationLocationUpdateOneWithoutScanEventsNestedInput
 }
 
 export type ScanEventUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   assetId?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  organizationLocationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  locationSource?: Prisma.NullableEnumLocationSourceFieldUpdateOperationsInput | $Enums.LocationSource | null
   scannedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   latitude?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -395,6 +430,8 @@ export type ScanEventCreateManyInput = {
   id?: string
   assetId: string
   userId?: string | null
+  organizationLocationId?: string | null
+  locationSource?: $Enums.LocationSource | null
   scannedAt?: Date | string
   notes?: string | null
   latitude?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -406,6 +443,7 @@ export type ScanEventCreateManyInput = {
 
 export type ScanEventUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  locationSource?: Prisma.NullableEnumLocationSourceFieldUpdateOperationsInput | $Enums.LocationSource | null
   scannedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   latitude?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -419,6 +457,8 @@ export type ScanEventUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   assetId?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  organizationLocationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  locationSource?: Prisma.NullableEnumLocationSourceFieldUpdateOperationsInput | $Enums.LocationSource | null
   scannedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   latitude?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -442,6 +482,8 @@ export type ScanEventCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   assetId?: Prisma.SortOrder
   userId?: Prisma.SortOrder
+  organizationLocationId?: Prisma.SortOrder
+  locationSource?: Prisma.SortOrder
   scannedAt?: Prisma.SortOrder
   notes?: Prisma.SortOrder
   latitude?: Prisma.SortOrder
@@ -462,6 +504,8 @@ export type ScanEventMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   assetId?: Prisma.SortOrder
   userId?: Prisma.SortOrder
+  organizationLocationId?: Prisma.SortOrder
+  locationSource?: Prisma.SortOrder
   scannedAt?: Prisma.SortOrder
   notes?: Prisma.SortOrder
   latitude?: Prisma.SortOrder
@@ -475,6 +519,8 @@ export type ScanEventMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   assetId?: Prisma.SortOrder
   userId?: Prisma.SortOrder
+  organizationLocationId?: Prisma.SortOrder
+  locationSource?: Prisma.SortOrder
   scannedAt?: Prisma.SortOrder
   notes?: Prisma.SortOrder
   latitude?: Prisma.SortOrder
@@ -489,6 +535,48 @@ export type ScanEventSumOrderByAggregateInput = {
   longitude?: Prisma.SortOrder
   locationAccuracy?: Prisma.SortOrder
   timezoneOffset?: Prisma.SortOrder
+}
+
+export type ScanEventCreateNestedManyWithoutOrganizationLocationInput = {
+  create?: Prisma.XOR<Prisma.ScanEventCreateWithoutOrganizationLocationInput, Prisma.ScanEventUncheckedCreateWithoutOrganizationLocationInput> | Prisma.ScanEventCreateWithoutOrganizationLocationInput[] | Prisma.ScanEventUncheckedCreateWithoutOrganizationLocationInput[]
+  connectOrCreate?: Prisma.ScanEventCreateOrConnectWithoutOrganizationLocationInput | Prisma.ScanEventCreateOrConnectWithoutOrganizationLocationInput[]
+  createMany?: Prisma.ScanEventCreateManyOrganizationLocationInputEnvelope
+  connect?: Prisma.ScanEventWhereUniqueInput | Prisma.ScanEventWhereUniqueInput[]
+}
+
+export type ScanEventUncheckedCreateNestedManyWithoutOrganizationLocationInput = {
+  create?: Prisma.XOR<Prisma.ScanEventCreateWithoutOrganizationLocationInput, Prisma.ScanEventUncheckedCreateWithoutOrganizationLocationInput> | Prisma.ScanEventCreateWithoutOrganizationLocationInput[] | Prisma.ScanEventUncheckedCreateWithoutOrganizationLocationInput[]
+  connectOrCreate?: Prisma.ScanEventCreateOrConnectWithoutOrganizationLocationInput | Prisma.ScanEventCreateOrConnectWithoutOrganizationLocationInput[]
+  createMany?: Prisma.ScanEventCreateManyOrganizationLocationInputEnvelope
+  connect?: Prisma.ScanEventWhereUniqueInput | Prisma.ScanEventWhereUniqueInput[]
+}
+
+export type ScanEventUpdateManyWithoutOrganizationLocationNestedInput = {
+  create?: Prisma.XOR<Prisma.ScanEventCreateWithoutOrganizationLocationInput, Prisma.ScanEventUncheckedCreateWithoutOrganizationLocationInput> | Prisma.ScanEventCreateWithoutOrganizationLocationInput[] | Prisma.ScanEventUncheckedCreateWithoutOrganizationLocationInput[]
+  connectOrCreate?: Prisma.ScanEventCreateOrConnectWithoutOrganizationLocationInput | Prisma.ScanEventCreateOrConnectWithoutOrganizationLocationInput[]
+  upsert?: Prisma.ScanEventUpsertWithWhereUniqueWithoutOrganizationLocationInput | Prisma.ScanEventUpsertWithWhereUniqueWithoutOrganizationLocationInput[]
+  createMany?: Prisma.ScanEventCreateManyOrganizationLocationInputEnvelope
+  set?: Prisma.ScanEventWhereUniqueInput | Prisma.ScanEventWhereUniqueInput[]
+  disconnect?: Prisma.ScanEventWhereUniqueInput | Prisma.ScanEventWhereUniqueInput[]
+  delete?: Prisma.ScanEventWhereUniqueInput | Prisma.ScanEventWhereUniqueInput[]
+  connect?: Prisma.ScanEventWhereUniqueInput | Prisma.ScanEventWhereUniqueInput[]
+  update?: Prisma.ScanEventUpdateWithWhereUniqueWithoutOrganizationLocationInput | Prisma.ScanEventUpdateWithWhereUniqueWithoutOrganizationLocationInput[]
+  updateMany?: Prisma.ScanEventUpdateManyWithWhereWithoutOrganizationLocationInput | Prisma.ScanEventUpdateManyWithWhereWithoutOrganizationLocationInput[]
+  deleteMany?: Prisma.ScanEventScalarWhereInput | Prisma.ScanEventScalarWhereInput[]
+}
+
+export type ScanEventUncheckedUpdateManyWithoutOrganizationLocationNestedInput = {
+  create?: Prisma.XOR<Prisma.ScanEventCreateWithoutOrganizationLocationInput, Prisma.ScanEventUncheckedCreateWithoutOrganizationLocationInput> | Prisma.ScanEventCreateWithoutOrganizationLocationInput[] | Prisma.ScanEventUncheckedCreateWithoutOrganizationLocationInput[]
+  connectOrCreate?: Prisma.ScanEventCreateOrConnectWithoutOrganizationLocationInput | Prisma.ScanEventCreateOrConnectWithoutOrganizationLocationInput[]
+  upsert?: Prisma.ScanEventUpsertWithWhereUniqueWithoutOrganizationLocationInput | Prisma.ScanEventUpsertWithWhereUniqueWithoutOrganizationLocationInput[]
+  createMany?: Prisma.ScanEventCreateManyOrganizationLocationInputEnvelope
+  set?: Prisma.ScanEventWhereUniqueInput | Prisma.ScanEventWhereUniqueInput[]
+  disconnect?: Prisma.ScanEventWhereUniqueInput | Prisma.ScanEventWhereUniqueInput[]
+  delete?: Prisma.ScanEventWhereUniqueInput | Prisma.ScanEventWhereUniqueInput[]
+  connect?: Prisma.ScanEventWhereUniqueInput | Prisma.ScanEventWhereUniqueInput[]
+  update?: Prisma.ScanEventUpdateWithWhereUniqueWithoutOrganizationLocationInput | Prisma.ScanEventUpdateWithWhereUniqueWithoutOrganizationLocationInput[]
+  updateMany?: Prisma.ScanEventUpdateManyWithWhereWithoutOrganizationLocationInput | Prisma.ScanEventUpdateManyWithWhereWithoutOrganizationLocationInput[]
+  deleteMany?: Prisma.ScanEventScalarWhereInput | Prisma.ScanEventScalarWhereInput[]
 }
 
 export type ScanEventCreateNestedManyWithoutUserInput = {
@@ -575,12 +663,8 @@ export type ScanEventUncheckedUpdateManyWithoutAssetNestedInput = {
   deleteMany?: Prisma.ScanEventScalarWhereInput | Prisma.ScanEventScalarWhereInput[]
 }
 
-export type NullableDecimalFieldUpdateOperationsInput = {
-  set?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  increment?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  decrement?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  multiply?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  divide?: runtime.Decimal | runtime.DecimalJsLike | number | string
+export type NullableEnumLocationSourceFieldUpdateOperationsInput = {
+  set?: $Enums.LocationSource | null
 }
 
 export type NullableIntFieldUpdateOperationsInput = {
@@ -591,8 +675,9 @@ export type NullableIntFieldUpdateOperationsInput = {
   divide?: number
 }
 
-export type ScanEventCreateWithoutUserInput = {
+export type ScanEventCreateWithoutOrganizationLocationInput = {
   id?: string
+  locationSource?: $Enums.LocationSource | null
   scannedAt?: Date | string
   notes?: string | null
   latitude?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -601,11 +686,86 @@ export type ScanEventCreateWithoutUserInput = {
   timezone?: string | null
   timezoneOffset?: number | null
   asset: Prisma.AssetCreateNestedOneWithoutScanEventsInput
+  user?: Prisma.UserCreateNestedOneWithoutScanEventsInput
+}
+
+export type ScanEventUncheckedCreateWithoutOrganizationLocationInput = {
+  id?: string
+  assetId: string
+  userId?: string | null
+  locationSource?: $Enums.LocationSource | null
+  scannedAt?: Date | string
+  notes?: string | null
+  latitude?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  longitude?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  locationAccuracy?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  timezone?: string | null
+  timezoneOffset?: number | null
+}
+
+export type ScanEventCreateOrConnectWithoutOrganizationLocationInput = {
+  where: Prisma.ScanEventWhereUniqueInput
+  create: Prisma.XOR<Prisma.ScanEventCreateWithoutOrganizationLocationInput, Prisma.ScanEventUncheckedCreateWithoutOrganizationLocationInput>
+}
+
+export type ScanEventCreateManyOrganizationLocationInputEnvelope = {
+  data: Prisma.ScanEventCreateManyOrganizationLocationInput | Prisma.ScanEventCreateManyOrganizationLocationInput[]
+  skipDuplicates?: boolean
+}
+
+export type ScanEventUpsertWithWhereUniqueWithoutOrganizationLocationInput = {
+  where: Prisma.ScanEventWhereUniqueInput
+  update: Prisma.XOR<Prisma.ScanEventUpdateWithoutOrganizationLocationInput, Prisma.ScanEventUncheckedUpdateWithoutOrganizationLocationInput>
+  create: Prisma.XOR<Prisma.ScanEventCreateWithoutOrganizationLocationInput, Prisma.ScanEventUncheckedCreateWithoutOrganizationLocationInput>
+}
+
+export type ScanEventUpdateWithWhereUniqueWithoutOrganizationLocationInput = {
+  where: Prisma.ScanEventWhereUniqueInput
+  data: Prisma.XOR<Prisma.ScanEventUpdateWithoutOrganizationLocationInput, Prisma.ScanEventUncheckedUpdateWithoutOrganizationLocationInput>
+}
+
+export type ScanEventUpdateManyWithWhereWithoutOrganizationLocationInput = {
+  where: Prisma.ScanEventScalarWhereInput
+  data: Prisma.XOR<Prisma.ScanEventUpdateManyMutationInput, Prisma.ScanEventUncheckedUpdateManyWithoutOrganizationLocationInput>
+}
+
+export type ScanEventScalarWhereInput = {
+  AND?: Prisma.ScanEventScalarWhereInput | Prisma.ScanEventScalarWhereInput[]
+  OR?: Prisma.ScanEventScalarWhereInput[]
+  NOT?: Prisma.ScanEventScalarWhereInput | Prisma.ScanEventScalarWhereInput[]
+  id?: Prisma.StringFilter<"ScanEvent"> | string
+  assetId?: Prisma.StringFilter<"ScanEvent"> | string
+  userId?: Prisma.StringNullableFilter<"ScanEvent"> | string | null
+  organizationLocationId?: Prisma.StringNullableFilter<"ScanEvent"> | string | null
+  locationSource?: Prisma.EnumLocationSourceNullableFilter<"ScanEvent"> | $Enums.LocationSource | null
+  scannedAt?: Prisma.DateTimeFilter<"ScanEvent"> | Date | string
+  notes?: Prisma.StringNullableFilter<"ScanEvent"> | string | null
+  latitude?: Prisma.DecimalNullableFilter<"ScanEvent"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  longitude?: Prisma.DecimalNullableFilter<"ScanEvent"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  locationAccuracy?: Prisma.DecimalNullableFilter<"ScanEvent"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  timezone?: Prisma.StringNullableFilter<"ScanEvent"> | string | null
+  timezoneOffset?: Prisma.IntNullableFilter<"ScanEvent"> | number | null
+}
+
+export type ScanEventCreateWithoutUserInput = {
+  id?: string
+  locationSource?: $Enums.LocationSource | null
+  scannedAt?: Date | string
+  notes?: string | null
+  latitude?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  longitude?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  locationAccuracy?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  timezone?: string | null
+  timezoneOffset?: number | null
+  asset: Prisma.AssetCreateNestedOneWithoutScanEventsInput
+  organizationLocation?: Prisma.OrganizationLocationCreateNestedOneWithoutScanEventsInput
 }
 
 export type ScanEventUncheckedCreateWithoutUserInput = {
   id?: string
   assetId: string
+  organizationLocationId?: string | null
+  locationSource?: $Enums.LocationSource | null
   scannedAt?: Date | string
   notes?: string | null
   latitude?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -641,24 +801,9 @@ export type ScanEventUpdateManyWithWhereWithoutUserInput = {
   data: Prisma.XOR<Prisma.ScanEventUpdateManyMutationInput, Prisma.ScanEventUncheckedUpdateManyWithoutUserInput>
 }
 
-export type ScanEventScalarWhereInput = {
-  AND?: Prisma.ScanEventScalarWhereInput | Prisma.ScanEventScalarWhereInput[]
-  OR?: Prisma.ScanEventScalarWhereInput[]
-  NOT?: Prisma.ScanEventScalarWhereInput | Prisma.ScanEventScalarWhereInput[]
-  id?: Prisma.StringFilter<"ScanEvent"> | string
-  assetId?: Prisma.StringFilter<"ScanEvent"> | string
-  userId?: Prisma.StringNullableFilter<"ScanEvent"> | string | null
-  scannedAt?: Prisma.DateTimeFilter<"ScanEvent"> | Date | string
-  notes?: Prisma.StringNullableFilter<"ScanEvent"> | string | null
-  latitude?: Prisma.DecimalNullableFilter<"ScanEvent"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  longitude?: Prisma.DecimalNullableFilter<"ScanEvent"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  locationAccuracy?: Prisma.DecimalNullableFilter<"ScanEvent"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  timezone?: Prisma.StringNullableFilter<"ScanEvent"> | string | null
-  timezoneOffset?: Prisma.IntNullableFilter<"ScanEvent"> | number | null
-}
-
 export type ScanEventCreateWithoutAssetInput = {
   id?: string
+  locationSource?: $Enums.LocationSource | null
   scannedAt?: Date | string
   notes?: string | null
   latitude?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -667,11 +812,14 @@ export type ScanEventCreateWithoutAssetInput = {
   timezone?: string | null
   timezoneOffset?: number | null
   user?: Prisma.UserCreateNestedOneWithoutScanEventsInput
+  organizationLocation?: Prisma.OrganizationLocationCreateNestedOneWithoutScanEventsInput
 }
 
 export type ScanEventUncheckedCreateWithoutAssetInput = {
   id?: string
   userId?: string | null
+  organizationLocationId?: string | null
+  locationSource?: $Enums.LocationSource | null
   scannedAt?: Date | string
   notes?: string | null
   latitude?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -707,9 +855,67 @@ export type ScanEventUpdateManyWithWhereWithoutAssetInput = {
   data: Prisma.XOR<Prisma.ScanEventUpdateManyMutationInput, Prisma.ScanEventUncheckedUpdateManyWithoutAssetInput>
 }
 
+export type ScanEventCreateManyOrganizationLocationInput = {
+  id?: string
+  assetId: string
+  userId?: string | null
+  locationSource?: $Enums.LocationSource | null
+  scannedAt?: Date | string
+  notes?: string | null
+  latitude?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  longitude?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  locationAccuracy?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  timezone?: string | null
+  timezoneOffset?: number | null
+}
+
+export type ScanEventUpdateWithoutOrganizationLocationInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  locationSource?: Prisma.NullableEnumLocationSourceFieldUpdateOperationsInput | $Enums.LocationSource | null
+  scannedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  latitude?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  longitude?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  locationAccuracy?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  timezone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  timezoneOffset?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  asset?: Prisma.AssetUpdateOneRequiredWithoutScanEventsNestedInput
+  user?: Prisma.UserUpdateOneWithoutScanEventsNestedInput
+}
+
+export type ScanEventUncheckedUpdateWithoutOrganizationLocationInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  assetId?: Prisma.StringFieldUpdateOperationsInput | string
+  userId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  locationSource?: Prisma.NullableEnumLocationSourceFieldUpdateOperationsInput | $Enums.LocationSource | null
+  scannedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  latitude?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  longitude?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  locationAccuracy?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  timezone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  timezoneOffset?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+}
+
+export type ScanEventUncheckedUpdateManyWithoutOrganizationLocationInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  assetId?: Prisma.StringFieldUpdateOperationsInput | string
+  userId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  locationSource?: Prisma.NullableEnumLocationSourceFieldUpdateOperationsInput | $Enums.LocationSource | null
+  scannedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  latitude?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  longitude?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  locationAccuracy?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  timezone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  timezoneOffset?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+}
+
 export type ScanEventCreateManyUserInput = {
   id?: string
   assetId: string
+  organizationLocationId?: string | null
+  locationSource?: $Enums.LocationSource | null
   scannedAt?: Date | string
   notes?: string | null
   latitude?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -721,6 +927,7 @@ export type ScanEventCreateManyUserInput = {
 
 export type ScanEventUpdateWithoutUserInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  locationSource?: Prisma.NullableEnumLocationSourceFieldUpdateOperationsInput | $Enums.LocationSource | null
   scannedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   latitude?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -729,11 +936,14 @@ export type ScanEventUpdateWithoutUserInput = {
   timezone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   timezoneOffset?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   asset?: Prisma.AssetUpdateOneRequiredWithoutScanEventsNestedInput
+  organizationLocation?: Prisma.OrganizationLocationUpdateOneWithoutScanEventsNestedInput
 }
 
 export type ScanEventUncheckedUpdateWithoutUserInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   assetId?: Prisma.StringFieldUpdateOperationsInput | string
+  organizationLocationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  locationSource?: Prisma.NullableEnumLocationSourceFieldUpdateOperationsInput | $Enums.LocationSource | null
   scannedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   latitude?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -746,6 +956,8 @@ export type ScanEventUncheckedUpdateWithoutUserInput = {
 export type ScanEventUncheckedUpdateManyWithoutUserInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   assetId?: Prisma.StringFieldUpdateOperationsInput | string
+  organizationLocationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  locationSource?: Prisma.NullableEnumLocationSourceFieldUpdateOperationsInput | $Enums.LocationSource | null
   scannedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   latitude?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -758,6 +970,8 @@ export type ScanEventUncheckedUpdateManyWithoutUserInput = {
 export type ScanEventCreateManyAssetInput = {
   id?: string
   userId?: string | null
+  organizationLocationId?: string | null
+  locationSource?: $Enums.LocationSource | null
   scannedAt?: Date | string
   notes?: string | null
   latitude?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -769,6 +983,7 @@ export type ScanEventCreateManyAssetInput = {
 
 export type ScanEventUpdateWithoutAssetInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  locationSource?: Prisma.NullableEnumLocationSourceFieldUpdateOperationsInput | $Enums.LocationSource | null
   scannedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   latitude?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -777,11 +992,14 @@ export type ScanEventUpdateWithoutAssetInput = {
   timezone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   timezoneOffset?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   user?: Prisma.UserUpdateOneWithoutScanEventsNestedInput
+  organizationLocation?: Prisma.OrganizationLocationUpdateOneWithoutScanEventsNestedInput
 }
 
 export type ScanEventUncheckedUpdateWithoutAssetInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  organizationLocationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  locationSource?: Prisma.NullableEnumLocationSourceFieldUpdateOperationsInput | $Enums.LocationSource | null
   scannedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   latitude?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -794,6 +1012,8 @@ export type ScanEventUncheckedUpdateWithoutAssetInput = {
 export type ScanEventUncheckedUpdateManyWithoutAssetInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  organizationLocationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  locationSource?: Prisma.NullableEnumLocationSourceFieldUpdateOperationsInput | $Enums.LocationSource | null
   scannedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   latitude?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -809,6 +1029,8 @@ export type ScanEventSelect<ExtArgs extends runtime.Types.Extensions.InternalArg
   id?: boolean
   assetId?: boolean
   userId?: boolean
+  organizationLocationId?: boolean
+  locationSource?: boolean
   scannedAt?: boolean
   notes?: boolean
   latitude?: boolean
@@ -818,12 +1040,15 @@ export type ScanEventSelect<ExtArgs extends runtime.Types.Extensions.InternalArg
   timezoneOffset?: boolean
   asset?: boolean | Prisma.AssetDefaultArgs<ExtArgs>
   user?: boolean | Prisma.ScanEvent$userArgs<ExtArgs>
+  organizationLocation?: boolean | Prisma.ScanEvent$organizationLocationArgs<ExtArgs>
 }, ExtArgs["result"]["scanEvent"]>
 
 export type ScanEventSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   assetId?: boolean
   userId?: boolean
+  organizationLocationId?: boolean
+  locationSource?: boolean
   scannedAt?: boolean
   notes?: boolean
   latitude?: boolean
@@ -833,12 +1058,15 @@ export type ScanEventSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Ext
   timezoneOffset?: boolean
   asset?: boolean | Prisma.AssetDefaultArgs<ExtArgs>
   user?: boolean | Prisma.ScanEvent$userArgs<ExtArgs>
+  organizationLocation?: boolean | Prisma.ScanEvent$organizationLocationArgs<ExtArgs>
 }, ExtArgs["result"]["scanEvent"]>
 
 export type ScanEventSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   assetId?: boolean
   userId?: boolean
+  organizationLocationId?: boolean
+  locationSource?: boolean
   scannedAt?: boolean
   notes?: boolean
   latitude?: boolean
@@ -848,12 +1076,15 @@ export type ScanEventSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Ext
   timezoneOffset?: boolean
   asset?: boolean | Prisma.AssetDefaultArgs<ExtArgs>
   user?: boolean | Prisma.ScanEvent$userArgs<ExtArgs>
+  organizationLocation?: boolean | Prisma.ScanEvent$organizationLocationArgs<ExtArgs>
 }, ExtArgs["result"]["scanEvent"]>
 
 export type ScanEventSelectScalar = {
   id?: boolean
   assetId?: boolean
   userId?: boolean
+  organizationLocationId?: boolean
+  locationSource?: boolean
   scannedAt?: boolean
   notes?: boolean
   latitude?: boolean
@@ -863,18 +1094,21 @@ export type ScanEventSelectScalar = {
   timezoneOffset?: boolean
 }
 
-export type ScanEventOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "assetId" | "userId" | "scannedAt" | "notes" | "latitude" | "longitude" | "locationAccuracy" | "timezone" | "timezoneOffset", ExtArgs["result"]["scanEvent"]>
+export type ScanEventOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "assetId" | "userId" | "organizationLocationId" | "locationSource" | "scannedAt" | "notes" | "latitude" | "longitude" | "locationAccuracy" | "timezone" | "timezoneOffset", ExtArgs["result"]["scanEvent"]>
 export type ScanEventInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   asset?: boolean | Prisma.AssetDefaultArgs<ExtArgs>
   user?: boolean | Prisma.ScanEvent$userArgs<ExtArgs>
+  organizationLocation?: boolean | Prisma.ScanEvent$organizationLocationArgs<ExtArgs>
 }
 export type ScanEventIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   asset?: boolean | Prisma.AssetDefaultArgs<ExtArgs>
   user?: boolean | Prisma.ScanEvent$userArgs<ExtArgs>
+  organizationLocation?: boolean | Prisma.ScanEvent$organizationLocationArgs<ExtArgs>
 }
 export type ScanEventIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   asset?: boolean | Prisma.AssetDefaultArgs<ExtArgs>
   user?: boolean | Prisma.ScanEvent$userArgs<ExtArgs>
+  organizationLocation?: boolean | Prisma.ScanEvent$organizationLocationArgs<ExtArgs>
 }
 
 export type $ScanEventPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -882,11 +1116,14 @@ export type $ScanEventPayload<ExtArgs extends runtime.Types.Extensions.InternalA
   objects: {
     asset: Prisma.$AssetPayload<ExtArgs>
     user: Prisma.$UserPayload<ExtArgs> | null
+    organizationLocation: Prisma.$OrganizationLocationPayload<ExtArgs> | null
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
     assetId: string
     userId: string | null
+    organizationLocationId: string | null
+    locationSource: $Enums.LocationSource | null
     scannedAt: Date
     notes: string | null
     latitude: runtime.Decimal | null
@@ -1290,6 +1527,7 @@ export interface Prisma__ScanEventClient<T, Null = never, ExtArgs extends runtim
   readonly [Symbol.toStringTag]: "PrismaPromise"
   asset<T extends Prisma.AssetDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.AssetDefaultArgs<ExtArgs>>): Prisma.Prisma__AssetClient<runtime.Types.Result.GetResult<Prisma.$AssetPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   user<T extends Prisma.ScanEvent$userArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ScanEvent$userArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  organizationLocation<T extends Prisma.ScanEvent$organizationLocationArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ScanEvent$organizationLocationArgs<ExtArgs>>): Prisma.Prisma__OrganizationLocationClient<runtime.Types.Result.GetResult<Prisma.$OrganizationLocationPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1322,6 +1560,8 @@ export interface ScanEventFieldRefs {
   readonly id: Prisma.FieldRef<"ScanEvent", 'String'>
   readonly assetId: Prisma.FieldRef<"ScanEvent", 'String'>
   readonly userId: Prisma.FieldRef<"ScanEvent", 'String'>
+  readonly organizationLocationId: Prisma.FieldRef<"ScanEvent", 'String'>
+  readonly locationSource: Prisma.FieldRef<"ScanEvent", 'LocationSource'>
   readonly scannedAt: Prisma.FieldRef<"ScanEvent", 'DateTime'>
   readonly notes: Prisma.FieldRef<"ScanEvent", 'String'>
   readonly latitude: Prisma.FieldRef<"ScanEvent", 'Decimal'>
@@ -1746,6 +1986,25 @@ export type ScanEvent$userArgs<ExtArgs extends runtime.Types.Extensions.Internal
    */
   include?: Prisma.UserInclude<ExtArgs> | null
   where?: Prisma.UserWhereInput
+}
+
+/**
+ * ScanEvent.organizationLocation
+ */
+export type ScanEvent$organizationLocationArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the OrganizationLocation
+   */
+  select?: Prisma.OrganizationLocationSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the OrganizationLocation
+   */
+  omit?: Prisma.OrganizationLocationOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.OrganizationLocationInclude<ExtArgs> | null
+  where?: Prisma.OrganizationLocationWhereInput
 }
 
 /**
