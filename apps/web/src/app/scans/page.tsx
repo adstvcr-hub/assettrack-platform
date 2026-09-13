@@ -86,6 +86,12 @@ export default function ScansPage() {
 
         if (dateFilter) {
           params.set("date", dateFilter);
+
+          const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+          if (timezone) {
+            params.set("timezone", timezone);
+          }
         }
 
         const response = await authenticatedFetch(

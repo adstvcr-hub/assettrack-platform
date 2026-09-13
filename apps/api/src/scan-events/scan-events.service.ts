@@ -30,8 +30,8 @@ export class ScanEventsService {
         latitude: dto.latitude,
         longitude: dto.longitude,
         locationAccuracy: dto.locationAccuracy,
-timezone: dto.timezone,
-timezoneOffset: dto.timezoneOffset,
+        timezone: dto.timezone,
+        timezoneOffset: dto.timezoneOffset,
       },
     });
   }
@@ -44,9 +44,67 @@ timezoneOffset: dto.timezoneOffset,
     assetId?: string,
     userId?: string,
     date?: string,
+    timezone?: string,
   ) {
-    const startDate = date ? new Date(`${date}T00:00:00.000Z`) : undefined;
-    const endDate = date ? new Date(`${date}T23:59:59.999Z`) : undefined;
+    let startDate: Date | undefined;
+    let endDate: Date | undefined;
+
+    if (date) {
+      const effectiveTimezone = timezone || "UTC";
+
+      const getUtcForLocalTime = (
+        localDate: string,
+        hour: number,
+        minute = 0,
+        second = 0,
+        millisecond = 0,
+      ) => {
+        const [year, month, day] = localDate.split("-").map(Number);
+
+        const utcGuess = new Date(
+          Date.UTC(year, month - 1, day, hour, minute, second, millisecond),
+        );
+
+        const parts = new Intl.DateTimeFormat("en-US", {
+          timeZone: effectiveTimezone,
+          year: "numeric",
+          month: "2-digit",
+          day: "2-digit",
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit",
+          hour12: false,
+        }).formatToParts(utcGuess);
+
+        const values = Object.fromEntries(
+          parts
+            .filter((part) => part.type !== "literal")
+            .map((part) => [part.type, part.value]),
+        );
+
+        const interpretedAsUtc = Date.UTC(
+          Number(values.year),
+          Number(values.month) - 1,
+          Number(values.day),
+          Number(values.hour),
+          Number(values.minute),
+          Number(values.second),
+        );
+
+        const offset = interpretedAsUtc - utcGuess.getTime();
+
+        return new Date(utcGuess.getTime() - offset);
+      };
+
+      startDate = getUtcForLocalTime(date, 0, 0, 0, 0);
+
+      const nextDay = new Date(`${date}T00:00:00.000Z`);
+      nextDay.setUTCDate(nextDay.getUTCDate() + 1);
+
+      const nextDayString = nextDay.toISOString().slice(0, 10);
+
+      endDate = getUtcForLocalTime(nextDayString, 0, 0, 0, 0);
+    }
 
     const where = {
       asset: {
@@ -69,7 +127,7 @@ timezoneOffset: dto.timezoneOffset,
         ? {
             scannedAt: {
               gte: startDate,
-              lte: endDate,
+              lt: endDate,
             },
           }
         : {}),

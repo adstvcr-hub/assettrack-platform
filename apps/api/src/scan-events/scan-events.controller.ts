@@ -50,6 +50,7 @@ export class ScanEventsController {
       query.assetId,
       query.userId,
       query.date,
+      query.timezone,
     );
   }
 }

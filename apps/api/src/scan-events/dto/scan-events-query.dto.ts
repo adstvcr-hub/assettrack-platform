@@ -35,4 +35,7 @@ export class ScanEventsQueryDto {
   @IsOptional()
   @IsDateString()
   date?: string;
+  @IsOptional()
+  @IsString()
+  timezone?: string;
 }
