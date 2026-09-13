@@ -1,9 +1,10 @@
 import {
+  IsInt,
   IsNumber,
   IsOptional,
   IsString,
   MaxLength,
-} from 'class-validator';
+} from "class-validator";
 
 export class ScanByCodeDto {
   @IsOptional()
@@ -18,4 +19,17 @@ export class ScanByCodeDto {
   @IsOptional()
   @IsNumber()
   longitude?: number;
+
+  @IsOptional()
+  @IsNumber()
+  locationAccuracy?: number;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(100)
+  timezone?: string;
+
+  @IsOptional()
+  @IsInt()
+  timezoneOffset?: number;
 }

@@ -133,7 +133,10 @@ export const ScanEventScalarFieldEnum = {
   scannedAt: 'scannedAt',
   notes: 'notes',
   latitude: 'latitude',
-  longitude: 'longitude'
+  longitude: 'longitude',
+  locationAccuracy: 'locationAccuracy',
+  timezone: 'timezone',
+  timezoneOffset: 'timezoneOffset'
 } as const
 
 export type ScanEventScalarFieldEnum = (typeof ScanEventScalarFieldEnum)[keyof typeof ScanEventScalarFieldEnum]

@@ -91,6 +91,9 @@ export class ScanController {
         notes: dto.notes,
         latitude: dto.latitude,
         longitude: dto.longitude,
+        locationAccuracy: dto.locationAccuracy,
+        timezone: dto.timezone,
+        timezoneOffset: dto.timezoneOffset,
       },
       include: {
         asset: true,

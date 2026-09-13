@@ -1,59 +1,56 @@
-﻿'use client';
+﻿"use client";
 
-import { Suspense, useEffect, useRef, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { useSearchParams } from 'next/navigation';
-import { API_URL, authenticatedFetch } from '@/lib/api';
+import { Suspense, useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useSearchParams } from "next/navigation";
+import { API_URL, authenticatedFetch } from "@/lib/api";
 
 function ScanPageContent() {
   const router = useRouter();
 
-const scannerRef = useRef<any>(null);
+  const scannerRef = useRef<any>(null);
 
   const searchParams = useSearchParams();
- const [qrCode, setQrCode] = useState('');
+  const [qrCode, setQrCode] = useState("");
   const [hydrated, setHydrated] = useState(false);
-  const [notes, setNotes] = useState('');
-  const [message, setMessage] = useState('');
-  const [error, setError] = useState('');
+  const [notes, setNotes] = useState("");
+  const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
   const [scanning, setScanning] = useState(false);
   const [submitting, setSubmitting] = useState(false);
- 
 
-useEffect(() => {
-  const codeFromUrl = searchParams.get('code');
+  useEffect(() => {
+    const codeFromUrl = searchParams.get("code");
 
-  if (!codeFromUrl) {
-    return;
-  }
-
-  const normalizedCode = codeFromUrl.trim().toUpperCase();
-
-  setQrCode(normalizedCode);
-  setMessage(`QR detected: ${normalizedCode}`);
-}, [searchParams]);
-
-useEffect(() => {
-  setHydrated(true);
-
-  const token = sessionStorage.getItem('assettrack_token');
-
-  if (!token) {
-    const nextPath = `${window.location.pathname}${window.location.search}`;
-
-    router.replace(
-      `/?next=${encodeURIComponent(nextPath)}`
-    );
-
-    return;
-  }
-
-  return () => {
-    if (scannerRef.current?.isScanning) {
-      scannerRef.current.stop().catch(() => undefined);
+    if (!codeFromUrl) {
+      return;
     }
-  };
-}, [router]);
+
+    const normalizedCode = codeFromUrl.trim().toUpperCase();
+
+    setQrCode(normalizedCode);
+    setMessage(`QR detected: ${normalizedCode}`);
+  }, [searchParams]);
+
+  useEffect(() => {
+    setHydrated(true);
+
+    const token = sessionStorage.getItem("assettrack_token");
+
+    if (!token) {
+      const nextPath = `${window.location.pathname}${window.location.search}`;
+
+      router.replace(`/?next=${encodeURIComponent(nextPath)}`);
+
+      return;
+    }
+
+    return () => {
+      if (scannerRef.current?.isScanning) {
+        scannerRef.current.stop().catch(() => undefined);
+      }
+    };
+  }, [router]);
 
   function normalizeCode(decodedText: string) {
     const match = decodedText.match(/ATQR-[A-Z0-9]+/i);
@@ -65,76 +62,74 @@ useEffect(() => {
     return decodedText.trim();
   }
 
-async function startScanner() {
-  setError('');
-  setMessage('Starting camera...');
+  async function startScanner() {
+    setError("");
+    setMessage("Starting camera...");
 
-  try {
-    if (!window.isSecureContext) {
-      throw new Error(
-        'Camera requires a secure HTTPS connection on iPhone Safari.',
-      );
-    }
+    try {
+      if (!window.isSecureContext) {
+        throw new Error(
+          "Camera requires a secure HTTPS connection on iPhone Safari.",
+        );
+      }
 
-    if (!navigator.mediaDevices?.getUserMedia) {
-      throw new Error(
-        'Camera API is not available in this browser or connection.',
-      );
-    }
+      if (!navigator.mediaDevices?.getUserMedia) {
+        throw new Error(
+          "Camera API is not available in this browser or connection.",
+        );
+      }
 
-    const permissionTest = await navigator.mediaDevices.getUserMedia({
-      video: {
-        facingMode: 'environment',
-      },
-    });
-
-    permissionTest.getTracks().forEach((track) => track.stop());
-
-    const { Html5Qrcode } = await import('html5-qrcode');
-
-    const scanner = new Html5Qrcode('qr-reader');
-    scannerRef.current = scanner;
-
-    await scanner.start(
-      { facingMode: 'environment' },
-      {
-        fps: 10,
-        qrbox: {
-          width: 250,
-          height: 250,
+      const permissionTest = await navigator.mediaDevices.getUserMedia({
+        video: {
+          facingMode: "environment",
         },
-      },
-      async (decodedText) => {
-        const code = normalizeCode(decodedText);
+      });
 
-        setQrCode(code);
-        setMessage(`QR detected: ${code}`);
+      permissionTest.getTracks().forEach((track) => track.stop());
 
-        if (scanner.isScanning) {
-          await scanner.stop();
-        }
+      const { Html5Qrcode } = await import("html5-qrcode");
 
-        setScanning(false);
-      },
-      () => {
-        // Ignore individual frames where no QR is detected.
-      },
-    );
+      const scanner = new Html5Qrcode("qr-reader");
+      scannerRef.current = scanner;
 
-    setScanning(true);
-    setMessage('Camera started');
-  } catch (err) {
-    setScanning(false);
+      await scanner.start(
+        { facingMode: "environment" },
+        {
+          fps: 10,
+          qrbox: {
+            width: 250,
+            height: 250,
+          },
+        },
+        async (decodedText) => {
+          const code = normalizeCode(decodedText);
 
-    const details =
-      err instanceof Error
-        ? `${err.name}: ${err.message}`
-        : String(err);
+          setQrCode(code);
+          setMessage(`QR detected: ${code}`);
 
-    setMessage('');
-    setError(details);
+          if (scanner.isScanning) {
+            await scanner.stop();
+          }
+
+          setScanning(false);
+        },
+        () => {
+          // Ignore individual frames where no QR is detected.
+        },
+      );
+
+      setScanning(true);
+      setMessage("Camera started");
+    } catch (err) {
+      setScanning(false);
+
+      const details =
+        err instanceof Error ? `${err.name}: ${err.message}` : String(err);
+
+      setMessage("");
+      setError(details);
+    }
   }
-}
 
   async function stopScanner() {
     try {
@@ -147,32 +142,67 @@ async function startScanner() {
   }
 
   async function submitScan() {
-    const token = sessionStorage.getItem('assettrack_token');
+    const token = sessionStorage.getItem("assettrack_token");
 
     if (!token) {
-  router.replace('/?next=/scan');
-}
+      router.replace("/?next=/scan");
+      return;
+    }
 
     if (!qrCode) {
-      setError('Scan a QR code first');
+      setError("Scan a QR code first");
       return;
     }
 
     setSubmitting(true);
-    setError('');
-    setMessage('');
+    setError("");
+    setMessage("");
+
+    let latitude: number | undefined;
+    let longitude: number | undefined;
+    let locationAccuracy: number | undefined;
+
+    if ("geolocation" in navigator) {
+      try {
+        const position = await new Promise<GeolocationPosition>(
+          (resolve, reject) => {
+            navigator.geolocation.getCurrentPosition(resolve, reject, {
+              enableHighAccuracy: true,
+              timeout: 10000,
+              maximumAge: 0,
+            });
+          },
+        );
+
+        latitude = position.coords.latitude;
+        longitude = position.coords.longitude;
+        locationAccuracy = position.coords.accuracy;
+      } catch (locationError) {
+        console.warn("Unable to obtain location", locationError);
+      }
+    }
+
+    const timezone =
+      Intl.DateTimeFormat().resolvedOptions().timeZone || undefined;
+
+    const timezoneOffset = new Date().getTimezoneOffset();
 
     try {
       const response = await authenticatedFetch(
-  `${API_URL}/api/v1/scan/${encodeURIComponent(qrCode)}`,
+        `${API_URL}/api/v1/scan/${encodeURIComponent(qrCode)}`,
         {
-          method: 'POST',
+          method: "POST",
           headers: {
             Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
           },
           body: JSON.stringify({
             notes: notes || undefined,
+            latitude,
+            longitude,
+            locationAccuracy,
+            timezone,
+            timezoneOffset,
           }),
         },
       );
@@ -181,29 +211,23 @@ async function startScanner() {
 
       if (response.status === 401) {
         sessionStorage.clear();
-        router.replace('/');
+        router.replace("/");
         return;
       }
 
       if (!response.ok) {
         throw new Error(
           Array.isArray(data.message)
-            ? data.message.join(', ')
-            : data.message ?? 'Unable to record scan',
+            ? data.message.join(", ")
+            : (data.message ?? "Unable to record scan"),
         );
       }
 
-      setMessage(
-        `Scan recorded for ${data.asset?.name ?? qrCode}`,
-      );
+      setMessage(`Scan recorded for ${data.asset?.name ?? qrCode}`);
 
-      setNotes('');
+      setNotes("");
     } catch (err) {
-      setError(
-        err instanceof Error
-          ? err.message
-          : 'Unable to record scan',
-      );
+      setError(err instanceof Error ? err.message : "Unable to record scan");
     } finally {
       setSubmitting(false);
     }
@@ -220,14 +244,14 @@ async function startScanner() {
 
             <h1 className="text-2xl font-bold text-slate-900">
               Scan QR
-      <p className="mt-2 text-sm text-slate-500">
-  Interactive: {hydrated ? 'YES' : 'NO'}
-</p> 
+              <p className="mt-2 text-sm text-slate-500">
+                Interactive: {hydrated ? "YES" : "NO"}
+              </p>
             </h1>
           </div>
 
           <button
-            onClick={() => router.push('/dashboard')}
+            onClick={() => router.push("/dashboard")}
             className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white"
           >
             Dashboard
@@ -238,9 +262,7 @@ async function startScanner() {
       <section className="mx-auto max-w-5xl px-6 py-10">
         <div className="grid gap-8 lg:grid-cols-2">
           <div className="rounded-xl border border-slate-700 bg-slate-900 p-6 shadow-lg">
-            <h2 className="text-xl font-bold text-white">
-              Camera
-            </h2>
+            <h2 className="text-xl font-bold text-white">Camera</h2>
 
             <p className="mt-2 text-sm text-slate-300">
               Point the camera at an AssetTrack QR code.
@@ -271,12 +293,10 @@ async function startScanner() {
           </div>
 
           <div className="rounded-xl border border-slate-700 bg-slate-900 p-6 shadow-lg">
-            <h2 className="text-xl font-bold text-white">
-              Record scan
-            </h2>
+            <h2 className="text-xl font-bold text-white">Record scan</h2>
 
             <div className="mt-6">
-             <label className="mb-2 block text-sm font-semibold text-slate-200">
+              <label className="mb-2 block text-sm font-semibold text-slate-200">
                 QR code
               </label>
 
@@ -308,7 +328,7 @@ async function startScanner() {
               disabled={submitting || !qrCode}
               className="mt-6 w-full rounded-lg bg-emerald-500 px-4 py-3 font-bold text-slate-950 transition hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-50"
             >
-              {submitting ? 'Recording...' : 'Record scan'}
+              {submitting ? "Recording..." : "Record scan"}
             </button>
 
             {message && (

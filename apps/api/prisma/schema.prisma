@@ -64,10 +64,9 @@ model Asset {
   createdAt      DateTime    @default(now())
   updatedAt      DateTime    @updatedAt
 
-  organization  Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  qrCode        QrCode?
-  scanEvents    ScanEvent[]
-  
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  qrCode       QrCode?
+  scanEvents   ScanEvent[]
 
   @@unique([organizationId, assetTag])
   @@index([organizationId])
@@ -88,13 +87,16 @@ model QrCode {
 }
 
 model ScanEvent {
-  id        String   @id @default(uuid())
-  assetId   String
-  userId    String?
-  scannedAt DateTime @default(now())
-  notes     String?
-  latitude  Decimal? @db.Decimal(10, 7)
-  longitude Decimal? @db.Decimal(10, 7)
+  id               String   @id @default(uuid())
+  assetId          String
+  userId           String?
+  scannedAt        DateTime @default(now())
+  notes            String?
+  latitude         Decimal? @db.Decimal(10, 7)
+  longitude        Decimal? @db.Decimal(10, 7)
+  locationAccuracy Decimal? @db.Decimal(10, 2)
+  timezone         String?
+  timezoneOffset   Int?
 
   asset Asset @relation(fields: [assetId], references: [id], onDelete: Cascade)
   user  User? @relation(fields: [userId], references: [id], onDelete: SetNull)
@@ -102,6 +104,7 @@ model ScanEvent {
   @@index([assetId])
   @@index([userId])
   @@index([scannedAt])
+  @@index([timezone])
   @@map("scan_events")
 }
 
@@ -113,7 +116,7 @@ model RefreshToken {
   createdAt DateTime  @default(now())
   revokedAt DateTime?
 
-user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([expiresAt])
