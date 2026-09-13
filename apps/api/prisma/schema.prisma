@@ -142,11 +142,17 @@ model ScanEvent {
   locationSource         LocationSource?
   scannedAt              DateTime        @default(now())
   notes                  String?
-  latitude               Decimal?        @db.Decimal(10, 7)
-  longitude              Decimal?        @db.Decimal(10, 7)
-  locationAccuracy       Decimal?        @db.Decimal(10, 2)
-  timezone               String?
-  timezoneOffset         Int?
+  locationName           String?
+  country                String?
+  region                 String?
+  city                   String?
+  address                String?
+
+  latitude         Decimal? @db.Decimal(10, 7)
+  longitude        Decimal? @db.Decimal(10, 7)
+  locationAccuracy Decimal? @db.Decimal(10, 2)
+  timezone         String?
+  timezoneOffset   Int?
 
   asset Asset @relation(fields: [assetId], references: [id], onDelete: Cascade)
   user  User? @relation(fields: [userId], references: [id], onDelete: SetNull)
