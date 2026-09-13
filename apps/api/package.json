@@ -5,7 +5,8 @@
   "scripts": {
     "build": "nest build",
     "start": "node dist/main.js",
-    "dev": "nest start --watch"
+    "dev": "nest start --watch",
+    "test": "vitest run src"
   },
   "dependencies": {
     "@nestjs/common": "^11.1.6",
@@ -42,6 +43,7 @@
     "@types/pg": "^8.21.0",
     "@types/qrcode": "^1.5.6",
     "prisma": "^7.9.1",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vitest": "^5.0.0"
   }
 }

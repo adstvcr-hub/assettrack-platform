@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
 import { CreateScanEventDto } from "./dto/create-scan-event.dto";
+import { getUtcDateRangeForLocalDate } from "../common/timezone-date-range";
 
 @Injectable()
 export class ScanEventsService {
@@ -50,68 +51,10 @@ export class ScanEventsService {
     let endDate: Date | undefined;
 
     if (date) {
-      let effectiveTimezone = timezone || "UTC";
+      const range = getUtcDateRangeForLocalDate(date, timezone);
 
-      try {
-        new Intl.DateTimeFormat("en-US", {
-          timeZone: effectiveTimezone,
-        }).format();
-      } catch {
-        effectiveTimezone = "UTC";
-      }
-
-      const getUtcForLocalTime = (
-        localDate: string,
-        hour: number,
-        minute = 0,
-        second = 0,
-        millisecond = 0,
-      ) => {
-        const [year, month, day] = localDate.split("-").map(Number);
-
-        const utcGuess = new Date(
-          Date.UTC(year, month - 1, day, hour, minute, second, millisecond),
-        );
-
-        const parts = new Intl.DateTimeFormat("en-US", {
-          timeZone: effectiveTimezone,
-          year: "numeric",
-          month: "2-digit",
-          day: "2-digit",
-          hour: "2-digit",
-          minute: "2-digit",
-          second: "2-digit",
-          hour12: false,
-        }).formatToParts(utcGuess);
-
-        const values = Object.fromEntries(
-          parts
-            .filter((part) => part.type !== "literal")
-            .map((part) => [part.type, part.value]),
-        );
-
-        const interpretedAsUtc = Date.UTC(
-          Number(values.year),
-          Number(values.month) - 1,
-          Number(values.day),
-          Number(values.hour),
-          Number(values.minute),
-          Number(values.second),
-        );
-
-        const offset = interpretedAsUtc - utcGuess.getTime();
-
-        return new Date(utcGuess.getTime() - offset);
-      };
-
-      startDate = getUtcForLocalTime(date, 0, 0, 0, 0);
-
-      const nextDay = new Date(`${date}T00:00:00.000Z`);
-      nextDay.setUTCDate(nextDay.getUTCDate() + 1);
-
-      const nextDayString = nextDay.toISOString().slice(0, 10);
-
-      endDate = getUtcForLocalTime(nextDayString, 0, 0, 0, 0);
+      startDate = range.start;
+      endDate = range.end;
     }
 
     const where = {
