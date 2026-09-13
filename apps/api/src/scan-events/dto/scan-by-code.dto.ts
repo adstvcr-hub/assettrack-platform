@@ -3,6 +3,7 @@ import {
   IsNumber,
   IsOptional,
   IsString,
+  IsTimeZone,
   Max,
   MaxLength,
   Min,
@@ -33,6 +34,7 @@ export class ScanByCodeDto {
 
   @IsOptional()
   @IsString()
+  @IsTimeZone()
   @MaxLength(100)
   timezone?: string;
 

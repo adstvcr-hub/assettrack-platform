@@ -3,6 +3,7 @@ import {
   IsNumber,
   IsOptional,
   IsString,
+  IsTimeZone,
   IsUUID,
   Max,
   MaxLength,
@@ -37,6 +38,7 @@ export class CreateScanEventDto {
 
   @IsOptional()
   @IsString()
+  @IsTimeZone()
   @MaxLength(100)
   timezone?: string;
 
