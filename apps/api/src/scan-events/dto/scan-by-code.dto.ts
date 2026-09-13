@@ -1,5 +1,4 @@
 import {
-  IsInt,
   IsNumber,
   IsOptional,
   IsString,
@@ -37,8 +36,4 @@ export class ScanByCodeDto {
   @IsTimeZone()
   @MaxLength(100)
   timezone?: string;
-
-  @IsOptional()
-  @IsInt()
-  timezoneOffset?: number;
 }

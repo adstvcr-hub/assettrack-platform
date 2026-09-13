@@ -185,8 +185,6 @@ function ScanPageContent() {
     const timezone =
       Intl.DateTimeFormat().resolvedOptions().timeZone || undefined;
 
-    const timezoneOffset = new Date().getTimezoneOffset();
-
     try {
       const response = await authenticatedFetch(
         `${API_URL}/api/v1/scan/${encodeURIComponent(qrCode)}`,
@@ -202,7 +200,6 @@ function ScanPageContent() {
             longitude,
             locationAccuracy,
             timezone,
-            timezoneOffset,
           }),
         },
       );
