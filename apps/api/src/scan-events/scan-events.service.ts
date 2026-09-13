@@ -1,7 +1,11 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
+import tzlookup from "@photostructure/tz-lookup";
 import { PrismaService } from "../prisma/prisma.service";
 import { CreateScanEventDto } from "./dto/create-scan-event.dto";
-import { getUtcDateRangeForLocalDate } from "../common/timezone-date-range";
+import {
+  getTimezoneOffsetMinutes,
+  getUtcDateRangeForLocalDate,
+} from "../common/timezone-date-range";
 
 @Injectable()
 export class ScanEventsService {
@@ -22,7 +26,22 @@ export class ScanEventsService {
     if (!asset) {
       throw new NotFoundException("Asset not found");
     }
+    let resolvedTimezone = dto.timezone;
 
+    if (dto.latitude !== undefined && dto.longitude !== undefined) {
+      try {
+        resolvedTimezone = tzlookup(dto.latitude, dto.longitude);
+      } catch (error) {
+        console.warn("Unable to resolve timezone from scan coordinates", error);
+      }
+    }
+
+    const scannedAt = new Date();
+
+    const resolvedTimezoneOffset = getTimezoneOffsetMinutes(
+      scannedAt,
+      resolvedTimezone,
+    );
     return this.prisma.scanEvent.create({
       data: {
         assetId: dto.assetId,
@@ -31,8 +50,9 @@ export class ScanEventsService {
         latitude: dto.latitude,
         longitude: dto.longitude,
         locationAccuracy: dto.locationAccuracy,
-        timezone: dto.timezone,
-        timezoneOffset: dto.timezoneOffset,
+        scannedAt,
+        timezone: resolvedTimezone,
+        timezoneOffset: resolvedTimezoneOffset,
       },
     });
   }

@@ -1,5 +1,4 @@
 import {
-  IsInt,
   IsNumber,
   IsOptional,
   IsString,
@@ -41,8 +40,4 @@ export class CreateScanEventDto {
   @IsTimeZone()
   @MaxLength(100)
   timezone?: string;
-
-  @IsOptional()
-  @IsInt()
-  timezoneOffset?: number;
 }
