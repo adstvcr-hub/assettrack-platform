@@ -1,6 +1,6 @@
 ﻿"use client";
 import { API_URL, authenticatedFetch } from "@/lib/api";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 type ScanEvent = {
@@ -23,11 +23,22 @@ type ScanEvent = {
     email: string;
   } | null;
 };
+type AssetOption = {
+  id: string;
+  name: string;
+};
+
+type UserOption = {
+  id: string;
+  name: string;
+};
 
 export default function ScansPage() {
   const router = useRouter();
 
   const [scans, setScans] = useState<ScanEvent[]>([]);
+  const [assetOptions, setAssetOptions] = useState<AssetOption[]>([]);
+  const [userOptions, setUserOptions] = useState<UserOption[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [page, setPage] = useState(1);
@@ -69,6 +80,7 @@ export default function ScansPage() {
         if (dateFilter) {
           params.set("date", dateFilter);
         }
+
         const response = await authenticatedFetch(
           `${API_URL}/api/v1/scan-events?${params.toString()}`,
           {
@@ -89,6 +101,7 @@ export default function ScansPage() {
         }
 
         const data = await response.json();
+
         setScans(data.items);
         setTotal(data.total);
         setTotalPages(data.totalPages);
@@ -104,35 +117,47 @@ export default function ScansPage() {
     loadScans();
   }, [router, page, search, assetFilter, userFilter, dateFilter]);
 
-  const assets = useMemo(() => {
-    const unique = new Map<string, { id: string; name: string }>();
+  useEffect(() => {
+    const token = sessionStorage.getItem("assettrack_token");
 
-    scans.forEach((scan) => {
-      if (scan.asset) {
-        unique.set(scan.asset.id, {
-          id: scan.asset.id,
-          name: scan.asset.name,
-        });
+    if (!token) {
+      return;
+    }
+
+    async function loadFilterOptions() {
+      try {
+        const [assetsResponse, usersResponse] = await Promise.all([
+          authenticatedFetch(`${API_URL}/api/v1/assets?page=1&limit=100`, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }),
+          authenticatedFetch(`${API_URL}/api/v1/users?page=1&limit=100`, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }),
+        ]);
+
+        if (!assetsResponse.ok || !usersResponse.ok) {
+          throw new Error("Unable to load filter options");
+        }
+
+        const assetsData = await assetsResponse.json();
+        const usersData = await usersResponse.json();
+
+        setAssetOptions(
+          Array.isArray(assetsData) ? assetsData : assetsData.items,
+        );
+
+        setUserOptions(Array.isArray(usersData) ? usersData : usersData.items);
+      } catch (err) {
+        console.error(err);
       }
-    });
+    }
 
-    return Array.from(unique.values());
-  }, [scans]);
-
-  const users = useMemo(() => {
-    const unique = new Map<string, { id: string; name: string }>();
-
-    scans.forEach((scan) => {
-      if (scan.user) {
-        unique.set(scan.user.id, {
-          id: scan.user.id,
-          name: scan.user.name,
-        });
-      }
-    });
-
-    return Array.from(unique.values());
-  }, [scans]);
+    loadFilterOptions();
+  }, []);
 
   function clearFilters() {
     setSearch("");
@@ -203,7 +228,7 @@ export default function ScansPage() {
             >
               <option value="ALL">All assets</option>
 
-              {assets.map((asset) => (
+              {assetOptions.map((asset) => (
                 <option key={asset.id} value={asset.id}>
                   {asset.name}
                 </option>
@@ -220,7 +245,7 @@ export default function ScansPage() {
             >
               <option value="ALL">All users</option>
 
-              {users.map((user) => (
+              {userOptions.map((user) => (
                 <option key={user.id} value={user.id}>
                   {user.name}
                 </option>
