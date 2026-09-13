@@ -14,6 +14,7 @@ import { PrismaService } from "../prisma/prisma.service";
 import { ScanByCodeDto } from "./dto/scan-by-code.dto";
 import { Throttle } from "@nestjs/throttler";
 import tzlookup from "@photostructure/tz-lookup";
+import { getTimezoneOffsetMinutes } from "../common/timezone-date-range";
 
 type AuthenticatedRequest = Request & {
   user: {
@@ -88,6 +89,20 @@ export class ScanController {
       }
     }
 
+    const scannedAt = new Date();
+
+    const resolvedTimezoneOffset = getTimezoneOffsetMinutes(
+      scannedAt,
+      resolvedTimezone,
+    );
+    if (dto.latitude !== undefined && dto.longitude !== undefined) {
+      try {
+        resolvedTimezone = tzlookup(dto.latitude, dto.longitude);
+      } catch (error) {
+        console.warn("Unable to resolve timezone from scan coordinates", error);
+      }
+    }
+
     // Multi-tenant security boundary:
     // users may only scan assets belonging to their organization.
     if (qr.asset.organizationId !== req.user.organizationId) {
@@ -98,12 +113,13 @@ export class ScanController {
       data: {
         assetId: qr.assetId,
         userId: req.user.id,
+        scannedAt,
         notes: dto.notes,
         latitude: dto.latitude,
         longitude: dto.longitude,
         locationAccuracy: dto.locationAccuracy,
         timezone: resolvedTimezone,
-        timezoneOffset: dto.timezoneOffset,
+        timezoneOffset: resolvedTimezoneOffset,
       },
       include: {
         asset: true,
