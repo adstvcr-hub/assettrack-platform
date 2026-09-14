@@ -5,6 +5,20 @@ import { useRouter } from "next/navigation";
 import { useSearchParams } from "next/navigation";
 import { API_URL, authenticatedFetch } from "@/lib/api";
 
+type OrganizationLocation = {
+  id: string;
+  name: string;
+  type: string;
+  country: string;
+  region?: string | null;
+  city?: string | null;
+  address?: string | null;
+  latitude?: string | number | null;
+  longitude?: string | number | null;
+  timezone?: string | null;
+  active: boolean;
+};
+
 function ScanPageContent() {
   const router = useRouter();
 
@@ -18,6 +32,18 @@ function ScanPageContent() {
   const [error, setError] = useState("");
   const [scanning, setScanning] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [organizationLocations, setOrganizationLocations] = useState<
+    OrganizationLocation[]
+  >([]);
+
+  const [selectedLocationId, setSelectedLocationId] = useState("");
+
+  const [manualLocation, setManualLocation] = useState(false);
+
+  const [manualCountry, setManualCountry] = useState("");
+  const [manualRegion, setManualRegion] = useState("");
+  const [manualCity, setManualCity] = useState("");
+  const [manualAddress, setManualAddress] = useState("");
 
   useEffect(() => {
     const codeFromUrl = searchParams.get("code");
@@ -51,6 +77,36 @@ function ScanPageContent() {
       }
     };
   }, [router]);
+
+  useEffect(() => {
+    async function loadOrganizationLocations() {
+      try {
+        const response = await authenticatedFetch(
+          `${API_URL}/api/v1/organization-locations`,
+        );
+
+        if (!response.ok) {
+          return;
+        }
+
+        const data = await response.json();
+
+        if (Array.isArray(data)) {
+          setOrganizationLocations(
+            data.filter(
+              (location: OrganizationLocation) => location.active !== false,
+            ),
+          );
+        }
+      } catch (err) {
+        console.warn("Unable to load organization locations", err);
+      }
+    }
+
+    if (hydrated) {
+      loadOrganizationLocations();
+    }
+  }, [hydrated]);
 
   function normalizeCode(decodedText: string) {
     const match = decodedText.match(/ATQR-[A-Z0-9]+/i);
@@ -154,6 +210,11 @@ function ScanPageContent() {
       return;
     }
 
+    if (manualLocation && !manualCountry.trim()) {
+      setError("Country is required for a manual location");
+      return;
+    }
+
     setSubmitting(true);
     setError("");
     setMessage("");
@@ -162,7 +223,9 @@ function ScanPageContent() {
     let longitude: number | undefined;
     let locationAccuracy: number | undefined;
 
-    if ("geolocation" in navigator) {
+    const useAutomaticLocation = !selectedLocationId && !manualLocation;
+
+    if (useAutomaticLocation && "geolocation" in navigator) {
       try {
         const position = await new Promise<GeolocationPosition>(
           (resolve, reject) => {
@@ -185,6 +248,33 @@ function ScanPageContent() {
     const timezone =
       Intl.DateTimeFormat().resolvedOptions().timeZone || undefined;
 
+    const payload = {
+      notes: notes || undefined,
+
+      latitude,
+      longitude,
+      locationAccuracy,
+      timezone,
+
+      organizationLocationId:
+        !manualLocation && selectedLocationId ? selectedLocationId : undefined,
+
+      country:
+        manualLocation && manualCountry.trim()
+          ? manualCountry.trim()
+          : undefined,
+
+      region:
+        manualLocation && manualRegion.trim() ? manualRegion.trim() : undefined,
+
+      city: manualLocation && manualCity.trim() ? manualCity.trim() : undefined,
+
+      address:
+        manualLocation && manualAddress.trim()
+          ? manualAddress.trim()
+          : undefined,
+    };
+
     try {
       const response = await authenticatedFetch(
         `${API_URL}/api/v1/scan/${encodeURIComponent(qrCode)}`,
@@ -194,13 +284,7 @@ function ScanPageContent() {
             Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({
-            notes: notes || undefined,
-            latitude,
-            longitude,
-            locationAccuracy,
-            timezone,
-          }),
+          body: JSON.stringify(payload),
         },
       );
 
@@ -319,6 +403,70 @@ function ScanPageContent() {
                 className="min-h-32 w-full rounded-lg border border-slate-600 bg-slate-950 px-4 py-3 text-white placeholder:text-slate-500 focus:border-emerald-400 focus:outline-none"
               />
             </div>
+            <div className="mt-5">
+              <label className="mb-2 block text-sm font-semibold text-slate-200">
+                Location
+              </label>
+
+              <select
+                value={manualLocation ? "__MANUAL__" : selectedLocationId}
+                onChange={(event) => {
+                  const value = event.target.value;
+
+                  if (value === "__MANUAL__") {
+                    setManualLocation(true);
+                    setSelectedLocationId("");
+                  } else {
+                    setManualLocation(false);
+                    setSelectedLocationId(value);
+                  }
+                }}
+                className="w-full rounded-lg border border-slate-600 bg-slate-950 px-4 py-3 text-white focus:border-emerald-400 focus:outline-none"
+              >
+                <option value="">Automatic GPS / device location</option>
+
+                {organizationLocations.map((location) => (
+                  <option key={location.id} value={location.id}>
+                    {location.name}
+                    {location.city ? ` — ${location.city}` : ""}
+                    {location.country ? `, ${location.country}` : ""}
+                  </option>
+                ))}
+
+                <option value="__MANUAL__">Other / Manual location</option>
+              </select>
+            </div>
+            {manualLocation && (
+              <div className="mt-5 space-y-4 rounded-lg border border-slate-700 bg-slate-950 p-4">
+                <input
+                  value={manualCountry}
+                  onChange={(event) => setManualCountry(event.target.value)}
+                  placeholder="Country"
+                  className="w-full rounded-lg border border-slate-600 bg-slate-900 px-4 py-3 text-white placeholder:text-slate-500 focus:border-emerald-400 focus:outline-none"
+                />
+
+                <input
+                  value={manualRegion}
+                  onChange={(event) => setManualRegion(event.target.value)}
+                  placeholder="Province / State / Region"
+                  className="w-full rounded-lg border border-slate-600 bg-slate-900 px-4 py-3 text-white placeholder:text-slate-500 focus:border-emerald-400 focus:outline-none"
+                />
+
+                <input
+                  value={manualCity}
+                  onChange={(event) => setManualCity(event.target.value)}
+                  placeholder="City / Locality"
+                  className="w-full rounded-lg border border-slate-600 bg-slate-900 px-4 py-3 text-white placeholder:text-slate-500 focus:border-emerald-400 focus:outline-none"
+                />
+
+                <input
+                  value={manualAddress}
+                  onChange={(event) => setManualAddress(event.target.value)}
+                  placeholder="Address (optional)"
+                  className="w-full rounded-lg border border-slate-600 bg-slate-900 px-4 py-3 text-white placeholder:text-slate-500 focus:border-emerald-400 focus:outline-none"
+                />
+              </div>
+            )}
 
             <button
               onClick={submitScan}
