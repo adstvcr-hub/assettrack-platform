@@ -40,6 +40,7 @@ export type OrganizationLocationMinAggregateOutputType = {
   id: string | null
   organizationId: string | null
   name: string | null
+  nameKey: string | null
   type: $Enums.OrganizationLocationType | null
   country: string | null
   region: string | null
@@ -57,6 +58,7 @@ export type OrganizationLocationMaxAggregateOutputType = {
   id: string | null
   organizationId: string | null
   name: string | null
+  nameKey: string | null
   type: $Enums.OrganizationLocationType | null
   country: string | null
   region: string | null
@@ -74,6 +76,7 @@ export type OrganizationLocationCountAggregateOutputType = {
   id: number
   organizationId: number
   name: number
+  nameKey: number
   type: number
   country: number
   region: number
@@ -103,6 +106,7 @@ export type OrganizationLocationMinAggregateInputType = {
   id?: true
   organizationId?: true
   name?: true
+  nameKey?: true
   type?: true
   country?: true
   region?: true
@@ -120,6 +124,7 @@ export type OrganizationLocationMaxAggregateInputType = {
   id?: true
   organizationId?: true
   name?: true
+  nameKey?: true
   type?: true
   country?: true
   region?: true
@@ -137,6 +142,7 @@ export type OrganizationLocationCountAggregateInputType = {
   id?: true
   organizationId?: true
   name?: true
+  nameKey?: true
   type?: true
   country?: true
   region?: true
@@ -241,6 +247,7 @@ export type OrganizationLocationGroupByOutputType = {
   id: string
   organizationId: string
   name: string
+  nameKey: string
   type: $Enums.OrganizationLocationType
   country: string
   region: string | null
@@ -281,6 +288,7 @@ export type OrganizationLocationWhereInput = {
   id?: Prisma.StringFilter<"OrganizationLocation"> | string
   organizationId?: Prisma.StringFilter<"OrganizationLocation"> | string
   name?: Prisma.StringFilter<"OrganizationLocation"> | string
+  nameKey?: Prisma.StringFilter<"OrganizationLocation"> | string
   type?: Prisma.EnumOrganizationLocationTypeFilter<"OrganizationLocation"> | $Enums.OrganizationLocationType
   country?: Prisma.StringFilter<"OrganizationLocation"> | string
   region?: Prisma.StringNullableFilter<"OrganizationLocation"> | string | null
@@ -300,6 +308,7 @@ export type OrganizationLocationOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   organizationId?: Prisma.SortOrder
   name?: Prisma.SortOrder
+  nameKey?: Prisma.SortOrder
   type?: Prisma.SortOrder
   country?: Prisma.SortOrder
   region?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -317,12 +326,13 @@ export type OrganizationLocationOrderByWithRelationInput = {
 
 export type OrganizationLocationWhereUniqueInput = Prisma.AtLeast<{
   id?: string
-  organizationId_name?: Prisma.OrganizationLocationOrganizationIdNameCompoundUniqueInput
+  organizationId_nameKey?: Prisma.OrganizationLocationOrganizationIdNameKeyCompoundUniqueInput
   AND?: Prisma.OrganizationLocationWhereInput | Prisma.OrganizationLocationWhereInput[]
   OR?: Prisma.OrganizationLocationWhereInput[]
   NOT?: Prisma.OrganizationLocationWhereInput | Prisma.OrganizationLocationWhereInput[]
   organizationId?: Prisma.StringFilter<"OrganizationLocation"> | string
   name?: Prisma.StringFilter<"OrganizationLocation"> | string
+  nameKey?: Prisma.StringFilter<"OrganizationLocation"> | string
   type?: Prisma.EnumOrganizationLocationTypeFilter<"OrganizationLocation"> | $Enums.OrganizationLocationType
   country?: Prisma.StringFilter<"OrganizationLocation"> | string
   region?: Prisma.StringNullableFilter<"OrganizationLocation"> | string | null
@@ -336,12 +346,13 @@ export type OrganizationLocationWhereUniqueInput = Prisma.AtLeast<{
   updatedAt?: Prisma.DateTimeFilter<"OrganizationLocation"> | Date | string
   organization?: Prisma.XOR<Prisma.OrganizationScalarRelationFilter, Prisma.OrganizationWhereInput>
   scanEvents?: Prisma.ScanEventListRelationFilter
-}, "id" | "organizationId_name">
+}, "id" | "organizationId_nameKey">
 
 export type OrganizationLocationOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   organizationId?: Prisma.SortOrder
   name?: Prisma.SortOrder
+  nameKey?: Prisma.SortOrder
   type?: Prisma.SortOrder
   country?: Prisma.SortOrder
   region?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -367,6 +378,7 @@ export type OrganizationLocationScalarWhereWithAggregatesInput = {
   id?: Prisma.StringWithAggregatesFilter<"OrganizationLocation"> | string
   organizationId?: Prisma.StringWithAggregatesFilter<"OrganizationLocation"> | string
   name?: Prisma.StringWithAggregatesFilter<"OrganizationLocation"> | string
+  nameKey?: Prisma.StringWithAggregatesFilter<"OrganizationLocation"> | string
   type?: Prisma.EnumOrganizationLocationTypeWithAggregatesFilter<"OrganizationLocation"> | $Enums.OrganizationLocationType
   country?: Prisma.StringWithAggregatesFilter<"OrganizationLocation"> | string
   region?: Prisma.StringNullableWithAggregatesFilter<"OrganizationLocation"> | string | null
@@ -383,6 +395,7 @@ export type OrganizationLocationScalarWhereWithAggregatesInput = {
 export type OrganizationLocationCreateInput = {
   id?: string
   name: string
+  nameKey: string
   type?: $Enums.OrganizationLocationType
   country: string
   region?: string | null
@@ -402,6 +415,7 @@ export type OrganizationLocationUncheckedCreateInput = {
   id?: string
   organizationId: string
   name: string
+  nameKey: string
   type?: $Enums.OrganizationLocationType
   country: string
   region?: string | null
@@ -419,6 +433,7 @@ export type OrganizationLocationUncheckedCreateInput = {
 export type OrganizationLocationUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  nameKey?: Prisma.StringFieldUpdateOperationsInput | string
   type?: Prisma.EnumOrganizationLocationTypeFieldUpdateOperationsInput | $Enums.OrganizationLocationType
   country?: Prisma.StringFieldUpdateOperationsInput | string
   region?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -438,6 +453,7 @@ export type OrganizationLocationUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  nameKey?: Prisma.StringFieldUpdateOperationsInput | string
   type?: Prisma.EnumOrganizationLocationTypeFieldUpdateOperationsInput | $Enums.OrganizationLocationType
   country?: Prisma.StringFieldUpdateOperationsInput | string
   region?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -456,6 +472,7 @@ export type OrganizationLocationCreateManyInput = {
   id?: string
   organizationId: string
   name: string
+  nameKey: string
   type?: $Enums.OrganizationLocationType
   country: string
   region?: string | null
@@ -472,6 +489,7 @@ export type OrganizationLocationCreateManyInput = {
 export type OrganizationLocationUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  nameKey?: Prisma.StringFieldUpdateOperationsInput | string
   type?: Prisma.EnumOrganizationLocationTypeFieldUpdateOperationsInput | $Enums.OrganizationLocationType
   country?: Prisma.StringFieldUpdateOperationsInput | string
   region?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -489,6 +507,7 @@ export type OrganizationLocationUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  nameKey?: Prisma.StringFieldUpdateOperationsInput | string
   type?: Prisma.EnumOrganizationLocationTypeFieldUpdateOperationsInput | $Enums.OrganizationLocationType
   country?: Prisma.StringFieldUpdateOperationsInput | string
   region?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -512,15 +531,16 @@ export type OrganizationLocationOrderByRelationAggregateInput = {
   _count?: Prisma.SortOrder
 }
 
-export type OrganizationLocationOrganizationIdNameCompoundUniqueInput = {
+export type OrganizationLocationOrganizationIdNameKeyCompoundUniqueInput = {
   organizationId: string
-  name: string
+  nameKey: string
 }
 
 export type OrganizationLocationCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   organizationId?: Prisma.SortOrder
   name?: Prisma.SortOrder
+  nameKey?: Prisma.SortOrder
   type?: Prisma.SortOrder
   country?: Prisma.SortOrder
   region?: Prisma.SortOrder
@@ -543,6 +563,7 @@ export type OrganizationLocationMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   organizationId?: Prisma.SortOrder
   name?: Prisma.SortOrder
+  nameKey?: Prisma.SortOrder
   type?: Prisma.SortOrder
   country?: Prisma.SortOrder
   region?: Prisma.SortOrder
@@ -560,6 +581,7 @@ export type OrganizationLocationMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   organizationId?: Prisma.SortOrder
   name?: Prisma.SortOrder
+  nameKey?: Prisma.SortOrder
   type?: Prisma.SortOrder
   country?: Prisma.SortOrder
   region?: Prisma.SortOrder
@@ -664,6 +686,7 @@ export type OrganizationLocationUpdateOneWithoutScanEventsNestedInput = {
 export type OrganizationLocationCreateWithoutOrganizationInput = {
   id?: string
   name: string
+  nameKey: string
   type?: $Enums.OrganizationLocationType
   country: string
   region?: string | null
@@ -681,6 +704,7 @@ export type OrganizationLocationCreateWithoutOrganizationInput = {
 export type OrganizationLocationUncheckedCreateWithoutOrganizationInput = {
   id?: string
   name: string
+  nameKey: string
   type?: $Enums.OrganizationLocationType
   country: string
   region?: string | null
@@ -728,6 +752,7 @@ export type OrganizationLocationScalarWhereInput = {
   id?: Prisma.StringFilter<"OrganizationLocation"> | string
   organizationId?: Prisma.StringFilter<"OrganizationLocation"> | string
   name?: Prisma.StringFilter<"OrganizationLocation"> | string
+  nameKey?: Prisma.StringFilter<"OrganizationLocation"> | string
   type?: Prisma.EnumOrganizationLocationTypeFilter<"OrganizationLocation"> | $Enums.OrganizationLocationType
   country?: Prisma.StringFilter<"OrganizationLocation"> | string
   region?: Prisma.StringNullableFilter<"OrganizationLocation"> | string | null
@@ -744,6 +769,7 @@ export type OrganizationLocationScalarWhereInput = {
 export type OrganizationLocationCreateWithoutScanEventsInput = {
   id?: string
   name: string
+  nameKey: string
   type?: $Enums.OrganizationLocationType
   country: string
   region?: string | null
@@ -762,6 +788,7 @@ export type OrganizationLocationUncheckedCreateWithoutScanEventsInput = {
   id?: string
   organizationId: string
   name: string
+  nameKey: string
   type?: $Enums.OrganizationLocationType
   country: string
   region?: string | null
@@ -794,6 +821,7 @@ export type OrganizationLocationUpdateToOneWithWhereWithoutScanEventsInput = {
 export type OrganizationLocationUpdateWithoutScanEventsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  nameKey?: Prisma.StringFieldUpdateOperationsInput | string
   type?: Prisma.EnumOrganizationLocationTypeFieldUpdateOperationsInput | $Enums.OrganizationLocationType
   country?: Prisma.StringFieldUpdateOperationsInput | string
   region?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -812,6 +840,7 @@ export type OrganizationLocationUncheckedUpdateWithoutScanEventsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  nameKey?: Prisma.StringFieldUpdateOperationsInput | string
   type?: Prisma.EnumOrganizationLocationTypeFieldUpdateOperationsInput | $Enums.OrganizationLocationType
   country?: Prisma.StringFieldUpdateOperationsInput | string
   region?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -828,6 +857,7 @@ export type OrganizationLocationUncheckedUpdateWithoutScanEventsInput = {
 export type OrganizationLocationCreateManyOrganizationInput = {
   id?: string
   name: string
+  nameKey: string
   type?: $Enums.OrganizationLocationType
   country: string
   region?: string | null
@@ -844,6 +874,7 @@ export type OrganizationLocationCreateManyOrganizationInput = {
 export type OrganizationLocationUpdateWithoutOrganizationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  nameKey?: Prisma.StringFieldUpdateOperationsInput | string
   type?: Prisma.EnumOrganizationLocationTypeFieldUpdateOperationsInput | $Enums.OrganizationLocationType
   country?: Prisma.StringFieldUpdateOperationsInput | string
   region?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -861,6 +892,7 @@ export type OrganizationLocationUpdateWithoutOrganizationInput = {
 export type OrganizationLocationUncheckedUpdateWithoutOrganizationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  nameKey?: Prisma.StringFieldUpdateOperationsInput | string
   type?: Prisma.EnumOrganizationLocationTypeFieldUpdateOperationsInput | $Enums.OrganizationLocationType
   country?: Prisma.StringFieldUpdateOperationsInput | string
   region?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -878,6 +910,7 @@ export type OrganizationLocationUncheckedUpdateWithoutOrganizationInput = {
 export type OrganizationLocationUncheckedUpdateManyWithoutOrganizationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  nameKey?: Prisma.StringFieldUpdateOperationsInput | string
   type?: Prisma.EnumOrganizationLocationTypeFieldUpdateOperationsInput | $Enums.OrganizationLocationType
   country?: Prisma.StringFieldUpdateOperationsInput | string
   region?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -926,6 +959,7 @@ export type OrganizationLocationSelect<ExtArgs extends runtime.Types.Extensions.
   id?: boolean
   organizationId?: boolean
   name?: boolean
+  nameKey?: boolean
   type?: boolean
   country?: boolean
   region?: boolean
@@ -946,6 +980,7 @@ export type OrganizationLocationSelectCreateManyAndReturn<ExtArgs extends runtim
   id?: boolean
   organizationId?: boolean
   name?: boolean
+  nameKey?: boolean
   type?: boolean
   country?: boolean
   region?: boolean
@@ -964,6 +999,7 @@ export type OrganizationLocationSelectUpdateManyAndReturn<ExtArgs extends runtim
   id?: boolean
   organizationId?: boolean
   name?: boolean
+  nameKey?: boolean
   type?: boolean
   country?: boolean
   region?: boolean
@@ -982,6 +1018,7 @@ export type OrganizationLocationSelectScalar = {
   id?: boolean
   organizationId?: boolean
   name?: boolean
+  nameKey?: boolean
   type?: boolean
   country?: boolean
   region?: boolean
@@ -995,7 +1032,7 @@ export type OrganizationLocationSelectScalar = {
   updatedAt?: boolean
 }
 
-export type OrganizationLocationOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "organizationId" | "name" | "type" | "country" | "region" | "city" | "address" | "latitude" | "longitude" | "timezone" | "active" | "createdAt" | "updatedAt", ExtArgs["result"]["organizationLocation"]>
+export type OrganizationLocationOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "organizationId" | "name" | "nameKey" | "type" | "country" | "region" | "city" | "address" | "latitude" | "longitude" | "timezone" | "active" | "createdAt" | "updatedAt", ExtArgs["result"]["organizationLocation"]>
 export type OrganizationLocationInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
   scanEvents?: boolean | Prisma.OrganizationLocation$scanEventsArgs<ExtArgs>
@@ -1018,6 +1055,7 @@ export type $OrganizationLocationPayload<ExtArgs extends runtime.Types.Extension
     id: string
     organizationId: string
     name: string
+    nameKey: string
     type: $Enums.OrganizationLocationType
     country: string
     region: string | null
@@ -1457,6 +1495,7 @@ export interface OrganizationLocationFieldRefs {
   readonly id: Prisma.FieldRef<"OrganizationLocation", 'String'>
   readonly organizationId: Prisma.FieldRef<"OrganizationLocation", 'String'>
   readonly name: Prisma.FieldRef<"OrganizationLocation", 'String'>
+  readonly nameKey: Prisma.FieldRef<"OrganizationLocation", 'String'>
   readonly type: Prisma.FieldRef<"OrganizationLocation", 'OrganizationLocationType'>
   readonly country: Prisma.FieldRef<"OrganizationLocation", 'String'>
   readonly region: Prisma.FieldRef<"OrganizationLocation", 'String'>

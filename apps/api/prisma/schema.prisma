@@ -57,6 +57,7 @@ model OrganizationLocation {
   id             String                   @id @default(uuid())
   organizationId String
   name           String
+  nameKey        String
   type           OrganizationLocationType @default(OTHER)
 
   country String
@@ -76,7 +77,7 @@ model OrganizationLocation {
 
   scanEvents ScanEvent[]
 
-  @@unique([organizationId, name])
+  @@unique([organizationId, nameKey])
   @@index([organizationId])
   @@index([active])
   @@map("organization_locations")
@@ -106,9 +107,9 @@ model Asset {
   organizationId String
   name           String
   assetTag       String
-  description    String?
   status         AssetStatus @default(ACTIVE)
   location       String?
+  description    String?
   createdAt      DateTime    @default(now())
   updatedAt      DateTime    @updatedAt
 

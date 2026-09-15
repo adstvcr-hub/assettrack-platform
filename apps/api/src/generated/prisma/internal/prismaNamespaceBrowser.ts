@@ -91,6 +91,7 @@ export const OrganizationLocationScalarFieldEnum = {
   id: 'id',
   organizationId: 'organizationId',
   name: 'name',
+  nameKey: 'nameKey',
   type: 'type',
   country: 'country',
   region: 'region',
@@ -126,9 +127,9 @@ export const AssetScalarFieldEnum = {
   organizationId: 'organizationId',
   name: 'name',
   assetTag: 'assetTag',
-  description: 'description',
   status: 'status',
   location: 'location',
+  description: 'description',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const

@@ -29,9 +29,9 @@ export type AssetMinAggregateOutputType = {
   organizationId: string | null
   name: string | null
   assetTag: string | null
-  description: string | null
   status: $Enums.AssetStatus | null
   location: string | null
+  description: string | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -41,9 +41,9 @@ export type AssetMaxAggregateOutputType = {
   organizationId: string | null
   name: string | null
   assetTag: string | null
-  description: string | null
   status: $Enums.AssetStatus | null
   location: string | null
+  description: string | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -53,9 +53,9 @@ export type AssetCountAggregateOutputType = {
   organizationId: number
   name: number
   assetTag: number
-  description: number
   status: number
   location: number
+  description: number
   createdAt: number
   updatedAt: number
   _all: number
@@ -67,9 +67,9 @@ export type AssetMinAggregateInputType = {
   organizationId?: true
   name?: true
   assetTag?: true
-  description?: true
   status?: true
   location?: true
+  description?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -79,9 +79,9 @@ export type AssetMaxAggregateInputType = {
   organizationId?: true
   name?: true
   assetTag?: true
-  description?: true
   status?: true
   location?: true
+  description?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -91,9 +91,9 @@ export type AssetCountAggregateInputType = {
   organizationId?: true
   name?: true
   assetTag?: true
-  description?: true
   status?: true
   location?: true
+  description?: true
   createdAt?: true
   updatedAt?: true
   _all?: true
@@ -176,9 +176,9 @@ export type AssetGroupByOutputType = {
   organizationId: string
   name: string
   assetTag: string
-  description: string | null
   status: $Enums.AssetStatus
   location: string | null
+  description: string | null
   createdAt: Date
   updatedAt: Date
   _count: AssetCountAggregateOutputType | null
@@ -209,9 +209,9 @@ export type AssetWhereInput = {
   organizationId?: Prisma.StringFilter<"Asset"> | string
   name?: Prisma.StringFilter<"Asset"> | string
   assetTag?: Prisma.StringFilter<"Asset"> | string
-  description?: Prisma.StringNullableFilter<"Asset"> | string | null
   status?: Prisma.EnumAssetStatusFilter<"Asset"> | $Enums.AssetStatus
   location?: Prisma.StringNullableFilter<"Asset"> | string | null
+  description?: Prisma.StringNullableFilter<"Asset"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Asset"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Asset"> | Date | string
   organization?: Prisma.XOR<Prisma.OrganizationScalarRelationFilter, Prisma.OrganizationWhereInput>
@@ -224,9 +224,9 @@ export type AssetOrderByWithRelationInput = {
   organizationId?: Prisma.SortOrder
   name?: Prisma.SortOrder
   assetTag?: Prisma.SortOrder
-  description?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
   location?: Prisma.SortOrderInput | Prisma.SortOrder
+  description?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   organization?: Prisma.OrganizationOrderByWithRelationInput
@@ -243,9 +243,9 @@ export type AssetWhereUniqueInput = Prisma.AtLeast<{
   organizationId?: Prisma.StringFilter<"Asset"> | string
   name?: Prisma.StringFilter<"Asset"> | string
   assetTag?: Prisma.StringFilter<"Asset"> | string
-  description?: Prisma.StringNullableFilter<"Asset"> | string | null
   status?: Prisma.EnumAssetStatusFilter<"Asset"> | $Enums.AssetStatus
   location?: Prisma.StringNullableFilter<"Asset"> | string | null
+  description?: Prisma.StringNullableFilter<"Asset"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Asset"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Asset"> | Date | string
   organization?: Prisma.XOR<Prisma.OrganizationScalarRelationFilter, Prisma.OrganizationWhereInput>
@@ -258,9 +258,9 @@ export type AssetOrderByWithAggregationInput = {
   organizationId?: Prisma.SortOrder
   name?: Prisma.SortOrder
   assetTag?: Prisma.SortOrder
-  description?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
   location?: Prisma.SortOrderInput | Prisma.SortOrder
+  description?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   _count?: Prisma.AssetCountOrderByAggregateInput
@@ -276,9 +276,9 @@ export type AssetScalarWhereWithAggregatesInput = {
   organizationId?: Prisma.StringWithAggregatesFilter<"Asset"> | string
   name?: Prisma.StringWithAggregatesFilter<"Asset"> | string
   assetTag?: Prisma.StringWithAggregatesFilter<"Asset"> | string
-  description?: Prisma.StringNullableWithAggregatesFilter<"Asset"> | string | null
   status?: Prisma.EnumAssetStatusWithAggregatesFilter<"Asset"> | $Enums.AssetStatus
   location?: Prisma.StringNullableWithAggregatesFilter<"Asset"> | string | null
+  description?: Prisma.StringNullableWithAggregatesFilter<"Asset"> | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Asset"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Asset"> | Date | string
 }
@@ -287,9 +287,9 @@ export type AssetCreateInput = {
   id?: string
   name: string
   assetTag: string
-  description?: string | null
   status?: $Enums.AssetStatus
   location?: string | null
+  description?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   organization: Prisma.OrganizationCreateNestedOneWithoutAssetsInput
@@ -302,9 +302,9 @@ export type AssetUncheckedCreateInput = {
   organizationId: string
   name: string
   assetTag: string
-  description?: string | null
   status?: $Enums.AssetStatus
   location?: string | null
+  description?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   qrCode?: Prisma.QrCodeUncheckedCreateNestedOneWithoutAssetInput
@@ -315,9 +315,9 @@ export type AssetUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   assetTag?: Prisma.StringFieldUpdateOperationsInput | string
-  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumAssetStatusFieldUpdateOperationsInput | $Enums.AssetStatus
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutAssetsNestedInput
@@ -330,9 +330,9 @@ export type AssetUncheckedUpdateInput = {
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   assetTag?: Prisma.StringFieldUpdateOperationsInput | string
-  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumAssetStatusFieldUpdateOperationsInput | $Enums.AssetStatus
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   qrCode?: Prisma.QrCodeUncheckedUpdateOneWithoutAssetNestedInput
@@ -344,9 +344,9 @@ export type AssetCreateManyInput = {
   organizationId: string
   name: string
   assetTag: string
-  description?: string | null
   status?: $Enums.AssetStatus
   location?: string | null
+  description?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -355,9 +355,9 @@ export type AssetUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   assetTag?: Prisma.StringFieldUpdateOperationsInput | string
-  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumAssetStatusFieldUpdateOperationsInput | $Enums.AssetStatus
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -367,9 +367,9 @@ export type AssetUncheckedUpdateManyInput = {
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   assetTag?: Prisma.StringFieldUpdateOperationsInput | string
-  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumAssetStatusFieldUpdateOperationsInput | $Enums.AssetStatus
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -394,9 +394,9 @@ export type AssetCountOrderByAggregateInput = {
   organizationId?: Prisma.SortOrder
   name?: Prisma.SortOrder
   assetTag?: Prisma.SortOrder
-  description?: Prisma.SortOrder
   status?: Prisma.SortOrder
   location?: Prisma.SortOrder
+  description?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -406,9 +406,9 @@ export type AssetMaxOrderByAggregateInput = {
   organizationId?: Prisma.SortOrder
   name?: Prisma.SortOrder
   assetTag?: Prisma.SortOrder
-  description?: Prisma.SortOrder
   status?: Prisma.SortOrder
   location?: Prisma.SortOrder
+  description?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -418,9 +418,9 @@ export type AssetMinOrderByAggregateInput = {
   organizationId?: Prisma.SortOrder
   name?: Prisma.SortOrder
   assetTag?: Prisma.SortOrder
-  description?: Prisma.SortOrder
   status?: Prisma.SortOrder
   location?: Prisma.SortOrder
+  description?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -508,9 +508,9 @@ export type AssetCreateWithoutOrganizationInput = {
   id?: string
   name: string
   assetTag: string
-  description?: string | null
   status?: $Enums.AssetStatus
   location?: string | null
+  description?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   qrCode?: Prisma.QrCodeCreateNestedOneWithoutAssetInput
@@ -521,9 +521,9 @@ export type AssetUncheckedCreateWithoutOrganizationInput = {
   id?: string
   name: string
   assetTag: string
-  description?: string | null
   status?: $Enums.AssetStatus
   location?: string | null
+  description?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   qrCode?: Prisma.QrCodeUncheckedCreateNestedOneWithoutAssetInput
@@ -564,9 +564,9 @@ export type AssetScalarWhereInput = {
   organizationId?: Prisma.StringFilter<"Asset"> | string
   name?: Prisma.StringFilter<"Asset"> | string
   assetTag?: Prisma.StringFilter<"Asset"> | string
-  description?: Prisma.StringNullableFilter<"Asset"> | string | null
   status?: Prisma.EnumAssetStatusFilter<"Asset"> | $Enums.AssetStatus
   location?: Prisma.StringNullableFilter<"Asset"> | string | null
+  description?: Prisma.StringNullableFilter<"Asset"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Asset"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Asset"> | Date | string
 }
@@ -575,9 +575,9 @@ export type AssetCreateWithoutQrCodeInput = {
   id?: string
   name: string
   assetTag: string
-  description?: string | null
   status?: $Enums.AssetStatus
   location?: string | null
+  description?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   organization: Prisma.OrganizationCreateNestedOneWithoutAssetsInput
@@ -589,9 +589,9 @@ export type AssetUncheckedCreateWithoutQrCodeInput = {
   organizationId: string
   name: string
   assetTag: string
-  description?: string | null
   status?: $Enums.AssetStatus
   location?: string | null
+  description?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   scanEvents?: Prisma.ScanEventUncheckedCreateNestedManyWithoutAssetInput
@@ -617,9 +617,9 @@ export type AssetUpdateWithoutQrCodeInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   assetTag?: Prisma.StringFieldUpdateOperationsInput | string
-  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumAssetStatusFieldUpdateOperationsInput | $Enums.AssetStatus
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutAssetsNestedInput
@@ -631,9 +631,9 @@ export type AssetUncheckedUpdateWithoutQrCodeInput = {
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   assetTag?: Prisma.StringFieldUpdateOperationsInput | string
-  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumAssetStatusFieldUpdateOperationsInput | $Enums.AssetStatus
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   scanEvents?: Prisma.ScanEventUncheckedUpdateManyWithoutAssetNestedInput
@@ -643,9 +643,9 @@ export type AssetCreateWithoutScanEventsInput = {
   id?: string
   name: string
   assetTag: string
-  description?: string | null
   status?: $Enums.AssetStatus
   location?: string | null
+  description?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   organization: Prisma.OrganizationCreateNestedOneWithoutAssetsInput
@@ -657,9 +657,9 @@ export type AssetUncheckedCreateWithoutScanEventsInput = {
   organizationId: string
   name: string
   assetTag: string
-  description?: string | null
   status?: $Enums.AssetStatus
   location?: string | null
+  description?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   qrCode?: Prisma.QrCodeUncheckedCreateNestedOneWithoutAssetInput
@@ -685,9 +685,9 @@ export type AssetUpdateWithoutScanEventsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   assetTag?: Prisma.StringFieldUpdateOperationsInput | string
-  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumAssetStatusFieldUpdateOperationsInput | $Enums.AssetStatus
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutAssetsNestedInput
@@ -699,9 +699,9 @@ export type AssetUncheckedUpdateWithoutScanEventsInput = {
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   assetTag?: Prisma.StringFieldUpdateOperationsInput | string
-  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumAssetStatusFieldUpdateOperationsInput | $Enums.AssetStatus
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   qrCode?: Prisma.QrCodeUncheckedUpdateOneWithoutAssetNestedInput
@@ -711,9 +711,9 @@ export type AssetCreateManyOrganizationInput = {
   id?: string
   name: string
   assetTag: string
-  description?: string | null
   status?: $Enums.AssetStatus
   location?: string | null
+  description?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -722,9 +722,9 @@ export type AssetUpdateWithoutOrganizationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   assetTag?: Prisma.StringFieldUpdateOperationsInput | string
-  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumAssetStatusFieldUpdateOperationsInput | $Enums.AssetStatus
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   qrCode?: Prisma.QrCodeUpdateOneWithoutAssetNestedInput
@@ -735,9 +735,9 @@ export type AssetUncheckedUpdateWithoutOrganizationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   assetTag?: Prisma.StringFieldUpdateOperationsInput | string
-  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumAssetStatusFieldUpdateOperationsInput | $Enums.AssetStatus
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   qrCode?: Prisma.QrCodeUncheckedUpdateOneWithoutAssetNestedInput
@@ -748,9 +748,9 @@ export type AssetUncheckedUpdateManyWithoutOrganizationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   assetTag?: Prisma.StringFieldUpdateOperationsInput | string
-  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumAssetStatusFieldUpdateOperationsInput | $Enums.AssetStatus
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -791,9 +791,9 @@ export type AssetSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   organizationId?: boolean
   name?: boolean
   assetTag?: boolean
-  description?: boolean
   status?: boolean
   location?: boolean
+  description?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
@@ -807,9 +807,9 @@ export type AssetSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   organizationId?: boolean
   name?: boolean
   assetTag?: boolean
-  description?: boolean
   status?: boolean
   location?: boolean
+  description?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
@@ -820,9 +820,9 @@ export type AssetSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   organizationId?: boolean
   name?: boolean
   assetTag?: boolean
-  description?: boolean
   status?: boolean
   location?: boolean
+  description?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
@@ -833,14 +833,14 @@ export type AssetSelectScalar = {
   organizationId?: boolean
   name?: boolean
   assetTag?: boolean
-  description?: boolean
   status?: boolean
   location?: boolean
+  description?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type AssetOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "organizationId" | "name" | "assetTag" | "description" | "status" | "location" | "createdAt" | "updatedAt", ExtArgs["result"]["asset"]>
+export type AssetOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "organizationId" | "name" | "assetTag" | "status" | "location" | "description" | "createdAt" | "updatedAt", ExtArgs["result"]["asset"]>
 export type AssetInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
   qrCode?: boolean | Prisma.Asset$qrCodeArgs<ExtArgs>
@@ -866,9 +866,9 @@ export type $AssetPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs 
     organizationId: string
     name: string
     assetTag: string
-    description: string | null
     status: $Enums.AssetStatus
     location: string | null
+    description: string | null
     createdAt: Date
     updatedAt: Date
   }, ExtArgs["result"]["asset"]>
@@ -1301,9 +1301,9 @@ export interface AssetFieldRefs {
   readonly organizationId: Prisma.FieldRef<"Asset", 'String'>
   readonly name: Prisma.FieldRef<"Asset", 'String'>
   readonly assetTag: Prisma.FieldRef<"Asset", 'String'>
-  readonly description: Prisma.FieldRef<"Asset", 'String'>
   readonly status: Prisma.FieldRef<"Asset", 'AssetStatus'>
   readonly location: Prisma.FieldRef<"Asset", 'String'>
+  readonly description: Prisma.FieldRef<"Asset", 'String'>
   readonly createdAt: Prisma.FieldRef<"Asset", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"Asset", 'DateTime'>
 }
