@@ -192,6 +192,35 @@ export default function DashboardPage() {
         <p className="mt-2 text-slate-600">
           Manage your assets, users, and recent scan activity.
         </p>
+        <div className="mt-6 flex flex-wrap gap-3">
+          <button
+            onClick={() => router.push("/assets")}
+            className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+          >
+            Assets
+          </button>
+
+          <button
+            onClick={() => router.push("/users")}
+            className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+          >
+            Users
+          </button>
+
+          <button
+            onClick={() => router.push("/locations")}
+            className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+          >
+            Locations
+          </button>
+
+          <button
+            onClick={() => router.push("/scans")}
+            className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+          >
+            Scan History
+          </button>
+        </div>
 
         {loading && <p className="mt-6 text-slate-600">Loading dashboard...</p>}
 
