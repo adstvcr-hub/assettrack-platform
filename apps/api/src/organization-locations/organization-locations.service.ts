@@ -7,6 +7,7 @@ import { PrismaService } from "../prisma/prisma.service";
 import { normalizeLocationName } from "../common/normalize-location-name";
 import { CreateOrganizationLocationDto } from "./dto/create-organization-location.dto";
 import { UpdateOrganizationLocationDto } from "./dto/update-organization-location.dto";
+import { locationNameSimilarity } from "../common/location-name-similarity";
 
 @Injectable()
 export class OrganizationLocationsService {
@@ -80,7 +81,44 @@ export class OrganizationLocationsService {
 
     return location;
   }
+  async findSimilarName(
+    organizationId: string,
+    name: string,
+    excludeId?: string,
+  ) {
+    const locations = await this.prisma.organizationLocation.findMany({
+      where: {
+        organizationId,
+        ...(excludeId
+          ? {
+              id: {
+                not: excludeId,
+              },
+            }
+          : {}),
+      },
+      select: {
+        id: true,
+        name: true,
+      },
+    });
 
+    const normalizedName = normalizeLocationName(name);
+
+    const similarLocations = locations
+      .map((location) => ({
+        ...location,
+        similarity: locationNameSimilarity(name, location.name),
+      }))
+      .filter(
+        (location) =>
+          normalizeLocationName(location.name) !== normalizedName &&
+          location.similarity >= 0.9,
+      )
+      .sort((a, b) => b.similarity - a.similarity);
+
+    return similarLocations[0] ?? null;
+  }
   async update(
     organizationId: string,
     id: string,
@@ -94,12 +132,12 @@ export class OrganizationLocationsService {
           id,
         },
         data: {
-         name: dto.name,
-nameKey:
-  dto.name !== undefined
-    ? normalizeLocationName(dto.name)
-    : undefined,
-type: dto.type,
+          name: dto.name,
+          nameKey:
+            dto.name !== undefined
+              ? normalizeLocationName(dto.name)
+              : undefined,
+          type: dto.type,
           country: dto.country,
           region: dto.region,
           city: dto.city,

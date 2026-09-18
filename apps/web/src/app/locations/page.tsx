@@ -33,7 +33,11 @@ type OrganizationLocation = {
 type CurrentUser = {
   role: "OWNER" | "ADMIN" | "USER" | "VIEWER";
 };
-
+type SimilarLocationMatch = {
+  id: string;
+  name: string;
+  similarity: number;
+};
 export default function LocationsPage() {
   const router = useRouter();
 
@@ -61,6 +65,8 @@ export default function LocationsPage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
+  const [similarLocation, setSimilarLocation] =
+    useState<SimilarLocationMatch | null>(null);
   const [lastUpdatedLocation, setLastUpdatedLocation] =
     useState<OrganizationLocation | null>(null);
 
@@ -129,8 +135,51 @@ export default function LocationsPage() {
 
     loadLocations();
   }, []);
+  async function checkSimilarLocationName(
+    locationName: string,
+    excludeId?: string,
+  ) {
+    const token = getToken();
 
-  async function createLocation(event: FormEvent<HTMLFormElement>) {
+    if (!token) return null;
+
+    const response = await authenticatedFetch(
+      `${API_URL}/api/v1/organization-locations/check-similar-name`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: locationName.trim(),
+          excludeId,
+        }),
+      },
+    );
+
+    if (response.status === 401) {
+      sessionStorage.clear();
+      router.replace("/?next=/locations");
+      return null;
+    }
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(
+        Array.isArray(data.message)
+          ? data.message.join(", ")
+          : (data.message ?? "Unable to check location name"),
+      );
+    }
+
+    return data.similar ? (data.match as SimilarLocationMatch) : null;
+  }
+  async function createLocation(
+    event: FormEvent<HTMLFormElement>,
+    skipSimilarityCheck = false,
+  ) {
     event.preventDefault();
 
     const token = getToken();
@@ -142,6 +191,16 @@ export default function LocationsPage() {
     setMessage("");
 
     try {
+      if (!skipSimilarityCheck) {
+        const similar = await checkSimilarLocationName(name);
+
+        if (similar) {
+          setSimilarLocation(similar);
+          return;
+        }
+      }
+
+      setSimilarLocation(null);
       const response = await authenticatedFetch(
         `${API_URL}/api/v1/organization-locations`,
         {
@@ -256,7 +315,10 @@ export default function LocationsPage() {
     setEditingLocation(null);
   }
 
-  async function saveLocation(event: FormEvent<HTMLFormElement>) {
+  async function saveLocation(
+    event: FormEvent<HTMLFormElement>,
+    skipSimilarityCheck = false,
+  ) {
     event.preventDefault();
 
     if (!editingLocation) return;
@@ -271,6 +333,20 @@ export default function LocationsPage() {
     setLastUpdatedLocation(editingLocation);
 
     try {
+      if (!skipSimilarityCheck) {
+        const similar = await checkSimilarLocationName(
+          editName,
+          editingLocation.id,
+        );
+
+        if (similar) {
+          setSimilarLocation(similar);
+          return;
+        }
+      }
+
+      setSimilarLocation(null);
+
       const response = await authenticatedFetch(
         `${API_URL}/api/v1/organization-locations/${editingLocation.id}`,
         {
@@ -412,7 +488,7 @@ export default function LocationsPage() {
                 type="button"
                 onClick={undoLastLocationUpdate}
                 disabled={saving}
-                className="rounded-lg border border-emerald-700 px-4 py-2 text-sm font-semibold text-emerald-200 hover:bg-emerald-900 disabled:opacity-60"
+                className="rounded-lg bg-blue-600 px-5 py-2 text-sm font-bold text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-emerald-950 disabled:opacity-60"
               >
                 {saving ? "Undoing..." : "Undo"}
               </button>
@@ -423,7 +499,46 @@ export default function LocationsPage() {
         {error && (
           <p className="mb-6 rounded-lg bg-red-950 p-4 text-red-300">{error}</p>
         )}
+        {similarLocation && (
+          <div className="mb-6 rounded-lg border border-amber-300 bg-amber-50 p-4 text-amber-900">
+            <p className="font-semibold">Possible similar location</p>
 
+            <p className="mt-1 text-sm">
+              A location with a similar name already exists:{" "}
+              <strong>{similarLocation.name}</strong>.
+            </p>
+
+            <p className="mt-1 text-sm">Check the name before continuing.</p>
+
+            <div className="mt-4 flex flex-wrap gap-3">
+              <button
+                type="button"
+                onClick={() => setSimilarLocation(null)}
+                className="rounded-lg border border-amber-400 px-4 py-2 text-sm font-semibold hover:bg-amber-100"
+              >
+                Cancel
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  const syntheticEvent = {
+                    preventDefault: () => {},
+                  } as FormEvent<HTMLFormElement>;
+
+                  if (editingLocation) {
+                    void saveLocation(syntheticEvent, true);
+                  } else {
+                    void createLocation(syntheticEvent, true);
+                  }
+                }}
+                className="rounded-lg bg-amber-700 px-4 py-2 text-sm font-semibold text-white hover:bg-amber-800"
+              >
+                {editingLocation ? "Save anyway" : "Create anyway"}
+              </button>
+            </div>
+          </div>
+        )}
         {editingLocation && canManageLocations && (
           <div className="mb-8 rounded-xl bg-white p-6 text-slate-900 shadow-sm">
             <div className="flex items-center justify-between gap-4">
@@ -437,7 +552,7 @@ export default function LocationsPage() {
               <button
                 type="button"
                 onClick={cancelEdit}
-                className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+                className="rounded-lg bg-slate-800 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-700"
               >
                 Cancel
               </button>

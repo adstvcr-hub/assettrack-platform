@@ -50,7 +50,34 @@ export class OrganizationLocationsController {
   findAll(@Req() req: AuthenticatedRequest) {
     return this.organizationLocationsService.findAll(req.user.organizationId);
   }
+  @Roles(UserRole.OWNER, UserRole.ADMIN)
+@Post("check-similar-name")
+async checkSimilarName(
+  @Body() body: { name: string; excludeId?: string },
+  @Req() req: AuthenticatedRequest,
+) {
+  const similar = await this.organizationLocationsService.findSimilarName(
+    req.user.organizationId,
+    body.name,
+    body.excludeId,
+  );
 
+  if (!similar) {
+    return {
+      similar: false,
+      match: null,
+    };
+  }
+
+  return {
+    similar: true,
+    match: {
+      id: similar.id,
+      name: similar.name,
+      similarity: similar.similarity,
+    },
+  };
+}
   @Get(":id")
   findOne(@Param("id") id: string, @Req() req: AuthenticatedRequest) {
     return this.organizationLocationsService.findOne(
