@@ -12,6 +12,7 @@ import { Request } from "express";
 import { JwtAuthGuard } from "../auth/jwt-auth.guard";
 import { Roles } from "../auth/roles.decorator";
 import { RolesGuard } from "../auth/roles.guard";
+import { CheckSimilarLocationNameDto } from "./dto/check-similar-location-name.dto";
 import { UserRole } from "../generated/prisma/enums";
 import { CreateOrganizationLocationDto } from "./dto/create-organization-location.dto";
 import { UpdateOrganizationLocationDto } from "./dto/update-organization-location.dto";
@@ -51,33 +52,33 @@ export class OrganizationLocationsController {
     return this.organizationLocationsService.findAll(req.user.organizationId);
   }
   @Roles(UserRole.OWNER, UserRole.ADMIN)
-@Post("check-similar-name")
-async checkSimilarName(
-  @Body() body: { name: string; excludeId?: string },
-  @Req() req: AuthenticatedRequest,
-) {
-  const similar = await this.organizationLocationsService.findSimilarName(
-    req.user.organizationId,
-    body.name,
-    body.excludeId,
-  );
+  @Post("check-similar-name")
+  async checkSimilarName(
+    @Body() dto: CheckSimilarLocationNameDto,
+    @Req() req: AuthenticatedRequest,
+  ) {
+    const similar = await this.organizationLocationsService.findSimilarName(
+      req.user.organizationId,
+      dto.name,
+      dto.excludeId,
+    );
 
-  if (!similar) {
+    if (!similar) {
+      return {
+        similar: false,
+        match: null,
+      };
+    }
+
     return {
-      similar: false,
-      match: null,
+      similar: true,
+      match: {
+        id: similar.id,
+        name: similar.name,
+        similarity: similar.similarity,
+      },
     };
   }
-
-  return {
-    similar: true,
-    match: {
-      id: similar.id,
-      name: similar.name,
-      similarity: similar.similarity,
-    },
-  };
-}
   @Get(":id")
   findOne(@Param("id") id: string, @Req() req: AuthenticatedRequest) {
     return this.organizationLocationsService.findOne(
