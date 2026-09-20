@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { API_URL, authenticatedFetch } from "@/lib/api";
 import { FormEvent, useEffect, useState } from "react";
@@ -564,7 +564,10 @@ export default function LocationsPage() {
             >
               <input
                 value={editName}
-                onChange={(event) => setEditName(event.target.value)}
+                onChange={(event) => {
+                  setEditName(event.target.value);
+                  setSimilarLocation(null);
+                }}
                 placeholder="Location name"
                 className="w-full rounded-lg border border-slate-300 px-4 py-3"
                 required
@@ -658,7 +661,10 @@ export default function LocationsPage() {
               <div className="mt-6 space-y-4">
                 <input
                   value={name}
-                  onChange={(event) => setName(event.target.value)}
+                  onChange={(event) => {
+                    setName(event.target.value);
+                    setSimilarLocation(null);
+                  }}
                   placeholder="Location name"
                   className="w-full rounded-lg border border-slate-300 px-4 py-3"
                   required
