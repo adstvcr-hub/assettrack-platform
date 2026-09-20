@@ -1,11 +1,9 @@
 ﻿"use client";
 
-import { useRouter } from "next/navigation";
 import { FormEvent, useState } from "react";
 import { API_URL } from "@/lib/api";
 
 export default function Home() {
-  const router = useRouter();
   const [organizationSlug, setOrganizationSlug] = useState("assettrack-demo");
   const [email, setEmail] = useState("admin@assettrack.local");
   const [password, setPassword] = useState("");

@@ -4,6 +4,7 @@ import { Suspense, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSearchParams } from "next/navigation";
 import { API_URL, authenticatedFetch } from "@/lib/api";
+import type { Html5Qrcode } from "html5-qrcode";
 
 type OrganizationLocation = {
   id: string;
@@ -22,7 +23,7 @@ type OrganizationLocation = {
 function ScanPageContent() {
   const router = useRouter();
 
-  const scannerRef = useRef<any>(null);
+  const scannerRef = useRef<Html5Qrcode | null>(null);
 
   const searchParams = useSearchParams();
   const [qrCode, setQrCode] = useState("");
