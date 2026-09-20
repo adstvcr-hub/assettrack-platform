@@ -1,16 +1,16 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
-import tzlookup from "@photostructure/tz-lookup";
 import { PrismaService } from "../prisma/prisma.service";
 import { CreateScanEventDto } from "./dto/create-scan-event.dto";
-import {
-  getTimezoneOffsetMinutes,
-  getUtcDateRangeForLocalDate,
-} from "../common/timezone-date-range";
+import { getUtcDateRangeForLocalDate } from "../common/timezone-date-range";
 import { LocationSource } from "../generated/prisma/enums";
+import { ScanLocationResolverService } from "./scan-location-resolver.service";
 
 @Injectable()
 export class ScanEventsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly locationResolver: ScanLocationResolverService,
+  ) {}
 
   async create(
     organizationId: string,
@@ -27,33 +27,13 @@ export class ScanEventsService {
     if (!asset) {
       throw new NotFoundException("Asset not found");
     }
-    let resolvedTimezone = dto.timezone;
-
-    if (dto.latitude !== undefined && dto.longitude !== undefined) {
-      try {
-        resolvedTimezone = tzlookup(dto.latitude, dto.longitude);
-      } catch (error) {
-        console.warn("Unable to resolve timezone from scan coordinates", error);
-      }
-    }
-
-    const scannedAt = new Date();
-
-    const resolvedTimezoneOffset = getTimezoneOffsetMinutes(
-      scannedAt,
-      resolvedTimezone,
-    );
+    const location = await this.locationResolver.resolve(organizationId, dto);
     return this.prisma.scanEvent.create({
       data: {
         assetId: dto.assetId,
         userId: authenticatedUserId,
         notes: dto.notes,
-        latitude: dto.latitude,
-        longitude: dto.longitude,
-        locationAccuracy: dto.locationAccuracy,
-        scannedAt,
-        timezone: resolvedTimezone,
-        timezoneOffset: resolvedTimezoneOffset,
+        ...location,
       },
     });
   }

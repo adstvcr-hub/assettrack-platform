@@ -2,6 +2,7 @@ import { NotFoundException } from "@nestjs/common";
 import { describe, expect, it, vi } from "vitest";
 import { PrismaService } from "../prisma/prisma.service";
 import { ScanController } from "./scan.controller";
+import { ScanLocationResolverService } from "./scan-location-resolver.service";
 
 const request = {
   user: {
@@ -31,7 +32,10 @@ function createController(assetOrganizationId = "org-a") {
 
   return {
     prisma,
-    controller: new ScanController(prisma as unknown as PrismaService),
+    controller: new ScanController(
+      prisma as unknown as PrismaService,
+      new ScanLocationResolverService(prisma as unknown as PrismaService),
+    ),
   };
 }
 
