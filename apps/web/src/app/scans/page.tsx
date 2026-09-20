@@ -13,6 +13,12 @@ type ScanEvent = {
   notes?: string | null;
   latitude?: number | null;
   longitude?: number | null;
+  locationSource?: LocationSource | null;
+  locationName?: string | null;
+  country?: string | null;
+  region?: string | null;
+  city?: string | null;
+  address?: string | null;
   asset?: {
     id: string;
     name: string;
@@ -25,6 +31,33 @@ type ScanEvent = {
     email: string;
   } | null;
 };
+type LocationSource =
+  | "GPS"
+  | "ORGANIZATION_LOCATION"
+  | "MANUAL"
+  | "DEVICE_TIMEZONE"
+  | "UTC_FALLBACK";
+
+const locationSourceLabels: Record<LocationSource, string> = {
+  GPS: "GPS",
+  ORGANIZATION_LOCATION: "Saved location",
+  MANUAL: "Manual",
+  DEVICE_TIMEZONE: "Device timezone",
+  UTC_FALLBACK: "UTC fallback",
+};
+
+function formatLocation(scan: ScanEvent) {
+  const place =
+    scan.locationName ||
+    [scan.city, scan.region, scan.country].filter(Boolean).join(", ");
+
+  if (place) return place;
+  if (scan.latitude != null && scan.longitude != null) {
+    return `${Number(scan.latitude).toFixed(5)}, ${Number(scan.longitude).toFixed(5)}`;
+  }
+
+  return "Not recorded";
+}
 type AssetOption = {
   id: string;
   name: string;
@@ -51,6 +84,7 @@ export default function ScansPage() {
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [assetFilter, setAssetFilter] = useState("ALL");
   const [userFilter, setUserFilter] = useState("ALL");
+  const [locationSourceFilter, setLocationSourceFilter] = useState("ALL");
   const [dateFilter, setDateFilter] = useState("");
   useEffect(() => {
     const timeout = setTimeout(() => {
@@ -84,6 +118,10 @@ export default function ScansPage() {
 
         if (userFilter !== "ALL") {
           params.set("userId", userFilter);
+        }
+
+        if (locationSourceFilter !== "ALL") {
+          params.set("locationSource", locationSourceFilter);
         }
 
         if (dateFilter) {
@@ -130,7 +168,15 @@ export default function ScansPage() {
     }
 
     loadScans();
-  }, [router, page, debouncedSearch, assetFilter, userFilter, dateFilter]);
+  }, [
+    router,
+    page,
+    debouncedSearch,
+    assetFilter,
+    userFilter,
+    locationSourceFilter,
+    dateFilter,
+  ]);
 
   useEffect(() => {
     const token = sessionStorage.getItem("assettrack_token");
@@ -178,6 +224,7 @@ export default function ScansPage() {
     setSearch("");
     setAssetFilter("ALL");
     setUserFilter("ALL");
+    setLocationSourceFilter("ALL");
     setDateFilter("");
     setPage(1);
   }
@@ -222,14 +269,14 @@ export default function ScansPage() {
             </button>
           </div>
 
-          <div className="mt-6 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <div className="mt-6 grid gap-4 md:grid-cols-2 lg:grid-cols-5">
             <input
               value={search}
               onChange={(event) => {
                 setSearch(event.target.value);
                 setPage(1);
               }}
-              placeholder="Search notes, asset, user..."
+              placeholder="Search asset, user, location..."
               className="rounded-lg border border-slate-300 px-4 py-3"
             />
 
@@ -246,6 +293,22 @@ export default function ScansPage() {
               {assetOptions.map((asset) => (
                 <option key={asset.id} value={asset.id}>
                   {asset.name}
+                </option>
+              ))}
+            </select>
+
+            <select
+              value={locationSourceFilter}
+              onChange={(event) => {
+                setLocationSourceFilter(event.target.value);
+                setPage(1);
+              }}
+              className="rounded-lg border border-slate-300 px-4 py-3"
+            >
+              <option value="ALL">All location sources</option>
+              {Object.entries(locationSourceLabels).map(([value, label]) => (
+                <option key={value} value={value}>
+                  {label}
                 </option>
               ))}
             </select>
@@ -297,6 +360,7 @@ export default function ScansPage() {
                     <th className="py-3 pr-4">Asset</th>
                     <th className="py-3 pr-4">Tag</th>
                     <th className="py-3 pr-4">User</th>
+                    <th className="py-3 pr-4">Location</th>
                     <th className="py-3">Notes</th>
                   </tr>
                 </thead>
@@ -318,6 +382,17 @@ export default function ScansPage() {
 
                       <td className="py-4 pr-4 text-slate-600">
                         {scan.user?.name ?? "Unknown user"}
+                      </td>
+
+                      <td className="py-4 pr-4 text-slate-600">
+                        <p className="font-medium text-slate-800">
+                          {formatLocation(scan)}
+                        </p>
+                        {scan.locationSource && (
+                          <p className="mt-1 text-xs text-slate-500">
+                            {locationSourceLabels[scan.locationSource]}
+                          </p>
+                        )}
                       </td>
 
                       <td className="py-4 text-slate-600">

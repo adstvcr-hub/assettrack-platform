@@ -1,12 +1,14 @@
 import { Type } from "class-transformer";
 import {
   IsDateString,
+  IsEnum,
   IsInt,
   IsOptional,
   IsString,
   Max,
   Min,
 } from "class-validator";
+import { LocationSource } from "../../generated/prisma/enums";
 
 export class ScanEventsQueryDto {
   @Type(() => Number)
@@ -31,6 +33,10 @@ export class ScanEventsQueryDto {
   @IsOptional()
   @IsString()
   userId?: string;
+
+  @IsOptional()
+  @IsEnum(LocationSource)
+  locationSource?: LocationSource;
 
   @IsOptional()
   @IsDateString()

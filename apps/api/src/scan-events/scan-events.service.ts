@@ -6,6 +6,7 @@ import {
   getTimezoneOffsetMinutes,
   getUtcDateRangeForLocalDate,
 } from "../common/timezone-date-range";
+import { LocationSource } from "../generated/prisma/enums";
 
 @Injectable()
 export class ScanEventsService {
@@ -64,6 +65,7 @@ export class ScanEventsService {
     search?: string,
     assetId?: string,
     userId?: string,
+    locationSource?: LocationSource,
     date?: string,
     timezone?: string,
   ) {
@@ -91,6 +93,12 @@ export class ScanEventsService {
       ...(userId
         ? {
             userId,
+          }
+        : {}),
+
+      ...(locationSource
+        ? {
+            locationSource,
           }
         : {}),
 
@@ -144,6 +152,36 @@ export class ScanEventsService {
                     contains: search,
                     mode: "insensitive" as const,
                   },
+                },
+              },
+              {
+                locationName: {
+                  contains: search,
+                  mode: "insensitive" as const,
+                },
+              },
+              {
+                country: {
+                  contains: search,
+                  mode: "insensitive" as const,
+                },
+              },
+              {
+                region: {
+                  contains: search,
+                  mode: "insensitive" as const,
+                },
+              },
+              {
+                city: {
+                  contains: search,
+                  mode: "insensitive" as const,
+                },
+              },
+              {
+                address: {
+                  contains: search,
+                  mode: "insensitive" as const,
                 },
               },
             ],

@@ -49,6 +49,7 @@ export class ScanEventsController {
       query.search,
       query.assetId,
       query.userId,
+      query.locationSource,
       query.date,
       query.timezone,
     );
