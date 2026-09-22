@@ -27,6 +27,8 @@ describe("ScanLocationResolverService", () => {
     });
 
     expect(result.locationSource).toBe("GPS");
+    expect(result.timezone).toBe("America/Costa_Rica");
+    expect(result.timezoneOffset).toBe(360);
     expect(prisma.organizationLocation.findFirst).not.toHaveBeenCalled();
   });
 

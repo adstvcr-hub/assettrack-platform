@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
-import tzlookup from "@photostructure/tz-lookup";
+import tzlookup = require("@photostructure/tz-lookup");
 import { getTimezoneOffsetMinutes } from "../common/timezone-date-range";
 import { LocationSource } from "../generated/prisma/enums";
 import { PrismaService } from "../prisma/prisma.service";
