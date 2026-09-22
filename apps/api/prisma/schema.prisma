@@ -39,6 +39,27 @@ enum LocationSource {
   UTC_FALLBACK
 }
 
+enum RestaurantStation {
+  KITCHEN
+  BAR
+}
+
+enum RestaurantCourse {
+  DRINK
+  STARTER
+  MAIN
+  OTHER
+}
+
+enum RestaurantItemStatus {
+  RECEIVED
+  ACCEPTED
+  PREPARING
+  READY
+  DELIVERED
+  CANCELLED
+}
+
 model Organization {
   id        String   @id @default(uuid())
   name      String
@@ -49,8 +70,91 @@ model Organization {
   users     User[]
   assets    Asset[]
   locations OrganizationLocation[]
+  restaurantTables RestaurantTable[]
+  restaurantMenuItems RestaurantMenuItem[]
+  restaurantOrders RestaurantOrder[]
 
   @@map("organizations")
+}
+
+model RestaurantTable {
+  id             String @id @default(uuid())
+  organizationId String
+  name           String
+  code           String @unique @default(uuid())
+  active         Boolean @default(true)
+  createdAt      DateTime @default(now())
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  orders         RestaurantOrder[]
+
+  @@unique([organizationId, name])
+  @@index([organizationId])
+  @@map("restaurant_tables")
+}
+
+model RestaurantMenuItem {
+  id             String @id @default(uuid())
+  organizationId String
+  name           String
+  description    String?
+  price          Int
+  station        RestaurantStation
+  course         RestaurantCourse
+  active         Boolean @default(true)
+  createdAt      DateTime @default(now())
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  orderItems     RestaurantOrderItem[]
+
+  @@index([organizationId, active])
+  @@map("restaurant_menu_items")
+}
+
+model RestaurantOrder {
+  id             String @id @default(uuid())
+  organizationId String
+  tableId        String
+  accessCode     String @unique @default(uuid())
+  requestId      String @unique
+  createdAt      DateTime @default(now())
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  table          RestaurantTable @relation(fields: [tableId], references: [id])
+  items          RestaurantOrderItem[]
+
+  @@index([organizationId, createdAt])
+  @@map("restaurant_orders")
+}
+
+model RestaurantOrderItem {
+  id             String @id @default(uuid())
+  orderId        String
+  menuItemId     String
+  name           String
+  price          Int
+  station        RestaurantStation
+  course         RestaurantCourse
+  quantity       Int
+  status         RestaurantItemStatus @default(RECEIVED)
+  acceptedAt     DateTime?
+  readyAt        DateTime?
+  deliveredAt    DateTime?
+  order          RestaurantOrder @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  menuItem       RestaurantMenuItem @relation(fields: [menuItemId], references: [id])
+  events         RestaurantItemEvent[]
+
+  @@index([station, status])
+  @@map("restaurant_order_items")
+}
+
+model RestaurantItemEvent {
+  id          String @id @default(uuid())
+  itemId      String
+  actorId     String?
+  status      RestaurantItemStatus
+  createdAt   DateTime @default(now())
+  item        RestaurantOrderItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
+
+  @@index([itemId, createdAt])
+  @@map("restaurant_item_events")
 }
 
 model OrganizationLocation {

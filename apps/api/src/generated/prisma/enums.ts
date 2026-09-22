@@ -51,3 +51,33 @@ export const LocationSource = {
 } as const
 
 export type LocationSource = (typeof LocationSource)[keyof typeof LocationSource]
+
+
+export const RestaurantStation = {
+  KITCHEN: 'KITCHEN',
+  BAR: 'BAR'
+} as const
+
+export type RestaurantStation = (typeof RestaurantStation)[keyof typeof RestaurantStation]
+
+
+export const RestaurantCourse = {
+  DRINK: 'DRINK',
+  STARTER: 'STARTER',
+  MAIN: 'MAIN',
+  OTHER: 'OTHER'
+} as const
+
+export type RestaurantCourse = (typeof RestaurantCourse)[keyof typeof RestaurantCourse]
+
+
+export const RestaurantItemStatus = {
+  RECEIVED: 'RECEIVED',
+  ACCEPTED: 'ACCEPTED',
+  PREPARING: 'PREPARING',
+  READY: 'READY',
+  DELIVERED: 'DELIVERED',
+  CANCELLED: 'CANCELLED'
+} as const
+
+export type RestaurantItemStatus = (typeof RestaurantItemStatus)[keyof typeof RestaurantItemStatus]

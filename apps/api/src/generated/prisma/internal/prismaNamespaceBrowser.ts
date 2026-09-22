@@ -52,6 +52,11 @@ export const AnyNull = runtime.AnyNull
 
 export const ModelName = {
   Organization: 'Organization',
+  RestaurantTable: 'RestaurantTable',
+  RestaurantMenuItem: 'RestaurantMenuItem',
+  RestaurantOrder: 'RestaurantOrder',
+  RestaurantOrderItem: 'RestaurantOrderItem',
+  RestaurantItemEvent: 'RestaurantItemEvent',
   OrganizationLocation: 'OrganizationLocation',
   User: 'User',
   Asset: 'Asset',
@@ -85,6 +90,74 @@ export const OrganizationScalarFieldEnum = {
 } as const
 
 export type OrganizationScalarFieldEnum = (typeof OrganizationScalarFieldEnum)[keyof typeof OrganizationScalarFieldEnum]
+
+
+export const RestaurantTableScalarFieldEnum = {
+  id: 'id',
+  organizationId: 'organizationId',
+  name: 'name',
+  code: 'code',
+  active: 'active',
+  createdAt: 'createdAt'
+} as const
+
+export type RestaurantTableScalarFieldEnum = (typeof RestaurantTableScalarFieldEnum)[keyof typeof RestaurantTableScalarFieldEnum]
+
+
+export const RestaurantMenuItemScalarFieldEnum = {
+  id: 'id',
+  organizationId: 'organizationId',
+  name: 'name',
+  description: 'description',
+  price: 'price',
+  station: 'station',
+  course: 'course',
+  active: 'active',
+  createdAt: 'createdAt'
+} as const
+
+export type RestaurantMenuItemScalarFieldEnum = (typeof RestaurantMenuItemScalarFieldEnum)[keyof typeof RestaurantMenuItemScalarFieldEnum]
+
+
+export const RestaurantOrderScalarFieldEnum = {
+  id: 'id',
+  organizationId: 'organizationId',
+  tableId: 'tableId',
+  accessCode: 'accessCode',
+  requestId: 'requestId',
+  createdAt: 'createdAt'
+} as const
+
+export type RestaurantOrderScalarFieldEnum = (typeof RestaurantOrderScalarFieldEnum)[keyof typeof RestaurantOrderScalarFieldEnum]
+
+
+export const RestaurantOrderItemScalarFieldEnum = {
+  id: 'id',
+  orderId: 'orderId',
+  menuItemId: 'menuItemId',
+  name: 'name',
+  price: 'price',
+  station: 'station',
+  course: 'course',
+  quantity: 'quantity',
+  status: 'status',
+  acceptedAt: 'acceptedAt',
+  readyAt: 'readyAt',
+  deliveredAt: 'deliveredAt'
+} as const
+
+export type RestaurantOrderItemScalarFieldEnum = (typeof RestaurantOrderItemScalarFieldEnum)[keyof typeof RestaurantOrderItemScalarFieldEnum]
+
+
+export const RestaurantItemEventScalarFieldEnum = {
+  id: 'id',
+  itemId: 'itemId',
+  actorId: 'actorId',
+  status: 'status',
+  createdAt: 'createdAt'
+} as const
+
+export type RestaurantItemEventScalarFieldEnum = (typeof RestaurantItemEventScalarFieldEnum)[keyof typeof RestaurantItemEventScalarFieldEnum]
 
 
 export const OrganizationLocationScalarFieldEnum = {

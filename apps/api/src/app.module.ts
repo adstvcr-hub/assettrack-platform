@@ -12,6 +12,7 @@ import { ThrottlerModule } from "@nestjs/throttler";
 import { APP_GUARD } from "@nestjs/core";
 import { ThrottlerGuard } from "@nestjs/throttler";
 import { OrganizationLocationsModule } from "./organization-locations/organization-locations.module";
+import { RestaurantModule } from "./restaurant/restaurant.module";
 
 @Module({
   imports: [
@@ -33,6 +34,7 @@ import { OrganizationLocationsModule } from "./organization-locations/organizati
     ScanEventsModule,
     AuthModule,
     OrganizationLocationsModule,
+    RestaurantModule,
   ],
   providers: [
     {

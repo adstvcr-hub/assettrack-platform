@@ -9,6 +9,11 @@
  * 🟢 You can import this file directly.
  */
 export type * from './models/Organization'
+export type * from './models/RestaurantTable'
+export type * from './models/RestaurantMenuItem'
+export type * from './models/RestaurantOrder'
+export type * from './models/RestaurantOrderItem'
+export type * from './models/RestaurantItemEvent'
 export type * from './models/OrganizationLocation'
 export type * from './models/User'
 export type * from './models/Asset'

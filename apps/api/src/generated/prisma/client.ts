@@ -45,6 +45,31 @@ export { Prisma }
  */
 export type Organization = Prisma.OrganizationModel
 /**
+ * Model RestaurantTable
+ * 
+ */
+export type RestaurantTable = Prisma.RestaurantTableModel
+/**
+ * Model RestaurantMenuItem
+ * 
+ */
+export type RestaurantMenuItem = Prisma.RestaurantMenuItemModel
+/**
+ * Model RestaurantOrder
+ * 
+ */
+export type RestaurantOrder = Prisma.RestaurantOrderModel
+/**
+ * Model RestaurantOrderItem
+ * 
+ */
+export type RestaurantOrderItem = Prisma.RestaurantOrderItemModel
+/**
+ * Model RestaurantItemEvent
+ * 
+ */
+export type RestaurantItemEvent = Prisma.RestaurantItemEventModel
+/**
  * Model OrganizationLocation
  * 
  */
