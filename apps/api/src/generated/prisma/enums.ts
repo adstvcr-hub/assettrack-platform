@@ -61,6 +61,16 @@ export const RestaurantStation = {
 export type RestaurantStation = (typeof RestaurantStation)[keyof typeof RestaurantStation]
 
 
+export const RestaurantStaffRole = {
+  RESTAURANT_ADMIN: 'RESTAURANT_ADMIN',
+  KITCHEN: 'KITCHEN',
+  BAR: 'BAR',
+  WAITER: 'WAITER'
+} as const
+
+export type RestaurantStaffRole = (typeof RestaurantStaffRole)[keyof typeof RestaurantStaffRole]
+
+
 export const RestaurantCourse = {
   DRINK: 'DRINK',
   STARTER: 'STARTER',

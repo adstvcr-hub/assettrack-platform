@@ -98,7 +98,8 @@ export const RestaurantTableScalarFieldEnum = {
   name: 'name',
   code: 'code',
   active: 'active',
-  createdAt: 'createdAt'
+  createdAt: 'createdAt',
+  waiterId: 'waiterId'
 } as const
 
 export type RestaurantTableScalarFieldEnum = (typeof RestaurantTableScalarFieldEnum)[keyof typeof RestaurantTableScalarFieldEnum]
@@ -188,6 +189,7 @@ export const UserScalarFieldEnum = {
   name: 'name',
   passwordHash: 'passwordHash',
   role: 'role',
+  restaurantRole: 'restaurantRole',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const

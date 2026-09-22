@@ -1,0 +1,170 @@
+"use client";
+
+import { API_URL, authenticatedFetch } from "@/lib/api";
+import { useRouter } from "next/navigation";
+import { useCallback, useEffect, useState } from "react";
+
+type Station = "KITCHEN" | "BAR";
+type OrderItem = {
+  id: string;
+  name: string;
+  quantity: number;
+  station: Station;
+  course: string;
+  status: string;
+};
+type Order = {
+  id: string;
+  createdAt: string;
+  table: { name: string };
+  items: OrderItem[];
+};
+
+const nextStatus: Record<string, string | null> = {
+  RECEIVED: "ACCEPTED",
+  ACCEPTED: "PREPARING",
+  PREPARING: "READY",
+  READY: null,
+};
+
+const labels: Record<string, string> = {
+  RECEIVED: "Recibido",
+  ACCEPTED: "Aceptado",
+  PREPARING: "En preparación",
+  READY: "Listo para entregar",
+};
+
+export function OperationalDashboard({ station }: { station: Station }) {
+  const router = useRouter();
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [error, setError] = useState("");
+
+  const load = useCallback(async () => {
+    const [profileResponse, response] = await Promise.all([
+      authenticatedFetch(`${API_URL}/api/v1/restaurant/profile`),
+      authenticatedFetch(`${API_URL}/api/v1/restaurant/orders`),
+    ]);
+    if (profileResponse.status === 401 || response.status === 401) {
+      router.replace(`/?next=/restaurant/${station.toLowerCase()}`);
+      return;
+    }
+    if (profileResponse.ok) {
+      const profile = await profileResponse.json();
+      if (profile.restaurantRole !== station) {
+        router.replace("/restaurant/staff");
+        return;
+      }
+    }
+    if (response.status === 403) {
+      router.replace("/restaurant/staff");
+      return;
+    }
+    if (!response.ok) {
+      setError("No se pudo cargar la cola de trabajo");
+      return;
+    }
+    setOrders(await response.json());
+    setError("");
+  }, [router, station]);
+
+  useEffect(() => {
+    if (!sessionStorage.getItem("assettrack_token")) {
+      router.replace(`/?next=/restaurant/${station.toLowerCase()}`);
+      return;
+    }
+    void load();
+    const timer = setInterval(() => void load(), 5000);
+    return () => clearInterval(timer);
+  }, [load, router, station]);
+
+  async function advance(item: OrderItem) {
+    const status = nextStatus[item.status];
+    if (!status) return;
+    const response = await authenticatedFetch(
+      `${API_URL}/api/v1/restaurant/items/${item.id}/status`,
+      {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status }),
+      },
+    );
+    if (!response.ok) {
+      const body = await response.json().catch(() => ({}));
+      setError(body.message ?? "No se pudo actualizar el pedido");
+      return;
+    }
+    await load();
+  }
+
+  const items = orders.flatMap((order) =>
+    order.items
+      .filter((item) => item.station === station)
+      .map((item) => ({ order, item })),
+  );
+
+  return (
+    <main className="min-h-screen bg-slate-100 text-slate-950">
+      <header className="bg-slate-950 px-5 py-5 text-white">
+        <div className="mx-auto flex max-w-6xl items-center justify-between">
+          <div>
+            <p className="text-sm font-semibold tracking-[0.2em] text-emerald-400">
+              ASSETTRACK · RESTAURANTE
+            </p>
+            <h1 className="text-3xl font-bold">
+              {station === "KITCHEN" ? "Cocina" : "Bar"}
+            </h1>
+          </div>
+          <span className="rounded-full bg-emerald-500 px-4 py-2 font-bold text-slate-950">
+            {items.length} pendientes
+          </span>
+        </div>
+      </header>
+      <section className="mx-auto max-w-6xl space-y-4 p-5">
+        {error && (
+          <p className="rounded-lg bg-red-100 p-4 text-red-800">{error}</p>
+        )}
+        {items.length === 0 && (
+          <p className="rounded-xl border bg-white p-8 text-center text-lg">
+            No hay pedidos pendientes para esta estación.
+          </p>
+        )}
+        {items.map(({ order, item }) => (
+          <article
+            key={item.id}
+            className="rounded-xl border bg-white p-5 shadow-sm"
+          >
+            <div className="flex flex-wrap items-center justify-between gap-4">
+              <div>
+                <p className="text-2xl font-bold">{order.table.name}</p>
+                <p className="mt-1 text-xl">
+                  {item.quantity} × {item.name}
+                </p>
+                <p className="mt-2 text-sm text-slate-600">
+                  {labels[item.status] ?? item.status} · recibido a las{" "}
+                  {new Date(order.createdAt).toLocaleTimeString()}
+                </p>
+              </div>
+              {nextStatus[item.status] && (
+                <button
+                  className="min-w-40 rounded-lg bg-emerald-600 px-5 py-4 text-lg font-bold text-white"
+                  onClick={() => void advance(item)}
+                >
+                  {item.status === "RECEIVED"
+                    ? "Aceptar"
+                    : item.status === "ACCEPTED"
+                      ? "Iniciar"
+                      : "Marcar listo"}
+                </button>
+              )}
+              {item.status === "READY" && (
+                <span className="rounded-lg bg-amber-100 px-5 py-4 font-bold text-amber-900">
+                  Esperando al mesero
+                </span>
+              )}
+            </div>
+          </article>
+        ))}
+      </section>
+    </main>
+  );
+}

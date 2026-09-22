@@ -17,6 +17,7 @@ import {
 import {
   RestaurantCourse,
   RestaurantItemStatus,
+  RestaurantStaffRole,
   RestaurantStation,
 } from "../../generated/prisma/enums";
 
@@ -60,4 +61,16 @@ export class PlaceOrderDto {
 
 export class UpdateItemStatusDto {
   @IsEnum(RestaurantItemStatus) status!: RestaurantItemStatus;
+}
+
+export class UpdateRestaurantRoleDto {
+  @IsOptional()
+  @IsEnum(RestaurantStaffRole)
+  role!: RestaurantStaffRole | null;
+}
+
+export class AssignWaiterDto {
+  @IsOptional()
+  @IsUUID()
+  waiterId!: string | null;
 }

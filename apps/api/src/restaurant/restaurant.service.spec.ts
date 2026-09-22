@@ -1,11 +1,13 @@
 import {
   ConflictException,
   BadRequestException,
+  ForbiddenException,
   NotFoundException,
 } from "@nestjs/common";
 import { describe, expect, it, vi } from "vitest";
 import { PrismaService } from "../prisma/prisma.service";
 import { RestaurantService } from "./restaurant.service";
+import { RestaurantStaffRole, UserRole } from "../generated/prisma/enums";
 
 const table = { id: "table-a", organizationId: "org-a", active: true };
 const requestId = "995bb3ed-a5c4-405e-bc8a-c2b4f360853a";
@@ -18,12 +20,19 @@ const menuItem = {
   station: "BAR",
   course: "DRINK",
 };
+const kitchenActor = {
+  id: "staff",
+  organizationId: "org-a",
+  role: UserRole.USER,
+  restaurantRole: RestaurantStaffRole.KITCHEN,
+};
 function createService() {
   const prisma = {
     restaurantTable: { findUnique: vi.fn().mockResolvedValue(table) },
     restaurantMenuItem: { findMany: vi.fn().mockResolvedValue([menuItem]) },
     restaurantOrder: {
       findUnique: vi.fn().mockResolvedValue(null),
+      findMany: vi.fn().mockResolvedValue([]),
       count: vi.fn().mockResolvedValue(0),
       create: vi.fn().mockResolvedValue(order),
     },
@@ -104,10 +113,13 @@ describe("RestaurantService", () => {
     const { prisma, service } = createService();
     prisma.restaurantOrderItem.findFirst.mockResolvedValue(null);
     await expect(
-      service.updateStatus("org-a", "staff", "item", { status: "ACCEPTED" }),
+      service.updateStatus(kitchenActor, "item", { status: "ACCEPTED" }),
     ).rejects.toBeInstanceOf(NotFoundException);
     expect(prisma.restaurantOrderItem.findFirst).toHaveBeenCalledWith({
       where: { id: "item", order: { organizationId: "org-a" } },
+      include: {
+        order: { select: { table: { select: { waiterId: true } } } },
+      },
     });
   });
 
@@ -115,16 +127,73 @@ describe("RestaurantService", () => {
     const { prisma, service } = createService();
     prisma.restaurantOrderItem.findFirst.mockResolvedValue({
       status: "RECEIVED",
+      station: "KITCHEN",
+      order: { table: { waiterId: null } },
     });
     prisma.restaurantOrderItem.updateMany.mockResolvedValue({ count: 1 });
     await expect(
-      service.updateStatus("org-a", "staff", "item", { status: "READY" }),
+      service.updateStatus(kitchenActor, "item", { status: "READY" }),
     ).rejects.toBeInstanceOf(BadRequestException);
-    await service.updateStatus("org-a", "staff", "item", {
+    await service.updateStatus(kitchenActor, "item", {
       status: "ACCEPTED",
     });
     expect(prisma.restaurantItemEvent.create).toHaveBeenCalledWith({
       data: { itemId: "item", actorId: "staff", status: "ACCEPTED" },
     });
+  });
+
+  it("prevents kitchen staff from changing bar items", async () => {
+    const { prisma, service } = createService();
+    prisma.restaurantOrderItem.findFirst.mockResolvedValue({
+      status: "RECEIVED",
+      station: "BAR",
+      order: { table: { waiterId: null } },
+    });
+    await expect(
+      service.updateStatus(kitchenActor, "item", { status: "ACCEPTED" }),
+    ).rejects.toBeInstanceOf(ForbiddenException);
+    expect(prisma.restaurantOrderItem.updateMany).not.toHaveBeenCalled();
+  });
+
+  it("filters the kitchen queue at the database boundary", async () => {
+    const { prisma, service } = createService();
+    await service.orders(kitchenActor);
+    expect(prisma.restaurantOrder.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({
+          organizationId: "org-a",
+          items: {
+            some: expect.objectContaining({ station: "KITCHEN" }),
+          },
+        }),
+        include: expect.objectContaining({
+          items: {
+            where: expect.objectContaining({ station: "KITCHEN" }),
+          },
+        }),
+      }),
+    );
+  });
+
+  it("allows only the assigned waiter to deliver ready items", async () => {
+    const { prisma, service } = createService();
+    prisma.restaurantOrderItem.findFirst.mockResolvedValue({
+      status: "READY",
+      station: "BAR",
+      order: { table: { waiterId: "waiter-a" } },
+    });
+    prisma.restaurantOrderItem.updateMany.mockResolvedValue({ count: 1 });
+    const waiter = {
+      id: "waiter-a",
+      organizationId: "org-a",
+      role: UserRole.USER,
+      restaurantRole: RestaurantStaffRole.WAITER,
+    };
+    await service.updateStatus(waiter, "item", { status: "DELIVERED" });
+    await expect(
+      service.updateStatus({ ...waiter, id: "waiter-b" }, "item", {
+        status: "DELIVERED",
+      }),
+    ).rejects.toBeInstanceOf(ForbiddenException);
   });
 });

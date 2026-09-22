@@ -44,6 +44,13 @@ enum RestaurantStation {
   BAR
 }
 
+enum RestaurantStaffRole {
+  RESTAURANT_ADMIN
+  KITCHEN
+  BAR
+  WAITER
+}
+
 enum RestaurantCourse {
   DRINK
   STARTER
@@ -67,42 +74,45 @@ model Organization {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  users     User[]
-  assets    Asset[]
-  locations OrganizationLocation[]
-  restaurantTables RestaurantTable[]
+  users               User[]
+  assets              Asset[]
+  locations           OrganizationLocation[]
+  restaurantTables    RestaurantTable[]
   restaurantMenuItems RestaurantMenuItem[]
-  restaurantOrders RestaurantOrder[]
+  restaurantOrders    RestaurantOrder[]
 
   @@map("organizations")
 }
 
 model RestaurantTable {
-  id             String @id @default(uuid())
+  id             String            @id @default(uuid())
   organizationId String
   name           String
-  code           String @unique @default(uuid())
-  active         Boolean @default(true)
-  createdAt      DateTime @default(now())
-  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  code           String            @unique @default(uuid())
+  active         Boolean           @default(true)
+  createdAt      DateTime          @default(now())
+  waiterId       String?
+  organization   Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  waiter         User?             @relation("RestaurantWaiterTables", fields: [waiterId], references: [id], onDelete: SetNull)
   orders         RestaurantOrder[]
 
   @@unique([organizationId, name])
   @@index([organizationId])
+  @@index([waiterId])
   @@map("restaurant_tables")
 }
 
 model RestaurantMenuItem {
-  id             String @id @default(uuid())
+  id             String                @id @default(uuid())
   organizationId String
   name           String
   description    String?
   price          Int
   station        RestaurantStation
   course         RestaurantCourse
-  active         Boolean @default(true)
-  createdAt      DateTime @default(now())
-  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  active         Boolean               @default(true)
+  createdAt      DateTime              @default(now())
+  organization   Organization          @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   orderItems     RestaurantOrderItem[]
 
   @@index([organizationId, active])
@@ -110,14 +120,14 @@ model RestaurantMenuItem {
 }
 
 model RestaurantOrder {
-  id             String @id @default(uuid())
+  id             String                @id @default(uuid())
   organizationId String
   tableId        String
-  accessCode     String @unique @default(uuid())
-  requestId      String @unique
-  createdAt      DateTime @default(now())
-  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  table          RestaurantTable @relation(fields: [tableId], references: [id])
+  accessCode     String                @unique @default(uuid())
+  requestId      String                @unique
+  createdAt      DateTime              @default(now())
+  organization   Organization          @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  table          RestaurantTable       @relation(fields: [tableId], references: [id])
   items          RestaurantOrderItem[]
 
   @@index([organizationId, createdAt])
@@ -125,33 +135,33 @@ model RestaurantOrder {
 }
 
 model RestaurantOrderItem {
-  id             String @id @default(uuid())
-  orderId        String
-  menuItemId     String
-  name           String
-  price          Int
-  station        RestaurantStation
-  course         RestaurantCourse
-  quantity       Int
-  status         RestaurantItemStatus @default(RECEIVED)
-  acceptedAt     DateTime?
-  readyAt        DateTime?
-  deliveredAt    DateTime?
-  order          RestaurantOrder @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  menuItem       RestaurantMenuItem @relation(fields: [menuItemId], references: [id])
-  events         RestaurantItemEvent[]
+  id          String                @id @default(uuid())
+  orderId     String
+  menuItemId  String
+  name        String
+  price       Int
+  station     RestaurantStation
+  course      RestaurantCourse
+  quantity    Int
+  status      RestaurantItemStatus  @default(RECEIVED)
+  acceptedAt  DateTime?
+  readyAt     DateTime?
+  deliveredAt DateTime?
+  order       RestaurantOrder       @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  menuItem    RestaurantMenuItem    @relation(fields: [menuItemId], references: [id])
+  events      RestaurantItemEvent[]
 
   @@index([station, status])
   @@map("restaurant_order_items")
 }
 
 model RestaurantItemEvent {
-  id          String @id @default(uuid())
-  itemId      String
-  actorId     String?
-  status      RestaurantItemStatus
-  createdAt   DateTime @default(now())
-  item        RestaurantOrderItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  id        String               @id @default(uuid())
+  itemId    String
+  actorId   String?
+  status    RestaurantItemStatus
+  createdAt DateTime             @default(now())
+  item      RestaurantOrderItem  @relation(fields: [itemId], references: [id], onDelete: Cascade)
 
   @@index([itemId, createdAt])
   @@map("restaurant_item_events")
@@ -188,18 +198,20 @@ model OrganizationLocation {
 }
 
 model User {
-  id             String   @id @default(uuid())
+  id             String               @id @default(uuid())
   organizationId String
   email          String
   name           String
   passwordHash   String
-  role           UserRole @default(USER)
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  role           UserRole             @default(USER)
+  restaurantRole RestaurantStaffRole?
+  createdAt      DateTime             @default(now())
+  updatedAt      DateTime             @updatedAt
 
-  organization  Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  scanEvents    ScanEvent[]
-  refreshTokens RefreshToken[]
+  organization     Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  scanEvents       ScanEvent[]
+  refreshTokens    RefreshToken[]
+  restaurantTables RestaurantTable[] @relation("RestaurantWaiterTables")
 
   @@unique([organizationId, email])
   @@index([organizationId])

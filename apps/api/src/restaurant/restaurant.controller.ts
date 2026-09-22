@@ -11,19 +11,19 @@ import {
 import { Throttle } from "@nestjs/throttler";
 import { Request } from "express";
 import { JwtAuthGuard } from "../auth/jwt-auth.guard";
-import { Roles } from "../auth/roles.decorator";
 import { RolesGuard } from "../auth/roles.guard";
-import { UserRole } from "../generated/prisma/enums";
 import {
+  AssignWaiterDto,
   CreateMenuItemDto,
   CreateTableDto,
   PlaceOrderDto,
   UpdateItemStatusDto,
   UpdateMenuItemDto,
+  UpdateRestaurantRoleDto,
 } from "./dto/restaurant.dto";
-import { RestaurantService } from "./restaurant.service";
+import { RestaurantActor, RestaurantService } from "./restaurant.service";
 
-type StaffRequest = Request & { user: { id: string; organizationId: string } };
+type StaffRequest = Request & { user: RestaurantActor };
 
 @Controller("restaurant/guest")
 export class RestaurantGuestController {
@@ -52,60 +52,79 @@ export class RestaurantGuestController {
 export class RestaurantStaffController {
   constructor(private readonly restaurant: RestaurantService) {}
 
-  @Get("tables")
-  tables(@Req() req: StaffRequest) {
-    return this.restaurant.tables(req.user.organizationId);
+  @Get("profile")
+  profile(@Req() req: StaffRequest) {
+    return this.restaurant.profile(req.user);
   }
 
-  @Roles(UserRole.OWNER, UserRole.ADMIN)
+  @Get("tables")
+  tables(@Req() req: StaffRequest) {
+    return this.restaurant.tables(req.user);
+  }
+
   @Post("tables")
   addTable(@Req() req: StaffRequest, @Body() dto: CreateTableDto) {
-    return this.restaurant.addTable(req.user.organizationId, dto);
+    return this.restaurant.addTable(req.user, dto);
+  }
+
+  @Patch("tables/:id/waiter")
+  assignWaiter(
+    @Req() req: StaffRequest,
+    @Param("id") id: string,
+    @Body() dto: AssignWaiterDto,
+  ) {
+    return this.restaurant.assignWaiter(req.user, id, dto.waiterId ?? null);
   }
 
   @Get("tables/:id/qr")
   tableQr(@Req() req: StaffRequest, @Param("id") id: string) {
-    return this.restaurant.tableQr(req.user.organizationId, id);
+    return this.restaurant.tableQr(req.user, id);
   }
 
   @Get("menu")
   menu(@Req() req: StaffRequest) {
-    return this.restaurant.menu(req.user.organizationId);
+    return this.restaurant.menu(req.user);
   }
 
-  @Roles(UserRole.OWNER, UserRole.ADMIN)
   @Post("menu")
   addMenu(@Req() req: StaffRequest, @Body() dto: CreateMenuItemDto) {
-    return this.restaurant.addMenuItem(req.user.organizationId, dto);
+    return this.restaurant.addMenuItem(req.user, dto);
   }
 
-  @Roles(UserRole.OWNER, UserRole.ADMIN)
   @Patch("menu/:id")
   updateMenu(
     @Req() req: StaffRequest,
     @Param("id") id: string,
     @Body() dto: UpdateMenuItemDto,
   ) {
-    return this.restaurant.updateMenuItem(req.user.organizationId, id, dto);
+    return this.restaurant.updateMenuItem(req.user, id, dto);
   }
 
   @Get("orders")
   orders(@Req() req: StaffRequest) {
-    return this.restaurant.orders(req.user.organizationId);
+    return this.restaurant.orders(req.user);
   }
 
-  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.USER)
   @Patch("items/:id/status")
   status(
     @Req() req: StaffRequest,
     @Param("id") id: string,
     @Body() dto: UpdateItemStatusDto,
   ) {
-    return this.restaurant.updateStatus(
-      req.user.organizationId,
-      req.user.id,
-      id,
-      dto,
-    );
+    return this.restaurant.updateStatus(req.user, id, dto);
+  }
+
+  @Get("staff-users")
+  staffUsers(@Req() req: StaffRequest) {
+    return this.restaurant.restaurantUsers(req.user);
+  }
+
+  @Patch("staff-users/:id/role")
+  updateRestaurantRole(
+    @Req() req: StaffRequest,
+    @Param("id") id: string,
+    @Body() dto: UpdateRestaurantRoleDto,
+  ) {
+    return this.restaurant.updateRestaurantRole(req.user, id, dto.role ?? null);
   }
 }

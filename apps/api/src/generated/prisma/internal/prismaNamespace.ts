@@ -1372,7 +1372,8 @@ export const RestaurantTableScalarFieldEnum = {
   name: 'name',
   code: 'code',
   active: 'active',
-  createdAt: 'createdAt'
+  createdAt: 'createdAt',
+  waiterId: 'waiterId'
 } as const
 
 export type RestaurantTableScalarFieldEnum = (typeof RestaurantTableScalarFieldEnum)[keyof typeof RestaurantTableScalarFieldEnum]
@@ -1462,6 +1463,7 @@ export const UserScalarFieldEnum = {
   name: 'name',
   passwordHash: 'passwordHash',
   role: 'role',
+  restaurantRole: 'restaurantRole',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
@@ -1691,6 +1693,20 @@ export type EnumUserRoleFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaM
  */
 export type ListEnumUserRoleFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'UserRole[]'>
     
+
+
+/**
+ * Reference to a field of type 'RestaurantStaffRole'
+ */
+export type EnumRestaurantStaffRoleFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'RestaurantStaffRole'>
+
+
+
+/**
+ * Reference to a field of type 'RestaurantStaffRole[]'
+ */
+export type ListEnumRestaurantStaffRoleFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'RestaurantStaffRole[]'>
+
 
 
 /**
@@ -1959,4 +1975,3 @@ export type PrismaAction =
  * `PrismaClient` proxy available in interactive transactions.
  */
 export type TransactionClient = Omit<DefaultPrismaClient, runtime.ITXClientDenyList>
-
