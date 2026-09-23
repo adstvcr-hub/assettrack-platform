@@ -17,6 +17,12 @@ type Menu = {
   restaurant: string;
   table: string;
   waiter: { id: string; name: string } | null;
+  billing: {
+    taxRateBps: number;
+    taxIncluded: boolean;
+    serviceRateBps: number;
+    serviceChargeEnabled: boolean;
+  };
   menu: MenuItem[];
 };
 
@@ -99,10 +105,21 @@ export default function RestaurantTablePage() {
   const selected =
     data?.menu.filter((item) => item.available && quantities[item.id] > 0) ??
     [];
-  const total = selected.reduce(
+  const subtotal = selected.reduce(
     (sum, item) => sum + item.price * quantities[item.id],
     0,
   );
+  const tax = data?.billing.taxIncluded
+    ? Math.round(
+        subtotal -
+          (subtotal * 10000) / (10000 + data.billing.taxRateBps),
+      )
+    : Math.round((subtotal * (data?.billing.taxRateBps ?? 0)) / 10000);
+  const service = data?.billing.serviceChargeEnabled
+    ? Math.round((subtotal * data.billing.serviceRateBps) / 10000)
+    : 0;
+  const total =
+    subtotal + service + (data?.billing.taxIncluded ? 0 : tax);
   return (
     <main className="mx-auto max-w-2xl px-4 py-8 text-slate-900">
       {trackedOrder && (
@@ -191,9 +208,31 @@ export default function RestaurantTablePage() {
       </div>
       {data && (
         <footer className="sticky bottom-0 mt-6 rounded-xl bg-slate-900 p-4 text-white">
-          <div className="mb-3 flex justify-between">
-            <span>{selected.length} selected</span>
-            <strong>₡{total.toLocaleString()}</strong>
+          <div className="mb-4 space-y-1 text-sm">
+            <div className="flex justify-between">
+              <span>Subtotal</span>
+              <span>₡{subtotal.toLocaleString()}</span>
+            </div>
+            <div className="flex justify-between text-slate-300">
+              <span>
+                IVA {(data.billing.taxRateBps / 100).toLocaleString()}%
+                {data.billing.taxIncluded ? " (incluido)" : ""}
+              </span>
+              <span>₡{tax.toLocaleString()}</span>
+            </div>
+            {data.billing.serviceChargeEnabled && (
+              <div className="flex justify-between text-slate-300">
+                <span>
+                  Servicio{" "}
+                  {(data.billing.serviceRateBps / 100).toLocaleString()}%
+                </span>
+                <span>₡{service.toLocaleString()}</span>
+              </div>
+            )}
+            <div className="flex justify-between border-t border-slate-700 pt-2 text-lg">
+              <strong>Total estimado</strong>
+              <strong>₡{total.toLocaleString()}</strong>
+            </div>
           </div>
           <button
             disabled={sending || !selected.length}

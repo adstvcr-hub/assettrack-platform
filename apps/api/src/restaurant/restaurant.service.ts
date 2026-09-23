@@ -533,7 +533,14 @@ export class RestaurantService {
     const table = await this.prisma.restaurantTable.findUnique({
       where: { code },
       include: {
-        organization: { select: { name: true } },
+        organization: {
+          select: {
+            name: true,
+            restaurantTaxRateBps: true,
+            restaurantTaxIncluded: true,
+            restaurantServiceRateBps: true,
+          },
+        },
         waiter: { select: { id: true, name: true } },
       },
     });
@@ -552,6 +559,12 @@ export class RestaurantService {
       restaurant: table.organization.name,
       table: table.name,
       waiter: table.waiter,
+      billing: {
+        taxRateBps: table.organization.restaurantTaxRateBps,
+        taxIncluded: table.organization.restaurantTaxIncluded,
+        serviceRateBps: table.organization.restaurantServiceRateBps,
+        serviceChargeEnabled: table.serviceChargeEnabled,
+      },
       menu: menu.map((item) => ({
         ...item,
         available:

@@ -137,7 +137,13 @@ describe("RestaurantService", () => {
     const { prisma, service } = createService();
     prisma.restaurantTable.findUnique.mockResolvedValue({
       ...table,
-      organization: { name: "AssetTrack Demo" },
+      organization: {
+        name: "AssetTrack Demo",
+        restaurantTaxRateBps: 1300,
+        restaurantTaxIncluded: false,
+        restaurantServiceRateBps: 1000,
+      },
+      waiter: null,
     });
     prisma.user.findMany.mockResolvedValue([
       { restaurantRole: RestaurantStaffRole.KITCHEN },
@@ -146,6 +152,12 @@ describe("RestaurantService", () => {
     expect(result.menu).toEqual([
       expect.objectContaining({ name: "Coffee", available: false }),
     ]);
+    expect(result.billing).toEqual({
+      taxRateBps: 1300,
+      taxIncluded: false,
+      serviceRateBps: 1000,
+      serviceChargeEnabled: true,
+    });
   });
 
   it("shows only the assigned waiter's identity to a guest", async () => {
