@@ -100,6 +100,21 @@ describe("RestaurantService", () => {
     );
   });
 
+  it("keeps unavailable station items visible in the guest menu", async () => {
+    const { prisma, service } = createService();
+    prisma.restaurantTable.findUnique.mockResolvedValue({
+      ...table,
+      organization: { name: "AssetTrack Demo" },
+    });
+    prisma.user.findMany.mockResolvedValue([
+      { restaurantRole: RestaurantStaffRole.KITCHEN },
+    ]);
+    const result = await service.guestMenu("table-code");
+    expect(result.menu).toEqual([
+      expect.objectContaining({ name: "Coffee", available: false }),
+    ]);
+  });
+
   it("returns the existing order when the same request is retried", async () => {
     const { prisma, service } = createService();
     prisma.restaurantOrder.findUnique.mockResolvedValue(order);

@@ -11,6 +11,7 @@ type MenuItem = {
   price: number;
   station: string;
   course: string;
+  available: boolean;
 };
 type Menu = { restaurant: string; table: string; menu: MenuItem[] };
 
@@ -81,7 +82,9 @@ export default function RestaurantTablePage() {
     }
   }
 
-  const selected = data?.menu.filter((item) => quantities[item.id] > 0) ?? [];
+  const selected =
+    data?.menu.filter((item) => item.available && quantities[item.id] > 0) ??
+    [];
   const total = selected.reduce(
     (sum, item) => sum + item.price * quantities[item.id],
     0,
@@ -107,7 +110,11 @@ export default function RestaurantTablePage() {
         {data?.menu.map((item) => (
           <section
             key={item.id}
-            className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm"
+            className={`rounded-xl border p-4 shadow-sm ${
+              item.available
+                ? "border-slate-200 bg-white"
+                : "border-amber-300 bg-amber-50"
+            }`}
           >
             <div className="flex justify-between gap-4">
               <div>
@@ -116,6 +123,12 @@ export default function RestaurantTablePage() {
                 </span>
                 <h2 className="text-lg font-semibold">{item.name}</h2>
                 <p className="text-slate-600">{item.description}</p>
+                {!item.available && (
+                  <p className="mt-2 font-semibold text-amber-800">
+                    Temporalmente no disponible. Consulte al personal para más
+                    información.
+                  </p>
+                )}
               </div>
               <span className="whitespace-nowrap font-medium">
                 ₡{item.price.toLocaleString()}
@@ -125,7 +138,7 @@ export default function RestaurantTablePage() {
               Quantity{" "}
               <select
                 className="ml-2 rounded border p-2"
-                disabled={attempted}
+                disabled={attempted || !item.available}
                 value={quantities[item.id] ?? 0}
                 onChange={(event) =>
                   setQuantities((current) => ({

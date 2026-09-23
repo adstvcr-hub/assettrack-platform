@@ -321,23 +321,24 @@ export class RestaurantService {
     const availableStations = await this.availableStations(
       table.organizationId,
     );
-    const stations = [
-      ...(availableStations.has(RestaurantStaffRole.KITCHEN)
-        ? [RestaurantStation.KITCHEN]
-        : []),
-      ...(availableStations.has(RestaurantStaffRole.BAR)
-        ? [RestaurantStation.BAR]
-        : []),
-    ];
     const menu = await this.prisma.restaurantMenuItem.findMany({
       where: {
         organizationId: table.organizationId,
         active: true,
-        station: { in: stations },
       },
       orderBy: { createdAt: "asc" },
     });
-    return { restaurant: table.organization.name, table: table.name, menu };
+    return {
+      restaurant: table.organization.name,
+      table: table.name,
+      menu: menu.map((item) => ({
+        ...item,
+        available:
+          item.station === RestaurantStation.KITCHEN
+            ? availableStations.has(RestaurantStaffRole.KITCHEN)
+            : availableStations.has(RestaurantStaffRole.BAR),
+      })),
+    };
   }
 
   async placeOrder(code: string, dto: PlaceOrderDto) {
