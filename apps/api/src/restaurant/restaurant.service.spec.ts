@@ -128,6 +128,7 @@ describe("RestaurantService", () => {
       ...order,
       table: {
         name: "Mesa 1",
+        code: "table-code",
         waiter: { id: "waiter-b", name: "Mesero 2" },
       },
       items: [],
@@ -145,6 +146,7 @@ describe("RestaurantService", () => {
         table: {
           select: {
             name: true,
+            code: true,
             waiter: { select: { id: true, name: true } },
           },
         },

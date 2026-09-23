@@ -28,6 +28,7 @@ export default function RestaurantTablePage() {
   const [error, setError] = useState("");
   const [sending, setSending] = useState(false);
   const [attempted, setAttempted] = useState(false);
+  const [trackedOrder, setTrackedOrder] = useState<string | null>(null);
   const requestId = useRef<string | null>(null);
 
   const load = useCallback(async () => {
@@ -47,7 +48,10 @@ export default function RestaurantTablePage() {
   }, [code]);
   useEffect(() => {
     void load();
-  }, [load]);
+    setTrackedOrder(
+      window.localStorage.getItem(`assettrack_restaurant_order_${code}`),
+    );
+  }, [code, load]);
 
   async function submit() {
     const items = Object.entries(quantities)
@@ -79,6 +83,11 @@ export default function RestaurantTablePage() {
         );
       }
       const order = await response.json();
+      window.localStorage.setItem(
+        `assettrack_restaurant_order_${code}`,
+        order.accessCode,
+      );
+      setTrackedOrder(order.accessCode);
       router.push(`/restaurant/order/${order.accessCode}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unable to place order");
@@ -96,6 +105,17 @@ export default function RestaurantTablePage() {
   );
   return (
     <main className="mx-auto max-w-2xl px-4 py-8 text-slate-900">
+      {trackedOrder && (
+        <button
+          type="button"
+          onClick={() => router.push(`/restaurant/order/${trackedOrder}`)}
+          className="fixed bottom-5 right-5 z-20 flex items-center gap-2 rounded-full bg-sky-700 px-5 py-3 font-bold text-white shadow-lg"
+          aria-label="Volver al seguimiento de mi pedido"
+        >
+          <span aria-hidden="true">🧾</span>
+          Ver mi pedido
+        </button>
+      )}
       <header className="mb-8">
         <p className="font-semibold tracking-widest text-emerald-700">
           ASSETTRACK · RESTAURANT

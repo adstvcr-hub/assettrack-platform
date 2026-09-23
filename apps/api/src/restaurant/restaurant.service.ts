@@ -582,6 +582,7 @@ export class RestaurantService {
         table: {
           select: {
             name: true,
+            code: true,
             waiter: { select: { id: true, name: true } },
           },
         },

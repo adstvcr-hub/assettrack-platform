@@ -1,6 +1,7 @@
 "use client";
 
 import { API_URL } from "@/lib/api";
+import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 
@@ -9,6 +10,7 @@ type Order = {
   createdAt: string;
   table: {
     name: string;
+    code: string;
     waiter: { id: string; name: string } | null;
   };
   items: {
@@ -40,7 +42,17 @@ export default function RestaurantOrderPage() {
       );
       if (!response.ok)
         throw new Error("Order unavailable. Please ask the staff.");
-      setOrder(await response.json());
+      const nextOrder: Order = await response.json();
+      setOrder(nextOrder);
+      const storageKey = `assettrack_restaurant_order_${nextOrder.table.code}`;
+      const hasOpenItems = nextOrder.items.some(
+        (item) => item.status !== "DELIVERED" && item.status !== "CANCELLED",
+      );
+      if (hasOpenItems) {
+        window.localStorage.setItem(storageKey, accessCode);
+      } else if (window.localStorage.getItem(storageKey) === accessCode) {
+        window.localStorage.removeItem(storageKey);
+      }
       setError("");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unable to update order");
@@ -88,6 +100,15 @@ export default function RestaurantOrderPage() {
       <p className="my-4 text-slate-600">
         Your order updates automatically while this page is open.
       </p>
+      {order && (
+        <Link
+          href={`/restaurant/table/${encodeURIComponent(order.table.code)}`}
+          className="mb-5 inline-flex items-center gap-2 rounded-lg bg-slate-900 px-5 py-3 font-semibold text-white"
+        >
+          <span aria-hidden="true">＋</span>
+          Ordenar algo más
+        </Link>
+      )}
       {error && (
         <p role="alert" className="rounded bg-red-50 p-4 text-red-800">
           {error}
