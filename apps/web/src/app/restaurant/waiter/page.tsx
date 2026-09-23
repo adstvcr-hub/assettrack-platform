@@ -35,6 +35,7 @@ export default function WaiterPage() {
   const [availabilityDetails, setAvailabilityDetails] = useState("");
   const [availabilityMessage, setAvailabilityMessage] = useState("");
   const [savingAvailability, setSavingAvailability] = useState(false);
+  const [staffName, setStaffName] = useState("");
   const profileInitialized = useRef(false);
 
   const load = useCallback(async () => {
@@ -53,6 +54,7 @@ export default function WaiterPage() {
         return;
       }
       setAvailability(profile.restaurantAvailability);
+      setStaffName(profile.name);
       if (!profileInitialized.current) {
         setAvailabilityChoice(profile.restaurantAvailability);
         profileInitialized.current = true;
@@ -176,7 +178,9 @@ export default function WaiterPage() {
             <p className="text-sm font-semibold tracking-[0.2em] text-sky-400">
               ASSETTRACK · RESTAURANTE
             </p>
-            <h1 className="text-3xl font-bold">Mesero</h1>
+            <h1 className="text-3xl font-bold">
+              Mesero{staffName ? ` — ${staffName}` : ""}
+            </h1>
           </div>
           <div className="flex flex-wrap items-center gap-3">
             <span className="rounded-full bg-amber-400 px-4 py-2 font-bold text-slate-950">

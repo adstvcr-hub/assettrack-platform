@@ -13,7 +13,12 @@ type MenuItem = {
   course: string;
   available: boolean;
 };
-type Menu = { restaurant: string; table: string; menu: MenuItem[] };
+type Menu = {
+  restaurant: string;
+  table: string;
+  waiter: { id: string; name: string } | null;
+  menu: MenuItem[];
+};
 
 export default function RestaurantTablePage() {
   const { code } = useParams<{ code: string }>();
@@ -97,6 +102,13 @@ export default function RestaurantTablePage() {
         </p>
         <h1 className="text-3xl font-bold">{data?.restaurant ?? "Menu"}</h1>
         <p>{data?.table ?? "Loading table..."}</p>
+        {data && (
+          <p className="mt-2 rounded-lg bg-sky-50 px-3 py-2 text-sky-900">
+            {data.waiter
+              ? `Mesero a cargo: ${data.waiter.name}`
+              : "Mesero por asignar. Consulte al personal."}
+          </p>
+        )}
       </header>
       {error && (
         <p role="alert" className="mb-4 rounded bg-red-50 p-4 text-red-800">

@@ -57,9 +57,15 @@ export class RestaurantService {
     }
   }
 
-  profile(actor: RestaurantActor) {
+  async profile(actor: RestaurantActor) {
+    const user = await this.prisma.user.findFirst({
+      where: { id: actor.id, organizationId: actor.organizationId },
+      select: { name: true },
+    });
+    if (!user) throw new NotFoundException("User not found");
     return {
       id: actor.id,
+      name: user.name,
       organizationId: actor.organizationId,
       restaurantRole: this.effectiveRole(actor),
       restaurantAvailability: actor.restaurantAvailability,
@@ -439,7 +445,10 @@ export class RestaurantService {
   async guestMenu(code: string) {
     const table = await this.prisma.restaurantTable.findUnique({
       where: { code },
-      include: { organization: { select: { name: true } } },
+      include: {
+        organization: { select: { name: true } },
+        waiter: { select: { id: true, name: true } },
+      },
     });
     if (!table?.active) throw new NotFoundException("Table not found");
     const availableStations = await this.availableStations(
@@ -455,6 +464,7 @@ export class RestaurantService {
     return {
       restaurant: table.organization.name,
       table: table.name,
+      waiter: table.waiter,
       menu: menu.map((item) => ({
         ...item,
         available:
@@ -569,7 +579,12 @@ export class RestaurantService {
             deliveredAt: true,
           },
         },
-        table: { select: { name: true } },
+        table: {
+          select: {
+            name: true,
+            waiter: { select: { id: true, name: true } },
+          },
+        },
       },
     });
     if (!order) throw new NotFoundException("Order not found");

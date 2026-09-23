@@ -7,7 +7,10 @@ import { useCallback, useEffect, useState } from "react";
 type Order = {
   id: string;
   createdAt: string;
-  table: { name: string };
+  table: {
+    name: string;
+    waiter: { id: string; name: string } | null;
+  };
   items: {
     id: string;
     name: string;
@@ -75,6 +78,13 @@ export default function RestaurantOrderPage() {
         ASSETTRACK · RESTAURANT
       </p>
       <h1 className="text-3xl font-bold">Your order · {order?.table.name}</h1>
+      {order && (
+        <p className="mt-3 rounded-lg bg-sky-50 px-4 py-3 font-semibold text-sky-900">
+          {order.table.waiter
+            ? `Mesero a cargo: ${order.table.waiter.name}`
+            : "Mesero por asignar. Consulte a cualquier empleado."}
+        </p>
+      )}
       <p className="my-4 text-slate-600">
         Your order updates automatically while this page is open.
       </p>

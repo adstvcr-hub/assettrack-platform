@@ -122,6 +122,36 @@ describe("RestaurantService", () => {
     ]);
   });
 
+  it("shows only the assigned waiter's identity to a guest", async () => {
+    const { prisma, service } = createService();
+    prisma.restaurantOrder.findUnique.mockResolvedValue({
+      ...order,
+      table: {
+        name: "Mesa 1",
+        waiter: { id: "waiter-b", name: "Mesero 2" },
+      },
+      items: [],
+    });
+
+    const result = await service.guestOrder("secret");
+
+    expect(result.table.waiter).toEqual({
+      id: "waiter-b",
+      name: "Mesero 2",
+    });
+    expect(prisma.restaurantOrder.findUnique).toHaveBeenCalledWith({
+      where: { accessCode: "secret" },
+      include: expect.objectContaining({
+        table: {
+          select: {
+            name: true,
+            waiter: { select: { id: true, name: true } },
+          },
+        },
+      }),
+    });
+  });
+
   it("returns the existing order when the same request is retried", async () => {
     const { prisma, service } = createService();
     prisma.restaurantOrder.findUnique.mockResolvedValue(order);
