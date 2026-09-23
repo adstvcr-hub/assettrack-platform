@@ -226,6 +226,23 @@ export type DateTimeNullableWithAggregatesFilter<$PrismaModel = never> = {
   _max?: Prisma.NestedDateTimeNullableFilter<$PrismaModel>
 }
 
+export type EnumRestaurantStaffAvailabilityFilter<$PrismaModel = never> = {
+  equals?: $Enums.RestaurantStaffAvailability | Prisma.EnumRestaurantStaffAvailabilityFieldRefInput<$PrismaModel>
+  in?: $Enums.RestaurantStaffAvailability[] | Prisma.ListEnumRestaurantStaffAvailabilityFieldRefInput<$PrismaModel>
+  notIn?: $Enums.RestaurantStaffAvailability[] | Prisma.ListEnumRestaurantStaffAvailabilityFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumRestaurantStaffAvailabilityFilter<$PrismaModel> | $Enums.RestaurantStaffAvailability
+}
+
+export type EnumRestaurantStaffAvailabilityWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.RestaurantStaffAvailability | Prisma.EnumRestaurantStaffAvailabilityFieldRefInput<$PrismaModel>
+  in?: $Enums.RestaurantStaffAvailability[] | Prisma.ListEnumRestaurantStaffAvailabilityFieldRefInput<$PrismaModel>
+  notIn?: $Enums.RestaurantStaffAvailability[] | Prisma.ListEnumRestaurantStaffAvailabilityFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumRestaurantStaffAvailabilityWithAggregatesFilter<$PrismaModel> | $Enums.RestaurantStaffAvailability
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumRestaurantStaffAvailabilityFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumRestaurantStaffAvailabilityFilter<$PrismaModel>
+}
+
 export type EnumOrganizationLocationTypeFilter<$PrismaModel = never> = {
   equals?: $Enums.OrganizationLocationType | Prisma.EnumOrganizationLocationTypeFieldRefInput<$PrismaModel>
   in?: $Enums.OrganizationLocationType[] | Prisma.ListEnumOrganizationLocationTypeFieldRefInput<$PrismaModel>
@@ -588,6 +605,23 @@ export type NestedDateTimeNullableWithAggregatesFilter<$PrismaModel = never> = {
   _count?: Prisma.NestedIntNullableFilter<$PrismaModel>
   _min?: Prisma.NestedDateTimeNullableFilter<$PrismaModel>
   _max?: Prisma.NestedDateTimeNullableFilter<$PrismaModel>
+}
+
+export type NestedEnumRestaurantStaffAvailabilityFilter<$PrismaModel = never> = {
+  equals?: $Enums.RestaurantStaffAvailability | Prisma.EnumRestaurantStaffAvailabilityFieldRefInput<$PrismaModel>
+  in?: $Enums.RestaurantStaffAvailability[] | Prisma.ListEnumRestaurantStaffAvailabilityFieldRefInput<$PrismaModel>
+  notIn?: $Enums.RestaurantStaffAvailability[] | Prisma.ListEnumRestaurantStaffAvailabilityFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumRestaurantStaffAvailabilityFilter<$PrismaModel> | $Enums.RestaurantStaffAvailability
+}
+
+export type NestedEnumRestaurantStaffAvailabilityWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.RestaurantStaffAvailability | Prisma.EnumRestaurantStaffAvailabilityFieldRefInput<$PrismaModel>
+  in?: $Enums.RestaurantStaffAvailability[] | Prisma.ListEnumRestaurantStaffAvailabilityFieldRefInput<$PrismaModel>
+  notIn?: $Enums.RestaurantStaffAvailability[] | Prisma.ListEnumRestaurantStaffAvailabilityFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumRestaurantStaffAvailabilityWithAggregatesFilter<$PrismaModel> | $Enums.RestaurantStaffAvailability
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumRestaurantStaffAvailabilityFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumRestaurantStaffAvailabilityFilter<$PrismaModel>
 }
 
 export type NestedEnumOrganizationLocationTypeFilter<$PrismaModel = never> = {

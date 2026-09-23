@@ -29,6 +29,7 @@ export type RestaurantItemEventMinAggregateOutputType = {
   itemId: string | null
   actorId: string | null
   status: $Enums.RestaurantItemStatus | null
+  note: string | null
   createdAt: Date | null
 }
 
@@ -37,6 +38,7 @@ export type RestaurantItemEventMaxAggregateOutputType = {
   itemId: string | null
   actorId: string | null
   status: $Enums.RestaurantItemStatus | null
+  note: string | null
   createdAt: Date | null
 }
 
@@ -45,6 +47,7 @@ export type RestaurantItemEventCountAggregateOutputType = {
   itemId: number
   actorId: number
   status: number
+  note: number
   createdAt: number
   _all: number
 }
@@ -55,6 +58,7 @@ export type RestaurantItemEventMinAggregateInputType = {
   itemId?: true
   actorId?: true
   status?: true
+  note?: true
   createdAt?: true
 }
 
@@ -63,6 +67,7 @@ export type RestaurantItemEventMaxAggregateInputType = {
   itemId?: true
   actorId?: true
   status?: true
+  note?: true
   createdAt?: true
 }
 
@@ -71,6 +76,7 @@ export type RestaurantItemEventCountAggregateInputType = {
   itemId?: true
   actorId?: true
   status?: true
+  note?: true
   createdAt?: true
   _all?: true
 }
@@ -152,6 +158,7 @@ export type RestaurantItemEventGroupByOutputType = {
   itemId: string
   actorId: string | null
   status: $Enums.RestaurantItemStatus
+  note: string | null
   createdAt: Date
   _count: RestaurantItemEventCountAggregateOutputType | null
   _min: RestaurantItemEventMinAggregateOutputType | null
@@ -181,6 +188,7 @@ export type RestaurantItemEventWhereInput = {
   itemId?: Prisma.StringFilter<"RestaurantItemEvent"> | string
   actorId?: Prisma.StringNullableFilter<"RestaurantItemEvent"> | string | null
   status?: Prisma.EnumRestaurantItemStatusFilter<"RestaurantItemEvent"> | $Enums.RestaurantItemStatus
+  note?: Prisma.StringNullableFilter<"RestaurantItemEvent"> | string | null
   createdAt?: Prisma.DateTimeFilter<"RestaurantItemEvent"> | Date | string
   item?: Prisma.XOR<Prisma.RestaurantOrderItemScalarRelationFilter, Prisma.RestaurantOrderItemWhereInput>
 }
@@ -190,6 +198,7 @@ export type RestaurantItemEventOrderByWithRelationInput = {
   itemId?: Prisma.SortOrder
   actorId?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
+  note?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   item?: Prisma.RestaurantOrderItemOrderByWithRelationInput
 }
@@ -202,6 +211,7 @@ export type RestaurantItemEventWhereUniqueInput = Prisma.AtLeast<{
   itemId?: Prisma.StringFilter<"RestaurantItemEvent"> | string
   actorId?: Prisma.StringNullableFilter<"RestaurantItemEvent"> | string | null
   status?: Prisma.EnumRestaurantItemStatusFilter<"RestaurantItemEvent"> | $Enums.RestaurantItemStatus
+  note?: Prisma.StringNullableFilter<"RestaurantItemEvent"> | string | null
   createdAt?: Prisma.DateTimeFilter<"RestaurantItemEvent"> | Date | string
   item?: Prisma.XOR<Prisma.RestaurantOrderItemScalarRelationFilter, Prisma.RestaurantOrderItemWhereInput>
 }, "id">
@@ -211,6 +221,7 @@ export type RestaurantItemEventOrderByWithAggregationInput = {
   itemId?: Prisma.SortOrder
   actorId?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
+  note?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   _count?: Prisma.RestaurantItemEventCountOrderByAggregateInput
   _max?: Prisma.RestaurantItemEventMaxOrderByAggregateInput
@@ -225,6 +236,7 @@ export type RestaurantItemEventScalarWhereWithAggregatesInput = {
   itemId?: Prisma.StringWithAggregatesFilter<"RestaurantItemEvent"> | string
   actorId?: Prisma.StringNullableWithAggregatesFilter<"RestaurantItemEvent"> | string | null
   status?: Prisma.EnumRestaurantItemStatusWithAggregatesFilter<"RestaurantItemEvent"> | $Enums.RestaurantItemStatus
+  note?: Prisma.StringNullableWithAggregatesFilter<"RestaurantItemEvent"> | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"RestaurantItemEvent"> | Date | string
 }
 
@@ -232,6 +244,7 @@ export type RestaurantItemEventCreateInput = {
   id?: string
   actorId?: string | null
   status: $Enums.RestaurantItemStatus
+  note?: string | null
   createdAt?: Date | string
   item: Prisma.RestaurantOrderItemCreateNestedOneWithoutEventsInput
 }
@@ -241,6 +254,7 @@ export type RestaurantItemEventUncheckedCreateInput = {
   itemId: string
   actorId?: string | null
   status: $Enums.RestaurantItemStatus
+  note?: string | null
   createdAt?: Date | string
 }
 
@@ -248,6 +262,7 @@ export type RestaurantItemEventUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   actorId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumRestaurantItemStatusFieldUpdateOperationsInput | $Enums.RestaurantItemStatus
+  note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   item?: Prisma.RestaurantOrderItemUpdateOneRequiredWithoutEventsNestedInput
 }
@@ -257,6 +272,7 @@ export type RestaurantItemEventUncheckedUpdateInput = {
   itemId?: Prisma.StringFieldUpdateOperationsInput | string
   actorId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumRestaurantItemStatusFieldUpdateOperationsInput | $Enums.RestaurantItemStatus
+  note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -265,6 +281,7 @@ export type RestaurantItemEventCreateManyInput = {
   itemId: string
   actorId?: string | null
   status: $Enums.RestaurantItemStatus
+  note?: string | null
   createdAt?: Date | string
 }
 
@@ -272,6 +289,7 @@ export type RestaurantItemEventUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   actorId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumRestaurantItemStatusFieldUpdateOperationsInput | $Enums.RestaurantItemStatus
+  note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -280,6 +298,7 @@ export type RestaurantItemEventUncheckedUpdateManyInput = {
   itemId?: Prisma.StringFieldUpdateOperationsInput | string
   actorId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumRestaurantItemStatusFieldUpdateOperationsInput | $Enums.RestaurantItemStatus
+  note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -298,6 +317,7 @@ export type RestaurantItemEventCountOrderByAggregateInput = {
   itemId?: Prisma.SortOrder
   actorId?: Prisma.SortOrder
   status?: Prisma.SortOrder
+  note?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
 }
 
@@ -306,6 +326,7 @@ export type RestaurantItemEventMaxOrderByAggregateInput = {
   itemId?: Prisma.SortOrder
   actorId?: Prisma.SortOrder
   status?: Prisma.SortOrder
+  note?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
 }
 
@@ -314,6 +335,7 @@ export type RestaurantItemEventMinOrderByAggregateInput = {
   itemId?: Prisma.SortOrder
   actorId?: Prisma.SortOrder
   status?: Prisma.SortOrder
+  note?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
 }
 
@@ -363,6 +385,7 @@ export type RestaurantItemEventCreateWithoutItemInput = {
   id?: string
   actorId?: string | null
   status: $Enums.RestaurantItemStatus
+  note?: string | null
   createdAt?: Date | string
 }
 
@@ -370,6 +393,7 @@ export type RestaurantItemEventUncheckedCreateWithoutItemInput = {
   id?: string
   actorId?: string | null
   status: $Enums.RestaurantItemStatus
+  note?: string | null
   createdAt?: Date | string
 }
 
@@ -407,6 +431,7 @@ export type RestaurantItemEventScalarWhereInput = {
   itemId?: Prisma.StringFilter<"RestaurantItemEvent"> | string
   actorId?: Prisma.StringNullableFilter<"RestaurantItemEvent"> | string | null
   status?: Prisma.EnumRestaurantItemStatusFilter<"RestaurantItemEvent"> | $Enums.RestaurantItemStatus
+  note?: Prisma.StringNullableFilter<"RestaurantItemEvent"> | string | null
   createdAt?: Prisma.DateTimeFilter<"RestaurantItemEvent"> | Date | string
 }
 
@@ -414,6 +439,7 @@ export type RestaurantItemEventCreateManyItemInput = {
   id?: string
   actorId?: string | null
   status: $Enums.RestaurantItemStatus
+  note?: string | null
   createdAt?: Date | string
 }
 
@@ -421,6 +447,7 @@ export type RestaurantItemEventUpdateWithoutItemInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   actorId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumRestaurantItemStatusFieldUpdateOperationsInput | $Enums.RestaurantItemStatus
+  note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -428,6 +455,7 @@ export type RestaurantItemEventUncheckedUpdateWithoutItemInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   actorId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumRestaurantItemStatusFieldUpdateOperationsInput | $Enums.RestaurantItemStatus
+  note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -435,6 +463,7 @@ export type RestaurantItemEventUncheckedUpdateManyWithoutItemInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   actorId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumRestaurantItemStatusFieldUpdateOperationsInput | $Enums.RestaurantItemStatus
+  note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -445,6 +474,7 @@ export type RestaurantItemEventSelect<ExtArgs extends runtime.Types.Extensions.I
   itemId?: boolean
   actorId?: boolean
   status?: boolean
+  note?: boolean
   createdAt?: boolean
   item?: boolean | Prisma.RestaurantOrderItemDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["restaurantItemEvent"]>
@@ -454,6 +484,7 @@ export type RestaurantItemEventSelectCreateManyAndReturn<ExtArgs extends runtime
   itemId?: boolean
   actorId?: boolean
   status?: boolean
+  note?: boolean
   createdAt?: boolean
   item?: boolean | Prisma.RestaurantOrderItemDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["restaurantItemEvent"]>
@@ -463,6 +494,7 @@ export type RestaurantItemEventSelectUpdateManyAndReturn<ExtArgs extends runtime
   itemId?: boolean
   actorId?: boolean
   status?: boolean
+  note?: boolean
   createdAt?: boolean
   item?: boolean | Prisma.RestaurantOrderItemDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["restaurantItemEvent"]>
@@ -472,10 +504,11 @@ export type RestaurantItemEventSelectScalar = {
   itemId?: boolean
   actorId?: boolean
   status?: boolean
+  note?: boolean
   createdAt?: boolean
 }
 
-export type RestaurantItemEventOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "itemId" | "actorId" | "status" | "createdAt", ExtArgs["result"]["restaurantItemEvent"]>
+export type RestaurantItemEventOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "itemId" | "actorId" | "status" | "note" | "createdAt", ExtArgs["result"]["restaurantItemEvent"]>
 export type RestaurantItemEventInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   item?: boolean | Prisma.RestaurantOrderItemDefaultArgs<ExtArgs>
 }
@@ -496,6 +529,7 @@ export type $RestaurantItemEventPayload<ExtArgs extends runtime.Types.Extensions
     itemId: string
     actorId: string | null
     status: $Enums.RestaurantItemStatus
+    note: string | null
     createdAt: Date
   }, ExtArgs["result"]["restaurantItemEvent"]>
   composites: {}
@@ -925,6 +959,7 @@ export interface RestaurantItemEventFieldRefs {
   readonly itemId: Prisma.FieldRef<"RestaurantItemEvent", 'String'>
   readonly actorId: Prisma.FieldRef<"RestaurantItemEvent", 'String'>
   readonly status: Prisma.FieldRef<"RestaurantItemEvent", 'RestaurantItemStatus'>
+  readonly note: Prisma.FieldRef<"RestaurantItemEvent", 'String'>
   readonly createdAt: Prisma.FieldRef<"RestaurantItemEvent", 'DateTime'>
 }
     

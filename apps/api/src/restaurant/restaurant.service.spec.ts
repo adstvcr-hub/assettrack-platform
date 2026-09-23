@@ -7,7 +7,11 @@ import {
 import { describe, expect, it, vi } from "vitest";
 import { PrismaService } from "../prisma/prisma.service";
 import { RestaurantService } from "./restaurant.service";
-import { RestaurantStaffRole, UserRole } from "../generated/prisma/enums";
+import {
+  RestaurantStaffAvailability,
+  RestaurantStaffRole,
+  UserRole,
+} from "../generated/prisma/enums";
 
 const table = { id: "table-a", organizationId: "org-a", active: true };
 const requestId = "995bb3ed-a5c4-405e-bc8a-c2b4f360853a";
@@ -25,9 +29,18 @@ const kitchenActor = {
   organizationId: "org-a",
   role: UserRole.USER,
   restaurantRole: RestaurantStaffRole.KITCHEN,
+  restaurantAvailability: RestaurantStaffAvailability.AVAILABLE,
 };
 function createService() {
   const prisma = {
+    user: {
+      findMany: vi
+        .fn()
+        .mockResolvedValue([
+          { restaurantRole: RestaurantStaffRole.KITCHEN },
+          { restaurantRole: RestaurantStaffRole.BAR },
+        ]),
+    },
     restaurantTable: { findUnique: vi.fn().mockResolvedValue(table) },
     restaurantMenuItem: { findMany: vi.fn().mockResolvedValue([menuItem]) },
     restaurantOrder: {
@@ -59,7 +72,12 @@ describe("RestaurantService", () => {
     const { prisma, service } = createService();
     await service.placeOrder("table-code", payload);
     expect(prisma.restaurantMenuItem.findMany).toHaveBeenCalledWith({
-      where: { id: { in: [itemId] }, organizationId: "org-a", active: true },
+      where: {
+        id: { in: [itemId] },
+        organizationId: "org-a",
+        active: true,
+        station: { in: ["KITCHEN", "BAR"] },
+      },
     });
     expect(prisma.restaurantOrder.create).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -188,12 +206,33 @@ describe("RestaurantService", () => {
       organizationId: "org-a",
       role: UserRole.USER,
       restaurantRole: RestaurantStaffRole.WAITER,
+      restaurantAvailability: RestaurantStaffAvailability.AVAILABLE,
     };
     await service.updateStatus(waiter, "item", { status: "DELIVERED" });
     await expect(
       service.updateStatus({ ...waiter, id: "waiter-b" }, "item", {
         status: "DELIVERED",
       }),
+    ).rejects.toBeInstanceOf(ForbiddenException);
+  });
+
+  it("blocks status changes while a staff member is unavailable", async () => {
+    const { prisma, service } = createService();
+    prisma.restaurantOrderItem.findFirst.mockResolvedValue({
+      status: "RECEIVED",
+      station: "KITCHEN",
+      order: { table: { waiterId: null } },
+    });
+    await expect(
+      service.updateStatus(
+        {
+          ...kitchenActor,
+          restaurantAvailability:
+            RestaurantStaffAvailability.TEMPORARILY_UNAVAILABLE,
+        },
+        "item",
+        { status: "ACCEPTED" },
+      ),
     ).rejects.toBeInstanceOf(ForbiddenException);
   });
 });

@@ -3,6 +3,7 @@
 import { API_URL, authenticatedFetch } from "@/lib/api";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
+import { RestaurantSessionActions } from "../_components/restaurant-session-actions";
 
 type Item = {
   id: string;
@@ -54,7 +55,8 @@ export default function WaiterPage() {
       setError("No se pudieron cargar las mesas asignadas");
       return;
     }
-    setOrders(await response.json());
+    const data: Order[] = await response.json();
+    setOrders(data.filter((order) => order.items.length > 0));
     setError("");
   }, [router]);
 
@@ -99,9 +101,12 @@ export default function WaiterPage() {
             </p>
             <h1 className="text-3xl font-bold">Mesero</h1>
           </div>
-          <span className="rounded-full bg-amber-400 px-4 py-2 font-bold text-slate-950">
-            {readyCount} listos
-          </span>
+          <div className="flex flex-wrap items-center gap-3">
+            <span className="rounded-full bg-amber-400 px-4 py-2 font-bold text-slate-950">
+              {readyCount} listos
+            </span>
+            <RestaurantSessionActions />
+          </div>
         </div>
       </header>
       <section className="mx-auto max-w-6xl space-y-5 p-5">

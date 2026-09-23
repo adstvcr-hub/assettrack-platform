@@ -4,6 +4,7 @@ import { API_URL, authenticatedFetch } from "@/lib/api";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { useCallback, useEffect, useState } from "react";
+import { RestaurantSessionActions } from "./restaurant-session-actions";
 
 type Table = {
   id: string;
@@ -19,6 +20,8 @@ type StaffUser = {
   email: string;
   role: string;
   restaurantRole: RestaurantRole | null;
+  restaurantAvailability:
+    "AVAILABLE" | "BREAK" | "TEMPORARILY_UNAVAILABLE" | "OFF_SHIFT";
 };
 type MenuItem = {
   id: string;
@@ -157,6 +160,9 @@ export default function RestaurantAdminDashboard() {
   );
   const isAdmin = true;
   const waiters = staffUsers.filter((user) => user.restaurantRole === "WAITER");
+  const availableWaiters = waiters.filter(
+    (user) => user.restaurantAvailability === "AVAILABLE",
+  );
   return (
     <main className="mx-auto max-w-6xl px-4 py-8 text-slate-900">
       <header className="mb-6 flex flex-wrap items-center justify-between gap-4">
@@ -166,12 +172,9 @@ export default function RestaurantAdminDashboard() {
           </p>
           <h1 className="text-3xl font-bold">Administración del restaurante</h1>
         </div>
-        <a
-          className="rounded bg-slate-900 px-4 py-2 text-white"
-          href="/dashboard"
-        >
-          Dashboard
-        </a>
+        <div className="rounded bg-slate-900 p-2 text-white">
+          <RestaurantSessionActions admin />
+        </div>
       </header>
       {error && (
         <p role="alert" className="my-4 rounded bg-red-50 p-4 text-red-800">
@@ -238,16 +241,21 @@ export default function RestaurantAdminDashboard() {
                     item.status,
                   ) && (
                     <button
-                      className="rounded border px-3 py-2"
-                      onClick={() =>
-                        void post(
-                          `items/${item.id}/status`,
-                          { status: "CANCELLED" },
-                          "PATCH",
-                        )
-                      }
+                      className="rounded border border-red-300 px-3 py-2 text-red-700"
+                      onClick={() => {
+                        const reason = window.prompt(
+                          "Motivo obligatorio para cancelar toda la orden",
+                        );
+                        if (reason?.trim()) {
+                          void post(
+                            `orders/${order.id}/cancel`,
+                            { reason: reason.trim() },
+                            "PATCH",
+                          );
+                        }
+                      }}
                     >
-                      Cancel
+                      Cancelar orden
                     </button>
                   )}
               </div>
@@ -299,7 +307,7 @@ export default function RestaurantAdminDashboard() {
                   }
                 >
                   <option value="">Sin mesero asignado</option>
-                  {waiters.map((waiter) => (
+                  {availableWaiters.map((waiter) => (
                     <option key={waiter.id} value={waiter.id}>
                       {waiter.name}
                     </option>
@@ -440,6 +448,7 @@ export default function RestaurantAdminDashboard() {
                 <th className="p-3">Persona</th>
                 <th className="p-3">Correo</th>
                 <th className="p-3">Dashboard</th>
+                <th className="p-3">Disponibilidad</th>
               </tr>
             </thead>
             <tbody>
@@ -471,6 +480,34 @@ export default function RestaurantAdminDashboard() {
                         <option value="WAITER">Mesero</option>
                       </select>
                     )}
+                  </td>
+                  <td className="p-3">
+                    <select
+                      className="rounded border p-2"
+                      value={user.restaurantAvailability}
+                      onChange={(event) => {
+                        const availability = event.target.value;
+                        const reason =
+                          availability === "AVAILABLE"
+                            ? "Reincorporación autorizada"
+                            : window.prompt(
+                                "Indique el motivo del cambio de disponibilidad",
+                              );
+                        if (!reason?.trim()) return;
+                        void post(
+                          `staff-users/${user.id}/availability`,
+                          { availability, reason: reason.trim() },
+                          "PATCH",
+                        );
+                      }}
+                    >
+                      <option value="AVAILABLE">Disponible</option>
+                      <option value="BREAK">Descanso</option>
+                      <option value="TEMPORARILY_UNAVAILABLE">
+                        Fuera de servicio temporal
+                      </option>
+                      <option value="OFF_SHIFT">Turno finalizado</option>
+                    </select>
                   </td>
                 </tr>
               ))}

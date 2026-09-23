@@ -51,6 +51,13 @@ enum RestaurantStaffRole {
   WAITER
 }
 
+enum RestaurantStaffAvailability {
+  AVAILABLE
+  BREAK
+  TEMPORARILY_UNAVAILABLE
+  OFF_SHIFT
+}
+
 enum RestaurantCourse {
   DRINK
   STARTER
@@ -160,11 +167,26 @@ model RestaurantItemEvent {
   itemId    String
   actorId   String?
   status    RestaurantItemStatus
+  note      String?
   createdAt DateTime             @default(now())
   item      RestaurantOrderItem  @relation(fields: [itemId], references: [id], onDelete: Cascade)
 
   @@index([itemId, createdAt])
   @@map("restaurant_item_events")
+}
+
+model RestaurantStaffEvent {
+  id             String                      @id @default(uuid())
+  organizationId String
+  userId         String
+  actorId        String
+  availability   RestaurantStaffAvailability
+  reason         String?
+  createdAt      DateTime                    @default(now())
+
+  @@index([organizationId, createdAt])
+  @@index([userId, createdAt])
+  @@map("restaurant_staff_events")
 }
 
 model OrganizationLocation {
@@ -198,15 +220,16 @@ model OrganizationLocation {
 }
 
 model User {
-  id             String               @id @default(uuid())
-  organizationId String
-  email          String
-  name           String
-  passwordHash   String
-  role           UserRole             @default(USER)
-  restaurantRole RestaurantStaffRole?
-  createdAt      DateTime             @default(now())
-  updatedAt      DateTime             @updatedAt
+  id                     String                      @id @default(uuid())
+  organizationId         String
+  email                  String
+  name                   String
+  passwordHash           String
+  role                   UserRole                    @default(USER)
+  restaurantRole         RestaurantStaffRole?
+  restaurantAvailability RestaurantStaffAvailability @default(AVAILABLE)
+  createdAt              DateTime                    @default(now())
+  updatedAt              DateTime                    @updatedAt
 
   organization     Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   scanEvents       ScanEvent[]

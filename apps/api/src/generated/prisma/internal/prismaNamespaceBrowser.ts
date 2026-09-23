@@ -57,6 +57,7 @@ export const ModelName = {
   RestaurantOrder: 'RestaurantOrder',
   RestaurantOrderItem: 'RestaurantOrderItem',
   RestaurantItemEvent: 'RestaurantItemEvent',
+  RestaurantStaffEvent: 'RestaurantStaffEvent',
   OrganizationLocation: 'OrganizationLocation',
   User: 'User',
   Asset: 'Asset',
@@ -155,10 +156,24 @@ export const RestaurantItemEventScalarFieldEnum = {
   itemId: 'itemId',
   actorId: 'actorId',
   status: 'status',
+  note: 'note',
   createdAt: 'createdAt'
 } as const
 
 export type RestaurantItemEventScalarFieldEnum = (typeof RestaurantItemEventScalarFieldEnum)[keyof typeof RestaurantItemEventScalarFieldEnum]
+
+
+export const RestaurantStaffEventScalarFieldEnum = {
+  id: 'id',
+  organizationId: 'organizationId',
+  userId: 'userId',
+  actorId: 'actorId',
+  availability: 'availability',
+  reason: 'reason',
+  createdAt: 'createdAt'
+} as const
+
+export type RestaurantStaffEventScalarFieldEnum = (typeof RestaurantStaffEventScalarFieldEnum)[keyof typeof RestaurantStaffEventScalarFieldEnum]
 
 
 export const OrganizationLocationScalarFieldEnum = {
@@ -190,6 +205,7 @@ export const UserScalarFieldEnum = {
   passwordHash: 'passwordHash',
   role: 'role',
   restaurantRole: 'restaurantRole',
+  restaurantAvailability: 'restaurantAvailability',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const

@@ -44,7 +44,8 @@ export default function Home() {
           ? new URLSearchParams(window.location.search).get("next")
           : null;
 
-      window.location.href = next || "/dashboard";
+      window.location.href =
+        next || (data.user.restaurantRole ? "/restaurant/staff" : "/dashboard");
     } catch {
       setMessage("Unable to connect to AssetTrack API");
     } finally {

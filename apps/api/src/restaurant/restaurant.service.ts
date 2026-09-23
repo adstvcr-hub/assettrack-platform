@@ -9,6 +9,7 @@ import { PrismaService } from "../prisma/prisma.service";
 import * as QRCode from "qrcode";
 import {
   RestaurantItemStatus,
+  RestaurantStaffAvailability,
   RestaurantStaffRole,
   RestaurantStation,
   UserRole,
@@ -19,6 +20,7 @@ import {
   PlaceOrderDto,
   UpdateItemStatusDto,
   UpdateMenuItemDto,
+  UpdateStaffAvailabilityDto,
 } from "./dto/restaurant.dto";
 
 const transitions: Record<RestaurantItemStatus, RestaurantItemStatus[]> = {
@@ -35,6 +37,7 @@ export type RestaurantActor = {
   organizationId: string;
   role: UserRole;
   restaurantRole: RestaurantStaffRole | null;
+  restaurantAvailability: RestaurantStaffAvailability;
 };
 
 @Injectable()
@@ -59,6 +62,7 @@ export class RestaurantService {
       id: actor.id,
       organizationId: actor.organizationId,
       restaurantRole: this.effectiveRole(actor),
+      restaurantAvailability: actor.restaurantAvailability,
     };
   }
 
@@ -129,6 +133,7 @@ export class RestaurantService {
         email: true,
         role: true,
         restaurantRole: true,
+        restaurantAvailability: true,
       },
       orderBy: { name: "asc" },
     });
@@ -160,9 +165,101 @@ export class RestaurantService {
           email: true,
           role: true,
           restaurantRole: true,
+          restaurantAvailability: true,
         },
       });
     });
+  }
+
+  async updateStaffAvailability(
+    actor: RestaurantActor,
+    userId: string,
+    dto: UpdateStaffAvailabilityDto,
+  ) {
+    this.requireRestaurantAdmin(actor);
+    const user = await this.prisma.user.findFirst({
+      where: { id: userId, organizationId: actor.organizationId },
+      select: { id: true, restaurantRole: true },
+    });
+    if (!user) throw new NotFoundException("User not found");
+    const reason = dto.reason?.trim() || null;
+    if (dto.availability !== RestaurantStaffAvailability.AVAILABLE && !reason) {
+      throw new BadRequestException(
+        "Reason required when staff is unavailable",
+      );
+    }
+    return this.prisma.$transaction(async (tx) => {
+      const updated = await tx.user.update({
+        where: { id: userId },
+        data: { restaurantAvailability: dto.availability },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          role: true,
+          restaurantRole: true,
+          restaurantAvailability: true,
+        },
+      });
+      await tx.restaurantStaffEvent.create({
+        data: {
+          organizationId: actor.organizationId,
+          userId,
+          actorId: actor.id,
+          availability: dto.availability,
+          reason,
+        },
+      });
+      return updated;
+    });
+  }
+
+  async cancelOrder(actor: RestaurantActor, orderId: string, reason: string) {
+    this.requireRestaurantAdmin(actor);
+    const note = reason.trim();
+    if (!note) throw new BadRequestException("Cancellation reason required");
+    const openStatuses: RestaurantItemStatus[] = [
+      RestaurantItemStatus.RECEIVED,
+      RestaurantItemStatus.ACCEPTED,
+      RestaurantItemStatus.PREPARING,
+      RestaurantItemStatus.READY,
+    ];
+    return this.prisma.$transaction(async (tx) => {
+      const order = await tx.restaurantOrder.findFirst({
+        where: { id: orderId, organizationId: actor.organizationId },
+        include: { items: { where: { status: { in: openStatuses } } } },
+      });
+      if (!order) throw new NotFoundException("Order not found");
+      for (const item of order.items) {
+        await tx.restaurantOrderItem.update({
+          where: { id: item.id },
+          data: { status: RestaurantItemStatus.CANCELLED },
+        });
+        await tx.restaurantItemEvent.create({
+          data: {
+            itemId: item.id,
+            actorId: actor.id,
+            status: RestaurantItemStatus.CANCELLED,
+            note,
+          },
+        });
+      }
+      return { id: orderId, cancelledItems: order.items.length };
+    });
+  }
+
+  private async availableStations(organizationId: string) {
+    const users = await this.prisma.user.findMany({
+      where: {
+        organizationId,
+        restaurantRole: {
+          in: [RestaurantStaffRole.KITCHEN, RestaurantStaffRole.BAR],
+        },
+        restaurantAvailability: RestaurantStaffAvailability.AVAILABLE,
+      },
+      select: { restaurantRole: true },
+    });
+    return new Set(users.map((user) => user.restaurantRole));
   }
 
   async tableQr(actor: RestaurantActor, id: string) {
@@ -221,8 +318,23 @@ export class RestaurantService {
       include: { organization: { select: { name: true } } },
     });
     if (!table?.active) throw new NotFoundException("Table not found");
+    const availableStations = await this.availableStations(
+      table.organizationId,
+    );
+    const stations = [
+      ...(availableStations.has(RestaurantStaffRole.KITCHEN)
+        ? [RestaurantStation.KITCHEN]
+        : []),
+      ...(availableStations.has(RestaurantStaffRole.BAR)
+        ? [RestaurantStation.BAR]
+        : []),
+    ];
     const menu = await this.prisma.restaurantMenuItem.findMany({
-      where: { organizationId: table.organizationId, active: true },
+      where: {
+        organizationId: table.organizationId,
+        active: true,
+        station: { in: stations },
+      },
       orderBy: { createdAt: "asc" },
     });
     return { restaurant: table.organization.name, table: table.name, menu };
@@ -246,11 +358,23 @@ export class RestaurantService {
     const ids = dto.items.map((item) => item.menuItemId);
     if (new Set(ids).size !== ids.length)
       throw new BadRequestException("Duplicate menu item");
+    const availableStations = await this.availableStations(
+      table.organizationId,
+    );
+    const stations = [
+      ...(availableStations.has(RestaurantStaffRole.KITCHEN)
+        ? [RestaurantStation.KITCHEN]
+        : []),
+      ...(availableStations.has(RestaurantStaffRole.BAR)
+        ? [RestaurantStation.BAR]
+        : []),
+    ];
     const menu = await this.prisma.restaurantMenuItem.findMany({
       where: {
         id: { in: ids },
         organizationId: table.organizationId,
         active: true,
+        station: { in: stations },
       },
     });
     if (menu.length !== ids.length)
@@ -348,9 +472,12 @@ export class RestaurantService {
         ...(role === RestaurantStaffRole.WAITER
           ? { table: { waiterId: actor.id } }
           : {}),
-        ...(station
-          ? { items: { some: { station, status: { in: openStatuses } } } }
-          : {}),
+        items: {
+          some: {
+            status: { in: openStatuses },
+            ...(station ? { station } : {}),
+          },
+        },
       },
       include: {
         items: {
@@ -381,6 +508,12 @@ export class RestaurantService {
       if (!item) throw new NotFoundException("Order item not found");
       const role = this.effectiveRole(actor);
       const isAdmin = role === RestaurantStaffRole.RESTAURANT_ADMIN;
+      if (
+        !isAdmin &&
+        actor.restaurantAvailability !== RestaurantStaffAvailability.AVAILABLE
+      ) {
+        throw new ForbiddenException("Staff member is not available for work");
+      }
       const isStation =
         (role === RestaurantStaffRole.KITCHEN &&
           item.station === RestaurantStation.KITCHEN) ||

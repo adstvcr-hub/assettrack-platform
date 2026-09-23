@@ -32,6 +32,7 @@ export type UserMinAggregateOutputType = {
   passwordHash: string | null
   role: $Enums.UserRole | null
   restaurantRole: $Enums.RestaurantStaffRole | null
+  restaurantAvailability: $Enums.RestaurantStaffAvailability | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -44,6 +45,7 @@ export type UserMaxAggregateOutputType = {
   passwordHash: string | null
   role: $Enums.UserRole | null
   restaurantRole: $Enums.RestaurantStaffRole | null
+  restaurantAvailability: $Enums.RestaurantStaffAvailability | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -56,6 +58,7 @@ export type UserCountAggregateOutputType = {
   passwordHash: number
   role: number
   restaurantRole: number
+  restaurantAvailability: number
   createdAt: number
   updatedAt: number
   _all: number
@@ -70,6 +73,7 @@ export type UserMinAggregateInputType = {
   passwordHash?: true
   role?: true
   restaurantRole?: true
+  restaurantAvailability?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -82,6 +86,7 @@ export type UserMaxAggregateInputType = {
   passwordHash?: true
   role?: true
   restaurantRole?: true
+  restaurantAvailability?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -94,6 +99,7 @@ export type UserCountAggregateInputType = {
   passwordHash?: true
   role?: true
   restaurantRole?: true
+  restaurantAvailability?: true
   createdAt?: true
   updatedAt?: true
   _all?: true
@@ -179,6 +185,7 @@ export type UserGroupByOutputType = {
   passwordHash: string
   role: $Enums.UserRole
   restaurantRole: $Enums.RestaurantStaffRole | null
+  restaurantAvailability: $Enums.RestaurantStaffAvailability
   createdAt: Date
   updatedAt: Date
   _count: UserCountAggregateOutputType | null
@@ -212,6 +219,7 @@ export type UserWhereInput = {
   passwordHash?: Prisma.StringFilter<"User"> | string
   role?: Prisma.EnumUserRoleFilter<"User"> | $Enums.UserRole
   restaurantRole?: Prisma.EnumRestaurantStaffRoleNullableFilter<"User"> | $Enums.RestaurantStaffRole | null
+  restaurantAvailability?: Prisma.EnumRestaurantStaffAvailabilityFilter<"User"> | $Enums.RestaurantStaffAvailability
   createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string
   organization?: Prisma.XOR<Prisma.OrganizationScalarRelationFilter, Prisma.OrganizationWhereInput>
@@ -228,6 +236,7 @@ export type UserOrderByWithRelationInput = {
   passwordHash?: Prisma.SortOrder
   role?: Prisma.SortOrder
   restaurantRole?: Prisma.SortOrderInput | Prisma.SortOrder
+  restaurantAvailability?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   organization?: Prisma.OrganizationOrderByWithRelationInput
@@ -248,6 +257,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   passwordHash?: Prisma.StringFilter<"User"> | string
   role?: Prisma.EnumUserRoleFilter<"User"> | $Enums.UserRole
   restaurantRole?: Prisma.EnumRestaurantStaffRoleNullableFilter<"User"> | $Enums.RestaurantStaffRole | null
+  restaurantAvailability?: Prisma.EnumRestaurantStaffAvailabilityFilter<"User"> | $Enums.RestaurantStaffAvailability
   createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string
   organization?: Prisma.XOR<Prisma.OrganizationScalarRelationFilter, Prisma.OrganizationWhereInput>
@@ -264,6 +274,7 @@ export type UserOrderByWithAggregationInput = {
   passwordHash?: Prisma.SortOrder
   role?: Prisma.SortOrder
   restaurantRole?: Prisma.SortOrderInput | Prisma.SortOrder
+  restaurantAvailability?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   _count?: Prisma.UserCountOrderByAggregateInput
@@ -282,6 +293,7 @@ export type UserScalarWhereWithAggregatesInput = {
   passwordHash?: Prisma.StringWithAggregatesFilter<"User"> | string
   role?: Prisma.EnumUserRoleWithAggregatesFilter<"User"> | $Enums.UserRole
   restaurantRole?: Prisma.EnumRestaurantStaffRoleNullableWithAggregatesFilter<"User"> | $Enums.RestaurantStaffRole | null
+  restaurantAvailability?: Prisma.EnumRestaurantStaffAvailabilityWithAggregatesFilter<"User"> | $Enums.RestaurantStaffAvailability
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"User"> | Date | string
 }
@@ -293,6 +305,7 @@ export type UserCreateInput = {
   passwordHash: string
   role?: $Enums.UserRole
   restaurantRole?: $Enums.RestaurantStaffRole | null
+  restaurantAvailability?: $Enums.RestaurantStaffAvailability
   createdAt?: Date | string
   updatedAt?: Date | string
   organization: Prisma.OrganizationCreateNestedOneWithoutUsersInput
@@ -309,6 +322,7 @@ export type UserUncheckedCreateInput = {
   passwordHash: string
   role?: $Enums.UserRole
   restaurantRole?: $Enums.RestaurantStaffRole | null
+  restaurantAvailability?: $Enums.RestaurantStaffAvailability
   createdAt?: Date | string
   updatedAt?: Date | string
   scanEvents?: Prisma.ScanEventUncheckedCreateNestedManyWithoutUserInput
@@ -323,6 +337,7 @@ export type UserUpdateInput = {
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
   restaurantRole?: Prisma.NullableEnumRestaurantStaffRoleFieldUpdateOperationsInput | $Enums.RestaurantStaffRole | null
+  restaurantAvailability?: Prisma.EnumRestaurantStaffAvailabilityFieldUpdateOperationsInput | $Enums.RestaurantStaffAvailability
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutUsersNestedInput
@@ -339,6 +354,7 @@ export type UserUncheckedUpdateInput = {
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
   restaurantRole?: Prisma.NullableEnumRestaurantStaffRoleFieldUpdateOperationsInput | $Enums.RestaurantStaffRole | null
+  restaurantAvailability?: Prisma.EnumRestaurantStaffAvailabilityFieldUpdateOperationsInput | $Enums.RestaurantStaffAvailability
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   scanEvents?: Prisma.ScanEventUncheckedUpdateManyWithoutUserNestedInput
@@ -354,6 +370,7 @@ export type UserCreateManyInput = {
   passwordHash: string
   role?: $Enums.UserRole
   restaurantRole?: $Enums.RestaurantStaffRole | null
+  restaurantAvailability?: $Enums.RestaurantStaffAvailability
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -365,6 +382,7 @@ export type UserUpdateManyMutationInput = {
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
   restaurantRole?: Prisma.NullableEnumRestaurantStaffRoleFieldUpdateOperationsInput | $Enums.RestaurantStaffRole | null
+  restaurantAvailability?: Prisma.EnumRestaurantStaffAvailabilityFieldUpdateOperationsInput | $Enums.RestaurantStaffAvailability
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -377,6 +395,7 @@ export type UserUncheckedUpdateManyInput = {
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
   restaurantRole?: Prisma.NullableEnumRestaurantStaffRoleFieldUpdateOperationsInput | $Enums.RestaurantStaffRole | null
+  restaurantAvailability?: Prisma.EnumRestaurantStaffAvailabilityFieldUpdateOperationsInput | $Enums.RestaurantStaffAvailability
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -409,6 +428,7 @@ export type UserCountOrderByAggregateInput = {
   passwordHash?: Prisma.SortOrder
   role?: Prisma.SortOrder
   restaurantRole?: Prisma.SortOrder
+  restaurantAvailability?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -421,6 +441,7 @@ export type UserMaxOrderByAggregateInput = {
   passwordHash?: Prisma.SortOrder
   role?: Prisma.SortOrder
   restaurantRole?: Prisma.SortOrder
+  restaurantAvailability?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -433,6 +454,7 @@ export type UserMinOrderByAggregateInput = {
   passwordHash?: Prisma.SortOrder
   role?: Prisma.SortOrder
   restaurantRole?: Prisma.SortOrder
+  restaurantAvailability?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -545,6 +567,7 @@ export type UserCreateWithoutOrganizationInput = {
   passwordHash: string
   role?: $Enums.UserRole
   restaurantRole?: $Enums.RestaurantStaffRole | null
+  restaurantAvailability?: $Enums.RestaurantStaffAvailability
   createdAt?: Date | string
   updatedAt?: Date | string
   scanEvents?: Prisma.ScanEventCreateNestedManyWithoutUserInput
@@ -559,6 +582,7 @@ export type UserUncheckedCreateWithoutOrganizationInput = {
   passwordHash: string
   role?: $Enums.UserRole
   restaurantRole?: $Enums.RestaurantStaffRole | null
+  restaurantAvailability?: $Enums.RestaurantStaffAvailability
   createdAt?: Date | string
   updatedAt?: Date | string
   scanEvents?: Prisma.ScanEventUncheckedCreateNestedManyWithoutUserInput
@@ -603,6 +627,7 @@ export type UserScalarWhereInput = {
   passwordHash?: Prisma.StringFilter<"User"> | string
   role?: Prisma.EnumUserRoleFilter<"User"> | $Enums.UserRole
   restaurantRole?: Prisma.EnumRestaurantStaffRoleNullableFilter<"User"> | $Enums.RestaurantStaffRole | null
+  restaurantAvailability?: Prisma.EnumRestaurantStaffAvailabilityFilter<"User"> | $Enums.RestaurantStaffAvailability
   createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string
 }
@@ -614,6 +639,7 @@ export type UserCreateWithoutRestaurantTablesInput = {
   passwordHash: string
   role?: $Enums.UserRole
   restaurantRole?: $Enums.RestaurantStaffRole | null
+  restaurantAvailability?: $Enums.RestaurantStaffAvailability
   createdAt?: Date | string
   updatedAt?: Date | string
   organization: Prisma.OrganizationCreateNestedOneWithoutUsersInput
@@ -629,6 +655,7 @@ export type UserUncheckedCreateWithoutRestaurantTablesInput = {
   passwordHash: string
   role?: $Enums.UserRole
   restaurantRole?: $Enums.RestaurantStaffRole | null
+  restaurantAvailability?: $Enums.RestaurantStaffAvailability
   createdAt?: Date | string
   updatedAt?: Date | string
   scanEvents?: Prisma.ScanEventUncheckedCreateNestedManyWithoutUserInput
@@ -658,6 +685,7 @@ export type UserUpdateWithoutRestaurantTablesInput = {
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
   restaurantRole?: Prisma.NullableEnumRestaurantStaffRoleFieldUpdateOperationsInput | $Enums.RestaurantStaffRole | null
+  restaurantAvailability?: Prisma.EnumRestaurantStaffAvailabilityFieldUpdateOperationsInput | $Enums.RestaurantStaffAvailability
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutUsersNestedInput
@@ -673,6 +701,7 @@ export type UserUncheckedUpdateWithoutRestaurantTablesInput = {
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
   restaurantRole?: Prisma.NullableEnumRestaurantStaffRoleFieldUpdateOperationsInput | $Enums.RestaurantStaffRole | null
+  restaurantAvailability?: Prisma.EnumRestaurantStaffAvailabilityFieldUpdateOperationsInput | $Enums.RestaurantStaffAvailability
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   scanEvents?: Prisma.ScanEventUncheckedUpdateManyWithoutUserNestedInput
@@ -686,6 +715,7 @@ export type UserCreateWithoutScanEventsInput = {
   passwordHash: string
   role?: $Enums.UserRole
   restaurantRole?: $Enums.RestaurantStaffRole | null
+  restaurantAvailability?: $Enums.RestaurantStaffAvailability
   createdAt?: Date | string
   updatedAt?: Date | string
   organization: Prisma.OrganizationCreateNestedOneWithoutUsersInput
@@ -701,6 +731,7 @@ export type UserUncheckedCreateWithoutScanEventsInput = {
   passwordHash: string
   role?: $Enums.UserRole
   restaurantRole?: $Enums.RestaurantStaffRole | null
+  restaurantAvailability?: $Enums.RestaurantStaffAvailability
   createdAt?: Date | string
   updatedAt?: Date | string
   refreshTokens?: Prisma.RefreshTokenUncheckedCreateNestedManyWithoutUserInput
@@ -730,6 +761,7 @@ export type UserUpdateWithoutScanEventsInput = {
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
   restaurantRole?: Prisma.NullableEnumRestaurantStaffRoleFieldUpdateOperationsInput | $Enums.RestaurantStaffRole | null
+  restaurantAvailability?: Prisma.EnumRestaurantStaffAvailabilityFieldUpdateOperationsInput | $Enums.RestaurantStaffAvailability
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutUsersNestedInput
@@ -745,6 +777,7 @@ export type UserUncheckedUpdateWithoutScanEventsInput = {
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
   restaurantRole?: Prisma.NullableEnumRestaurantStaffRoleFieldUpdateOperationsInput | $Enums.RestaurantStaffRole | null
+  restaurantAvailability?: Prisma.EnumRestaurantStaffAvailabilityFieldUpdateOperationsInput | $Enums.RestaurantStaffAvailability
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   refreshTokens?: Prisma.RefreshTokenUncheckedUpdateManyWithoutUserNestedInput
@@ -758,6 +791,7 @@ export type UserCreateWithoutRefreshTokensInput = {
   passwordHash: string
   role?: $Enums.UserRole
   restaurantRole?: $Enums.RestaurantStaffRole | null
+  restaurantAvailability?: $Enums.RestaurantStaffAvailability
   createdAt?: Date | string
   updatedAt?: Date | string
   organization: Prisma.OrganizationCreateNestedOneWithoutUsersInput
@@ -773,6 +807,7 @@ export type UserUncheckedCreateWithoutRefreshTokensInput = {
   passwordHash: string
   role?: $Enums.UserRole
   restaurantRole?: $Enums.RestaurantStaffRole | null
+  restaurantAvailability?: $Enums.RestaurantStaffAvailability
   createdAt?: Date | string
   updatedAt?: Date | string
   scanEvents?: Prisma.ScanEventUncheckedCreateNestedManyWithoutUserInput
@@ -802,6 +837,7 @@ export type UserUpdateWithoutRefreshTokensInput = {
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
   restaurantRole?: Prisma.NullableEnumRestaurantStaffRoleFieldUpdateOperationsInput | $Enums.RestaurantStaffRole | null
+  restaurantAvailability?: Prisma.EnumRestaurantStaffAvailabilityFieldUpdateOperationsInput | $Enums.RestaurantStaffAvailability
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutUsersNestedInput
@@ -817,6 +853,7 @@ export type UserUncheckedUpdateWithoutRefreshTokensInput = {
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
   restaurantRole?: Prisma.NullableEnumRestaurantStaffRoleFieldUpdateOperationsInput | $Enums.RestaurantStaffRole | null
+  restaurantAvailability?: Prisma.EnumRestaurantStaffAvailabilityFieldUpdateOperationsInput | $Enums.RestaurantStaffAvailability
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   scanEvents?: Prisma.ScanEventUncheckedUpdateManyWithoutUserNestedInput
@@ -830,6 +867,7 @@ export type UserCreateManyOrganizationInput = {
   passwordHash: string
   role?: $Enums.UserRole
   restaurantRole?: $Enums.RestaurantStaffRole | null
+  restaurantAvailability?: $Enums.RestaurantStaffAvailability
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -841,6 +879,7 @@ export type UserUpdateWithoutOrganizationInput = {
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
   restaurantRole?: Prisma.NullableEnumRestaurantStaffRoleFieldUpdateOperationsInput | $Enums.RestaurantStaffRole | null
+  restaurantAvailability?: Prisma.EnumRestaurantStaffAvailabilityFieldUpdateOperationsInput | $Enums.RestaurantStaffAvailability
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   scanEvents?: Prisma.ScanEventUpdateManyWithoutUserNestedInput
@@ -855,6 +894,7 @@ export type UserUncheckedUpdateWithoutOrganizationInput = {
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
   restaurantRole?: Prisma.NullableEnumRestaurantStaffRoleFieldUpdateOperationsInput | $Enums.RestaurantStaffRole | null
+  restaurantAvailability?: Prisma.EnumRestaurantStaffAvailabilityFieldUpdateOperationsInput | $Enums.RestaurantStaffAvailability
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   scanEvents?: Prisma.ScanEventUncheckedUpdateManyWithoutUserNestedInput
@@ -869,6 +909,7 @@ export type UserUncheckedUpdateManyWithoutOrganizationInput = {
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
   restaurantRole?: Prisma.NullableEnumRestaurantStaffRoleFieldUpdateOperationsInput | $Enums.RestaurantStaffRole | null
+  restaurantAvailability?: Prisma.EnumRestaurantStaffAvailabilityFieldUpdateOperationsInput | $Enums.RestaurantStaffAvailability
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -930,6 +971,7 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   passwordHash?: boolean
   role?: boolean
   restaurantRole?: boolean
+  restaurantAvailability?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
@@ -947,6 +989,7 @@ export type UserSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   passwordHash?: boolean
   role?: boolean
   restaurantRole?: boolean
+  restaurantAvailability?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
@@ -960,6 +1003,7 @@ export type UserSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   passwordHash?: boolean
   role?: boolean
   restaurantRole?: boolean
+  restaurantAvailability?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
@@ -973,11 +1017,12 @@ export type UserSelectScalar = {
   passwordHash?: boolean
   role?: boolean
   restaurantRole?: boolean
+  restaurantAvailability?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "organizationId" | "email" | "name" | "passwordHash" | "role" | "restaurantRole" | "createdAt" | "updatedAt", ExtArgs["result"]["user"]>
+export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "organizationId" | "email" | "name" | "passwordHash" | "role" | "restaurantRole" | "restaurantAvailability" | "createdAt" | "updatedAt", ExtArgs["result"]["user"]>
 export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
   scanEvents?: boolean | Prisma.User$scanEventsArgs<ExtArgs>
@@ -1008,6 +1053,7 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     passwordHash: string
     role: $Enums.UserRole
     restaurantRole: $Enums.RestaurantStaffRole | null
+    restaurantAvailability: $Enums.RestaurantStaffAvailability
     createdAt: Date
     updatedAt: Date
   }, ExtArgs["result"]["user"]>
@@ -1444,6 +1490,7 @@ export interface UserFieldRefs {
   readonly passwordHash: Prisma.FieldRef<"User", 'String'>
   readonly role: Prisma.FieldRef<"User", 'UserRole'>
   readonly restaurantRole: Prisma.FieldRef<"User", 'RestaurantStaffRole'>
+  readonly restaurantAvailability: Prisma.FieldRef<"User", 'RestaurantStaffAvailability'>
   readonly createdAt: Prisma.FieldRef<"User", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"User", 'DateTime'>
 }

@@ -3,6 +3,7 @@
 import { API_URL, authenticatedFetch } from "@/lib/api";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
+import { RestaurantSessionActions } from "./restaurant-session-actions";
 
 type Station = "KITCHEN" | "BAR";
 type OrderItem = {
@@ -114,9 +115,12 @@ export function OperationalDashboard({ station }: { station: Station }) {
               {station === "KITCHEN" ? "Cocina" : "Bar"}
             </h1>
           </div>
-          <span className="rounded-full bg-emerald-500 px-4 py-2 font-bold text-slate-950">
-            {items.length} pendientes
-          </span>
+          <div className="flex flex-wrap items-center gap-3">
+            <span className="rounded-full bg-emerald-500 px-4 py-2 font-bold text-slate-950">
+              {items.length} pendientes
+            </span>
+            <RestaurantSessionActions />
+          </div>
         </div>
       </header>
       <section className="mx-auto max-w-6xl space-y-4 p-5">

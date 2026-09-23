@@ -14,12 +14,14 @@ import { JwtAuthGuard } from "../auth/jwt-auth.guard";
 import { RolesGuard } from "../auth/roles.guard";
 import {
   AssignWaiterDto,
+  CancelOrderDto,
   CreateMenuItemDto,
   CreateTableDto,
   PlaceOrderDto,
   UpdateItemStatusDto,
   UpdateMenuItemDto,
   UpdateRestaurantRoleDto,
+  UpdateStaffAvailabilityDto,
 } from "./dto/restaurant.dto";
 import { RestaurantActor, RestaurantService } from "./restaurant.service";
 
@@ -126,5 +128,23 @@ export class RestaurantStaffController {
     @Body() dto: UpdateRestaurantRoleDto,
   ) {
     return this.restaurant.updateRestaurantRole(req.user, id, dto.role ?? null);
+  }
+
+  @Patch("staff-users/:id/availability")
+  updateStaffAvailability(
+    @Req() req: StaffRequest,
+    @Param("id") id: string,
+    @Body() dto: UpdateStaffAvailabilityDto,
+  ) {
+    return this.restaurant.updateStaffAvailability(req.user, id, dto);
+  }
+
+  @Patch("orders/:id/cancel")
+  cancelOrder(
+    @Req() req: StaffRequest,
+    @Param("id") id: string,
+    @Body() dto: CancelOrderDto,
+  ) {
+    return this.restaurant.cancelOrder(req.user, id, dto.reason);
   }
 }
