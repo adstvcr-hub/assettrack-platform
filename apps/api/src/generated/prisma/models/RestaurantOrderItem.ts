@@ -623,10 +623,6 @@ export type EnumRestaurantItemStatusFieldUpdateOperationsInput = {
   set?: $Enums.RestaurantItemStatus
 }
 
-export type NullableDateTimeFieldUpdateOperationsInput = {
-  set?: Date | string | null
-}
-
 export type RestaurantOrderItemCreateNestedOneWithoutEventsInput = {
   create?: Prisma.XOR<Prisma.RestaurantOrderItemCreateWithoutEventsInput, Prisma.RestaurantOrderItemUncheckedCreateWithoutEventsInput>
   connectOrCreate?: Prisma.RestaurantOrderItemCreateOrConnectWithoutEventsInput

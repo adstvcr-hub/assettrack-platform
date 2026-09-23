@@ -18,6 +18,12 @@ type Order = {
   table: { id: string; name: string };
   items: Item[];
 };
+type Visit = {
+  id: string;
+  table: { name: string };
+  canClose: boolean;
+  billing: { total: number };
+};
 
 const statusLabel: Record<string, string> = {
   RECEIVED: "Recibido",
@@ -29,6 +35,7 @@ const statusLabel: Record<string, string> = {
 export default function WaiterPage() {
   const router = useRouter();
   const [orders, setOrders] = useState<Order[]>([]);
+  const [visits, setVisits] = useState<Visit[]>([]);
   const [error, setError] = useState("");
   const [availability, setAvailability] = useState("AVAILABLE");
   const [availabilityChoice, setAvailabilityChoice] = useState("AVAILABLE");
@@ -39,11 +46,16 @@ export default function WaiterPage() {
   const profileInitialized = useRef(false);
 
   const load = useCallback(async () => {
-    const [profileResponse, response] = await Promise.all([
+    const [profileResponse, response, visitsResponse] = await Promise.all([
       authenticatedFetch(`${API_URL}/api/v1/restaurant/profile`),
       authenticatedFetch(`${API_URL}/api/v1/restaurant/orders`),
+      authenticatedFetch(`${API_URL}/api/v1/restaurant/visits`),
     ]);
-    if (profileResponse.status === 401 || response.status === 401) {
+    if (
+      profileResponse.status === 401 ||
+      response.status === 401 ||
+      visitsResponse.status === 401
+    ) {
       router.replace("/?next=/restaurant/waiter");
       return;
     }
@@ -60,16 +72,17 @@ export default function WaiterPage() {
         profileInitialized.current = true;
       }
     }
-    if (response.status === 403) {
+    if (response.status === 403 || visitsResponse.status === 403) {
       router.replace("/restaurant/staff");
       return;
     }
-    if (!response.ok) {
+    if (!response.ok || !visitsResponse.ok) {
       setError("No se pudieron cargar las mesas asignadas");
       return;
     }
     const data: Order[] = await response.json();
     setOrders(data.filter((order) => order.items.length > 0));
+    setVisits(await visitsResponse.json());
     setError("");
   }, [router]);
 
@@ -100,6 +113,24 @@ export default function WaiterPage() {
     await load();
   }
 
+  async function closeVisit(visitId: string) {
+    if (
+      !window.confirm("¿Confirma que la cuenta fue atendida y puede cerrarse?")
+    ) {
+      return;
+    }
+    const response = await authenticatedFetch(
+      `${API_URL}/api/v1/restaurant/visits/${visitId}/close`,
+      { method: "PATCH" },
+    );
+    if (!response.ok) {
+      const body = await response.json().catch(() => ({}));
+      setError(body.message ?? "No se pudo cerrar la cuenta");
+      return;
+    }
+    await load();
+  }
+
   async function updateAvailability() {
     const labels: Record<string, string> = {
       BREAK: "Descanso programado",
@@ -125,9 +156,7 @@ export default function WaiterPage() {
       availabilityChoice === "AVAILABLE"
         ? undefined
         : `${labels[availabilityChoice]}${
-            availabilityDetails.trim()
-              ? `: ${availabilityDetails.trim()}`
-              : ""
+            availabilityDetails.trim() ? `: ${availabilityDetails.trim()}` : ""
           }`;
     setSavingAvailability(true);
     setError("");
@@ -198,9 +227,7 @@ export default function WaiterPage() {
               <select
                 className="mt-2 w-full rounded-lg border border-slate-300 bg-white px-4 py-3 text-slate-900"
                 value={availabilityChoice}
-                onChange={(event) =>
-                  setAvailabilityChoice(event.target.value)
-                }
+                onChange={(event) => setAvailabilityChoice(event.target.value)}
               >
                 <option value="AVAILABLE">Disponible</option>
                 <option value="BREAK">Descanso programado</option>
@@ -240,6 +267,33 @@ export default function WaiterPage() {
             </p>
           )}
         </div>
+        {visits.length > 0 && (
+          <section className="rounded-xl border bg-white p-5 shadow-sm">
+            <h2 className="text-xl font-bold">Cuentas activas</h2>
+            <div className="mt-3 space-y-3">
+              {visits.map((visit) => (
+                <div
+                  key={visit.id}
+                  className="flex flex-wrap items-center justify-between gap-3 rounded-lg border p-4"
+                >
+                  <div>
+                    <p className="font-bold">{visit.table.name}</p>
+                    <p>
+                      Total acumulado: ₡{visit.billing.total.toLocaleString()}
+                    </p>
+                  </div>
+                  <button
+                    disabled={!visit.canClose}
+                    className="rounded-lg bg-slate-900 px-4 py-3 font-semibold text-white disabled:cursor-not-allowed disabled:opacity-40"
+                    onClick={() => void closeVisit(visit.id)}
+                  >
+                    {visit.canClose ? "Cerrar cuenta" : "Pedidos pendientes"}
+                  </button>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
         {error && (
           <p className="rounded-lg bg-red-100 p-4 text-red-800">{error}</p>
         )}

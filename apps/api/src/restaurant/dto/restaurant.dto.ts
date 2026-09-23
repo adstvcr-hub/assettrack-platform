@@ -76,6 +76,17 @@ export class AssignWaiterDto {
   waiterId!: string | null;
 }
 
+export class UpdateTableBillingDto {
+  @IsBoolean()
+  serviceChargeEnabled!: boolean;
+}
+
+export class UpdateRestaurantBillingDto {
+  @IsInt() @Min(0) @Max(10000) taxRateBps!: number;
+  @IsBoolean() taxIncluded!: boolean;
+  @IsInt() @Min(0) @Max(10000) serviceRateBps!: number;
+}
+
 export class UpdateStaffAvailabilityDto {
   @IsEnum(RestaurantStaffAvailability)
   availability!: RestaurantStaffAvailability;

@@ -12,6 +12,7 @@ import {
   RestaurantStaffAvailability,
   RestaurantStaffRole,
   RestaurantStation,
+  RestaurantVisitStatus,
   UserRole,
 } from "../generated/prisma/enums";
 import {
@@ -20,7 +21,9 @@ import {
   PlaceOrderDto,
   UpdateItemStatusDto,
   UpdateMenuItemDto,
+  UpdateRestaurantBillingDto,
   UpdateStaffAvailabilityDto,
+  UpdateTableBillingDto,
 } from "./dto/restaurant.dto";
 
 const transitions: Record<RestaurantItemStatus, RestaurantItemStatus[]> = {
@@ -127,6 +130,52 @@ export class RestaurantService {
       data: { waiterId },
       include: { waiter: { select: { id: true, name: true, email: true } } },
     });
+  }
+
+  billingSettings(actor: RestaurantActor) {
+    this.requireRestaurantAdmin(actor);
+    return this.prisma.organization.findUnique({
+      where: { id: actor.organizationId },
+      select: {
+        restaurantTaxRateBps: true,
+        restaurantTaxIncluded: true,
+        restaurantServiceRateBps: true,
+      },
+    });
+  }
+
+  updateBillingSettings(
+    actor: RestaurantActor,
+    dto: UpdateRestaurantBillingDto,
+  ) {
+    this.requireRestaurantAdmin(actor);
+    return this.prisma.organization.update({
+      where: { id: actor.organizationId },
+      data: {
+        restaurantTaxRateBps: dto.taxRateBps,
+        restaurantTaxIncluded: dto.taxIncluded,
+        restaurantServiceRateBps: dto.serviceRateBps,
+      },
+      select: {
+        restaurantTaxRateBps: true,
+        restaurantTaxIncluded: true,
+        restaurantServiceRateBps: true,
+      },
+    });
+  }
+
+  async updateTableBilling(
+    actor: RestaurantActor,
+    tableId: string,
+    dto: UpdateTableBillingDto,
+  ) {
+    this.requireRestaurantAdmin(actor);
+    const result = await this.prisma.restaurantTable.updateMany({
+      where: { id: tableId, organizationId: actor.organizationId },
+      data: { serviceChargeEnabled: dto.serviceChargeEnabled },
+    });
+    if (!result.count) throw new NotFoundException("Table not found");
+    return this.prisma.restaurantTable.findUnique({ where: { id: tableId } });
   }
 
   restaurantUsers(actor: RestaurantActor) {
@@ -378,6 +427,44 @@ export class RestaurantService {
     });
   }
 
+  async closeVisit(actor: RestaurantActor, visitId: string) {
+    const role = this.effectiveRole(actor);
+    const visit = await this.prisma.restaurantVisit.findFirst({
+      where: { id: visitId, organizationId: actor.organizationId },
+      include: {
+        table: { select: { waiterId: true } },
+        orders: {
+          select: { items: { select: { status: true } } },
+        },
+      },
+    });
+    if (!visit) throw new NotFoundException("Restaurant account not found");
+    const isAdmin = role === RestaurantStaffRole.RESTAURANT_ADMIN;
+    const isAssignedWaiter =
+      role === RestaurantStaffRole.WAITER &&
+      visit.table.waiterId === actor.id &&
+      actor.restaurantAvailability === RestaurantStaffAvailability.AVAILABLE;
+    if (!isAdmin && !isAssignedWaiter) {
+      throw new ForbiddenException(
+        "Only the assigned waiter can close this account",
+      );
+    }
+    const hasOpenItems = visit.orders.some((order) =>
+      order.items.some(
+        (item) =>
+          item.status !== RestaurantItemStatus.DELIVERED &&
+          item.status !== RestaurantItemStatus.CANCELLED,
+      ),
+    );
+    if (hasOpenItems) {
+      throw new ConflictException("Deliver or cancel all items before closing");
+    }
+    return this.prisma.restaurantVisit.update({
+      where: { id: visitId },
+      data: { status: RestaurantVisitStatus.CLOSED, closedAt: new Date() },
+    });
+  }
+
   private async availableStations(organizationId: string) {
     const users = await this.prisma.user.findMany({
       where: {
@@ -480,7 +567,11 @@ export class RestaurantService {
       where: { code },
     });
     if (!table?.active) throw new NotFoundException("Table not found");
-    const include = { items: true, table: { select: { name: true } } } as const;
+    const include = {
+      items: true,
+      table: { select: { name: true } },
+      visit: { select: { accessCode: true } },
+    } as const;
     const previous = await this.prisma.restaurantOrder.findUnique({
       where: { requestId: dto.requestId },
       include,
@@ -488,7 +579,10 @@ export class RestaurantService {
     if (previous) {
       if (previous.tableId !== table.id)
         throw new ConflictException("Request already used");
-      return previous;
+      return {
+        ...previous,
+        accessCode: previous.visit?.accessCode ?? previous.accessCode,
+      };
     }
     const ids = dto.items.map((item) => item.menuItemId);
     if (new Set(ids).size !== ids.length)
@@ -530,66 +624,133 @@ export class RestaurantService {
         "Please contact the staff before placing another order",
       );
     try {
-      return await this.prisma.restaurantOrder.create({
-        data: {
-          organizationId: table.organizationId,
-          tableId: table.id,
-          requestId: dto.requestId,
-          items: {
-            create: dto.items.map(({ menuItemId, quantity }) => {
-              const item = byId.get(menuItemId)!;
-              return {
-                menuItemId,
-                quantity,
-                name: item.name,
-                price: item.price,
-                station: item.station,
-                course: item.course,
-                events: { create: { status: RestaurantItemStatus.RECEIVED } },
-              };
-            }),
+      return await this.prisma.$transaction(async (tx) => {
+        let visit = await tx.restaurantVisit.findFirst({
+          where: { tableId: table.id, status: RestaurantVisitStatus.OPEN },
+        });
+        if (!visit) {
+          const settings = await tx.organization.findUniqueOrThrow({
+            where: { id: table.organizationId },
+            select: {
+              restaurantTaxRateBps: true,
+              restaurantTaxIncluded: true,
+              restaurantServiceRateBps: true,
+            },
+          });
+          visit = await tx.restaurantVisit.create({
+            data: {
+              organizationId: table.organizationId,
+              tableId: table.id,
+              taxRateBps: settings.restaurantTaxRateBps,
+              taxIncluded: settings.restaurantTaxIncluded,
+              serviceRateBps: settings.restaurantServiceRateBps,
+              serviceChargeEnabled: table.serviceChargeEnabled,
+            },
+          });
+        }
+        const created = await tx.restaurantOrder.create({
+          data: {
+            organizationId: table.organizationId,
+            tableId: table.id,
+            visitId: visit.id,
+            requestId: dto.requestId,
+            items: {
+              create: dto.items.map(({ menuItemId, quantity }) => {
+                const item = byId.get(menuItemId)!;
+                return {
+                  menuItemId,
+                  quantity,
+                  name: item.name,
+                  price: item.price,
+                  station: item.station,
+                  course: item.course,
+                  events: { create: { status: RestaurantItemStatus.RECEIVED } },
+                };
+              }),
+            },
           },
-        },
-        include,
+          include,
+        });
+        return { ...created, accessCode: visit.accessCode };
       });
     } catch (error) {
       const existing = await this.prisma.restaurantOrder.findUnique({
         where: { requestId: dto.requestId },
         include,
       });
-      if (existing?.tableId === table.id) return existing;
+      if (existing?.tableId === table.id)
+        return {
+          ...existing,
+          accessCode: existing.visit?.accessCode ?? existing.accessCode,
+        };
       throw error;
     }
   }
 
+  private billingTotals(
+    items: Array<{ price: number; quantity: number; status: string }>,
+    settings: {
+      taxRateBps: number;
+      taxIncluded: boolean;
+      serviceRateBps: number;
+    },
+    serviceChargeEnabled: boolean,
+  ) {
+    const subtotal = items
+      .filter((item) => item.status !== RestaurantItemStatus.CANCELLED)
+      .reduce((sum, item) => sum + item.price * item.quantity, 0);
+    const tax = settings.taxIncluded
+      ? Math.round(
+          subtotal - (subtotal * 10000) / (10000 + settings.taxRateBps),
+        )
+      : Math.round((subtotal * settings.taxRateBps) / 10000);
+    const service = serviceChargeEnabled
+      ? Math.round((subtotal * settings.serviceRateBps) / 10000)
+      : 0;
+    return {
+      subtotal,
+      tax,
+      service,
+      total: subtotal + service + (settings.taxIncluded ? 0 : tax),
+      taxIncluded: settings.taxIncluded,
+      taxRateBps: settings.taxRateBps,
+      serviceRateBps: settings.serviceRateBps,
+      serviceChargeEnabled,
+    };
+  }
+
   async guestOrder(accessCode: string) {
-    const order = await this.prisma.restaurantOrder.findUnique({
+    const visit = await this.prisma.restaurantVisit.findUnique({
       where: { accessCode },
       include: {
-        items: {
-          select: {
-            id: true,
-            name: true,
-            quantity: true,
-            station: true,
-            course: true,
-            status: true,
-            acceptedAt: true,
-            readyAt: true,
-            deliveredAt: true,
-          },
-        },
         table: {
           select: {
             name: true,
             code: true,
+            serviceChargeEnabled: true,
             waiter: { select: { id: true, name: true } },
           },
         },
+        orders: {
+          orderBy: { createdAt: "asc" },
+          include: { items: true },
+        },
       },
     });
-    if (!order) throw new NotFoundException("Order not found");
-    return order;
+    if (!visit) throw new NotFoundException("Order not found");
+    const items = visit.orders.flatMap((order) =>
+      order.items.map((item) => ({ ...item, orderCreatedAt: order.createdAt })),
+    );
+    return {
+      id: visit.id,
+      accessCode: visit.accessCode,
+      status: visit.status,
+      createdAt: visit.openedAt,
+      table: visit.table,
+      orders: visit.orders,
+      items,
+      billing: this.billingTotals(items, visit, visit.serviceChargeEnabled),
+    };
   }
 
   orders(actor: RestaurantActor) {
@@ -628,9 +789,56 @@ export class RestaurantService {
           },
         },
         table: { select: { id: true, name: true, waiterId: true } },
+        visit: { select: { id: true, status: true } },
       },
       orderBy: { createdAt: "desc" },
       take: 100,
+    });
+  }
+
+  async visits(actor: RestaurantActor) {
+    const role = this.effectiveRole(actor);
+    if (
+      role !== RestaurantStaffRole.RESTAURANT_ADMIN &&
+      role !== RestaurantStaffRole.WAITER
+    ) {
+      throw new ForbiddenException("Waiter access required");
+    }
+    const visits = await this.prisma.restaurantVisit.findMany({
+      where: {
+        organizationId: actor.organizationId,
+        status: RestaurantVisitStatus.OPEN,
+        ...(role === RestaurantStaffRole.WAITER
+          ? { table: { waiterId: actor.id } }
+          : {}),
+      },
+      include: {
+        table: {
+          select: {
+            id: true,
+            name: true,
+            waiterId: true,
+            serviceChargeEnabled: true,
+          },
+        },
+        orders: { include: { items: true } },
+      },
+      orderBy: { openedAt: "desc" },
+    });
+    return visits.map((visit) => {
+      const items = visit.orders.flatMap((order) => order.items);
+      return {
+        id: visit.id,
+        openedAt: visit.openedAt,
+        table: visit.table,
+        items,
+        billing: this.billingTotals(items, visit, visit.serviceChargeEnabled),
+        canClose: items.every(
+          (item) =>
+            item.status === RestaurantItemStatus.DELIVERED ||
+            item.status === RestaurantItemStatus.CANCELLED,
+        ),
+      };
     });
   }
 

@@ -21,7 +21,9 @@ import {
   UpdateItemStatusDto,
   UpdateMenuItemDto,
   UpdateRestaurantRoleDto,
+  UpdateRestaurantBillingDto,
   UpdateStaffAvailabilityDto,
+  UpdateTableBillingDto,
 } from "./dto/restaurant.dto";
 import { RestaurantActor, RestaurantService } from "./restaurant.service";
 
@@ -78,6 +80,28 @@ export class RestaurantStaffController {
     return this.restaurant.assignWaiter(req.user, id, dto.waiterId ?? null);
   }
 
+  @Patch("tables/:id/billing")
+  updateTableBilling(
+    @Req() req: StaffRequest,
+    @Param("id") id: string,
+    @Body() dto: UpdateTableBillingDto,
+  ) {
+    return this.restaurant.updateTableBilling(req.user, id, dto);
+  }
+
+  @Get("billing-settings")
+  billingSettings(@Req() req: StaffRequest) {
+    return this.restaurant.billingSettings(req.user);
+  }
+
+  @Patch("billing-settings")
+  updateBillingSettings(
+    @Req() req: StaffRequest,
+    @Body() dto: UpdateRestaurantBillingDto,
+  ) {
+    return this.restaurant.updateBillingSettings(req.user, dto);
+  }
+
   @Get("tables/:id/qr")
   tableQr(@Req() req: StaffRequest, @Param("id") id: string) {
     return this.restaurant.tableQr(req.user, id);
@@ -105,6 +129,11 @@ export class RestaurantStaffController {
   @Get("orders")
   orders(@Req() req: StaffRequest) {
     return this.restaurant.orders(req.user);
+  }
+
+  @Get("visits")
+  visits(@Req() req: StaffRequest) {
+    return this.restaurant.visits(req.user);
   }
 
   @Patch("items/:id/status")
@@ -154,5 +183,10 @@ export class RestaurantStaffController {
     @Body() dto: CancelOrderDto,
   ) {
     return this.restaurant.cancelOrder(req.user, id, dto.reason);
+  }
+
+  @Patch("visits/:id/close")
+  closeVisit(@Req() req: StaffRequest, @Param("id") id: string) {
+    return this.restaurant.closeVisit(req.user, id);
   }
 }

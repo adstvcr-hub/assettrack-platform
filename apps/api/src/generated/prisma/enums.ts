@@ -101,3 +101,11 @@ export const RestaurantItemStatus = {
 } as const
 
 export type RestaurantItemStatus = (typeof RestaurantItemStatus)[keyof typeof RestaurantItemStatus]
+
+
+export const RestaurantVisitStatus = {
+  OPEN: 'OPEN',
+  CLOSED: 'CLOSED'
+} as const
+
+export type RestaurantVisitStatus = (typeof RestaurantVisitStatus)[keyof typeof RestaurantVisitStatus]

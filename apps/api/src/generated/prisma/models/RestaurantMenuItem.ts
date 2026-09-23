@@ -503,14 +503,6 @@ export type RestaurantMenuItemUncheckedUpdateManyWithoutOrganizationNestedInput 
   deleteMany?: Prisma.RestaurantMenuItemScalarWhereInput | Prisma.RestaurantMenuItemScalarWhereInput[]
 }
 
-export type IntFieldUpdateOperationsInput = {
-  set?: number
-  increment?: number
-  decrement?: number
-  multiply?: number
-  divide?: number
-}
-
 export type EnumRestaurantStationFieldUpdateOperationsInput = {
   set?: $Enums.RestaurantStation
 }

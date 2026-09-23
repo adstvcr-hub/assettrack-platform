@@ -53,6 +53,7 @@ export const AnyNull = runtime.AnyNull
 export const ModelName = {
   Organization: 'Organization',
   RestaurantTable: 'RestaurantTable',
+  RestaurantVisit: 'RestaurantVisit',
   RestaurantMenuItem: 'RestaurantMenuItem',
   RestaurantOrder: 'RestaurantOrder',
   RestaurantOrderItem: 'RestaurantOrderItem',
@@ -87,7 +88,10 @@ export const OrganizationScalarFieldEnum = {
   name: 'name',
   slug: 'slug',
   createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
+  updatedAt: 'updatedAt',
+  restaurantTaxRateBps: 'restaurantTaxRateBps',
+  restaurantTaxIncluded: 'restaurantTaxIncluded',
+  restaurantServiceRateBps: 'restaurantServiceRateBps'
 } as const
 
 export type OrganizationScalarFieldEnum = (typeof OrganizationScalarFieldEnum)[keyof typeof OrganizationScalarFieldEnum]
@@ -100,10 +104,28 @@ export const RestaurantTableScalarFieldEnum = {
   code: 'code',
   active: 'active',
   createdAt: 'createdAt',
-  waiterId: 'waiterId'
+  waiterId: 'waiterId',
+  serviceChargeEnabled: 'serviceChargeEnabled'
 } as const
 
 export type RestaurantTableScalarFieldEnum = (typeof RestaurantTableScalarFieldEnum)[keyof typeof RestaurantTableScalarFieldEnum]
+
+
+export const RestaurantVisitScalarFieldEnum = {
+  id: 'id',
+  organizationId: 'organizationId',
+  tableId: 'tableId',
+  accessCode: 'accessCode',
+  status: 'status',
+  openedAt: 'openedAt',
+  closedAt: 'closedAt',
+  taxRateBps: 'taxRateBps',
+  taxIncluded: 'taxIncluded',
+  serviceRateBps: 'serviceRateBps',
+  serviceChargeEnabled: 'serviceChargeEnabled'
+} as const
+
+export type RestaurantVisitScalarFieldEnum = (typeof RestaurantVisitScalarFieldEnum)[keyof typeof RestaurantVisitScalarFieldEnum]
 
 
 export const RestaurantMenuItemScalarFieldEnum = {
@@ -125,6 +147,7 @@ export const RestaurantOrderScalarFieldEnum = {
   id: 'id',
   organizationId: 'organizationId',
   tableId: 'tableId',
+  visitId: 'visitId',
   accessCode: 'accessCode',
   requestId: 'requestId',
   createdAt: 'createdAt'

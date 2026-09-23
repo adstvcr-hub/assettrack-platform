@@ -13,7 +13,12 @@ import {
   UserRole,
 } from "../generated/prisma/enums";
 
-const table = { id: "table-a", organizationId: "org-a", active: true };
+const table = {
+  id: "table-a",
+  organizationId: "org-a",
+  active: true,
+  serviceChargeEnabled: true,
+};
 const requestId = "995bb3ed-a5c4-405e-bc8a-c2b4f360853a";
 const itemId = "0696245b-f10d-4faf-8445-2e21d3336faf";
 const order = { id: "order-a", tableId: table.id, accessCode: "secret" };
@@ -46,6 +51,26 @@ function createService() {
     restaurantTable: {
       findUnique: vi.fn().mockResolvedValue(table),
       findMany: vi.fn(),
+      update: vi.fn(),
+      updateMany: vi.fn(),
+    },
+    organization: {
+      findUnique: vi.fn(),
+      findUniqueOrThrow: vi.fn().mockResolvedValue({
+        restaurantTaxRateBps: 1300,
+        restaurantTaxIncluded: false,
+        restaurantServiceRateBps: 1000,
+      }),
+      update: vi.fn(),
+    },
+    restaurantVisit: {
+      findFirst: vi.fn().mockResolvedValue(null),
+      findUnique: vi.fn(),
+      findMany: vi.fn(),
+      create: vi.fn().mockResolvedValue({
+        id: "visit-a",
+        accessCode: "visit-secret",
+      }),
       update: vi.fn(),
     },
     restaurantMenuItem: { findMany: vi.fn().mockResolvedValue([menuItem]) },
@@ -91,6 +116,7 @@ describe("RestaurantService", () => {
         data: expect.objectContaining({
           organizationId: "org-a",
           tableId: "table-a",
+          visitId: "visit-a",
           requestId,
           items: {
             create: [
@@ -124,14 +150,22 @@ describe("RestaurantService", () => {
 
   it("shows only the assigned waiter's identity to a guest", async () => {
     const { prisma, service } = createService();
-    prisma.restaurantOrder.findUnique.mockResolvedValue({
-      ...order,
+    prisma.restaurantVisit.findUnique.mockResolvedValue({
+      id: "visit-a",
+      accessCode: "secret",
+      status: "OPEN",
+      openedAt: new Date(),
       table: {
         name: "Mesa 1",
         code: "table-code",
+        serviceChargeEnabled: true,
         waiter: { id: "waiter-b", name: "Mesero 2" },
       },
-      items: [],
+      taxRateBps: 1300,
+      taxIncluded: false,
+      serviceRateBps: 1000,
+      serviceChargeEnabled: true,
+      orders: [],
     });
 
     const result = await service.guestOrder("secret");
@@ -140,13 +174,14 @@ describe("RestaurantService", () => {
       id: "waiter-b",
       name: "Mesero 2",
     });
-    expect(prisma.restaurantOrder.findUnique).toHaveBeenCalledWith({
+    expect(prisma.restaurantVisit.findUnique).toHaveBeenCalledWith({
       where: { accessCode: "secret" },
       include: expect.objectContaining({
         table: {
           select: {
             name: true,
             code: true,
+            serviceChargeEnabled: true,
             waiter: { select: { id: true, name: true } },
           },
         },
@@ -154,10 +189,70 @@ describe("RestaurantService", () => {
     });
   });
 
+  it("accumulates every order in the visit and calculates tax and table service", async () => {
+    const { prisma, service } = createService();
+    prisma.restaurantVisit.findUnique.mockResolvedValue({
+      id: "visit-a",
+      accessCode: "secret",
+      status: "OPEN",
+      openedAt: new Date(),
+      table: {
+        name: "Mesa 1",
+        code: "table-code",
+        serviceChargeEnabled: true,
+        waiter: { id: "waiter-b", name: "Mesero 2" },
+      },
+      taxRateBps: 1300,
+      taxIncluded: false,
+      serviceRateBps: 1000,
+      serviceChargeEnabled: true,
+      orders: [
+        {
+          id: "order-1",
+          createdAt: new Date(),
+          items: [
+            {
+              id: "one",
+              name: "Casado",
+              price: 4500,
+              quantity: 2,
+              status: "DELIVERED",
+            },
+          ],
+        },
+        {
+          id: "order-2",
+          createdAt: new Date(),
+          items: [
+            {
+              id: "two",
+              name: "Refresco",
+              price: 1500,
+              quantity: 1,
+              status: "RECEIVED",
+            },
+          ],
+        },
+      ],
+    });
+
+    const result = await service.guestOrder("secret");
+
+    expect(result.items).toHaveLength(2);
+    expect(result.billing).toEqual(
+      expect.objectContaining({
+        subtotal: 10500,
+        tax: 1365,
+        service: 1050,
+        total: 12915,
+      }),
+    );
+  });
+
   it("returns the existing order when the same request is retried", async () => {
     const { prisma, service } = createService();
     prisma.restaurantOrder.findUnique.mockResolvedValue(order);
-    expect(await service.placeOrder("table-code", payload)).toBe(order);
+    expect(await service.placeOrder("table-code", payload)).toEqual(order);
     expect(prisma.restaurantOrder.create).not.toHaveBeenCalled();
   });
 

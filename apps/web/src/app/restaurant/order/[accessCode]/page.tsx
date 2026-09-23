@@ -7,6 +7,7 @@ import { useCallback, useEffect, useState } from "react";
 
 type Order = {
   id: string;
+  status: "OPEN" | "CLOSED";
   createdAt: string;
   table: {
     name: string;
@@ -17,10 +18,21 @@ type Order = {
     id: string;
     name: string;
     quantity: number;
+    price: number;
     status: string;
     course: string;
     station: string;
   }[];
+  billing: {
+    subtotal: number;
+    tax: number;
+    service: number;
+    total: number;
+    taxIncluded: boolean;
+    taxRateBps: number;
+    serviceRateBps: number;
+    serviceChargeEnabled: boolean;
+  };
 };
 const labels: Record<string, string> = {
   RECEIVED: "Received",
@@ -45,10 +57,7 @@ export default function RestaurantOrderPage() {
       const nextOrder: Order = await response.json();
       setOrder(nextOrder);
       const storageKey = `assettrack_restaurant_order_${nextOrder.table.code}`;
-      const hasOpenItems = nextOrder.items.some(
-        (item) => item.status !== "DELIVERED" && item.status !== "CANCELLED",
-      );
-      if (hasOpenItems) {
+      if (nextOrder.status === "OPEN") {
         window.localStorage.setItem(storageKey, accessCode);
       } else if (window.localStorage.getItem(storageKey) === accessCode) {
         window.localStorage.removeItem(storageKey);
@@ -145,12 +154,44 @@ export default function RestaurantOrderPage() {
             className="flex justify-between rounded border bg-white p-4"
           >
             <span>
-              {item.quantity} × {item.name}
+              {item.quantity} × {item.name} · ₡
+              {(item.price * item.quantity).toLocaleString()}
             </span>
             <strong>{labels[item.status]}</strong>
           </div>
         ))}
       </div>
+      {order && (
+        <section className="mt-6 rounded-xl border bg-white p-5 shadow-sm">
+          <h2 className="mb-4 text-xl font-bold">Resumen de la cuenta</h2>
+          <div className="space-y-2">
+            <div className="flex justify-between">
+              <span>Subtotal</span>
+              <span>₡{order.billing.subtotal.toLocaleString()}</span>
+            </div>
+            <div className="flex justify-between">
+              <span>
+                IVA {(order.billing.taxRateBps / 100).toLocaleString()}%
+                {order.billing.taxIncluded ? " (incluido)" : ""}
+              </span>
+              <span>₡{order.billing.tax.toLocaleString()}</span>
+            </div>
+            {order.billing.serviceChargeEnabled && (
+              <div className="flex justify-between">
+                <span>
+                  Servicio{" "}
+                  {(order.billing.serviceRateBps / 100).toLocaleString()}%
+                </span>
+                <span>₡{order.billing.service.toLocaleString()}</span>
+              </div>
+            )}
+            <div className="flex justify-between border-t pt-3 text-xl font-bold">
+              <span>Total a pagar</span>
+              <span>₡{order.billing.total.toLocaleString()}</span>
+            </div>
+          </div>
+        </section>
+      )}
       <p className="mt-6 text-sm text-slate-500">
         If you need to change your order, please ask a staff member.
       </p>

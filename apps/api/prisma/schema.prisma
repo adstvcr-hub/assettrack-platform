@@ -74,6 +74,11 @@ enum RestaurantItemStatus {
   CANCELLED
 }
 
+enum RestaurantVisitStatus {
+  OPEN
+  CLOSED
+}
+
 model Organization {
   id        String   @id @default(uuid())
   name      String
@@ -87,6 +92,11 @@ model Organization {
   restaurantTables    RestaurantTable[]
   restaurantMenuItems RestaurantMenuItem[]
   restaurantOrders    RestaurantOrder[]
+  restaurantVisits    RestaurantVisit[]
+
+  restaurantTaxRateBps     Int     @default(1300)
+  restaurantTaxIncluded    Boolean @default(false)
+  restaurantServiceRateBps Int     @default(1000)
 
   @@map("organizations")
 }
@@ -99,14 +109,37 @@ model RestaurantTable {
   active         Boolean           @default(true)
   createdAt      DateTime          @default(now())
   waiterId       String?
+  serviceChargeEnabled Boolean     @default(true)
   organization   Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   waiter         User?             @relation("RestaurantWaiterTables", fields: [waiterId], references: [id], onDelete: SetNull)
   orders         RestaurantOrder[]
+  visits         RestaurantVisit[]
 
   @@unique([organizationId, name])
   @@index([organizationId])
   @@index([waiterId])
   @@map("restaurant_tables")
+}
+
+model RestaurantVisit {
+  id             String                @id @default(uuid())
+  organizationId String
+  tableId        String
+  accessCode     String                @unique @default(uuid())
+  status         RestaurantVisitStatus @default(OPEN)
+  openedAt       DateTime              @default(now())
+  closedAt       DateTime?
+  taxRateBps     Int                   @default(1300)
+  taxIncluded    Boolean               @default(false)
+  serviceRateBps Int                   @default(1000)
+  serviceChargeEnabled Boolean         @default(true)
+  organization   Organization          @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  table          RestaurantTable       @relation(fields: [tableId], references: [id])
+  orders         RestaurantOrder[]
+
+  @@index([organizationId, status])
+  @@index([tableId, status])
+  @@map("restaurant_visits")
 }
 
 model RestaurantMenuItem {
@@ -130,14 +163,17 @@ model RestaurantOrder {
   id             String                @id @default(uuid())
   organizationId String
   tableId        String
+  visitId        String?
   accessCode     String                @unique @default(uuid())
   requestId      String                @unique
   createdAt      DateTime              @default(now())
   organization   Organization          @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   table          RestaurantTable       @relation(fields: [tableId], references: [id])
+  visit          RestaurantVisit?       @relation(fields: [visitId], references: [id])
   items          RestaurantOrderItem[]
 
   @@index([organizationId, createdAt])
+  @@index([visitId])
   @@map("restaurant_orders")
 }
 

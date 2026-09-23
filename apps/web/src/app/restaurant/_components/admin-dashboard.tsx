@@ -3,7 +3,7 @@
 import { API_URL, authenticatedFetch } from "@/lib/api";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { RestaurantSessionActions } from "./restaurant-session-actions";
 
 type Table = {
@@ -12,6 +12,7 @@ type Table = {
   code: string;
   waiterId?: string | null;
   waiter?: { id: string; name: string; email: string } | null;
+  serviceChargeEnabled: boolean;
 };
 type RestaurantRole = "RESTAURANT_ADMIN" | "KITCHEN" | "BAR" | "WAITER";
 type StaffUser = {
@@ -48,6 +49,11 @@ type Order = {
   items: OrderItem[];
 };
 type Station = "KITCHEN" | "BAR";
+type BillingSettings = {
+  restaurantTaxRateBps: number;
+  restaurantTaxIncluded: boolean;
+  restaurantServiceRateBps: number;
+};
 const nextStatus: Record<string, string | null> = {
   RECEIVED: "ACCEPTED",
   ACCEPTED: "PREPARING",
@@ -71,12 +77,17 @@ export default function RestaurantAdminDashboard() {
   const [course, setCourse] = useState("MAIN");
   const [qr, setQr] = useState<{ url: string; image: string } | null>(null);
   const [error, setError] = useState("");
+  const [billing, setBilling] = useState<BillingSettings | null>(null);
+  const [taxRate, setTaxRate] = useState("13");
+  const [serviceRate, setServiceRate] = useState("10");
+  const [taxIncluded, setTaxIncluded] = useState(false);
+  const billingInitialized = useRef(false);
 
   const load = useCallback(async () => {
     try {
       const responses = await Promise.all(
-        ["tables", "menu", "orders", "staff-users"].map((path) =>
-          authenticatedFetch(`${API_URL}/api/v1/restaurant/${path}`),
+        ["tables", "menu", "orders", "staff-users", "billing-settings"].map(
+          (path) => authenticatedFetch(`${API_URL}/api/v1/restaurant/${path}`),
         ),
       );
       if (responses.some((response) => response.status === 401)) {
@@ -89,13 +100,19 @@ export default function RestaurantAdminDashboard() {
       }
       if (responses.some((response) => !response.ok))
         throw new Error("Unable to load restaurant workspace");
-      const [tableData, menuData, orderData, staffData] = await Promise.all(
-        responses.map((response) => response.json()),
-      );
+      const [tableData, menuData, orderData, staffData, billingData] =
+        await Promise.all(responses.map((response) => response.json()));
       setTables(tableData);
       setMenu(menuData);
       setOrders(orderData);
       setStaffUsers(staffData);
+      setBilling(billingData);
+      if (!billingInitialized.current) {
+        setTaxRate(String(billingData.restaurantTaxRateBps / 100));
+        setServiceRate(String(billingData.restaurantServiceRateBps / 100));
+        setTaxIncluded(billingData.restaurantTaxIncluded);
+        billingInitialized.current = true;
+      }
       setError("");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unable to load orders");
@@ -264,177 +281,270 @@ export default function RestaurantAdminDashboard() {
         ))}
       </section>
       {isAdmin && (
-        <section className="mt-12 grid gap-8 md:grid-cols-2">
-          <div>
-            <h2 className="text-xl font-bold">Tables & QR codes</h2>
+        <>
+          <section className="mt-12 rounded-xl border bg-slate-50 p-5">
+            <h2 className="text-xl font-bold">Configuración de facturación</h2>
+            <p className="mt-1 text-sm text-slate-600">
+              Define cómo se calcula el IVA y el servicio para las cuentas
+              abiertas.
+            </p>
             <form
-              className="my-3 flex gap-2"
+              className="mt-4 grid gap-4 md:grid-cols-4 md:items-end"
               onSubmit={(event) => {
                 event.preventDefault();
-                void post("tables", { name: tableName }).then(() =>
-                  setTableName(""),
+                const taxRateBps = Math.round(Number(taxRate) * 100);
+                const serviceRateBps = Math.round(Number(serviceRate) * 100);
+                if (
+                  !Number.isFinite(taxRateBps) ||
+                  !Number.isFinite(serviceRateBps) ||
+                  taxRateBps < 0 ||
+                  serviceRateBps < 0
+                ) {
+                  setError("Ingrese porcentajes válidos");
+                  return;
+                }
+                void post(
+                  "billing-settings",
+                  { taxRateBps, taxIncluded, serviceRateBps },
+                  "PATCH",
                 );
               }}
             >
-              <input
-                required
-                maxLength={60}
-                className="min-w-0 flex-1 rounded border p-2"
-                placeholder="Table name"
-                value={tableName}
-                onChange={(event) => setTableName(event.target.value)}
-              />
-              <button className="rounded bg-slate-900 px-3 text-white">
-                Add table
+              <label className="font-semibold">
+                IVA (%)
+                <input
+                  type="number"
+                  min="0"
+                  max="100"
+                  step="0.01"
+                  className="mt-1 w-full rounded border bg-white p-2"
+                  value={taxRate}
+                  onChange={(event) => setTaxRate(event.target.value)}
+                />
+              </label>
+              <label className="font-semibold">
+                Tratamiento del IVA
+                <select
+                  className="mt-1 w-full rounded border bg-white p-2"
+                  value={taxIncluded ? "included" : "added"}
+                  onChange={(event) =>
+                    setTaxIncluded(event.target.value === "included")
+                  }
+                >
+                  <option value="added">Agregar al subtotal</option>
+                  <option value="included">Incluido en los precios</option>
+                </select>
+              </label>
+              <label className="font-semibold">
+                Servicio de mesa (%)
+                <input
+                  type="number"
+                  min="0"
+                  max="100"
+                  step="0.01"
+                  className="mt-1 w-full rounded border bg-white p-2"
+                  value={serviceRate}
+                  onChange={(event) => setServiceRate(event.target.value)}
+                />
+              </label>
+              <button className="rounded bg-slate-900 px-4 py-3 font-semibold text-white">
+                Guardar configuración
               </button>
             </form>
-            {tables.map((table) => (
-              <div
-                key={table.id}
-                className="grid gap-2 border-b py-3 sm:grid-cols-[1fr_220px_auto] sm:items-center"
-              >
-                <span>{table.name}</span>
-                <select
-                  aria-label={`Mesero asignado a ${table.name}`}
-                  className="rounded border p-2"
-                  value={table.waiterId ?? ""}
-                  onChange={(event) =>
-                    void post(
-                      `tables/${table.id}/waiter`,
-                      { waiterId: event.target.value || null },
-                      "PATCH",
-                    )
-                  }
-                >
-                  <option value="">Sin mesero asignado</option>
-                  {availableWaiters.map((waiter) => (
-                    <option key={waiter.id} value={waiter.id}>
-                      {waiter.name}
-                    </option>
-                  ))}
-                </select>
-                <button
-                  className="text-emerald-700 underline"
-                  onClick={() => void showQr(table.id)}
-                >
-                  Show QR
-                </button>
-              </div>
-            ))}
-            {qr && (
-              <div className="my-3 rounded border p-4">
-                <Image
-                  src={qr.image}
-                  alt="QR code for this table"
-                  width={260}
-                  height={260}
-                  unoptimized
-                />
-                <a
-                  className="break-all text-emerald-700 underline"
-                  href={qr.url}
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  {qr.url}
-                </a>
-                <p className="mt-2 text-sm">
-                  Print this QR and place it on the selected table.
-                </p>
-              </div>
+            {billing && (
+              <p className="mt-3 text-sm text-emerald-800">
+                Configuración activa: IVA {billing.restaurantTaxRateBps / 100}%{" "}
+                {billing.restaurantTaxIncluded ? "incluido" : "agregado"};
+                servicio {billing.restaurantServiceRateBps / 100}%.
+              </p>
             )}
-          </div>
-          <div>
-            <h2 className="text-xl font-bold">Menu</h2>
-            <form
-              className="my-3 space-y-2"
-              onSubmit={(event) => {
-                event.preventDefault();
-                const value = Number(price);
-                if (!Number.isInteger(value) || value < 0) {
-                  setError("Enter a valid price in colones");
-                  return;
-                }
-                void post("menu", {
-                  name: itemName,
-                  price: value,
-                  station: itemStation,
-                  course,
-                }).then(() => {
-                  setItemName("");
-                  setPrice("");
-                });
-              }}
-            >
-              <input
-                required
-                maxLength={100}
-                className="w-full rounded border p-2"
-                placeholder="Item name"
-                value={itemName}
-                onChange={(event) => setItemName(event.target.value)}
-              />
-              <input
-                required
-                min="0"
-                step="1"
-                type="number"
-                className="w-full rounded border p-2"
-                placeholder="Price in colones"
-                value={price}
-                onChange={(event) => setPrice(event.target.value)}
-              />
-              <div className="flex gap-2">
-                <select
-                  className="rounded border p-2"
-                  value={itemStation}
-                  onChange={(event) =>
-                    setItemStation(event.target.value as Station)
-                  }
-                >
-                  <option value="KITCHEN">Kitchen</option>
-                  <option value="BAR">Bar</option>
-                </select>
-                <select
-                  className="rounded border p-2"
-                  value={course}
-                  onChange={(event) => setCourse(event.target.value)}
-                >
-                  <option value="DRINK">Drink</option>
-                  <option value="STARTER">Starter</option>
-                  <option value="MAIN">Main</option>
-                  <option value="OTHER">Other</option>
-                </select>
-                <button className="rounded bg-slate-900 px-3 text-white">
-                  Add item
-                </button>
-              </div>
-            </form>
-            {menu.map((item) => (
-              <div
-                key={item.id}
-                className="flex items-center justify-between gap-2 border-b py-2"
+          </section>
+          <section className="mt-12 grid gap-8 md:grid-cols-2">
+            <div>
+              <h2 className="text-xl font-bold">Tables & QR codes</h2>
+              <form
+                className="my-3 flex gap-2"
+                onSubmit={(event) => {
+                  event.preventDefault();
+                  void post("tables", { name: tableName }).then(() =>
+                    setTableName(""),
+                  );
+                }}
               >
-                <span>
-                  {item.name} · ₡{item.price.toLocaleString()}{" "}
-                  {item.active ? "" : "(unavailable)"}
-                </span>
-                <button
-                  className="text-emerald-700 underline"
-                  onClick={() =>
-                    void post(
-                      `menu/${item.id}`,
-                      { active: !item.active },
-                      "PATCH",
-                    )
-                  }
-                >
-                  {item.active ? "Pause" : "Enable"}
+                <input
+                  required
+                  maxLength={60}
+                  className="min-w-0 flex-1 rounded border p-2"
+                  placeholder="Table name"
+                  value={tableName}
+                  onChange={(event) => setTableName(event.target.value)}
+                />
+                <button className="rounded bg-slate-900 px-3 text-white">
+                  Add table
                 </button>
-              </div>
-            ))}
-          </div>
-        </section>
+              </form>
+              {tables.map((table) => (
+                <div
+                  key={table.id}
+                  className="grid gap-2 border-b py-3 sm:grid-cols-[1fr_220px_auto] sm:items-center"
+                >
+                  <span>{table.name}</span>
+                  <select
+                    aria-label={`Mesero asignado a ${table.name}`}
+                    className="rounded border p-2"
+                    value={table.waiterId ?? ""}
+                    onChange={(event) =>
+                      void post(
+                        `tables/${table.id}/waiter`,
+                        { waiterId: event.target.value || null },
+                        "PATCH",
+                      )
+                    }
+                  >
+                    <option value="">Sin mesero asignado</option>
+                    {availableWaiters.map((waiter) => (
+                      <option key={waiter.id} value={waiter.id}>
+                        {waiter.name}
+                      </option>
+                    ))}
+                  </select>
+                  <button
+                    className="text-emerald-700 underline"
+                    onClick={() => void showQr(table.id)}
+                  >
+                    Show QR
+                  </button>
+                  <label className="col-span-full flex items-center gap-2 text-sm">
+                    <input
+                      type="checkbox"
+                      checked={table.serviceChargeEnabled}
+                      onChange={(event) =>
+                        void post(
+                          `tables/${table.id}/billing`,
+                          { serviceChargeEnabled: event.target.checked },
+                          "PATCH",
+                        )
+                      }
+                    />
+                    Aplicar servicio de mesa
+                  </label>
+                </div>
+              ))}
+              {qr && (
+                <div className="my-3 rounded border p-4">
+                  <Image
+                    src={qr.image}
+                    alt="QR code for this table"
+                    width={260}
+                    height={260}
+                    unoptimized
+                  />
+                  <a
+                    className="break-all text-emerald-700 underline"
+                    href={qr.url}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    {qr.url}
+                  </a>
+                  <p className="mt-2 text-sm">
+                    Print this QR and place it on the selected table.
+                  </p>
+                </div>
+              )}
+            </div>
+            <div>
+              <h2 className="text-xl font-bold">Menu</h2>
+              <form
+                className="my-3 space-y-2"
+                onSubmit={(event) => {
+                  event.preventDefault();
+                  const value = Number(price);
+                  if (!Number.isInteger(value) || value < 0) {
+                    setError("Enter a valid price in colones");
+                    return;
+                  }
+                  void post("menu", {
+                    name: itemName,
+                    price: value,
+                    station: itemStation,
+                    course,
+                  }).then(() => {
+                    setItemName("");
+                    setPrice("");
+                  });
+                }}
+              >
+                <input
+                  required
+                  maxLength={100}
+                  className="w-full rounded border p-2"
+                  placeholder="Item name"
+                  value={itemName}
+                  onChange={(event) => setItemName(event.target.value)}
+                />
+                <input
+                  required
+                  min="0"
+                  step="1"
+                  type="number"
+                  className="w-full rounded border p-2"
+                  placeholder="Price in colones"
+                  value={price}
+                  onChange={(event) => setPrice(event.target.value)}
+                />
+                <div className="flex gap-2">
+                  <select
+                    className="rounded border p-2"
+                    value={itemStation}
+                    onChange={(event) =>
+                      setItemStation(event.target.value as Station)
+                    }
+                  >
+                    <option value="KITCHEN">Kitchen</option>
+                    <option value="BAR">Bar</option>
+                  </select>
+                  <select
+                    className="rounded border p-2"
+                    value={course}
+                    onChange={(event) => setCourse(event.target.value)}
+                  >
+                    <option value="DRINK">Drink</option>
+                    <option value="STARTER">Starter</option>
+                    <option value="MAIN">Main</option>
+                    <option value="OTHER">Other</option>
+                  </select>
+                  <button className="rounded bg-slate-900 px-3 text-white">
+                    Add item
+                  </button>
+                </div>
+              </form>
+              {menu.map((item) => (
+                <div
+                  key={item.id}
+                  className="flex items-center justify-between gap-2 border-b py-2"
+                >
+                  <span>
+                    {item.name} · ₡{item.price.toLocaleString()}{" "}
+                    {item.active ? "" : "(unavailable)"}
+                  </span>
+                  <button
+                    className="text-emerald-700 underline"
+                    onClick={() =>
+                      void post(
+                        `menu/${item.id}`,
+                        { active: !item.active },
+                        "PATCH",
+                      )
+                    }
+                  >
+                    {item.active ? "Pause" : "Enable"}
+                  </button>
+                </div>
+              ))}
+            </div>
+          </section>
+        </>
       )}
       <section className="mt-12">
         <h2 className="text-xl font-bold">Personal y estación de trabajo</h2>

@@ -10,6 +10,7 @@
  */
 export type * from './models/Organization'
 export type * from './models/RestaurantTable'
+export type * from './models/RestaurantVisit'
 export type * from './models/RestaurantMenuItem'
 export type * from './models/RestaurantOrder'
 export type * from './models/RestaurantOrderItem'
