@@ -214,6 +214,130 @@ export class RestaurantService {
     });
   }
 
+  async updateOwnStaffAvailability(
+    actor: RestaurantActor,
+    dto: UpdateStaffAvailabilityDto,
+  ) {
+    if (!actor.restaurantRole) {
+      throw new ForbiddenException("Restaurant role required");
+    }
+    const reason = dto.reason?.trim() || null;
+    if (dto.availability !== RestaurantStaffAvailability.AVAILABLE && !reason) {
+      throw new BadRequestException(
+        "Reason required when staff is unavailable",
+      );
+    }
+
+    return this.prisma.$transaction(async (tx) => {
+      const user = await tx.user.findFirst({
+        where: { id: actor.id, organizationId: actor.organizationId },
+        select: { id: true, restaurantRole: true },
+      });
+      if (!user?.restaurantRole) {
+        throw new ForbiddenException("Restaurant role required");
+      }
+
+      const updated = await tx.user.update({
+        where: { id: actor.id },
+        data: { restaurantAvailability: dto.availability },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          restaurantRole: true,
+          restaurantAvailability: true,
+        },
+      });
+      await tx.restaurantStaffEvent.create({
+        data: {
+          organizationId: actor.organizationId,
+          userId: actor.id,
+          actorId: actor.id,
+          availability: dto.availability,
+          reason,
+        },
+      });
+
+      const reassignments: Array<{
+        tableId: string;
+        tableName: string;
+        waiterId: string;
+        waiterName: string;
+      }> = [];
+      const unassignedTables: Array<{ id: string; name: string }> = [];
+
+      if (
+        user.restaurantRole === RestaurantStaffRole.WAITER &&
+        dto.availability !== RestaurantStaffAvailability.AVAILABLE
+      ) {
+        const [tables, waiters] = await Promise.all([
+          tx.restaurantTable.findMany({
+            where: {
+              organizationId: actor.organizationId,
+              waiterId: actor.id,
+              active: true,
+            },
+            select: { id: true, name: true },
+            orderBy: { name: "asc" },
+          }),
+          tx.user.findMany({
+            where: {
+              organizationId: actor.organizationId,
+              id: { not: actor.id },
+              restaurantRole: RestaurantStaffRole.WAITER,
+              restaurantAvailability: RestaurantStaffAvailability.AVAILABLE,
+            },
+            select: {
+              id: true,
+              name: true,
+              restaurantTables: {
+                where: { active: true },
+                select: { id: true },
+              },
+            },
+            orderBy: [{ name: "asc" }, { id: "asc" }],
+          }),
+        ]);
+
+        const workloads = waiters.map((waiter) => ({
+          id: waiter.id,
+          name: waiter.name,
+          activeTables: waiter.restaurantTables.length,
+        }));
+        for (const table of tables) {
+          workloads.sort(
+            (left, right) =>
+              left.activeTables - right.activeTables ||
+              left.name.localeCompare(right.name) ||
+              left.id.localeCompare(right.id),
+          );
+          const replacement = workloads[0];
+          if (!replacement) {
+            await tx.restaurantTable.update({
+              where: { id: table.id },
+              data: { waiterId: null },
+            });
+            unassignedTables.push(table);
+            continue;
+          }
+          await tx.restaurantTable.update({
+            where: { id: table.id },
+            data: { waiterId: replacement.id },
+          });
+          replacement.activeTables += 1;
+          reassignments.push({
+            tableId: table.id,
+            tableName: table.name,
+            waiterId: replacement.id,
+            waiterName: replacement.name,
+          });
+        }
+      }
+
+      return { staff: updated, reassignments, unassignedTables };
+    });
+  }
+
   async cancelOrder(actor: RestaurantActor, orderId: string, reason: string) {
     this.requireRestaurantAdmin(actor);
     const note = reason.trim();

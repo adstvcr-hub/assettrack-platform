@@ -139,6 +139,14 @@ export class RestaurantStaffController {
     return this.restaurant.updateStaffAvailability(req.user, id, dto);
   }
 
+  @Patch("staff/availability")
+  updateOwnStaffAvailability(
+    @Req() req: StaffRequest,
+    @Body() dto: UpdateStaffAvailabilityDto,
+  ) {
+    return this.restaurant.updateOwnStaffAvailability(req.user, dto);
+  }
+
   @Patch("orders/:id/cancel")
   cancelOrder(
     @Req() req: StaffRequest,

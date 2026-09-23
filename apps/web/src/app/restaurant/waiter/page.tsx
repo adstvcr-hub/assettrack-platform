@@ -2,7 +2,7 @@
 
 import { API_URL, authenticatedFetch } from "@/lib/api";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { RestaurantSessionActions } from "../_components/restaurant-session-actions";
 
 type Item = {
@@ -30,6 +30,12 @@ export default function WaiterPage() {
   const router = useRouter();
   const [orders, setOrders] = useState<Order[]>([]);
   const [error, setError] = useState("");
+  const [availability, setAvailability] = useState("AVAILABLE");
+  const [availabilityChoice, setAvailabilityChoice] = useState("AVAILABLE");
+  const [availabilityDetails, setAvailabilityDetails] = useState("");
+  const [availabilityMessage, setAvailabilityMessage] = useState("");
+  const [savingAvailability, setSavingAvailability] = useState(false);
+  const profileInitialized = useRef(false);
 
   const load = useCallback(async () => {
     const [profileResponse, response] = await Promise.all([
@@ -45,6 +51,11 @@ export default function WaiterPage() {
       if (profile.restaurantRole !== "WAITER") {
         router.replace("/restaurant/staff");
         return;
+      }
+      setAvailability(profile.restaurantAvailability);
+      if (!profileInitialized.current) {
+        setAvailabilityChoice(profile.restaurantAvailability);
+        profileInitialized.current = true;
       }
     }
     if (response.status === 403) {
@@ -87,6 +98,72 @@ export default function WaiterPage() {
     await load();
   }
 
+  async function updateAvailability() {
+    const labels: Record<string, string> = {
+      BREAK: "Descanso programado",
+      OFF_SHIFT: "Turno finalizado",
+      TEMPORARILY_UNAVAILABLE: "Fuera de servicio temporal",
+    };
+    if (
+      availabilityChoice === "TEMPORARILY_UNAVAILABLE" &&
+      !availabilityDetails.trim()
+    ) {
+      setError("Explique por qué quedará temporalmente fuera de servicio");
+      return;
+    }
+    if (
+      availabilityChoice !== "AVAILABLE" &&
+      !window.confirm(
+        "Tus mesas activas serán reasignadas automáticamente. ¿Deseas continuar?",
+      )
+    ) {
+      return;
+    }
+    const reason =
+      availabilityChoice === "AVAILABLE"
+        ? undefined
+        : `${labels[availabilityChoice]}${
+            availabilityDetails.trim()
+              ? `: ${availabilityDetails.trim()}`
+              : ""
+          }`;
+    setSavingAvailability(true);
+    setError("");
+    setAvailabilityMessage("");
+    const response = await authenticatedFetch(
+      `${API_URL}/api/v1/restaurant/staff/availability`,
+      {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          availability: availabilityChoice,
+          reason,
+        }),
+      },
+    );
+    const body = await response.json().catch(() => ({}));
+    setSavingAvailability(false);
+    if (!response.ok) {
+      setError(body.message ?? "No se pudo cambiar la disponibilidad");
+      return;
+    }
+    setAvailability(body.staff.restaurantAvailability);
+    setAvailabilityChoice(body.staff.restaurantAvailability);
+    setAvailabilityDetails("");
+    if (body.unassignedTables.length > 0) {
+      setAvailabilityMessage(
+        `${body.unassignedTables.length} mesa(s) quedaron sin mesero disponible. Se requiere intervención administrativa.`,
+      );
+    } else if (body.reassignments.length > 0) {
+      setAvailabilityMessage(
+        `${body.reassignments.length} mesa(s) fueron reasignadas automáticamente.`,
+      );
+    } else {
+      setAvailabilityMessage("Disponibilidad actualizada correctamente.");
+    }
+    await load();
+  }
+
   const readyCount = orders
     .flatMap((order) => order.items)
     .filter((item) => item.status === "READY").length;
@@ -110,6 +187,55 @@ export default function WaiterPage() {
         </div>
       </header>
       <section className="mx-auto max-w-6xl space-y-5 p-5">
+        <div className="rounded-xl border bg-white p-5 shadow-sm">
+          <div className="flex flex-wrap items-end gap-3">
+            <label className="min-w-64 flex-1 font-semibold">
+              Mi disponibilidad
+              <select
+                className="mt-2 w-full rounded-lg border border-slate-300 bg-white px-4 py-3 text-slate-900"
+                value={availabilityChoice}
+                onChange={(event) =>
+                  setAvailabilityChoice(event.target.value)
+                }
+              >
+                <option value="AVAILABLE">Disponible</option>
+                <option value="BREAK">Descanso programado</option>
+                <option value="OFF_SHIFT">Turno finalizado</option>
+                <option value="TEMPORARILY_UNAVAILABLE">
+                  Fuera de servicio temporal
+                </option>
+              </select>
+            </label>
+            {availabilityChoice !== "AVAILABLE" && (
+              <label className="min-w-64 flex-[2] font-semibold">
+                Explicación
+                <input
+                  className="mt-2 w-full rounded-lg border border-slate-300 bg-white px-4 py-3 text-slate-900 placeholder:text-slate-400"
+                  value={availabilityDetails}
+                  onChange={(event) =>
+                    setAvailabilityDetails(event.target.value)
+                  }
+                  placeholder="Información adicional para administración"
+                  maxLength={180}
+                />
+              </label>
+            )}
+            <button
+              className="rounded-lg bg-sky-700 px-5 py-3 font-bold text-white disabled:cursor-not-allowed disabled:opacity-50"
+              disabled={
+                savingAvailability || availabilityChoice === availability
+              }
+              onClick={() => void updateAvailability()}
+            >
+              {savingAvailability ? "Guardando…" : "Actualizar estado"}
+            </button>
+          </div>
+          {availabilityMessage && (
+            <p className="mt-3 rounded-lg bg-sky-50 p-3 text-sky-900">
+              {availabilityMessage}
+            </p>
+          )}
+        </div>
         {error && (
           <p className="rounded-lg bg-red-100 p-4 text-red-800">{error}</p>
         )}

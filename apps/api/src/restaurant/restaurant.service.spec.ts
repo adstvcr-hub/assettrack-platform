@@ -34,6 +34,8 @@ const kitchenActor = {
 function createService() {
   const prisma = {
     user: {
+      findFirst: vi.fn(),
+      update: vi.fn(),
       findMany: vi
         .fn()
         .mockResolvedValue([
@@ -41,7 +43,11 @@ function createService() {
           { restaurantRole: RestaurantStaffRole.BAR },
         ]),
     },
-    restaurantTable: { findUnique: vi.fn().mockResolvedValue(table) },
+    restaurantTable: {
+      findUnique: vi.fn().mockResolvedValue(table),
+      findMany: vi.fn(),
+      update: vi.fn(),
+    },
     restaurantMenuItem: { findMany: vi.fn().mockResolvedValue([menuItem]) },
     restaurantOrder: {
       findUnique: vi.fn().mockResolvedValue(null),
@@ -55,6 +61,7 @@ function createService() {
       findUnique: vi.fn(),
     },
     restaurantItemEvent: { create: vi.fn() },
+    restaurantStaffEvent: { create: vi.fn() },
     $transaction: vi.fn(async (callback: (tx: unknown) => Promise<unknown>) =>
       callback(prisma),
     ),
@@ -249,5 +256,101 @@ describe("RestaurantService", () => {
         { status: "ACCEPTED" },
       ),
     ).rejects.toBeInstanceOf(ForbiddenException);
+  });
+
+  it("automatically balances a waiter's active tables when going unavailable", async () => {
+    const { prisma, service } = createService();
+    const waiter = {
+      id: "waiter-a",
+      organizationId: "org-a",
+      role: UserRole.USER,
+      restaurantRole: RestaurantStaffRole.WAITER,
+      restaurantAvailability: RestaurantStaffAvailability.AVAILABLE,
+    };
+    prisma.user.findFirst.mockResolvedValue({
+      id: waiter.id,
+      restaurantRole: RestaurantStaffRole.WAITER,
+    });
+    prisma.user.update.mockResolvedValue({
+      id: waiter.id,
+      name: "Mesero 1",
+      restaurantRole: RestaurantStaffRole.WAITER,
+      restaurantAvailability: RestaurantStaffAvailability.BREAK,
+    });
+    prisma.restaurantTable.findMany.mockResolvedValue([
+      { id: "table-1", name: "Mesa 1" },
+      { id: "table-2", name: "Mesa 2" },
+    ]);
+    prisma.user.findMany.mockResolvedValue([
+      { id: "waiter-b", name: "Mesero 2", restaurantTables: [] },
+      {
+        id: "waiter-c",
+        name: "Mesero 3",
+        restaurantTables: [{ id: "table-existing" }],
+      },
+    ]);
+    prisma.restaurantTable.update.mockResolvedValue({});
+
+    const result = await service.updateOwnStaffAvailability(waiter, {
+      availability: RestaurantStaffAvailability.BREAK,
+      reason: "Descanso programado",
+    });
+
+    expect(result.reassignments).toEqual([
+      expect.objectContaining({ tableId: "table-1", waiterId: "waiter-b" }),
+      expect.objectContaining({ tableId: "table-2", waiterId: "waiter-b" }),
+    ]);
+    expect(prisma.restaurantTable.update).toHaveBeenNthCalledWith(1, {
+      where: { id: "table-1" },
+      data: { waiterId: "waiter-b" },
+    });
+    expect(prisma.restaurantStaffEvent.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({
+        userId: "waiter-a",
+        actorId: "waiter-a",
+        availability: RestaurantStaffAvailability.BREAK,
+      }),
+    });
+  });
+
+  it("reports tables that cannot be reassigned to an available waiter", async () => {
+    const { prisma, service } = createService();
+    const waiter = {
+      id: "waiter-a",
+      organizationId: "org-a",
+      role: UserRole.USER,
+      restaurantRole: RestaurantStaffRole.WAITER,
+      restaurantAvailability: RestaurantStaffAvailability.AVAILABLE,
+    };
+    prisma.user.findFirst.mockResolvedValue({
+      id: waiter.id,
+      restaurantRole: RestaurantStaffRole.WAITER,
+    });
+    prisma.user.update.mockResolvedValue({
+      id: waiter.id,
+      name: "Mesero 1",
+      restaurantRole: RestaurantStaffRole.WAITER,
+      restaurantAvailability:
+        RestaurantStaffAvailability.TEMPORARILY_UNAVAILABLE,
+    });
+    prisma.restaurantTable.findMany.mockResolvedValue([
+      { id: "table-1", name: "Mesa 1" },
+    ]);
+    prisma.user.findMany.mockResolvedValue([]);
+    prisma.restaurantTable.update.mockResolvedValue({});
+
+    const result = await service.updateOwnStaffAvailability(waiter, {
+      availability: RestaurantStaffAvailability.TEMPORARILY_UNAVAILABLE,
+      reason: "Emergencia",
+    });
+
+    expect(result.reassignments).toEqual([]);
+    expect(result.unassignedTables).toEqual([
+      { id: "table-1", name: "Mesa 1" },
+    ]);
+    expect(prisma.restaurantTable.update).toHaveBeenCalledWith({
+      where: { id: "table-1" },
+      data: { waiterId: null },
+    });
   });
 });
