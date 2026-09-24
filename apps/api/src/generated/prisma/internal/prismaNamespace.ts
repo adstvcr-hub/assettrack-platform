@@ -403,6 +403,7 @@ export const ModelName = {
   RestaurantMenuItem: 'RestaurantMenuItem',
   RestaurantOrder: 'RestaurantOrder',
   RestaurantOrderItem: 'RestaurantOrderItem',
+  RestaurantPromotion: 'RestaurantPromotion',
   RestaurantItemEvent: 'RestaurantItemEvent',
   RestaurantStaffEvent: 'RestaurantStaffEvent',
   OrganizationLocation: 'OrganizationLocation',
@@ -426,7 +427,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "organization" | "restaurantTable" | "restaurantVisit" | "restaurantMenuItem" | "restaurantOrder" | "restaurantOrderItem" | "restaurantItemEvent" | "restaurantStaffEvent" | "organizationLocation" | "user" | "asset" | "qrCode" | "scanEvent" | "refreshToken"
+    modelProps: "organization" | "restaurantTable" | "restaurantVisit" | "restaurantMenuItem" | "restaurantOrder" | "restaurantOrderItem" | "restaurantPromotion" | "restaurantItemEvent" | "restaurantStaffEvent" | "organizationLocation" | "user" | "asset" | "qrCode" | "scanEvent" | "refreshToken"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -871,6 +872,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.RestaurantOrderItemCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.RestaurantOrderItemCountAggregateOutputType> | number
+        }
+      }
+    }
+    RestaurantPromotion: {
+      payload: Prisma.$RestaurantPromotionPayload<ExtArgs>
+      fields: Prisma.RestaurantPromotionFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.RestaurantPromotionFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RestaurantPromotionPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.RestaurantPromotionFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RestaurantPromotionPayload>
+        }
+        findFirst: {
+          args: Prisma.RestaurantPromotionFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RestaurantPromotionPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.RestaurantPromotionFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RestaurantPromotionPayload>
+        }
+        findMany: {
+          args: Prisma.RestaurantPromotionFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RestaurantPromotionPayload>[]
+        }
+        create: {
+          args: Prisma.RestaurantPromotionCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RestaurantPromotionPayload>
+        }
+        createMany: {
+          args: Prisma.RestaurantPromotionCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.RestaurantPromotionCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RestaurantPromotionPayload>[]
+        }
+        delete: {
+          args: Prisma.RestaurantPromotionDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RestaurantPromotionPayload>
+        }
+        update: {
+          args: Prisma.RestaurantPromotionUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RestaurantPromotionPayload>
+        }
+        deleteMany: {
+          args: Prisma.RestaurantPromotionDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.RestaurantPromotionUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.RestaurantPromotionUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RestaurantPromotionPayload>[]
+        }
+        upsert: {
+          args: Prisma.RestaurantPromotionUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RestaurantPromotionPayload>
+        }
+        aggregate: {
+          args: Prisma.RestaurantPromotionAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateRestaurantPromotion>
+        }
+        groupBy: {
+          args: Prisma.RestaurantPromotionGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.RestaurantPromotionGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.RestaurantPromotionCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.RestaurantPromotionCountAggregateOutputType> | number
         }
       }
     }
@@ -1527,7 +1602,8 @@ export const RestaurantTableScalarFieldEnum = {
   active: 'active',
   createdAt: 'createdAt',
   waiterId: 'waiterId',
-  serviceChargeEnabled: 'serviceChargeEnabled'
+  serviceChargeEnabled: 'serviceChargeEnabled',
+  kind: 'kind'
 } as const
 
 export type RestaurantTableScalarFieldEnum = (typeof RestaurantTableScalarFieldEnum)[keyof typeof RestaurantTableScalarFieldEnum]
@@ -1544,7 +1620,14 @@ export const RestaurantVisitScalarFieldEnum = {
   taxRateBps: 'taxRateBps',
   taxIncluded: 'taxIncluded',
   serviceRateBps: 'serviceRateBps',
-  serviceChargeEnabled: 'serviceChargeEnabled'
+  serviceChargeEnabled: 'serviceChargeEnabled',
+  invoiceRequestStatus: 'invoiceRequestStatus',
+  invoiceRequestedAt: 'invoiceRequestedAt',
+  invoiceName: 'invoiceName',
+  invoiceEmail: 'invoiceEmail',
+  invoicePhone: 'invoicePhone',
+  invoiceTaxId: 'invoiceTaxId',
+  invoiceReference: 'invoiceReference'
 } as const
 
 export type RestaurantVisitScalarFieldEnum = (typeof RestaurantVisitScalarFieldEnum)[keyof typeof RestaurantVisitScalarFieldEnum]
@@ -1559,6 +1642,12 @@ export const RestaurantMenuItemScalarFieldEnum = {
   station: 'station',
   course: 'course',
   active: 'active',
+  productType: 'productType',
+  categories: 'categories',
+  origin: 'origin',
+  prepMinutes: 'prepMinutes',
+  alcoholic: 'alcoholic',
+  imageData: 'imageData',
   createdAt: 'createdAt'
 } as const
 
@@ -1572,7 +1661,14 @@ export const RestaurantOrderScalarFieldEnum = {
   visitId: 'visitId',
   accessCode: 'accessCode',
   requestId: 'requestId',
-  createdAt: 'createdAt'
+  createdAt: 'createdAt',
+  fulfillment: 'fulfillment',
+  promotionId: 'promotionId',
+  promotionTitle: 'promotionTitle',
+  promotionCredit: 'promotionCredit',
+  expectedMinutes: 'expectedMinutes',
+  thresholdMinutes: 'thresholdMinutes',
+  delayedAt: 'delayedAt'
 } as const
 
 export type RestaurantOrderScalarFieldEnum = (typeof RestaurantOrderScalarFieldEnum)[keyof typeof RestaurantOrderScalarFieldEnum]
@@ -1587,6 +1683,8 @@ export const RestaurantOrderItemScalarFieldEnum = {
   station: 'station',
   course: 'course',
   quantity: 'quantity',
+  fulfillment: 'fulfillment',
+  prepMinutes: 'prepMinutes',
   status: 'status',
   acceptedAt: 'acceptedAt',
   readyAt: 'readyAt',
@@ -1594,6 +1692,24 @@ export const RestaurantOrderItemScalarFieldEnum = {
 } as const
 
 export type RestaurantOrderItemScalarFieldEnum = (typeof RestaurantOrderItemScalarFieldEnum)[keyof typeof RestaurantOrderItemScalarFieldEnum]
+
+
+export const RestaurantPromotionScalarFieldEnum = {
+  id: 'id',
+  organizationId: 'organizationId',
+  title: 'title',
+  productType: 'productType',
+  menuItemId: 'menuItemId',
+  creditAmount: 'creditAmount',
+  startsAt: 'startsAt',
+  endsAt: 'endsAt',
+  active: 'active',
+  createdById: 'createdById',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type RestaurantPromotionScalarFieldEnum = (typeof RestaurantPromotionScalarFieldEnum)[keyof typeof RestaurantPromotionScalarFieldEnum]
 
 
 export const RestaurantItemEventScalarFieldEnum = {
@@ -1799,6 +1915,20 @@ export type BooleanFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel,
 
 
 /**
+ * Reference to a field of type 'RestaurantTableKind'
+ */
+export type EnumRestaurantTableKindFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'RestaurantTableKind'>
+
+
+
+/**
+ * Reference to a field of type 'RestaurantTableKind[]'
+ */
+export type ListEnumRestaurantTableKindFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'RestaurantTableKind[]'>
+
+
+
+/**
  * Reference to a field of type 'RestaurantVisitStatus'
  */
 export type EnumRestaurantVisitStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'RestaurantVisitStatus'>
@@ -1809,6 +1939,20 @@ export type EnumRestaurantVisitStatusFieldRefInput<$PrismaModel> = FieldRefInput
  * Reference to a field of type 'RestaurantVisitStatus[]'
  */
 export type ListEnumRestaurantVisitStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'RestaurantVisitStatus[]'>
+
+
+
+/**
+ * Reference to a field of type 'RestaurantInvoiceRequestStatus'
+ */
+export type EnumRestaurantInvoiceRequestStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'RestaurantInvoiceRequestStatus'>
+
+
+
+/**
+ * Reference to a field of type 'RestaurantInvoiceRequestStatus[]'
+ */
+export type ListEnumRestaurantInvoiceRequestStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'RestaurantInvoiceRequestStatus[]'>
 
 
 
@@ -1837,6 +1981,34 @@ export type EnumRestaurantCourseFieldRefInput<$PrismaModel> = FieldRefInputType<
  * Reference to a field of type 'RestaurantCourse[]'
  */
 export type ListEnumRestaurantCourseFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'RestaurantCourse[]'>
+
+
+
+/**
+ * Reference to a field of type 'RestaurantProductOrigin'
+ */
+export type EnumRestaurantProductOriginFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'RestaurantProductOrigin'>
+
+
+
+/**
+ * Reference to a field of type 'RestaurantProductOrigin[]'
+ */
+export type ListEnumRestaurantProductOriginFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'RestaurantProductOrigin[]'>
+
+
+
+/**
+ * Reference to a field of type 'RestaurantFulfillment'
+ */
+export type EnumRestaurantFulfillmentFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'RestaurantFulfillment'>
+
+
+
+/**
+ * Reference to a field of type 'RestaurantFulfillment[]'
+ */
+export type ListEnumRestaurantFulfillmentFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'RestaurantFulfillment[]'>
 
 
 
@@ -2122,6 +2294,7 @@ export type GlobalOmitConfig = {
   restaurantMenuItem?: Prisma.RestaurantMenuItemOmit
   restaurantOrder?: Prisma.RestaurantOrderOmit
   restaurantOrderItem?: Prisma.RestaurantOrderItemOmit
+  restaurantPromotion?: Prisma.RestaurantPromotionOmit
   restaurantItemEvent?: Prisma.RestaurantItemEventOmit
   restaurantStaffEvent?: Prisma.RestaurantStaffEventOmit
   organizationLocation?: Prisma.OrganizationLocationOmit

@@ -4,6 +4,7 @@ import { API_URL } from "@/lib/api";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
+import type { FormEvent } from "react";
 
 type Order = {
   id: string;
@@ -22,8 +23,11 @@ type Order = {
     status: string;
     course: string;
     station: string;
+    fulfillment: "DINE_IN" | "TAKEOUT";
   }[];
   billing: {
+    grossSubtotal: number;
+    promotionCredit: number;
     subtotal: number;
     tax: number;
     service: number;
@@ -33,6 +37,7 @@ type Order = {
     serviceRateBps: number;
     serviceChargeEnabled: boolean;
   };
+  invoiceRequestStatus: "NOT_REQUESTED" | "PENDING" | "PROCESSED" | "REJECTED";
 };
 const labels: Record<string, string> = {
   RECEIVED: "Received",
@@ -46,6 +51,14 @@ export default function RestaurantOrderPage() {
   const { accessCode } = useParams<{ accessCode: string }>();
   const [order, setOrder] = useState<Order | null>(null);
   const [error, setError] = useState("");
+  const [invoiceRequested, setInvoiceRequested] = useState(false);
+  const [invoiceForm, setInvoiceForm] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    taxId: "",
+  });
+  const [invoiceMessage, setInvoiceMessage] = useState("");
   const load = useCallback(async () => {
     try {
       const response = await fetch(
@@ -93,6 +106,28 @@ export default function RestaurantOrderPage() {
     order?.items.some((item) => item.status === "READY");
   const cancelled =
     allFinished && order?.items.every((item) => item.status === "CANCELLED");
+
+  async function requestInvoice(event: FormEvent) {
+    event.preventDefault();
+    const response = await fetch(
+      `${API_URL}/api/v1/restaurant/guest/orders/${encodeURIComponent(accessCode)}/invoice-request`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(invoiceForm),
+      },
+    );
+    const body = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      setError(body.message ?? "No se pudo registrar la solicitud");
+      return;
+    }
+    setInvoiceMessage(
+      "Solicitud registrada. La administración del restaurante preparará la factura electrónica.",
+    );
+    setInvoiceRequested(false);
+    await load();
+  }
   return (
     <main className="mx-auto max-w-2xl px-4 py-8 text-slate-900">
       <p className="font-semibold tracking-widest text-emerald-700">
@@ -103,7 +138,7 @@ export default function RestaurantOrderPage() {
         <p className="mt-3 rounded-lg bg-sky-50 px-4 py-3 font-semibold text-sky-900">
           {order.table.waiter
             ? `Mesero a cargo: ${order.table.waiter.name}`
-            : "Mesero por asignar. Consulte a cualquier empleado."}
+            : "Asignando mesero, es un gusto servirle."}
         </p>
       )}
       <p className="my-4 text-slate-600">
@@ -156,6 +191,7 @@ export default function RestaurantOrderPage() {
             <span>
               {item.quantity} × {item.name} · ₡
               {(item.price * item.quantity).toLocaleString()}
+              {item.fulfillment === "TAKEOUT" ? " · Para llevar" : ""}
             </span>
             <strong>{labels[item.status]}</strong>
           </div>
@@ -166,7 +202,17 @@ export default function RestaurantOrderPage() {
           <h2 className="mb-4 text-xl font-bold">Resumen de la cuenta</h2>
           <div className="space-y-2">
             <div className="flex justify-between">
-              <span>Subtotal</span>
+              <span>Subtotal de productos</span>
+              <span>₡{order.billing.grossSubtotal.toLocaleString()}</span>
+            </div>
+            {order.billing.promotionCredit > 0 && (
+              <div className="flex justify-between text-emerald-700">
+                <span>Crédito promocional</span>
+                <span>− ₡{order.billing.promotionCredit.toLocaleString()}</span>
+              </div>
+            )}
+            <div className="flex justify-between">
+              <span>Subtotal neto</span>
               <span>₡{order.billing.subtotal.toLocaleString()}</span>
             </div>
             <div className="flex justify-between">
@@ -190,6 +236,94 @@ export default function RestaurantOrderPage() {
               <span>₡{order.billing.total.toLocaleString()}</span>
             </div>
           </div>
+        </section>
+      )}
+      {order && (
+        <section className="mt-6 rounded-xl border bg-white p-5 shadow-sm">
+          <h2 className="text-xl font-bold">Factura electrónica</h2>
+          {order.invoiceRequestStatus === "NOT_REQUESTED" ? (
+            <>
+              <p className="mt-2">¿Necesita factura electrónica?</p>
+              {!invoiceRequested ? (
+                <button
+                  className="mt-3 rounded bg-slate-900 px-4 py-2 font-semibold text-white"
+                  onClick={() => setInvoiceRequested(true)}
+                >
+                  Solicitar factura
+                </button>
+              ) : (
+                <form className="mt-4 space-y-3" onSubmit={requestInvoice}>
+                  <input
+                    required
+                    maxLength={120}
+                    className="w-full rounded border p-3"
+                    placeholder="Nombre completo"
+                    value={invoiceForm.name}
+                    onChange={(event) =>
+                      setInvoiceForm((current) => ({
+                        ...current,
+                        name: event.target.value,
+                      }))
+                    }
+                  />
+                  <input
+                    required
+                    type="email"
+                    maxLength={160}
+                    className="w-full rounded border p-3"
+                    placeholder="Correo electrónico"
+                    value={invoiceForm.email}
+                    onChange={(event) =>
+                      setInvoiceForm((current) => ({
+                        ...current,
+                        email: event.target.value,
+                      }))
+                    }
+                  />
+                  <input
+                    required
+                    maxLength={40}
+                    className="w-full rounded border p-3"
+                    placeholder="Número telefónico"
+                    value={invoiceForm.phone}
+                    onChange={(event) =>
+                      setInvoiceForm((current) => ({
+                        ...current,
+                        phone: event.target.value,
+                      }))
+                    }
+                  />
+                  <input
+                    required
+                    maxLength={40}
+                    className="w-full rounded border p-3"
+                    placeholder="Identificación ante Hacienda"
+                    value={invoiceForm.taxId}
+                    onChange={(event) =>
+                      setInvoiceForm((current) => ({
+                        ...current,
+                        taxId: event.target.value,
+                      }))
+                    }
+                  />
+                  <p className="text-sm text-slate-600">
+                    Estos datos serán visibles únicamente para la administración
+                    del restaurante y se utilizarán para gestionar su factura.
+                  </p>
+                  <button className="rounded bg-emerald-600 px-4 py-2 font-semibold text-white">
+                    Enviar solicitud
+                  </button>
+                </form>
+              )}
+            </>
+          ) : (
+            <p className="mt-2 rounded bg-emerald-50 p-3 text-emerald-800">
+              Solicitud de factura: {order.invoiceRequestStatus.toLowerCase()}.
+            </p>
+          )}
+          {invoiceMessage && (
+            <p className="mt-3 text-emerald-700">{invoiceMessage}</p>
+          )}
         </section>
       )}
       <p className="mt-6 text-sm text-slate-500">

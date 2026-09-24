@@ -15,15 +15,20 @@ import { RolesGuard } from "../auth/roles.guard";
 import {
   AssignWaiterDto,
   CancelOrderDto,
+  CreatePromotionDto,
   CreateMenuItemDto,
   CreateTableDto,
   PlaceOrderDto,
+  RequestInvoiceDto,
   UpdateItemStatusDto,
+  UpdateItemFulfillmentDto,
+  UpdateInvoiceRequestDto,
   UpdateMenuItemDto,
   UpdateRestaurantRoleDto,
   UpdateRestaurantBillingDto,
   UpdateStaffAvailabilityDto,
   UpdateTableBillingDto,
+  UpdatePromotionDto,
 } from "./dto/restaurant.dto";
 import { RestaurantActor, RestaurantService } from "./restaurant.service";
 
@@ -48,6 +53,15 @@ export class RestaurantGuestController {
   @Get("orders/:accessCode")
   order(@Param("accessCode") accessCode: string) {
     return this.restaurant.guestOrder(accessCode);
+  }
+
+  @Throttle({ default: { limit: 3, ttl: 60000 } })
+  @Post("orders/:accessCode/invoice-request")
+  requestInvoice(
+    @Param("accessCode") accessCode: string,
+    @Body() dto: RequestInvoiceDto,
+  ) {
+    return this.restaurant.requestInvoice(accessCode, dto);
   }
 }
 
@@ -126,6 +140,39 @@ export class RestaurantStaffController {
     return this.restaurant.updateMenuItem(req.user, id, dto);
   }
 
+  @Get("promotions")
+  promotions(@Req() req: StaffRequest) {
+    return this.restaurant.promotions(req.user);
+  }
+
+  @Post("promotions")
+  addPromotion(@Req() req: StaffRequest, @Body() dto: CreatePromotionDto) {
+    return this.restaurant.addPromotion(req.user, dto);
+  }
+
+  @Patch("promotions/:id")
+  updatePromotion(
+    @Req() req: StaffRequest,
+    @Param("id") id: string,
+    @Body() dto: UpdatePromotionDto,
+  ) {
+    return this.restaurant.updatePromotion(req.user, id, dto);
+  }
+
+  @Get("invoice-requests")
+  invoiceRequests(@Req() req: StaffRequest) {
+    return this.restaurant.invoiceRequests(req.user);
+  }
+
+  @Patch("invoice-requests/:id")
+  updateInvoiceRequest(
+    @Req() req: StaffRequest,
+    @Param("id") id: string,
+    @Body() dto: UpdateInvoiceRequestDto,
+  ) {
+    return this.restaurant.updateInvoiceRequest(req.user, id, dto);
+  }
+
   @Get("orders")
   orders(@Req() req: StaffRequest) {
     return this.restaurant.orders(req.user);
@@ -143,6 +190,15 @@ export class RestaurantStaffController {
     @Body() dto: UpdateItemStatusDto,
   ) {
     return this.restaurant.updateStatus(req.user, id, dto);
+  }
+
+  @Patch("items/:id/fulfillment")
+  fulfillment(
+    @Req() req: StaffRequest,
+    @Param("id") id: string,
+    @Body() dto: UpdateItemFulfillmentDto,
+  ) {
+    return this.restaurant.updateItemFulfillment(req.user, id, dto);
   }
 
   @Get("staff-users")

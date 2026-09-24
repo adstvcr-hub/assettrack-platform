@@ -11,12 +11,14 @@ type Item = {
   quantity: number;
   station: "KITCHEN" | "BAR";
   status: string;
+  fulfillment: "DINE_IN" | "TAKEOUT";
 };
 type Order = {
   id: string;
   createdAt: string;
   table: { id: string; name: string };
   items: Item[];
+  isDelayed: boolean;
 };
 type Visit = {
   id: string;
@@ -31,6 +33,7 @@ type Visit = {
     quantity: number;
     price: number;
     status: string;
+    fulfillment: "DINE_IN" | "TAKEOUT";
   }>;
 };
 
@@ -119,6 +122,28 @@ export default function WaiterPage() {
     if (!response.ok) {
       const body = await response.json().catch(() => ({}));
       setError(body.message ?? "No se pudo confirmar la entrega");
+      return;
+    }
+    await load();
+  }
+
+  async function correctFulfillment(item: Item) {
+    const next = item.fulfillment === "TAKEOUT" ? "DINE_IN" : "TAKEOUT";
+    const reason = window.prompt(
+      `Motivo para cambiar a ${next === "TAKEOUT" ? "para llevar" : "consumo en el local"}`,
+    );
+    if (!reason?.trim()) return;
+    const response = await authenticatedFetch(
+      `${API_URL}/api/v1/restaurant/items/${item.id}/fulfillment`,
+      {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ fulfillment: next, reason: reason.trim() }),
+      },
+    );
+    if (!response.ok) {
+      const body = await response.json().catch(() => ({}));
+      setError(body.message ?? "No se pudo corregir la modalidad");
       return;
     }
     await load();
@@ -283,16 +308,12 @@ export default function WaiterPage() {
             <h2 className="text-xl font-bold">Cuentas activas</h2>
             <div className="mt-3 space-y-3">
               {visits.map((visit) => (
-                <div
-                  key={visit.id}
-                  className="rounded-lg border p-4"
-                >
+                <div key={visit.id} className="rounded-lg border p-4">
                   <div className="flex flex-wrap items-center justify-between gap-3">
                     <div>
                       <p className="font-bold">{visit.table.name}</p>
                       <p>
-                        Total acumulado: ₡
-                        {visit.billing.total.toLocaleString()}
+                        Total acumulado: ₡{visit.billing.total.toLocaleString()}
                       </p>
                     </div>
                     <button
@@ -325,11 +346,13 @@ export default function WaiterPage() {
                             <td className="p-2 font-medium">{item.name}</td>
                             <td className="p-2">{item.quantity}</td>
                             <td className="p-2 whitespace-nowrap">
-                              ₡
-                              {(item.price * item.quantity).toLocaleString()}
+                              ₡{(item.price * item.quantity).toLocaleString()}
                             </td>
                             <td className="p-2">
-                              {statusLabel[item.status] ?? item.status}
+                              {statusLabel[item.status] ?? item.status} ·{" "}
+                              {item.fulfillment === "TAKEOUT"
+                                ? "Para llevar"
+                                : "En local"}
                             </td>
                           </tr>
                         ))}
@@ -352,8 +375,14 @@ export default function WaiterPage() {
         {orders.map((order) => (
           <article
             key={order.id}
-            className="rounded-xl border bg-white p-5 shadow-sm"
+            className={`rounded-xl border bg-white p-5 shadow-sm ${order.isDelayed ? "border-red-500 ring-2 ring-red-200" : ""}`}
           >
+            {order.isDelayed && (
+              <p className="mb-3 rounded bg-red-100 p-3 font-bold text-red-900">
+                Esta orden superó el umbral interno. Informe personalmente al
+                cliente y coordine con la estación responsable.
+              </p>
+            )}
             <h2 className="text-2xl font-bold">{order.table.name}</h2>
             <p className="mb-4 text-sm text-slate-600">
               Pedido recibido a las{" "}
@@ -375,17 +404,28 @@ export default function WaiterPage() {
                     </strong>
                     <p className="text-sm text-slate-600">
                       {item.station === "KITCHEN" ? "Cocina" : "Bar"} ·{" "}
-                      {statusLabel[item.status] ?? item.status}
+                      {statusLabel[item.status] ?? item.status} ·{" "}
+                      {item.fulfillment === "TAKEOUT"
+                        ? "Para llevar"
+                        : "En local"}
                     </p>
                   </div>
-                  {item.status === "READY" && (
+                  <div className="flex flex-wrap gap-2">
                     <button
-                      className="rounded-lg bg-sky-700 px-5 py-3 font-bold text-white"
-                      onClick={() => void deliver(item.id)}
+                      className="rounded border px-3 py-2 text-sm"
+                      onClick={() => void correctFulfillment(item)}
                     >
-                      Confirmar entrega
+                      Corregir modalidad
                     </button>
-                  )}
+                    {item.status === "READY" && (
+                      <button
+                        className="rounded-lg bg-sky-700 px-5 py-3 font-bold text-white"
+                        onClick={() => void deliver(item.id)}
+                      >
+                        Confirmar entrega
+                      </button>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>

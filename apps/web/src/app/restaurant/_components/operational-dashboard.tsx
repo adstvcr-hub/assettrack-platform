@@ -13,12 +13,14 @@ type OrderItem = {
   station: Station;
   course: string;
   status: string;
+  fulfillment: "DINE_IN" | "TAKEOUT";
 };
 type Order = {
   id: string;
   createdAt: string;
   table: { name: string };
   items: OrderItem[];
+  isDelayed: boolean;
 };
 
 const nextStatus: Record<string, string | null> = {
@@ -135,13 +137,20 @@ export function OperationalDashboard({ station }: { station: Station }) {
         {items.map(({ order, item }) => (
           <article
             key={item.id}
-            className="rounded-xl border bg-white p-5 shadow-sm"
+            className={`rounded-xl border bg-white p-5 shadow-sm ${order.isDelayed ? "border-red-500 ring-2 ring-red-200" : ""}`}
           >
+            {order.isDelayed && (
+              <p className="mb-3 rounded bg-red-100 p-3 font-bold text-red-900">
+                Atención: esta orden superó el umbral interno de espera.
+                Priorice y coordine con el mesero.
+              </p>
+            )}
             <div className="flex flex-wrap items-center justify-between gap-4">
               <div>
                 <p className="text-2xl font-bold">{order.table.name}</p>
                 <p className="mt-1 text-xl">
                   {item.quantity} × {item.name}
+                  {item.fulfillment === "TAKEOUT" ? " · PARA LLEVAR" : ""}
                 </p>
                 <p className="mt-2 text-sm text-slate-600">
                   {labels[item.status] ?? item.status} · recibido a las{" "}

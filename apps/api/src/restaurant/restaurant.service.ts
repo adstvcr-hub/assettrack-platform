@@ -8,23 +8,32 @@ import {
 import { PrismaService } from "../prisma/prisma.service";
 import * as QRCode from "qrcode";
 import {
+  RestaurantFulfillment,
+  RestaurantInvoiceRequestStatus,
   RestaurantItemStatus,
   RestaurantStaffAvailability,
   RestaurantStaffRole,
   RestaurantStation,
+  RestaurantTableKind,
   RestaurantVisitStatus,
   UserRole,
 } from "../generated/prisma/enums";
 import {
   CreateMenuItemDto,
+  CreatePromotionDto,
   CreateTableDto,
   PlaceOrderDto,
+  RequestInvoiceDto,
   UpdateItemStatusDto,
+  UpdateItemFulfillmentDto,
+  UpdateInvoiceRequestDto,
   UpdateMenuItemDto,
   UpdateRestaurantBillingDto,
   UpdateStaffAvailabilityDto,
   UpdateTableBillingDto,
+  UpdatePromotionDto,
 } from "./dto/restaurant.dto";
+import type { Prisma } from "../generated/prisma/client";
 
 const transitions: Record<RestaurantItemStatus, RestaurantItemStatus[]> = {
   RECEIVED: [RestaurantItemStatus.ACCEPTED, RestaurantItemStatus.CANCELLED],
@@ -58,6 +67,91 @@ export class RestaurantService {
     if (this.effectiveRole(actor) !== RestaurantStaffRole.RESTAURANT_ADMIN) {
       throw new ForbiddenException("Restaurant administrator access required");
     }
+  }
+
+  private async rebalanceWaiterTables(
+    tx: Prisma.TransactionClient,
+    organizationId: string,
+  ) {
+    const [tables, waiters] = await Promise.all([
+      tx.restaurantTable.findMany({
+        where: {
+          organizationId,
+          active: true,
+          kind: RestaurantTableKind.DINING,
+        },
+        select: { id: true, name: true, waiterId: true },
+        orderBy: [{ name: "asc" }, { id: "asc" }],
+      }),
+      tx.user.findMany({
+        where: {
+          organizationId,
+          restaurantRole: RestaurantStaffRole.WAITER,
+          restaurantAvailability: RestaurantStaffAvailability.AVAILABLE,
+        },
+        select: { id: true, name: true, updatedAt: true },
+        orderBy: [{ updatedAt: "asc" }, { name: "asc" }, { id: "asc" }],
+      }),
+    ]);
+
+    if (!waiters.length) {
+      await tx.restaurantTable.updateMany({
+        where: { id: { in: tables.map((table) => table.id) } },
+        data: { waiterId: null },
+      });
+      return {
+        reassignments: [],
+        unassignedTables: tables.map(({ id, name }) => ({ id, name })),
+      };
+    }
+
+    const base = Math.floor(tables.length / waiters.length);
+    const remainder = tables.length % waiters.length;
+    const target = new Map(
+      waiters.map((waiter, index) => [
+        waiter.id,
+        base + (index < remainder ? 1 : 0),
+      ]),
+    );
+    const retained = new Map(waiters.map((waiter) => [waiter.id, 0]));
+    const pending: typeof tables = [];
+    for (const table of tables) {
+      const limit = table.waiterId ? target.get(table.waiterId) : undefined;
+      const count = table.waiterId ? (retained.get(table.waiterId) ?? 0) : 0;
+      if (table.waiterId && limit !== undefined && count < limit) {
+        retained.set(table.waiterId, count + 1);
+      } else {
+        pending.push(table);
+      }
+    }
+
+    const reassignments: Array<{
+      tableId: string;
+      tableName: string;
+      waiterId: string;
+      waiterName: string;
+    }> = [];
+    for (const table of pending) {
+      const waiter = waiters.find(
+        (candidate) =>
+          (retained.get(candidate.id) ?? 0) < (target.get(candidate.id) ?? 0),
+      );
+      if (!waiter) continue;
+      if (table.waiterId !== waiter.id) {
+        await tx.restaurantTable.update({
+          where: { id: table.id },
+          data: { waiterId: waiter.id },
+        });
+        reassignments.push({
+          tableId: table.id,
+          tableName: table.name,
+          waiterId: waiter.id,
+          waiterName: waiter.name,
+        });
+      }
+      retained.set(waiter.id, (retained.get(waiter.id) ?? 0) + 1);
+    }
+    return { reassignments, unassignedTables: [] };
   }
 
   async profile(actor: RestaurantActor) {
@@ -99,8 +193,21 @@ export class RestaurantService {
       where: { organizationId, name },
     });
     if (existing) throw new ConflictException("Table already exists");
-    return this.prisma.restaurantTable.create({
-      data: { organizationId, name },
+    return this.prisma.$transaction(async (tx) => {
+      const created = await tx.restaurantTable.create({
+        data: {
+          organizationId,
+          name,
+          kind: dto.kind ?? RestaurantTableKind.DINING,
+          serviceChargeEnabled:
+            (dto.kind ?? RestaurantTableKind.DINING) ===
+            RestaurantTableKind.DINING,
+        },
+      });
+      if (created.kind === RestaurantTableKind.DINING) {
+        await this.rebalanceWaiterTables(tx, organizationId);
+      }
+      return created;
     });
   }
 
@@ -211,7 +318,7 @@ export class RestaurantService {
           data: { waiterId: null },
         });
       }
-      return tx.user.update({
+      const updated = await tx.user.update({
         where: { id: userId },
         data: { restaurantRole: role },
         select: {
@@ -223,6 +330,8 @@ export class RestaurantService {
           restaurantAvailability: true,
         },
       });
+      await this.rebalanceWaiterTables(tx, actor.organizationId);
+      return updated;
     });
   }
 
@@ -265,7 +374,11 @@ export class RestaurantService {
           reason,
         },
       });
-      return updated;
+      const balance = await this.rebalanceWaiterTables(
+        tx,
+        actor.organizationId,
+      );
+      return { staff: updated, ...balance };
     });
   }
 
@@ -313,83 +426,12 @@ export class RestaurantService {
         },
       });
 
-      const reassignments: Array<{
-        tableId: string;
-        tableName: string;
-        waiterId: string;
-        waiterName: string;
-      }> = [];
-      const unassignedTables: Array<{ id: string; name: string }> = [];
+      const balance =
+        user.restaurantRole === RestaurantStaffRole.WAITER
+          ? await this.rebalanceWaiterTables(tx, actor.organizationId)
+          : { reassignments: [], unassignedTables: [] };
 
-      if (
-        user.restaurantRole === RestaurantStaffRole.WAITER &&
-        dto.availability !== RestaurantStaffAvailability.AVAILABLE
-      ) {
-        const [tables, waiters] = await Promise.all([
-          tx.restaurantTable.findMany({
-            where: {
-              organizationId: actor.organizationId,
-              waiterId: actor.id,
-              active: true,
-            },
-            select: { id: true, name: true },
-            orderBy: { name: "asc" },
-          }),
-          tx.user.findMany({
-            where: {
-              organizationId: actor.organizationId,
-              id: { not: actor.id },
-              restaurantRole: RestaurantStaffRole.WAITER,
-              restaurantAvailability: RestaurantStaffAvailability.AVAILABLE,
-            },
-            select: {
-              id: true,
-              name: true,
-              restaurantTables: {
-                where: { active: true },
-                select: { id: true },
-              },
-            },
-            orderBy: [{ name: "asc" }, { id: "asc" }],
-          }),
-        ]);
-
-        const workloads = waiters.map((waiter) => ({
-          id: waiter.id,
-          name: waiter.name,
-          activeTables: waiter.restaurantTables.length,
-        }));
-        for (const table of tables) {
-          workloads.sort(
-            (left, right) =>
-              left.activeTables - right.activeTables ||
-              left.name.localeCompare(right.name) ||
-              left.id.localeCompare(right.id),
-          );
-          const replacement = workloads[0];
-          if (!replacement) {
-            await tx.restaurantTable.update({
-              where: { id: table.id },
-              data: { waiterId: null },
-            });
-            unassignedTables.push(table);
-            continue;
-          }
-          await tx.restaurantTable.update({
-            where: { id: table.id },
-            data: { waiterId: replacement.id },
-          });
-          replacement.activeTables += 1;
-          reassignments.push({
-            tableId: table.id,
-            tableName: table.name,
-            waiterId: replacement.id,
-            waiterName: replacement.name,
-          });
-        }
-      }
-
-      return { staff: updated, reassignments, unassignedTables };
+      return { staff: updated, ...balance };
     });
   }
 
@@ -503,13 +545,123 @@ export class RestaurantService {
     });
   }
 
+  private validateProductImage(imageData?: string | null) {
+    if (!imageData) return null;
+    const match = imageData.match(
+      /^data:(image\/(?:jpeg|png|webp));base64,([A-Za-z0-9+/=]+)$/,
+    );
+    if (!match) {
+      throw new BadRequestException("Image must be JPEG, PNG or WebP");
+    }
+    const bytes = Buffer.byteLength(match[2], "base64");
+    if (bytes > 2 * 1024 * 1024) {
+      throw new BadRequestException("Image exceeds the 2 MB trial limit");
+    }
+    const buffer = Buffer.from(match[2], "base64");
+    const dimensions = this.productImageDimensions(buffer, match[1]);
+    if (!dimensions) throw new BadRequestException("Invalid image data");
+    if (dimensions.width > 1600 || dimensions.height > 1600) {
+      throw new BadRequestException(
+        "Image resolution exceeds the 1600 x 1600 trial limit",
+      );
+    }
+    return imageData;
+  }
+
+  private productImageDimensions(buffer: Buffer, mime: string) {
+    if (mime === "image/png") {
+      if (
+        buffer.length < 24 ||
+        buffer.subarray(0, 8).toString("hex") !== "89504e470d0a1a0a"
+      ) {
+        return null;
+      }
+      return {
+        width: buffer.readUInt32BE(16),
+        height: buffer.readUInt32BE(20),
+      };
+    }
+    if (mime === "image/jpeg") {
+      if (buffer.length < 4 || buffer[0] !== 0xff || buffer[1] !== 0xd8) {
+        return null;
+      }
+      let offset = 2;
+      const sof = new Set([
+        0xc0, 0xc1, 0xc2, 0xc3, 0xc5, 0xc6, 0xc7, 0xc9, 0xca, 0xcb, 0xcd, 0xce,
+        0xcf,
+      ]);
+      while (offset + 8 < buffer.length) {
+        if (buffer[offset] !== 0xff) {
+          offset += 1;
+          continue;
+        }
+        const marker = buffer[offset + 1];
+        if (sof.has(marker)) {
+          return {
+            height: buffer.readUInt16BE(offset + 5),
+            width: buffer.readUInt16BE(offset + 7),
+          };
+        }
+        const length = buffer.readUInt16BE(offset + 2);
+        if (length < 2) return null;
+        offset += length + 2;
+      }
+      return null;
+    }
+    if (
+      mime === "image/webp" &&
+      buffer.length >= 30 &&
+      buffer.subarray(0, 4).toString() === "RIFF" &&
+      buffer.subarray(8, 12).toString() === "WEBP"
+    ) {
+      const chunk = buffer.subarray(12, 16).toString();
+      if (chunk === "VP8X") {
+        return {
+          width: buffer.readUIntLE(24, 3) + 1,
+          height: buffer.readUIntLE(27, 3) + 1,
+        };
+      }
+      if (chunk === "VP8 " && buffer.length >= 30) {
+        return {
+          width: buffer.readUInt16LE(26) & 0x3fff,
+          height: buffer.readUInt16LE(28) & 0x3fff,
+        };
+      }
+      if (chunk === "VP8L" && buffer.length >= 25 && buffer[20] === 0x2f) {
+        return {
+          width: 1 + buffer[21] + ((buffer[22] & 0x3f) << 8),
+          height:
+            1 +
+            (buffer[22] >> 6) +
+            (buffer[23] << 2) +
+            ((buffer[24] & 0x0f) << 10),
+        };
+      }
+    }
+    return null;
+  }
+
   addMenuItem(actor: RestaurantActor, dto: CreateMenuItemDto) {
     this.requireRestaurantAdmin(actor);
     if (!dto.name.trim()) throw new BadRequestException("Item name required");
+    const productType = dto.productType.trim();
+    if (!productType) throw new BadRequestException("Product type required");
+    if (dto.origin === "HOUSE_MADE" && !dto.prepMinutes) {
+      throw new BadRequestException(
+        "Preparation time required for house-made products",
+      );
+    }
     return this.prisma.restaurantMenuItem.create({
       data: {
         ...dto,
         name: dto.name.trim(),
+        productType,
+        categories: [
+          ...new Set(
+            dto.categories?.map((value) => value.trim()).filter(Boolean) ?? [],
+          ),
+        ],
+        imageData: this.validateProductImage(dto.imageData),
         organizationId: actor.organizationId,
       },
     });
@@ -521,12 +673,141 @@ export class RestaurantService {
     dto: UpdateMenuItemDto,
   ) {
     this.requireRestaurantAdmin(actor);
+    const data = {
+      ...dto,
+      ...(dto.productType !== undefined
+        ? { productType: dto.productType.trim() }
+        : {}),
+      ...(dto.categories !== undefined
+        ? {
+            categories: [
+              ...new Set(
+                dto.categories.map((value) => value.trim()).filter(Boolean),
+              ),
+            ],
+          }
+        : {}),
+      ...(dto.imageData !== undefined
+        ? { imageData: this.validateProductImage(dto.imageData) }
+        : {}),
+    };
+    if (data.productType === "") {
+      throw new BadRequestException("Product type required");
+    }
     const result = await this.prisma.restaurantMenuItem.updateMany({
       where: { id, organizationId: actor.organizationId },
-      data: dto,
+      data,
     });
     if (!result.count) throw new NotFoundException("Menu item not found");
     return this.prisma.restaurantMenuItem.findUnique({ where: { id } });
+  }
+
+  promotions(actor: RestaurantActor) {
+    this.requireRestaurantAdmin(actor);
+    return this.prisma.restaurantPromotion.findMany({
+      where: { organizationId: actor.organizationId },
+      orderBy: [{ startsAt: "desc" }, { createdAt: "desc" }],
+    });
+  }
+
+  addPromotion(actor: RestaurantActor, dto: CreatePromotionDto) {
+    this.requireRestaurantAdmin(actor);
+    const startsAt = new Date(dto.startsAt);
+    const endsAt = new Date(dto.endsAt);
+    if (endsAt <= startsAt) {
+      throw new BadRequestException("Promotion end must follow its start");
+    }
+    if (!dto.productType?.trim() && !dto.menuItemId) {
+      throw new BadRequestException("Promotion target required");
+    }
+    return this.prisma.restaurantPromotion.create({
+      data: {
+        organizationId: actor.organizationId,
+        createdById: actor.id,
+        title: dto.title.trim(),
+        productType: dto.productType?.trim() || null,
+        menuItemId: dto.menuItemId ?? null,
+        creditAmount: dto.creditAmount,
+        startsAt,
+        endsAt,
+      },
+    });
+  }
+
+  async updatePromotion(
+    actor: RestaurantActor,
+    id: string,
+    dto: UpdatePromotionDto,
+  ) {
+    this.requireRestaurantAdmin(actor);
+    const current = await this.prisma.restaurantPromotion.findFirst({
+      where: { id, organizationId: actor.organizationId },
+    });
+    if (!current) throw new NotFoundException("Promotion not found");
+    const startsAt = dto.startsAt ? new Date(dto.startsAt) : current.startsAt;
+    const endsAt = dto.endsAt ? new Date(dto.endsAt) : current.endsAt;
+    if (endsAt <= startsAt) {
+      throw new BadRequestException("Promotion end must follow its start");
+    }
+    return this.prisma.restaurantPromotion.update({
+      where: { id },
+      data: {
+        ...dto,
+        ...(dto.startsAt ? { startsAt } : {}),
+        ...(dto.endsAt ? { endsAt } : {}),
+        ...(dto.title ? { title: dto.title.trim() } : {}),
+        ...(dto.productType !== undefined
+          ? { productType: dto.productType?.trim() || null }
+          : {}),
+      },
+    });
+  }
+
+  invoiceRequests(actor: RestaurantActor) {
+    this.requireRestaurantAdmin(actor);
+    return this.prisma.restaurantVisit.findMany({
+      where: {
+        organizationId: actor.organizationId,
+        invoiceRequestStatus: {
+          not: RestaurantInvoiceRequestStatus.NOT_REQUESTED,
+        },
+      },
+      include: { table: { select: { name: true } } },
+      orderBy: { invoiceRequestedAt: "desc" },
+    });
+  }
+
+  async updateInvoiceRequest(
+    actor: RestaurantActor,
+    id: string,
+    dto: UpdateInvoiceRequestDto,
+  ) {
+    this.requireRestaurantAdmin(actor);
+    const result = await this.prisma.restaurantVisit.updateMany({
+      where: { id, organizationId: actor.organizationId },
+      data: {
+        invoiceRequestStatus: dto.status,
+        invoiceReference: dto.reference?.trim() || null,
+      },
+    });
+    if (!result.count) throw new NotFoundException("Invoice request not found");
+    return this.prisma.restaurantVisit.findUnique({ where: { id } });
+  }
+
+  async requestInvoice(accessCode: string, dto: RequestInvoiceDto) {
+    const result = await this.prisma.restaurantVisit.updateMany({
+      where: { accessCode },
+      data: {
+        invoiceRequestStatus: RestaurantInvoiceRequestStatus.PENDING,
+        invoiceRequestedAt: new Date(),
+        invoiceName: dto.name.trim(),
+        invoiceEmail: dto.email.trim().toLowerCase(),
+        invoicePhone: dto.phone.trim(),
+        invoiceTaxId: dto.taxId.trim(),
+      },
+    });
+    if (!result.count) throw new NotFoundException("Account not found");
+    return { status: RestaurantInvoiceRequestStatus.PENDING };
   }
 
   async guestMenu(code: string) {
@@ -548,16 +829,63 @@ export class RestaurantService {
     const availableStations = await this.availableStations(
       table.organizationId,
     );
-    const menu = await this.prisma.restaurantMenuItem.findMany({
-      where: {
-        organizationId: table.organizationId,
-        active: true,
-      },
-      orderBy: { createdAt: "asc" },
-    });
+    const since = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+    const now = new Date();
+    const [menu, recentOrders, activeAccountCount, promotions] =
+      await Promise.all([
+        this.prisma.restaurantMenuItem.findMany({
+          where: {
+            organizationId: table.organizationId,
+            active: true,
+          },
+          orderBy: { createdAt: "asc" },
+        }),
+        this.prisma.restaurantOrder.findMany({
+          where: {
+            organizationId: table.organizationId,
+            createdAt: { gte: since },
+          },
+          select: {
+            items: {
+              where: { status: { not: RestaurantItemStatus.CANCELLED } },
+              select: { menuItem: { select: { productType: true } } },
+            },
+          },
+        }),
+        this.prisma.restaurantVisit.count({
+          where: { tableId: table.id, status: RestaurantVisitStatus.OPEN },
+        }),
+        this.prisma.restaurantPromotion.findMany({
+          where: {
+            organizationId: table.organizationId,
+            active: true,
+            startsAt: { lte: now },
+            endsAt: { gt: now },
+          },
+          orderBy: [{ startsAt: "desc" }, { createdAt: "desc" }],
+        }),
+      ]);
+    const popularity = new Map<string, number>();
+    for (const order of recentOrders) {
+      const types = new Set(
+        order.items.map((item) => item.menuItem.productType),
+      );
+      for (const type of types) {
+        popularity.set(type, (popularity.get(type) ?? 0) + 1);
+      }
+    }
+    const productTypes = [
+      ...new Set(menu.map((item) => item.productType)),
+    ].sort(
+      (left, right) =>
+        (popularity.get(right) ?? 0) - (popularity.get(left) ?? 0) ||
+        left.localeCompare(right),
+    );
     return {
       restaurant: table.organization.name,
       table: table.name,
+      tableKind: table.kind,
+      activeAccountCount,
       waiter: table.waiter,
       billing: {
         taxRateBps: table.organization.restaurantTaxRateBps,
@@ -565,6 +893,8 @@ export class RestaurantService {
         serviceRateBps: table.organization.restaurantServiceRateBps,
         serviceChargeEnabled: table.serviceChargeEnabled,
       },
+      productTypes,
+      promotions,
       menu: menu.map((item) => ({
         ...item,
         available:
@@ -622,25 +952,22 @@ export class RestaurantService {
     if (menu.length !== ids.length)
       throw new BadRequestException("Menu item unavailable");
     const byId = new Map(menu.map((item) => [item.id, item]));
-    const open = await this.prisma.restaurantOrder.count({
-      where: {
-        tableId: table.id,
-        items: {
-          some: {
-            status: { in: ["RECEIVED", "ACCEPTED", "PREPARING", "READY"] },
-          },
-        },
-      },
-    });
-    if (open >= 3)
-      throw new ConflictException(
-        "Please contact the staff before placing another order",
-      );
     try {
       return await this.prisma.$transaction(async (tx) => {
-        let visit = await tx.restaurantVisit.findFirst({
-          where: { tableId: table.id, status: RestaurantVisitStatus.OPEN },
-        });
+        let visit = dto.accountAccessCode
+          ? await tx.restaurantVisit.findFirst({
+              where: {
+                accessCode: dto.accountAccessCode,
+                tableId: table.id,
+                status: RestaurantVisitStatus.OPEN,
+              },
+            })
+          : null;
+        if (dto.accountAccessCode && !visit) {
+          throw new BadRequestException(
+            "The selected account is closed or does not belong to this table",
+          );
+        }
         if (!visit) {
           const settings = await tx.organization.findUniqueOrThrow({
             where: { id: table.organizationId },
@@ -661,25 +988,109 @@ export class RestaurantService {
             },
           });
         }
+        const defaultFulfillment =
+          table.kind === RestaurantTableKind.TAKEOUT_STATION
+            ? RestaurantFulfillment.TAKEOUT
+            : (dto.fulfillment ?? RestaurantFulfillment.DINE_IN);
+        const promotion = dto.promotionId
+          ? await tx.restaurantPromotion.findFirst({
+              where: {
+                id: dto.promotionId,
+                organizationId: table.organizationId,
+                active: true,
+                startsAt: { lte: new Date() },
+                endsAt: { gt: new Date() },
+              },
+            })
+          : null;
+        if (dto.promotionId && !promotion) {
+          throw new BadRequestException("Promotion is unavailable or expired");
+        }
+        const selectedItems = dto.items.map(
+          ({ menuItemId, quantity, fulfillment }) => {
+            const item = byId.get(menuItemId)!;
+            return {
+              item,
+              menuItemId,
+              quantity,
+              fulfillment:
+                table.kind === RestaurantTableKind.TAKEOUT_STATION
+                  ? RestaurantFulfillment.TAKEOUT
+                  : (fulfillment ?? defaultFulfillment),
+            };
+          },
+        );
+        const eligibleSubtotal = promotion
+          ? selectedItems
+              .filter(
+                ({ item }) =>
+                  (!promotion.menuItemId || promotion.menuItemId === item.id) &&
+                  (!promotion.productType ||
+                    promotion.productType === item.productType),
+              )
+              .reduce(
+                (sum, { item, quantity }) => sum + item.price * quantity,
+                0,
+              )
+          : 0;
+        const promotionCredit = promotion
+          ? Math.min(promotion.creditAmount, eligibleSubtotal)
+          : 0;
+        const baseMinutes = Math.max(
+          5,
+          ...selectedItems.map(({ item }) => item.prepMinutes ?? 5),
+        );
+        const activeWork = await tx.restaurantOrderItem.count({
+          where: {
+            order: { organizationId: table.organizationId },
+            status: {
+              in: [
+                RestaurantItemStatus.RECEIVED,
+                RestaurantItemStatus.ACCEPTED,
+                RestaurantItemStatus.PREPARING,
+                RestaurantItemStatus.READY,
+              ],
+            },
+          },
+        });
+        const expectedMinutes = Math.max(
+          5,
+          Math.round(baseMinutes * (1 + Math.min(activeWork, 30) / 30)),
+        );
+        const thresholdMinutes = Math.max(
+          expectedMinutes + 5,
+          Math.round(expectedMinutes * 1.35),
+        );
         const created = await tx.restaurantOrder.create({
           data: {
             organizationId: table.organizationId,
             tableId: table.id,
             visitId: visit.id,
             requestId: dto.requestId,
+            fulfillment: defaultFulfillment,
+            promotionId: promotion?.id,
+            promotionTitle: promotion?.title,
+            promotionCredit,
+            expectedMinutes,
+            thresholdMinutes,
             items: {
-              create: dto.items.map(({ menuItemId, quantity }) => {
-                const item = byId.get(menuItemId)!;
-                return {
-                  menuItemId,
-                  quantity,
-                  name: item.name,
-                  price: item.price,
-                  station: item.station,
-                  course: item.course,
-                  events: { create: { status: RestaurantItemStatus.RECEIVED } },
-                };
-              }),
+              create: selectedItems.map(
+                ({ item, menuItemId, quantity, fulfillment }) => {
+                  return {
+                    menuItemId,
+                    quantity,
+                    name: item.name,
+                    price: item.price,
+                    station: item.station,
+                    course: item.course,
+                    fulfillment,
+                    prepMinutes: item.prepMinutes,
+                    events: {
+                      create: { status: RestaurantItemStatus.RECEIVED },
+                    },
+                  };
+                },
+              ),
             },
           },
           include,
@@ -708,10 +1119,13 @@ export class RestaurantService {
       serviceRateBps: number;
     },
     serviceChargeEnabled: boolean,
+    promotionCredit = 0,
   ) {
-    const subtotal = items
+    const grossSubtotal = items
       .filter((item) => item.status !== RestaurantItemStatus.CANCELLED)
       .reduce((sum, item) => sum + item.price * item.quantity, 0);
+    const credit = Math.min(Math.max(0, promotionCredit), grossSubtotal);
+    const subtotal = grossSubtotal - credit;
     const tax = settings.taxIncluded
       ? Math.round(
           subtotal - (subtotal * 10000) / (10000 + settings.taxRateBps),
@@ -721,6 +1135,8 @@ export class RestaurantService {
       ? Math.round((subtotal * settings.serviceRateBps) / 10000)
       : 0;
     return {
+      grossSubtotal,
+      promotionCredit: credit,
       subtotal,
       tax,
       service,
@@ -762,11 +1178,20 @@ export class RestaurantService {
       table: visit.table,
       orders: visit.orders,
       items,
-      billing: this.billingTotals(items, visit, visit.serviceChargeEnabled),
+      invoiceRequestStatus: visit.invoiceRequestStatus,
+      billing: this.billingTotals(
+        items,
+        visit,
+        visit.serviceChargeEnabled,
+        visit.orders.reduce(
+          (sum, order) => sum + (order.promotionCredit ?? 0),
+          0,
+        ),
+      ),
     };
   }
 
-  orders(actor: RestaurantActor) {
+  async orders(actor: RestaurantActor) {
     const role = this.effectiveRole(actor);
     if (!role) throw new ForbiddenException("Restaurant role required");
     const station =
@@ -781,7 +1206,7 @@ export class RestaurantService {
       RestaurantItemStatus.PREPARING,
       RestaurantItemStatus.READY,
     ];
-    return this.prisma.restaurantOrder.findMany({
+    const orders = await this.prisma.restaurantOrder.findMany({
       where: {
         organizationId: actor.organizationId,
         ...(role === RestaurantStaffRole.WAITER
@@ -807,6 +1232,34 @@ export class RestaurantService {
       orderBy: { createdAt: "desc" },
       take: 100,
     });
+    const evaluated = orders.map((order) => ({
+      ...order,
+      isDelayed:
+        order.thresholdMinutes !== null &&
+        Date.now() - order.createdAt.getTime() >
+          order.thresholdMinutes * 60_000 &&
+        order.items.some(
+          (item) =>
+            item.status === RestaurantItemStatus.RECEIVED ||
+            item.status === RestaurantItemStatus.ACCEPTED ||
+            item.status === RestaurantItemStatus.PREPARING ||
+            item.status === RestaurantItemStatus.READY,
+        ),
+    }));
+    const newlyDelayed = evaluated
+      .filter((order) => order.isDelayed && order.delayedAt === null)
+      .map((order) => order.id);
+    if (newlyDelayed.length) {
+      const delayedAt = new Date();
+      await this.prisma.restaurantOrder.updateMany({
+        where: { id: { in: newlyDelayed }, delayedAt: null },
+        data: { delayedAt },
+      });
+      return evaluated.map((order) =>
+        newlyDelayed.includes(order.id) ? { ...order, delayedAt } : order,
+      );
+    }
+    return evaluated;
   }
 
   async visits(actor: RestaurantActor) {
@@ -851,7 +1304,15 @@ export class RestaurantService {
         openedAt: visit.openedAt,
         table: visit.table,
         items,
-        billing: this.billingTotals(items, visit, visit.serviceChargeEnabled),
+        billing: this.billingTotals(
+          items,
+          visit,
+          visit.serviceChargeEnabled,
+          visit.orders.reduce(
+            (sum, order) => sum + (order.promotionCredit ?? 0),
+            0,
+          ),
+        ),
         canClose: items.every(
           (item) =>
             item.status === RestaurantItemStatus.DELIVERED ||
@@ -924,6 +1385,47 @@ export class RestaurantService {
         data: { itemId: id, actorId: actor.id, status: dto.status },
       });
       return tx.restaurantOrderItem.findUnique({ where: { id } });
+    });
+  }
+
+  async updateItemFulfillment(
+    actor: RestaurantActor,
+    id: string,
+    dto: UpdateItemFulfillmentDto,
+  ) {
+    const reason = dto.reason.trim();
+    if (!reason) throw new BadRequestException("Correction reason required");
+    return this.prisma.$transaction(async (tx) => {
+      const item = await tx.restaurantOrderItem.findFirst({
+        where: { id, order: { organizationId: actor.organizationId } },
+        include: {
+          order: { select: { table: { select: { waiterId: true } } } },
+        },
+      });
+      if (!item) throw new NotFoundException("Order item not found");
+      const role = this.effectiveRole(actor);
+      const allowed =
+        role === RestaurantStaffRole.RESTAURANT_ADMIN ||
+        (role === RestaurantStaffRole.WAITER &&
+          item.order.table.waiterId === actor.id);
+      if (!allowed) {
+        throw new ForbiddenException(
+          "Only the assigned waiter or administrator can correct delivery mode",
+        );
+      }
+      const updated = await tx.restaurantOrderItem.update({
+        where: { id },
+        data: { fulfillment: dto.fulfillment },
+      });
+      await tx.restaurantItemEvent.create({
+        data: {
+          itemId: id,
+          actorId: actor.id,
+          status: item.status,
+          note: `Fulfillment corrected from ${item.fulfillment} to ${dto.fulfillment}: ${reason}`,
+        },
+      });
+      return updated;
     });
   }
 }

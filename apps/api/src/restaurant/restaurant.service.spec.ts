@@ -28,6 +28,8 @@ const menuItem = {
   price: 1200,
   station: "BAR",
   course: "DRINK",
+  productType: "Bebidas naturales",
+  prepMinutes: 5,
 };
 const kitchenActor = {
   id: "staff",
@@ -72,8 +74,16 @@ function createService() {
         accessCode: "visit-secret",
       }),
       update: vi.fn(),
+      updateMany: vi.fn(),
+      count: vi.fn().mockResolvedValue(0),
     },
     restaurantMenuItem: { findMany: vi.fn().mockResolvedValue([menuItem]) },
+    restaurantPromotion: {
+      findFirst: vi.fn().mockResolvedValue(null),
+      findMany: vi.fn().mockResolvedValue([]),
+      create: vi.fn(),
+      update: vi.fn(),
+    },
     restaurantOrder: {
       findUnique: vi.fn().mockResolvedValue(null),
       findMany: vi.fn().mockResolvedValue([]),
@@ -84,6 +94,7 @@ function createService() {
       findFirst: vi.fn(),
       updateMany: vi.fn(),
       findUnique: vi.fn(),
+      count: vi.fn().mockResolvedValue(0),
     },
     restaurantItemEvent: { create: vi.fn() },
     restaurantStaffEvent: { create: vi.fn() },
@@ -129,6 +140,26 @@ describe("RestaurantService", () => {
             ],
           },
         }),
+      }),
+    );
+  });
+
+  it("adds a new order to the private account supplied by the same device", async () => {
+    const { prisma, service } = createService();
+    prisma.restaurantVisit.findFirst.mockResolvedValue({
+      id: "visit-existing",
+      accessCode: "4e042db9-2f69-466f-bc62-8f50c9044ceb",
+    });
+
+    await service.placeOrder("table-code", {
+      ...payload,
+      accountAccessCode: "4e042db9-2f69-466f-bc62-8f50c9044ceb",
+    });
+
+    expect(prisma.restaurantVisit.create).not.toHaveBeenCalled();
+    expect(prisma.restaurantOrder.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({ visitId: "visit-existing" }),
       }),
     );
   });
@@ -257,6 +288,56 @@ describe("RestaurantService", () => {
         tax: 1365,
         service: 1050,
         total: 12915,
+      }),
+    );
+  });
+
+  it("subtracts promotional credit before tax and service", async () => {
+    const { prisma, service } = createService();
+    prisma.restaurantVisit.findUnique.mockResolvedValue({
+      id: "visit-a",
+      accessCode: "secret",
+      status: "OPEN",
+      openedAt: new Date(),
+      invoiceRequestStatus: "NOT_REQUESTED",
+      table: {
+        name: "Mesa 1",
+        code: "table-code",
+        serviceChargeEnabled: true,
+        waiter: null,
+      },
+      taxRateBps: 1300,
+      taxIncluded: false,
+      serviceRateBps: 1000,
+      serviceChargeEnabled: true,
+      orders: [
+        {
+          id: "order-1",
+          createdAt: new Date(),
+          promotionCredit: 1000,
+          items: [
+            {
+              id: "one",
+              name: "Casado",
+              price: 5000,
+              quantity: 1,
+              status: "DELIVERED",
+            },
+          ],
+        },
+      ],
+    });
+
+    const result = await service.guestOrder("secret");
+
+    expect(result.billing).toEqual(
+      expect.objectContaining({
+        grossSubtotal: 5000,
+        promotionCredit: 1000,
+        subtotal: 4000,
+        tax: 520,
+        service: 400,
+        total: 4920,
       }),
     );
   });
@@ -492,7 +573,7 @@ describe("RestaurantService", () => {
 
     expect(result.reassignments).toEqual([
       expect.objectContaining({ tableId: "table-1", waiterId: "waiter-b" }),
-      expect.objectContaining({ tableId: "table-2", waiterId: "waiter-b" }),
+      expect.objectContaining({ tableId: "table-2", waiterId: "waiter-c" }),
     ]);
     expect(prisma.restaurantTable.update).toHaveBeenNthCalledWith(1, {
       where: { id: "table-1" },
@@ -542,8 +623,8 @@ describe("RestaurantService", () => {
     expect(result.unassignedTables).toEqual([
       { id: "table-1", name: "Mesa 1" },
     ]);
-    expect(prisma.restaurantTable.update).toHaveBeenCalledWith({
-      where: { id: "table-1" },
+    expect(prisma.restaurantTable.updateMany).toHaveBeenCalledWith({
+      where: { id: { in: ["table-1"] } },
       data: { waiterId: null },
     });
   });

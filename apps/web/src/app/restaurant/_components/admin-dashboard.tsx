@@ -13,6 +13,7 @@ type Table = {
   waiterId?: string | null;
   waiter?: { id: string; name: string; email: string } | null;
   serviceChargeEnabled: boolean;
+  kind: "DINING" | "TAKEOUT_STATION";
 };
 type RestaurantRole = "RESTAURANT_ADMIN" | "KITCHEN" | "BAR" | "WAITER";
 type StaffUser = {
@@ -31,6 +32,31 @@ type MenuItem = {
   station: string;
   course: string;
   active: boolean;
+  productType: string;
+  categories: string[];
+  origin: "HOUSE_MADE" | "THIRD_PARTY";
+  prepMinutes?: number | null;
+  alcoholic: boolean;
+  imageData?: string | null;
+};
+type Promotion = {
+  id: string;
+  title: string;
+  productType?: string | null;
+  creditAmount: number;
+  startsAt: string;
+  endsAt: string;
+  active: boolean;
+};
+type InvoiceRequest = {
+  id: string;
+  table: { name: string };
+  invoiceRequestStatus: string;
+  invoiceName: string;
+  invoiceEmail: string;
+  invoicePhone: string;
+  invoiceTaxId: string;
+  invoiceRequestedAt: string;
 };
 type OrderItem = {
   id: string;
@@ -71,10 +97,28 @@ export default function RestaurantAdminDashboard() {
   const [staffUsers, setStaffUsers] = useState<StaffUser[]>([]);
   const [station, setStation] = useState<Station>("KITCHEN");
   const [tableName, setTableName] = useState("");
+  const [tableKind, setTableKind] = useState<"DINING" | "TAKEOUT_STATION">(
+    "DINING",
+  );
   const [itemName, setItemName] = useState("");
   const [price, setPrice] = useState("");
   const [itemStation, setItemStation] = useState<Station>("KITCHEN");
   const [course, setCourse] = useState("MAIN");
+  const [productType, setProductType] = useState("Platos fuertes");
+  const [categories, setCategories] = useState("");
+  const [origin, setOrigin] = useState<"HOUSE_MADE" | "THIRD_PARTY">(
+    "HOUSE_MADE",
+  );
+  const [prepMinutes, setPrepMinutes] = useState("10");
+  const [alcoholic, setAlcoholic] = useState(false);
+  const [imageData, setImageData] = useState<string | null>(null);
+  const [promotions, setPromotions] = useState<Promotion[]>([]);
+  const [invoiceRequests, setInvoiceRequests] = useState<InvoiceRequest[]>([]);
+  const [promotionTitle, setPromotionTitle] = useState("");
+  const [promotionType, setPromotionType] = useState("");
+  const [promotionCredit, setPromotionCredit] = useState("0");
+  const [promotionStart, setPromotionStart] = useState("");
+  const [promotionEnd, setPromotionEnd] = useState("");
   const [qr, setQr] = useState<{ url: string; image: string } | null>(null);
   const [error, setError] = useState("");
   const [billing, setBilling] = useState<BillingSettings | null>(null);
@@ -86,8 +130,16 @@ export default function RestaurantAdminDashboard() {
   const load = useCallback(async () => {
     try {
       const responses = await Promise.all(
-        ["tables", "menu", "orders", "staff-users", "billing-settings"].map(
-          (path) => authenticatedFetch(`${API_URL}/api/v1/restaurant/${path}`),
+        [
+          "tables",
+          "menu",
+          "orders",
+          "staff-users",
+          "billing-settings",
+          "promotions",
+          "invoice-requests",
+        ].map((path) =>
+          authenticatedFetch(`${API_URL}/api/v1/restaurant/${path}`),
         ),
       );
       if (responses.some((response) => response.status === 401)) {
@@ -100,13 +152,22 @@ export default function RestaurantAdminDashboard() {
       }
       if (responses.some((response) => !response.ok))
         throw new Error("Unable to load restaurant workspace");
-      const [tableData, menuData, orderData, staffData, billingData] =
-        await Promise.all(responses.map((response) => response.json()));
+      const [
+        tableData,
+        menuData,
+        orderData,
+        staffData,
+        billingData,
+        promotionData,
+        invoiceData,
+      ] = await Promise.all(responses.map((response) => response.json()));
       setTables(tableData);
       setMenu(menuData);
       setOrders(orderData);
       setStaffUsers(staffData);
       setBilling(billingData);
+      setPromotions(promotionData);
+      setInvoiceRequests(invoiceData);
       if (!billingInitialized.current) {
         setTaxRate(String(billingData.restaurantTaxRateBps / 100));
         setServiceRate(String(billingData.restaurantServiceRateBps / 100));
@@ -164,6 +225,42 @@ export default function RestaurantAdminDashboard() {
     } catch (err) {
       setError(err instanceof Error ? err.message : "QR unavailable");
     }
+  }
+
+  async function selectProductImage(file?: File) {
+    if (!file) {
+      setImageData(null);
+      return;
+    }
+    if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
+      setError("La imagen debe ser JPEG, PNG o WebP");
+      return;
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      setError("La imagen supera el límite de 2 MB de la prueba gratuita");
+      return;
+    }
+    const dataUrl = await new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onerror = () => reject(new Error("No se pudo leer la imagen"));
+      reader.onload = () => resolve(String(reader.result));
+      reader.readAsDataURL(file);
+    });
+    const dimensions = await new Promise<{ width: number; height: number }>(
+      (resolve, reject) => {
+        const image = new window.Image();
+        image.onerror = () => reject(new Error("La imagen no es válida"));
+        image.onload = () =>
+          resolve({ width: image.width, height: image.height });
+        image.src = dataUrl;
+      },
+    );
+    if (dimensions.width > 1600 || dimensions.height > 1600) {
+      setError("La resolución máxima es 1600 × 1600 píxeles");
+      return;
+    }
+    setImageData(dataUrl);
+    setError("");
   }
 
   const visible = orders.flatMap((order) =>
@@ -366,9 +463,10 @@ export default function RestaurantAdminDashboard() {
                 className="my-3 flex gap-2"
                 onSubmit={(event) => {
                   event.preventDefault();
-                  void post("tables", { name: tableName }).then(() =>
-                    setTableName(""),
-                  );
+                  void post("tables", {
+                    name: tableName,
+                    kind: tableKind,
+                  }).then(() => setTableName(""));
                 }}
               >
                 <input
@@ -379,6 +477,18 @@ export default function RestaurantAdminDashboard() {
                   value={tableName}
                   onChange={(event) => setTableName(event.target.value)}
                 />
+                <select
+                  className="rounded border bg-white p-2"
+                  value={tableKind}
+                  onChange={(event) =>
+                    setTableKind(
+                      event.target.value as "DINING" | "TAKEOUT_STATION",
+                    )
+                  }
+                >
+                  <option value="DINING">Mesa de salón</option>
+                  <option value="TAKEOUT_STATION">Estación para llevar</option>
+                </select>
                 <button className="rounded bg-slate-900 px-3 text-white">
                   Add table
                 </button>
@@ -389,25 +499,31 @@ export default function RestaurantAdminDashboard() {
                   className="grid gap-2 border-b py-3 sm:grid-cols-[1fr_220px_auto] sm:items-center"
                 >
                   <span>{table.name}</span>
-                  <select
-                    aria-label={`Mesero asignado a ${table.name}`}
-                    className="rounded border p-2"
-                    value={table.waiterId ?? ""}
-                    onChange={(event) =>
-                      void post(
-                        `tables/${table.id}/waiter`,
-                        { waiterId: event.target.value || null },
-                        "PATCH",
-                      )
-                    }
-                  >
-                    <option value="">Sin mesero asignado</option>
-                    {availableWaiters.map((waiter) => (
-                      <option key={waiter.id} value={waiter.id}>
-                        {waiter.name}
-                      </option>
-                    ))}
-                  </select>
+                  {table.kind === "DINING" ? (
+                    <select
+                      aria-label={`Mesero asignado a ${table.name}`}
+                      className="rounded border p-2"
+                      value={table.waiterId ?? ""}
+                      onChange={(event) =>
+                        void post(
+                          `tables/${table.id}/waiter`,
+                          { waiterId: event.target.value || null },
+                          "PATCH",
+                        )
+                      }
+                    >
+                      <option value="">Sin mesero asignado</option>
+                      {availableWaiters.map((waiter) => (
+                        <option key={waiter.id} value={waiter.id}>
+                          {waiter.name}
+                        </option>
+                      ))}
+                    </select>
+                  ) : (
+                    <span className="rounded bg-amber-50 p-2 text-sm font-semibold">
+                      Pedidos para llevar
+                    </span>
+                  )}
                   <button
                     className="text-emerald-700 underline"
                     onClick={() => void showQr(table.id)}
@@ -469,9 +585,20 @@ export default function RestaurantAdminDashboard() {
                     price: value,
                     station: itemStation,
                     course,
+                    productType,
+                    categories: categories
+                      .split(",")
+                      .map((value) => value.trim())
+                      .filter(Boolean),
+                    origin,
+                    prepMinutes:
+                      origin === "HOUSE_MADE" ? Number(prepMinutes) : undefined,
+                    alcoholic,
+                    imageData,
                   }).then(() => {
                     setItemName("");
                     setPrice("");
+                    setImageData(null);
                   });
                 }}
               >
@@ -483,6 +610,65 @@ export default function RestaurantAdminDashboard() {
                   value={itemName}
                   onChange={(event) => setItemName(event.target.value)}
                 />
+                <input
+                  required
+                  maxLength={60}
+                  className="w-full rounded border p-2"
+                  placeholder="Tipo de producto: Postres, Platos fuertes..."
+                  value={productType}
+                  onChange={(event) => setProductType(event.target.value)}
+                />
+                <input
+                  className="w-full rounded border p-2"
+                  placeholder="Categorías adicionales, separadas por coma"
+                  value={categories}
+                  onChange={(event) => setCategories(event.target.value)}
+                />
+                <div className="grid gap-2 sm:grid-cols-3">
+                  <select
+                    className="rounded border bg-white p-2"
+                    value={origin}
+                    onChange={(event) =>
+                      setOrigin(
+                        event.target.value as "HOUSE_MADE" | "THIRD_PARTY",
+                      )
+                    }
+                  >
+                    <option value="HOUSE_MADE">Hecho en casa</option>
+                    <option value="THIRD_PARTY">De terceros</option>
+                  </select>
+                  <input
+                    disabled={origin === "THIRD_PARTY"}
+                    required={origin === "HOUSE_MADE"}
+                    min="5"
+                    max="15"
+                    type="number"
+                    className="rounded border p-2"
+                    placeholder="Minutos de elaboración"
+                    value={prepMinutes}
+                    onChange={(event) => setPrepMinutes(event.target.value)}
+                  />
+                  <label className="flex items-center gap-2 rounded border p-2">
+                    <input
+                      type="checkbox"
+                      checked={alcoholic}
+                      onChange={(event) => setAlcoholic(event.target.checked)}
+                    />{" "}
+                    Contiene alcohol
+                  </label>
+                </div>
+                <label className="block rounded border p-2 text-sm">
+                  Imagen del producto (JPEG, PNG o WebP; máximo 2 MB y 1600 ×
+                  1600)
+                  <input
+                    className="mt-2 block w-full"
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp"
+                    onChange={(event) =>
+                      void selectProductImage(event.target.files?.[0])
+                    }
+                  />
+                </label>
                 <input
                   required
                   min="0"
@@ -525,8 +711,8 @@ export default function RestaurantAdminDashboard() {
                   className="flex items-center justify-between gap-2 border-b py-2"
                 >
                   <span>
-                    {item.name} · ₡{item.price.toLocaleString()}{" "}
-                    {item.active ? "" : "(unavailable)"}
+                    {item.name} · ₡{item.price.toLocaleString()} ·{" "}
+                    {item.productType} {item.active ? "" : "(unavailable)"}
                   </span>
                   <button
                     className="text-emerald-700 underline"
@@ -546,6 +732,178 @@ export default function RestaurantAdminDashboard() {
           </section>
         </>
       )}
+      <section className="mt-12 grid gap-8 lg:grid-cols-2">
+        <div className="rounded-xl border bg-white p-5">
+          <h2 className="text-xl font-bold">Promociones</h2>
+          <p className="mt-1 text-sm text-slate-600">
+            Una promoción vigente podrá mostrarse al iniciar una orden
+            adicional. El precio de catálogo no cambia; el beneficio se aplica
+            como crédito.
+          </p>
+          <form
+            className="mt-4 space-y-2"
+            onSubmit={(event) => {
+              event.preventDefault();
+              void post("promotions", {
+                title: promotionTitle,
+                productType: promotionType,
+                creditAmount: Number(promotionCredit),
+                startsAt: new Date(promotionStart).toISOString(),
+                endsAt: new Date(promotionEnd).toISOString(),
+              }).then(() => {
+                setPromotionTitle("");
+                setPromotionCredit("0");
+              });
+            }}
+          >
+            <input
+              required
+              className="w-full rounded border p-2"
+              placeholder="Nombre de la promoción"
+              value={promotionTitle}
+              onChange={(event) => setPromotionTitle(event.target.value)}
+            />
+            <input
+              required
+              className="w-full rounded border p-2"
+              placeholder="Tipo de producto promocionado"
+              value={promotionType}
+              onChange={(event) => setPromotionType(event.target.value)}
+              list="restaurant-product-types"
+            />
+            <datalist id="restaurant-product-types">
+              {[...new Set(menu.map((item) => item.productType))].map(
+                (type) => (
+                  <option key={type} value={type} />
+                ),
+              )}
+            </datalist>
+            <input
+              required
+              min="0"
+              type="number"
+              className="w-full rounded border p-2"
+              placeholder="Crédito en colones"
+              value={promotionCredit}
+              onChange={(event) => setPromotionCredit(event.target.value)}
+            />
+            <div className="grid gap-2 sm:grid-cols-2">
+              <label className="text-sm">
+                Inicio
+                <input
+                  required
+                  type="datetime-local"
+                  className="mt-1 w-full rounded border p-2"
+                  value={promotionStart}
+                  onChange={(event) => setPromotionStart(event.target.value)}
+                />
+              </label>
+              <label className="text-sm">
+                Final
+                <input
+                  required
+                  type="datetime-local"
+                  className="mt-1 w-full rounded border p-2"
+                  value={promotionEnd}
+                  onChange={(event) => setPromotionEnd(event.target.value)}
+                />
+              </label>
+            </div>
+            <button className="rounded bg-fuchsia-700 px-4 py-2 font-semibold text-white">
+              Crear promoción
+            </button>
+          </form>
+          <div className="mt-4 space-y-2">
+            {promotions.map((promotion) => (
+              <div key={promotion.id} className="rounded border p-3">
+                <div className="flex items-center justify-between">
+                  <strong>{promotion.title}</strong>
+                  <button
+                    className="text-emerald-700 underline"
+                    onClick={() =>
+                      void post(
+                        `promotions/${promotion.id}`,
+                        { active: !promotion.active },
+                        "PATCH",
+                      )
+                    }
+                  >
+                    {promotion.active ? "Desactivar" : "Activar"}
+                  </button>
+                </div>
+                <p className="text-sm">
+                  {promotion.productType} · crédito ₡
+                  {promotion.creditAmount.toLocaleString()}
+                </p>
+                <p className="text-xs text-slate-500">
+                  {new Date(promotion.startsAt).toLocaleString()} —{" "}
+                  {new Date(promotion.endsAt).toLocaleString()}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className="rounded-xl border bg-white p-5">
+          <h2 className="text-xl font-bold">
+            Solicitudes de factura electrónica
+          </h2>
+          <p className="mt-1 text-sm text-slate-600">
+            La aplicación recopila la solicitud; la emisión se realiza mediante
+            el proceso externo del restaurante.
+          </p>
+          <div className="mt-4 space-y-3">
+            {invoiceRequests.length === 0 && (
+              <p>No hay solicitudes pendientes.</p>
+            )}
+            {invoiceRequests.map((request) => (
+              <article key={request.id} className="rounded border p-3">
+                <strong>
+                  {request.table.name} · {request.invoiceName}
+                </strong>
+                <p className="text-sm">
+                  {request.invoiceTaxId} · {request.invoiceEmail} ·{" "}
+                  {request.invoicePhone}
+                </p>
+                <p className="text-sm">
+                  Estado: {request.invoiceRequestStatus}
+                </p>
+                {request.invoiceRequestStatus === "PENDING" && (
+                  <div className="mt-2 flex gap-2">
+                    <button
+                      className="rounded bg-emerald-700 px-3 py-1 text-white"
+                      onClick={() => {
+                        const reference = window.prompt(
+                          "Referencia de la factura emitida",
+                        );
+                        if (reference?.trim())
+                          void post(
+                            `invoice-requests/${request.id}`,
+                            { status: "PROCESSED", reference },
+                            "PATCH",
+                          );
+                      }}
+                    >
+                      Marcar procesada
+                    </button>
+                    <button
+                      className="rounded border border-red-500 px-3 py-1 text-red-700"
+                      onClick={() =>
+                        void post(
+                          `invoice-requests/${request.id}`,
+                          { status: "REJECTED" },
+                          "PATCH",
+                        )
+                      }
+                    >
+                      Rechazar
+                    </button>
+                  </div>
+                )}
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
       <section className="mt-12">
         <h2 className="text-xl font-bold">Personal y estación de trabajo</h2>
         <p className="mt-1 text-sm text-slate-600">

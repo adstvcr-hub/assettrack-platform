@@ -1,9 +1,11 @@
 "use client";
 
 import { API_URL } from "@/lib/api";
+import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
+type Fulfillment = "DINE_IN" | "TAKEOUT";
 type MenuItem = {
   id: string;
   name: string;
@@ -12,11 +14,26 @@ type MenuItem = {
   station: string;
   course: string;
   available: boolean;
+  productType: string;
+  categories: string[];
+  alcoholic: boolean;
+  imageData?: string | null;
+};
+type Promotion = {
+  id: string;
+  title: string;
+  productType?: string | null;
+  menuItemId?: string | null;
+  creditAmount: number;
 };
 type Menu = {
   restaurant: string;
   table: string;
+  tableKind: "DINING" | "TAKEOUT_STATION";
+  activeAccountCount: number;
   waiter: { id: string; name: string } | null;
+  productTypes: string[];
+  promotions: Promotion[];
   billing: {
     taxRateBps: number;
     taxIncluded: boolean;
@@ -31,10 +48,15 @@ export default function RestaurantTablePage() {
   const router = useRouter();
   const [data, setData] = useState<Menu | null>(null);
   const [quantities, setQuantities] = useState<Record<string, number>>({});
+  const [fulfillment, setFulfillment] = useState<Fulfillment>("DINE_IN");
+  const [takeoutItems, setTakeoutItems] = useState<Record<string, boolean>>({});
+  const [activeType, setActiveType] = useState<string | null>(null);
+  const [showMainMenu, setShowMainMenu] = useState(true);
   const [error, setError] = useState("");
   const [sending, setSending] = useState(false);
-  const [attempted, setAttempted] = useState(false);
   const [trackedOrder, setTrackedOrder] = useState<string | null>(null);
+  const [separateAcknowledged, setSeparateAcknowledged] = useState(false);
+  const [promotion, setPromotion] = useState<Promotion | null>(null);
   const requestId = useRef<string | null>(null);
 
   const load = useCallback(async () => {
@@ -43,15 +65,18 @@ export default function RestaurantTablePage() {
         `${API_URL}/api/v1/restaurant/guest/tables/${encodeURIComponent(code)}`,
         { cache: "no-store" },
       );
-      if (!response.ok)
-        throw new Error(
-          "This table is unavailable. Please ask the staff for assistance.",
-        );
-      setData(await response.json());
+      if (!response.ok) throw new Error("Esta estación no está disponible.");
+      const next: Menu = await response.json();
+      setData(next);
+      if (next.tableKind === "TAKEOUT_STATION") setFulfillment("TAKEOUT");
+      setActiveType((current) => current ?? next.productTypes[0] ?? null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Unable to load menu");
+      setError(
+        err instanceof Error ? err.message : "No se pudo cargar el menú",
+      );
     }
   }, [code]);
+
   useEffect(() => {
     void load();
     setTrackedOrder(
@@ -59,173 +84,363 @@ export default function RestaurantTablePage() {
     );
   }, [code, load]);
 
+  useEffect(() => {
+    if (!data || !trackedOrder || promotion) return;
+    const key = `assettrack_promotions_seen_${code}`;
+    const seen = new Set<string>(
+      JSON.parse(window.localStorage.getItem(key) ?? "[]") as string[],
+    );
+    const selected =
+      data.promotions.find((candidate) => !seen.has(candidate.id)) ??
+      data.promotions[0] ??
+      null;
+    if (selected) {
+      seen.add(selected.id);
+      window.localStorage.setItem(key, JSON.stringify([...seen]));
+      setPromotion(selected);
+    }
+  }, [code, data, promotion, trackedOrder]);
+
+  const recentTypes = useMemo(() => {
+    if (typeof window === "undefined") return [] as string[];
+    return JSON.parse(
+      window.localStorage.getItem(`assettrack_recent_types_${code}`) ?? "[]",
+    ) as string[];
+  }, [code, trackedOrder]);
+  const menuTypes = [
+    ...recentTypes.filter((type) => data?.productTypes.includes(type)),
+    ...(data?.productTypes.filter((type) => !recentTypes.includes(type)) ?? []),
+  ];
+  const visibleItems =
+    data?.menu.filter(
+      (item) => activeType === null || item.productType === activeType,
+    ) ?? [];
+
   async function submit() {
     const items = Object.entries(quantities)
       .filter(([, quantity]) => quantity > 0)
-      .map(([menuItemId, quantity]) => ({ menuItemId, quantity }));
+      .map(([menuItemId, quantity]) => ({
+        menuItemId,
+        quantity,
+        fulfillment:
+          data?.tableKind === "TAKEOUT_STATION" ||
+          fulfillment === "TAKEOUT" ||
+          takeoutItems[menuItemId]
+            ? "TAKEOUT"
+            : "DINE_IN",
+      }));
     if (!items.length) {
-      setError("Choose at least one item.");
+      setError("Seleccione al menos un producto.");
+      return;
+    }
+    if (
+      data &&
+      data.activeAccountCount > 0 &&
+      !trackedOrder &&
+      !separateAcknowledged
+    ) {
+      setError(
+        "Confirme que desea iniciar una cuenta separada para esta mesa.",
+      );
       return;
     }
     setSending(true);
     setError("");
     requestId.current ??= crypto.randomUUID();
-    setAttempted(true);
     try {
       const response = await fetch(
         `${API_URL}/api/v1/restaurant/guest/tables/${encodeURIComponent(code)}/orders`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ items, requestId: requestId.current }),
+          body: JSON.stringify({
+            items,
+            requestId: requestId.current,
+            accountAccessCode: trackedOrder ?? undefined,
+            fulfillment:
+              data?.tableKind === "TAKEOUT_STATION" ? "TAKEOUT" : fulfillment,
+            promotionId: promotion?.id,
+          }),
         },
       );
+      const body = await response.json();
       if (!response.ok) {
-        const body = await response.json();
         throw new Error(
-          Array.isArray(body.message)
-            ? body.message.join(", ")
-            : body.message || "Unable to place order",
+          Array.isArray(body.message) ? body.message.join(", ") : body.message,
         );
       }
-      const order = await response.json();
+      const orderedTypes = [
+        ...new Set(
+          items
+            .map(
+              (line) =>
+                data?.menu.find((item) => item.id === line.menuItemId)
+                  ?.productType,
+            )
+            .filter(Boolean) as string[],
+        ),
+      ];
+      window.localStorage.setItem(
+        `assettrack_recent_types_${code}`,
+        JSON.stringify([
+          ...orderedTypes,
+          ...recentTypes.filter((type) => !orderedTypes.includes(type)),
+        ]),
+      );
       window.localStorage.setItem(
         `assettrack_restaurant_order_${code}`,
-        order.accessCode,
+        body.accessCode,
       );
-      setTrackedOrder(order.accessCode);
-      router.push(`/restaurant/order/${order.accessCode}`);
+      router.push(`/restaurant/order/${body.accessCode}`);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Unable to place order");
+      setError(
+        err instanceof Error ? err.message : "No se pudo enviar la orden",
+      );
     } finally {
       setSending(false);
     }
   }
 
   const selected =
-    data?.menu.filter((item) => item.available && quantities[item.id] > 0) ??
-    [];
-  const subtotal = selected.reduce(
+    data?.menu.filter(
+      (item) => item.available && (quantities[item.id] ?? 0) > 0,
+    ) ?? [];
+  const grossSubtotal = selected.reduce(
     (sum, item) => sum + item.price * quantities[item.id],
     0,
   );
+  const eligible = promotion
+    ? selected
+        .filter(
+          (item) =>
+            (!promotion.menuItemId || promotion.menuItemId === item.id) &&
+            (!promotion.productType ||
+              promotion.productType === item.productType),
+        )
+        .reduce((sum, item) => sum + item.price * quantities[item.id], 0)
+    : 0;
+  const credit = Math.min(promotion?.creditAmount ?? 0, eligible);
+  const subtotal = grossSubtotal - credit;
   const tax = data?.billing.taxIncluded
     ? Math.round(
-        subtotal -
-          (subtotal * 10000) / (10000 + data.billing.taxRateBps),
+        subtotal - (subtotal * 10000) / (10000 + data.billing.taxRateBps),
       )
     : Math.round((subtotal * (data?.billing.taxRateBps ?? 0)) / 10000);
   const service = data?.billing.serviceChargeEnabled
     ? Math.round((subtotal * data.billing.serviceRateBps) / 10000)
     : 0;
-  const total =
-    subtotal + service + (data?.billing.taxIncluded ? 0 : tax);
+  const total = subtotal + service + (data?.billing.taxIncluded ? 0 : tax);
+
   return (
-    <main className="mx-auto max-w-2xl px-4 py-8 text-slate-900">
+    <main className="mx-auto max-w-4xl px-4 py-8 text-slate-900">
       {trackedOrder && (
         <button
           type="button"
           onClick={() => router.push(`/restaurant/order/${trackedOrder}`)}
-          className="fixed bottom-5 right-5 z-20 flex items-center gap-2 rounded-full bg-sky-700 px-5 py-3 font-bold text-white shadow-lg"
-          aria-label="Volver al seguimiento de mi pedido"
+          className="fixed bottom-5 right-5 z-20 rounded-full bg-sky-700 px-5 py-3 font-bold text-white shadow-lg"
         >
-          <span aria-hidden="true">🧾</span>
-          Ver mi pedido
+          🧾 Ver mi cuenta
         </button>
       )}
-      <header className="mb-8">
+      <header className="mb-6">
         <p className="font-semibold tracking-widest text-emerald-700">
-          ASSETTRACK · RESTAURANT
+          ASSETTRACK · RESTAURANTE
         </p>
-        <h1 className="text-3xl font-bold">{data?.restaurant ?? "Menu"}</h1>
-        <p>{data?.table ?? "Loading table..."}</p>
-        {data && (
+        <h1 className="text-3xl font-bold">{data?.restaurant ?? "Menú"}</h1>
+        <p>{data?.table ?? "Cargando..."}</p>
+        {data && data.tableKind === "DINING" && (
           <p className="mt-2 rounded-lg bg-sky-50 px-3 py-2 text-sky-900">
             {data.waiter
               ? `Mesero a cargo: ${data.waiter.name}`
-              : "Mesero por asignar. Consulte al personal."}
+              : "Asignando mesero, es un gusto servirle."}
           </p>
         )}
       </header>
+
+      {data &&
+        data.activeAccountCount > 0 &&
+        !trackedOrder &&
+        !separateAcknowledged && (
+          <section className="mb-5 rounded-xl border border-amber-300 bg-amber-50 p-4">
+            <p className="font-bold">
+              Está iniciando una cuenta separada en {data.table}.
+            </p>
+            <p className="mt-1 text-sm">
+              Sus pedidos y cobro se mantendrán separados de las demás cuentas.
+            </p>
+            <button
+              className="mt-3 rounded bg-amber-600 px-4 py-2 font-semibold text-white"
+              onClick={() => setSeparateAcknowledged(true)}
+            >
+              Comprendo, continuar
+            </button>
+          </section>
+        )}
+      {promotion && (
+        <section className="mb-5 rounded-xl bg-fuchsia-50 p-4 ring-1 ring-fuchsia-200">
+          <span className="text-xs font-bold uppercase tracking-wider text-fuchsia-700">
+            Promoción
+          </span>
+          <p className="font-bold">{promotion.title}</p>
+          {promotion.creditAmount > 0 && (
+            <p>Crédito de hasta ₡{promotion.creditAmount.toLocaleString()}.</p>
+          )}
+        </section>
+      )}
       {error && (
         <p role="alert" className="mb-4 rounded bg-red-50 p-4 text-red-800">
           {error}
         </p>
       )}
-      {data?.menu.length === 0 && (
-        <p>No menu items are available. Please ask the staff.</p>
+
+      {data?.tableKind === "DINING" && (
+        <fieldset className="mb-5 rounded-xl border bg-white p-4">
+          <legend className="px-2 font-bold">¿Cómo desea su pedido?</legend>
+          <label className="mr-5">
+            <input
+              type="radio"
+              checked={fulfillment === "DINE_IN"}
+              onChange={() => setFulfillment("DINE_IN")}
+            />{" "}
+            Consumir en el local
+          </label>
+          <label>
+            <input
+              type="radio"
+              checked={fulfillment === "TAKEOUT"}
+              onChange={() => setFulfillment("TAKEOUT")}
+            />{" "}
+            Todo para llevar
+          </label>
+        </fieldset>
       )}
-      <div className="space-y-4">
-        {data?.menu.map((item) => (
-          <section
-            key={item.id}
-            className={`rounded-xl border p-4 shadow-sm ${
-              item.available
-                ? "border-slate-200 bg-white"
-                : "border-amber-300 bg-amber-50"
+
+      <nav className="mb-5 flex flex-wrap gap-2">
+        <button
+          className="rounded bg-slate-900 px-4 py-2 font-semibold text-white"
+          onClick={() => setShowMainMenu(true)}
+        >
+          Menú principal
+        </button>
+        <button
+          className="rounded bg-emerald-600 px-4 py-2 font-semibold text-white"
+          onClick={() => setShowMainMenu(false)}
+        >
+          Menú rápido
+        </button>
+      </nav>
+      <div className="mb-6 flex flex-wrap gap-2">
+        {(showMainMenu ? (data?.productTypes ?? []) : menuTypes).map((type) => (
+          <button
+            key={type}
+            onClick={() => setActiveType(type)}
+            className={`rounded-full px-4 py-2 ${
+              activeType === type ? "bg-slate-900 text-white" : "bg-slate-100"
             }`}
           >
-            <div className="flex justify-between gap-4">
-              <div>
-                <span className="text-xs uppercase text-emerald-700">
-                  {item.course.toLowerCase()}
-                </span>
-                <h2 className="text-lg font-semibold">{item.name}</h2>
-                <p className="text-slate-600">{item.description}</p>
-                {!item.available && (
-                  <p className="mt-2 font-semibold text-amber-800">
-                    Temporalmente no disponible. Consulte al personal para más
-                    información.
-                  </p>
-                )}
+            {type}
+          </button>
+        ))}
+      </div>
+
+      <div className="grid gap-4 sm:grid-cols-2">
+        {visibleItems.map((item) => (
+          <section
+            key={item.id}
+            className={`overflow-hidden rounded-xl border shadow-sm ${
+              item.available ? "bg-white" : "bg-amber-50"
+            }`}
+          >
+            {item.imageData && (
+              <Image
+                src={item.imageData}
+                alt={item.name}
+                width={800}
+                height={600}
+                unoptimized
+                className="h-44 w-full object-cover"
+              />
+            )}
+            <div className="p-4">
+              <div className="flex justify-between gap-3">
+                <h2 className="text-lg font-bold">{item.name}</h2>
+                <strong>₡{item.price.toLocaleString()}</strong>
               </div>
-              <span className="whitespace-nowrap font-medium">
-                ₡{item.price.toLocaleString()}
-              </span>
+              <p className="text-slate-600">{item.description}</p>
+              {!item.available && (
+                <p className="mt-2 font-semibold text-amber-800">
+                  Temporalmente no disponible. Consulte al personal.
+                </p>
+              )}
+              <label className="mt-3 block">
+                Cantidad{" "}
+                <select
+                  className="ml-2 rounded border p-2"
+                  disabled={!item.available}
+                  value={quantities[item.id] ?? 0}
+                  onChange={(event) =>
+                    setQuantities((current) => ({
+                      ...current,
+                      [item.id]: Number(event.target.value),
+                    }))
+                  }
+                >
+                  {Array.from({ length: 11 }, (_, index) => (
+                    <option key={index} value={index}>
+                      {index}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              {data?.tableKind === "DINING" &&
+                fulfillment === "DINE_IN" &&
+                (quantities[item.id] ?? 0) > 0 && (
+                  <label className="mt-3 flex items-center gap-2 text-sm">
+                    <input
+                      type="checkbox"
+                      checked={Boolean(takeoutItems[item.id])}
+                      onChange={(event) =>
+                        setTakeoutItems((current) => ({
+                          ...current,
+                          [item.id]: event.target.checked,
+                        }))
+                      }
+                    />{" "}
+                    Este producto es para llevar
+                  </label>
+                )}
             </div>
-            <label className="mt-3 block">
-              Quantity{" "}
-              <select
-                className="ml-2 rounded border p-2"
-                disabled={attempted || !item.available}
-                value={quantities[item.id] ?? 0}
-                onChange={(event) =>
-                  setQuantities((current) => ({
-                    ...current,
-                    [item.id]: Number(event.target.value),
-                  }))
-                }
-              >
-                {Array.from({ length: 11 }, (_, i) => (
-                  <option key={i} value={i}>
-                    {i}
-                  </option>
-                ))}
-              </select>
-            </label>
           </section>
         ))}
       </div>
+
       {data && (
         <footer className="sticky bottom-0 mt-6 rounded-xl bg-slate-900 p-4 text-white">
           <div className="mb-4 space-y-1 text-sm">
             <div className="flex justify-between">
-              <span>Subtotal</span>
+              <span>Subtotal de productos</span>
+              <span>₡{grossSubtotal.toLocaleString()}</span>
+            </div>
+            {credit > 0 && (
+              <div className="flex justify-between text-emerald-300">
+                <span>Crédito promocional</span>
+                <span>− ₡{credit.toLocaleString()}</span>
+              </div>
+            )}
+            <div className="flex justify-between">
+              <span>Subtotal neto</span>
               <span>₡{subtotal.toLocaleString()}</span>
             </div>
             <div className="flex justify-between text-slate-300">
               <span>
-                IVA {(data.billing.taxRateBps / 100).toLocaleString()}%
+                IVA {data.billing.taxRateBps / 100}%
                 {data.billing.taxIncluded ? " (incluido)" : ""}
               </span>
               <span>₡{tax.toLocaleString()}</span>
             </div>
             {data.billing.serviceChargeEnabled && (
               <div className="flex justify-between text-slate-300">
-                <span>
-                  Servicio{" "}
-                  {(data.billing.serviceRateBps / 100).toLocaleString()}%
-                </span>
+                <span>Servicio {data.billing.serviceRateBps / 100}%</span>
                 <span>₡{service.toLocaleString()}</span>
               </div>
             )}
@@ -239,11 +454,11 @@ export default function RestaurantTablePage() {
             onClick={submit}
             className="w-full rounded bg-emerald-400 p-3 font-semibold text-slate-900 disabled:opacity-50"
           >
-            {sending ? "Sending..." : "Confirm order"}
+            {sending ? "Enviando..." : "Confirmar orden"}
           </button>
           <p className="mt-2 text-sm text-slate-300">
-            Payment is handled by the restaurant. Please check your order before
-            confirming.
+            Le atenderemos con prontitud. El pago es gestionado por el
+            restaurante.
           </p>
         </footer>
       )}

@@ -4,6 +4,8 @@ import {
   ArrayMinSize,
   IsArray,
   IsBoolean,
+  IsDateString,
+  IsEmail,
   IsEnum,
   IsInt,
   IsOptional,
@@ -17,13 +19,18 @@ import {
 import {
   RestaurantCourse,
   RestaurantItemStatus,
+  RestaurantFulfillment,
+  RestaurantInvoiceRequestStatus,
+  RestaurantProductOrigin,
   RestaurantStaffAvailability,
   RestaurantStaffRole,
   RestaurantStation,
+  RestaurantTableKind,
 } from "../../generated/prisma/enums";
 
 export class CreateTableDto {
   @IsString() @MaxLength(60) name!: string;
+  @IsOptional() @IsEnum(RestaurantTableKind) kind?: RestaurantTableKind;
 }
 
 export class CreateMenuItemDto {
@@ -32,6 +39,12 @@ export class CreateMenuItemDto {
   @IsInt() @Min(0) @Max(10000000) price!: number;
   @IsEnum(RestaurantStation) station!: RestaurantStation;
   @IsEnum(RestaurantCourse) course!: RestaurantCourse;
+  @IsString() @MaxLength(60) productType!: string;
+  @IsOptional() @IsArray() @IsString({ each: true }) categories?: string[];
+  @IsEnum(RestaurantProductOrigin) origin!: RestaurantProductOrigin;
+  @IsOptional() @IsInt() @Min(5) @Max(15) prepMinutes?: number;
+  @IsOptional() @IsBoolean() alcoholic?: boolean;
+  @IsOptional() @IsString() @MaxLength(2800000) imageData?: string;
 }
 
 export class UpdateMenuItemDto {
@@ -41,16 +54,39 @@ export class UpdateMenuItemDto {
   @IsOptional() @IsEnum(RestaurantStation) station?: RestaurantStation;
   @IsOptional() @IsEnum(RestaurantCourse) course?: RestaurantCourse;
   @IsOptional() @IsBoolean() active?: boolean;
+  @IsOptional() @IsString() @MaxLength(60) productType?: string;
+  @IsOptional() @IsArray() @IsString({ each: true }) categories?: string[];
+  @IsOptional()
+  @IsEnum(RestaurantProductOrigin)
+  origin?: RestaurantProductOrigin;
+  @IsOptional() @IsInt() @Min(5) @Max(15) prepMinutes?: number | null;
+  @IsOptional() @IsBoolean() alcoholic?: boolean;
+  @IsOptional() @IsString() @MaxLength(2800000) imageData?: string | null;
 }
 
 export class OrderLineDto {
   @IsUUID() menuItemId!: string;
   @IsInt() @Min(1) @Max(10) quantity!: number;
+  @IsOptional()
+  @IsEnum(RestaurantFulfillment)
+  fulfillment?: RestaurantFulfillment;
 }
 
 export class PlaceOrderDto {
   @IsUUID()
   requestId!: string;
+
+  @IsOptional()
+  @IsUUID()
+  accountAccessCode?: string;
+
+  @IsOptional()
+  @IsEnum(RestaurantFulfillment)
+  fulfillment?: RestaurantFulfillment;
+
+  @IsOptional()
+  @IsUUID()
+  promotionId?: string;
 
   @IsArray()
   @ArrayMinSize(1)
@@ -62,6 +98,11 @@ export class PlaceOrderDto {
 
 export class UpdateItemStatusDto {
   @IsEnum(RestaurantItemStatus) status!: RestaurantItemStatus;
+}
+
+export class UpdateItemFulfillmentDto {
+  @IsEnum(RestaurantFulfillment) fulfillment!: RestaurantFulfillment;
+  @IsString() @MaxLength(240) reason!: string;
 }
 
 export class UpdateRestaurantRoleDto {
@@ -101,4 +142,40 @@ export class CancelOrderDto {
   @IsString()
   @MaxLength(240)
   reason!: string;
+}
+
+export class RequestInvoiceDto {
+  @IsString() @MaxLength(120) name!: string;
+  @IsEmail() @MaxLength(160) email!: string;
+  @IsString() @MaxLength(40) phone!: string;
+  @IsString() @MaxLength(40) taxId!: string;
+}
+
+export class UpdateInvoiceRequestDto {
+  @IsEnum(RestaurantInvoiceRequestStatus)
+  status!: RestaurantInvoiceRequestStatus;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(120)
+  reference?: string;
+}
+
+export class CreatePromotionDto {
+  @IsString() @MaxLength(100) title!: string;
+  @IsOptional() @IsString() @MaxLength(60) productType?: string;
+  @IsOptional() @IsUUID() menuItemId?: string;
+  @IsInt() @Min(0) @Max(10000000) creditAmount!: number;
+  @IsDateString() startsAt!: string;
+  @IsDateString() endsAt!: string;
+}
+
+export class UpdatePromotionDto {
+  @IsOptional() @IsString() @MaxLength(100) title?: string;
+  @IsOptional() @IsString() @MaxLength(60) productType?: string | null;
+  @IsOptional() @IsUUID() menuItemId?: string | null;
+  @IsOptional() @IsInt() @Min(0) @Max(10000000) creditAmount?: number;
+  @IsOptional() @IsDateString() startsAt?: string;
+  @IsOptional() @IsDateString() endsAt?: string;
+  @IsOptional() @IsBoolean() active?: boolean;
 }

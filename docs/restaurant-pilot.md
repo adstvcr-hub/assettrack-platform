@@ -9,14 +9,21 @@ This is the first vertical slice of the restaurant module. It is intended for a 
 - A guest selects items, confirms an order, and receives a private status URL. The kitchen and bar queues are separated by station, and staff move each item through `RECEIVED → ACCEPTED → PREPARING → READY → DELIVERED` or cancel it before it is ready.
 - Kitchen and bar can only accept, start, and mark ready items for their own station. The assigned waiter sees only their tables and confirms delivery. Restaurant administrators retain the complete operational view and configuration access. These restrictions are enforced by the API, not only by the web interface.
 - Status changes and their actors are recorded. Menu names and prices are snapshotted on orders. No payments or invoices are collected by AssetTrack.
+- Waiter availability now triggers deterministic balancing of every active dining table across available waiters. Manual assignment remains restricted to restaurant administrators.
+- A physical table can hold multiple private accounts. A new browser session starts a separate account after a warning; a browser that already owns an open account adds later orders to that account.
+- Menu items support administrator-controlled product types, multiple categories, origin, preparation time, alcohol classification, and one trial image (JPEG/PNG/WebP, up to 2 MB and 1600 × 1600). The guest menu includes category navigation and a session-specific **Menú rápido**.
+- Orders can mix dine-in and takeout lines. An administrator can create a dedicated takeout QR station, which never receives a dining-table waiter assignment.
+- Active promotions are date-bound and may grant a separate credit. Product prices remain unchanged; the credit is subtracted before tax and service calculations.
+- Guests may request an electronic invoice by securely submitting contact and tax-identification data. AssetTrack records the request for authorized administrators; it does not issue the fiscal document.
+- Preparation estimates remain internal. Kitchen, bar, and waiter dashboards highlight orders that exceed the weighted operational threshold; guests are not shown minutes or automated delay messages.
 - The browser refreshes order status every five seconds while open. Keep the status URL private; it grants read access to that order. The QR alone grants ordering for that table, so display it only at the table and replace it if misused.
 
 ## Before an on-site pilot
 
-1. Apply `20260922000000_restaurant_pilot` and `20260922200000_restaurant_staff_roles` to a staging database, test the workflow, and confirm backup and restore procedures. The migrations do not modify existing scan records.
+1. Apply all migrations through `20260924190000_restaurant_revision_bundle` to a staging database, test the workflow, and confirm backup and restore procedures. The new migration preserves existing restaurant and scan records, removes the one-open-account-per-table restriction, and adds catalog, promotion, fulfillment, invoice-request, and internal timing fields.
 2. Set `PUBLIC_WEB_URL`, create a pilot organization, invite staff, add the tables and menu, and print and scan a QR from a real phone.
 3. Rehearse simultaneous orders, an unavailable item, a retry after a dropped connection, cancellation, and loss of connectivity. Confirm that guests are not shown an order as submitted before the API saves it.
-4. Observe baseline service times in the restaurant before publishing estimates. This initial slice shows stages; it intentionally does not promise estimated completion times without measured data.
+4. Observe baseline service times before relying on internal delay thresholds. Customers intentionally receive no numeric estimate; delays are communicated personally by the assigned waiter.
 5. Staff must offer an alternative to QR ordering. The existing point-of-sale process remains responsible for payment and invoicing.
 6. Confirm from a signed-out phone that `/restaurant/table/{code}` and `/restaurant/order/{accessCode}` are public. Preview deployment protection may request a Vercel login; production QR access must never require an AssetTrack or Vercel account.
 

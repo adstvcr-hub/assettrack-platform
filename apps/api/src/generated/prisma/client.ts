@@ -70,6 +70,11 @@ export type RestaurantOrder = Prisma.RestaurantOrderModel
  */
 export type RestaurantOrderItem = Prisma.RestaurantOrderItemModel
 /**
+ * Model RestaurantPromotion
+ *
+ */
+export type RestaurantPromotion = Prisma.RestaurantPromotionModel
+/**
  * Model RestaurantItemEvent
  *
  */
