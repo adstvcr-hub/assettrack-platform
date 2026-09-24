@@ -839,7 +839,13 @@ export class RestaurantService {
       orderBy: { openedAt: "desc" },
     });
     return visits.map((visit) => {
-      const items = visit.orders.flatMap((order) => order.items);
+      const items = visit.orders.flatMap((order) =>
+        order.items.map((item) => ({
+          ...item,
+          orderId: order.id,
+          orderCreatedAt: order.createdAt,
+        })),
+      );
       return {
         id: visit.id,
         openedAt: visit.openedAt,

@@ -261,6 +261,61 @@ describe("RestaurantService", () => {
     );
   });
 
+  it("returns consumption and order time in the waiter's active accounts", async () => {
+    const { prisma, service } = createService();
+    const orderedAt = new Date("2026-09-24T01:30:00.000Z");
+    prisma.restaurantVisit.findMany.mockResolvedValue([
+      {
+        id: "visit-a",
+        openedAt: orderedAt,
+        taxRateBps: 1300,
+        taxIncluded: false,
+        serviceRateBps: 1000,
+        serviceChargeEnabled: true,
+        table: {
+          id: "table-a",
+          name: "Mesa 1",
+          waiterId: "waiter-a",
+          serviceChargeEnabled: true,
+        },
+        orders: [
+          {
+            id: "order-a",
+            createdAt: orderedAt,
+            items: [
+              {
+                id: "item-a",
+                name: "Refresco",
+                price: 1500,
+                quantity: 2,
+                status: "DELIVERED",
+              },
+            ],
+          },
+        ],
+      },
+    ]);
+    const waiter = {
+      id: "waiter-a",
+      organizationId: "org-a",
+      role: UserRole.USER,
+      restaurantRole: RestaurantStaffRole.WAITER,
+      restaurantAvailability: RestaurantStaffAvailability.AVAILABLE,
+    };
+
+    const result = await service.visits(waiter);
+
+    expect(result[0].items[0]).toEqual(
+      expect.objectContaining({
+        name: "Refresco",
+        quantity: 2,
+        orderId: "order-a",
+        orderCreatedAt: orderedAt,
+      }),
+    );
+    expect(result[0].canClose).toBe(true);
+  });
+
   it("returns the existing order when the same request is retried", async () => {
     const { prisma, service } = createService();
     prisma.restaurantOrder.findUnique.mockResolvedValue(order);

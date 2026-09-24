@@ -23,6 +23,15 @@ type Visit = {
   table: { name: string };
   canClose: boolean;
   billing: { total: number };
+  items: Array<{
+    id: string;
+    orderId: string;
+    orderCreatedAt: string;
+    name: string;
+    quantity: number;
+    price: number;
+    status: string;
+  }>;
 };
 
 const statusLabel: Record<string, string> = {
@@ -30,6 +39,8 @@ const statusLabel: Record<string, string> = {
   ACCEPTED: "Aceptado",
   PREPARING: "En preparación",
   READY: "Listo",
+  DELIVERED: "Entregado",
+  CANCELLED: "Cancelado",
 };
 
 export default function WaiterPage() {
@@ -274,21 +285,57 @@ export default function WaiterPage() {
               {visits.map((visit) => (
                 <div
                   key={visit.id}
-                  className="flex flex-wrap items-center justify-between gap-3 rounded-lg border p-4"
+                  className="rounded-lg border p-4"
                 >
-                  <div>
-                    <p className="font-bold">{visit.table.name}</p>
-                    <p>
-                      Total acumulado: ₡{visit.billing.total.toLocaleString()}
-                    </p>
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <div>
+                      <p className="font-bold">{visit.table.name}</p>
+                      <p>
+                        Total acumulado: ₡
+                        {visit.billing.total.toLocaleString()}
+                      </p>
+                    </div>
+                    <button
+                      disabled={!visit.canClose}
+                      className="rounded-lg bg-slate-900 px-4 py-3 font-semibold text-white disabled:cursor-not-allowed disabled:opacity-40"
+                      onClick={() => void closeVisit(visit.id)}
+                    >
+                      {visit.canClose ? "Cerrar cuenta" : "Pedidos pendientes"}
+                    </button>
                   </div>
-                  <button
-                    disabled={!visit.canClose}
-                    className="rounded-lg bg-slate-900 px-4 py-3 font-semibold text-white disabled:cursor-not-allowed disabled:opacity-40"
-                    onClick={() => void closeVisit(visit.id)}
-                  >
-                    {visit.canClose ? "Cerrar cuenta" : "Pedidos pendientes"}
-                  </button>
+                  <div className="mt-4 overflow-x-auto">
+                    <table className="w-full min-w-[560px] text-left text-sm">
+                      <thead className="border-b bg-slate-50">
+                        <tr>
+                          <th className="p-2">Hora</th>
+                          <th className="p-2">Consumo</th>
+                          <th className="p-2">Cantidad</th>
+                          <th className="p-2">Importe</th>
+                          <th className="p-2">Estado</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {visit.items.map((item) => (
+                          <tr key={item.id} className="border-b last:border-0">
+                            <td className="p-2 whitespace-nowrap">
+                              {new Date(
+                                item.orderCreatedAt,
+                              ).toLocaleTimeString()}
+                            </td>
+                            <td className="p-2 font-medium">{item.name}</td>
+                            <td className="p-2">{item.quantity}</td>
+                            <td className="p-2 whitespace-nowrap">
+                              ₡
+                              {(item.price * item.quantity).toLocaleString()}
+                            </td>
+                            <td className="p-2">
+                              {statusLabel[item.status] ?? item.status}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
               ))}
             </div>
