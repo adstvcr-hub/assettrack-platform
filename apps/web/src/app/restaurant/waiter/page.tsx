@@ -24,7 +24,18 @@ type Visit = {
   id: string;
   table: { name: string };
   canClose: boolean;
-  billing: { total: number };
+  billing: {
+    grossSubtotal: number;
+    promotionCredit: number;
+    subtotal: number;
+    tax: number;
+    service: number;
+    total: number;
+    taxIncluded: boolean;
+    taxRateBps: number;
+    serviceRateBps: number;
+    serviceChargeEnabled: boolean;
+  };
   items: Array<{
     id: string;
     orderId: string;
@@ -129,16 +140,18 @@ export default function WaiterPage() {
 
   async function correctFulfillment(item: Item) {
     const next = item.fulfillment === "TAKEOUT" ? "DINE_IN" : "TAKEOUT";
-    const reason = window.prompt(
-      `Motivo para cambiar a ${next === "TAKEOUT" ? "para llevar" : "consumo en el local"}`,
-    );
-    if (!reason?.trim()) return;
+    if (
+      !window.confirm(
+        `¿Cambiar a ${next === "TAKEOUT" ? "PARA LLEVAR" : "CONSUMO EN EL LOCAL"}?`,
+      )
+    )
+      return;
     const response = await authenticatedFetch(
       `${API_URL}/api/v1/restaurant/items/${item.id}/fulfillment`,
       {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ fulfillment: next, reason: reason.trim() }),
+        body: JSON.stringify({ fulfillment: next }),
       },
     );
     if (!response.ok) {
@@ -333,6 +346,7 @@ export default function WaiterPage() {
                           <th className="p-2">Cantidad</th>
                           <th className="p-2">Importe</th>
                           <th className="p-2">Estado</th>
+                          <th className="p-2">Modalidad</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -349,16 +363,67 @@ export default function WaiterPage() {
                               ₡{(item.price * item.quantity).toLocaleString()}
                             </td>
                             <td className="p-2">
-                              {statusLabel[item.status] ?? item.status} ·{" "}
-                              {item.fulfillment === "TAKEOUT"
-                                ? "Para llevar"
-                                : "En local"}
+                              {statusLabel[item.status] ?? item.status}
+                            </td>
+                            <td className="p-2">
+                              <span
+                                className={`inline-flex rounded-full px-3 py-1 text-sm font-black ${
+                                  item.fulfillment === "TAKEOUT"
+                                    ? "bg-fuchsia-100 text-fuchsia-900 ring-1 ring-fuchsia-300"
+                                    : "bg-sky-100 text-sky-900 ring-1 ring-sky-300"
+                                }`}
+                              >
+                                {item.fulfillment === "TAKEOUT"
+                                  ? "PARA LLEVAR"
+                                  : "CONSUMO EN EL LOCAL"}
+                              </span>
                             </td>
                           </tr>
                         ))}
                       </tbody>
                     </table>
                   </div>
+                  <dl className="mt-4 ml-auto grid max-w-md grid-cols-2 gap-x-5 gap-y-1 rounded-lg bg-slate-50 p-4 text-sm">
+                    <dt>Subtotal de productos</dt>
+                    <dd className="text-right">
+                      ₡{visit.billing.grossSubtotal.toLocaleString()}
+                    </dd>
+                    {visit.billing.promotionCredit > 0 && (
+                      <>
+                        <dt className="text-emerald-700">
+                          Crédito promocional
+                        </dt>
+                        <dd className="text-right text-emerald-700">
+                          − ₡{visit.billing.promotionCredit.toLocaleString()}
+                        </dd>
+                      </>
+                    )}
+                    <dt>Subtotal neto</dt>
+                    <dd className="text-right">
+                      ₡{visit.billing.subtotal.toLocaleString()}
+                    </dd>
+                    <dt>
+                      IVA {visit.billing.taxRateBps / 100}%
+                      {visit.billing.taxIncluded ? " (incluido)" : ""}
+                    </dt>
+                    <dd className="text-right">
+                      ₡{visit.billing.tax.toLocaleString()}
+                    </dd>
+                    {visit.billing.serviceChargeEnabled && (
+                      <>
+                        <dt>Servicio {visit.billing.serviceRateBps / 100}%</dt>
+                        <dd className="text-right">
+                          ₡{visit.billing.service.toLocaleString()}
+                        </dd>
+                      </>
+                    )}
+                    <dt className="border-t pt-2 text-base font-black">
+                      Total a pagar
+                    </dt>
+                    <dd className="border-t pt-2 text-right text-base font-black">
+                      ₡{visit.billing.total.toLocaleString()}
+                    </dd>
+                  </dl>
                 </div>
               ))}
             </div>
@@ -404,11 +469,19 @@ export default function WaiterPage() {
                     </strong>
                     <p className="text-sm text-slate-600">
                       {item.station === "KITCHEN" ? "Cocina" : "Bar"} ·{" "}
-                      {statusLabel[item.status] ?? item.status} ·{" "}
-                      {item.fulfillment === "TAKEOUT"
-                        ? "Para llevar"
-                        : "En local"}
+                      {statusLabel[item.status] ?? item.status}
                     </p>
+                    <span
+                      className={`mt-2 inline-flex rounded-full px-4 py-2 text-base font-black ${
+                        item.fulfillment === "TAKEOUT"
+                          ? "bg-fuchsia-100 text-fuchsia-900 ring-2 ring-fuchsia-300"
+                          : "bg-sky-100 text-sky-900 ring-2 ring-sky-300"
+                      }`}
+                    >
+                      {item.fulfillment === "TAKEOUT"
+                        ? "PARA LLEVAR"
+                        : "CONSUMO EN EL LOCAL"}
+                    </span>
                   </div>
                   <div className="flex flex-wrap gap-2">
                     <button

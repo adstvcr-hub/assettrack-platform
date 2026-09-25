@@ -102,7 +102,7 @@ export class UpdateItemStatusDto {
 
 export class UpdateItemFulfillmentDto {
   @IsEnum(RestaurantFulfillment) fulfillment!: RestaurantFulfillment;
-  @IsString() @MaxLength(240) reason!: string;
+  @IsOptional() @IsString() @MaxLength(240) reason?: string;
 }
 
 export class UpdateRestaurantRoleDto {

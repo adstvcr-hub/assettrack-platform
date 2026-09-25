@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   Patch,
@@ -138,6 +139,11 @@ export class RestaurantStaffController {
     @Body() dto: UpdateMenuItemDto,
   ) {
     return this.restaurant.updateMenuItem(req.user, id, dto);
+  }
+
+  @Delete("menu/:id")
+  deleteMenu(@Req() req: StaffRequest, @Param("id") id: string) {
+    return this.restaurant.deleteMenuItem(req.user, id);
   }
 
   @Get("promotions")

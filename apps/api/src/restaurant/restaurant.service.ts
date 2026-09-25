@@ -527,9 +527,28 @@ export class RestaurantService {
       where: { id, organizationId: actor.organizationId },
     });
     if (!table) throw new NotFoundException("Table not found");
-    const base = (
-      process.env.PUBLIC_WEB_URL ?? "http://localhost:3001"
-    ).replace(/\/$/, "");
+    const configured = process.env.PUBLIC_WEB_URL?.trim();
+    if (process.env.NODE_ENV === "production" && !configured) {
+      throw new BadRequestException(
+        "PUBLIC_WEB_URL must use the public web domain",
+      );
+    }
+    const base = (configured ?? "http://localhost:3001").replace(/\/$/, "");
+    let publicUrl: URL;
+    try {
+      publicUrl = new URL(base);
+    } catch {
+      throw new BadRequestException("PUBLIC_WEB_URL is invalid");
+    }
+    if (
+      process.env.NODE_ENV === "production" &&
+      publicUrl.hostname.endsWith(".vercel.app") &&
+      publicUrl.hostname.includes("-git-")
+    ) {
+      throw new BadRequestException(
+        "PUBLIC_WEB_URL points to a protected Vercel preview; configure a public production domain",
+      );
+    }
     const url = `${base}/restaurant/table/${table.code}`;
     return {
       url,
@@ -700,6 +719,25 @@ export class RestaurantService {
     });
     if (!result.count) throw new NotFoundException("Menu item not found");
     return this.prisma.restaurantMenuItem.findUnique({ where: { id } });
+  }
+
+  async deleteMenuItem(actor: RestaurantActor, id: string) {
+    this.requireRestaurantAdmin(actor);
+    const item = await this.prisma.restaurantMenuItem.findFirst({
+      where: { id, organizationId: actor.organizationId },
+      select: { id: true },
+    });
+    if (!item) throw new NotFoundException("Menu item not found");
+    const historicalOrders = await this.prisma.restaurantOrderItem.count({
+      where: { menuItemId: id },
+    });
+    if (historicalOrders > 0) {
+      throw new ConflictException(
+        "This product has order history and must be archived instead",
+      );
+    }
+    await this.prisma.restaurantMenuItem.delete({ where: { id } });
+    return { deleted: true };
   }
 
   promotions(actor: RestaurantActor) {
@@ -894,7 +932,21 @@ export class RestaurantService {
         serviceChargeEnabled: table.serviceChargeEnabled,
       },
       productTypes,
-      promotions,
+      promotions: promotions
+        .map((promotion) => ({
+          ...promotion,
+          menuItem:
+            menu.find(
+              (item) =>
+                (promotion.menuItemId
+                  ? item.id === promotion.menuItemId
+                  : item.productType === promotion.productType) &&
+                (item.station === RestaurantStation.KITCHEN
+                  ? availableStations.has(RestaurantStaffRole.KITCHEN)
+                  : availableStations.has(RestaurantStaffRole.BAR)),
+            ) ?? null,
+        }))
+        .filter((promotion) => promotion.menuItem !== null),
       menu: menu.map((item) => ({
         ...item,
         available:
@@ -1156,6 +1208,7 @@ export class RestaurantService {
           select: {
             name: true,
             code: true,
+            kind: true,
             serviceChargeEnabled: true,
             waiter: { select: { id: true, name: true } },
           },
@@ -1167,6 +1220,37 @@ export class RestaurantService {
       },
     });
     if (!visit) throw new NotFoundException("Order not found");
+    const now = new Date();
+    const [promotionRows, menu, availableStations] = await Promise.all([
+      this.prisma.restaurantPromotion.findMany({
+        where: {
+          organizationId: visit.organizationId,
+          active: true,
+          startsAt: { lte: now },
+          endsAt: { gt: now },
+        },
+        orderBy: [{ startsAt: "desc" }, { createdAt: "desc" }],
+      }),
+      this.prisma.restaurantMenuItem.findMany({
+        where: { organizationId: visit.organizationId, active: true },
+      }),
+      this.availableStations(visit.organizationId),
+    ]);
+    const promotions = promotionRows
+      .map((promotion) => ({
+        ...promotion,
+        menuItem:
+          menu.find(
+            (item) =>
+              (promotion.menuItemId
+                ? item.id === promotion.menuItemId
+                : item.productType === promotion.productType) &&
+              (item.station === RestaurantStation.KITCHEN
+                ? availableStations.has(RestaurantStaffRole.KITCHEN)
+                : availableStations.has(RestaurantStaffRole.BAR)),
+          ) ?? null,
+      }))
+      .filter((promotion) => promotion.menuItem !== null);
     const items = visit.orders.flatMap((order) =>
       order.items.map((item) => ({ ...item, orderCreatedAt: order.createdAt })),
     );
@@ -1179,6 +1263,7 @@ export class RestaurantService {
       orders: visit.orders,
       items,
       invoiceRequestStatus: visit.invoiceRequestStatus,
+      promotions,
       billing: this.billingTotals(
         items,
         visit,
@@ -1393,8 +1478,7 @@ export class RestaurantService {
     id: string,
     dto: UpdateItemFulfillmentDto,
   ) {
-    const reason = dto.reason.trim();
-    if (!reason) throw new BadRequestException("Correction reason required");
+    const reason = dto.reason?.trim() || null;
     return this.prisma.$transaction(async (tx) => {
       const item = await tx.restaurantOrderItem.findFirst({
         where: { id, order: { organizationId: actor.organizationId } },
@@ -1422,7 +1506,7 @@ export class RestaurantService {
           itemId: id,
           actorId: actor.id,
           status: item.status,
-          note: `Fulfillment corrected from ${item.fulfillment} to ${dto.fulfillment}: ${reason}`,
+          note: `Fulfillment corrected from ${item.fulfillment} to ${dto.fulfillment}${reason ? `: ${reason}` : ""}`,
         },
       });
       return updated;

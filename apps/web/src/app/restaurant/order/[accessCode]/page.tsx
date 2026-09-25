@@ -13,6 +13,7 @@ type Order = {
   table: {
     name: string;
     code: string;
+    kind: "DINING" | "TAKEOUT_STATION";
     waiter: { id: string; name: string } | null;
   };
   items: {
@@ -38,6 +39,17 @@ type Order = {
     serviceChargeEnabled: boolean;
   };
   invoiceRequestStatus: "NOT_REQUESTED" | "PENDING" | "PROCESSED" | "REJECTED";
+  promotions: Array<{
+    id: string;
+    title: string;
+    creditAmount: number;
+    menuItem: {
+      id: string;
+      name: string;
+      price: number;
+      productType: string;
+    };
+  }>;
 };
 const labels: Record<string, string> = {
   RECEIVED: "Received",
@@ -59,6 +71,9 @@ export default function RestaurantOrderPage() {
     taxId: "",
   });
   const [invoiceMessage, setInvoiceMessage] = useState("");
+  const [promotionQuantity, setPromotionQuantity] = useState(1);
+  const [addingPromotion, setAddingPromotion] = useState(false);
+  const [promotionMessage, setPromotionMessage] = useState("");
   const load = useCallback(async () => {
     try {
       const response = await fetch(
@@ -128,6 +143,44 @@ export default function RestaurantOrderPage() {
     setInvoiceRequested(false);
     await load();
   }
+
+  async function addPromotion() {
+    const promotion = order?.promotions[0];
+    if (!order || !promotion) return;
+    setAddingPromotion(true);
+    setError("");
+    setPromotionMessage("");
+    const response = await fetch(
+      `${API_URL}/api/v1/restaurant/guest/tables/${encodeURIComponent(order.table.code)}/orders`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          requestId: crypto.randomUUID(),
+          accountAccessCode: accessCode,
+          promotionId: promotion.id,
+          fulfillment:
+            order.table.kind === "TAKEOUT_STATION" ? "TAKEOUT" : "DINE_IN",
+          items: [
+            {
+              menuItemId: promotion.menuItem.id,
+              quantity: promotionQuantity,
+              fulfillment:
+                order.table.kind === "TAKEOUT_STATION" ? "TAKEOUT" : "DINE_IN",
+            },
+          ],
+        }),
+      },
+    );
+    const body = await response.json().catch(() => ({}));
+    setAddingPromotion(false);
+    if (!response.ok) {
+      setError(body.message ?? "No se pudo agregar la promoción");
+      return;
+    }
+    setPromotionMessage("La promoción fue agregada a su cuenta.");
+    await load();
+  }
   return (
     <main className="mx-auto max-w-2xl px-4 py-8 text-slate-900">
       <p className="font-semibold tracking-widest text-emerald-700">
@@ -140,6 +193,52 @@ export default function RestaurantOrderPage() {
             ? `Mesero a cargo: ${order.table.waiter.name}`
             : "Asignando mesero, es un gusto servirle."}
         </p>
+      )}
+      {order?.promotions[0] && (
+        <section className="mb-6 rounded-2xl bg-fuchsia-700 p-5 text-white shadow-lg ring-4 ring-fuchsia-200">
+          <p className="text-sm font-black uppercase tracking-widest">
+            Promoción vigente
+          </p>
+          <h2 className="mt-1 text-2xl font-black">
+            {order.promotions[0].title}
+          </h2>
+          <p className="text-lg">{order.promotions[0].menuItem.name}</p>
+          <p className="font-semibold">
+            Crédito de hasta ₡
+            {order.promotions[0].creditAmount.toLocaleString()}.
+          </p>
+          <div className="mt-4 flex flex-wrap items-center gap-3">
+            <label className="font-semibold">
+              Cantidad{" "}
+              <select
+                className="rounded bg-white px-3 py-2 text-slate-950"
+                value={promotionQuantity}
+                onChange={(event) =>
+                  setPromotionQuantity(Number(event.target.value))
+                }
+              >
+                {Array.from({ length: 10 }, (_, index) => (
+                  <option key={index + 1} value={index + 1}>
+                    {index + 1}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <button
+              type="button"
+              disabled={addingPromotion || order.status !== "OPEN"}
+              onClick={() => void addPromotion()}
+              className="rounded-lg bg-white px-5 py-3 font-black text-fuchsia-800 disabled:opacity-50"
+            >
+              {addingPromotion ? "Agregando…" : "Agregar a mi cuenta"}
+            </button>
+          </div>
+          {promotionMessage && (
+            <p className="mt-3 rounded bg-white/20 p-2 font-semibold">
+              {promotionMessage}
+            </p>
+          )}
+        </section>
       )}
       <p className="my-4 text-slate-600">
         Your order updates automatically while this page is open.
@@ -191,7 +290,17 @@ export default function RestaurantOrderPage() {
             <span>
               {item.quantity} × {item.name} · ₡
               {(item.price * item.quantity).toLocaleString()}
-              {item.fulfillment === "TAKEOUT" ? " · Para llevar" : ""}
+              <span
+                className={`ml-2 inline-flex rounded-full px-3 py-1 text-xs font-black ${
+                  item.fulfillment === "TAKEOUT"
+                    ? "bg-fuchsia-100 text-fuchsia-900"
+                    : "bg-sky-100 text-sky-900"
+                }`}
+              >
+                {item.fulfillment === "TAKEOUT"
+                  ? "PARA LLEVAR"
+                  : "CONSUMO EN EL LOCAL"}
+              </span>
             </span>
             <strong>{labels[item.status]}</strong>
           </div>

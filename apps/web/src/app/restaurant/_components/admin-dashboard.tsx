@@ -28,6 +28,7 @@ type StaffUser = {
 type MenuItem = {
   id: string;
   name: string;
+  description?: string | null;
   price: number;
   station: string;
   course: string;
@@ -43,6 +44,7 @@ type Promotion = {
   id: string;
   title: string;
   productType?: string | null;
+  menuItemId?: string | null;
   creditAmount: number;
   startsAt: string;
   endsAt: string;
@@ -101,6 +103,8 @@ export default function RestaurantAdminDashboard() {
     "DINING",
   );
   const [itemName, setItemName] = useState("");
+  const [itemDescription, setItemDescription] = useState("");
+  const [editingItemId, setEditingItemId] = useState<string | null>(null);
   const [price, setPrice] = useState("");
   const [itemStation, setItemStation] = useState<Station>("KITCHEN");
   const [course, setCourse] = useState("MAIN");
@@ -116,6 +120,7 @@ export default function RestaurantAdminDashboard() {
   const [invoiceRequests, setInvoiceRequests] = useState<InvoiceRequest[]>([]);
   const [promotionTitle, setPromotionTitle] = useState("");
   const [promotionType, setPromotionType] = useState("");
+  const [promotionItemId, setPromotionItemId] = useState("");
   const [promotionCredit, setPromotionCredit] = useState("0");
   const [promotionStart, setPromotionStart] = useState("");
   const [promotionEnd, setPromotionEnd] = useState("");
@@ -211,9 +216,58 @@ export default function RestaurantAdminDashboard() {
         );
       }
       await load();
+      return true;
     } catch (err) {
       setError(err instanceof Error ? err.message : "Update failed");
+      return false;
     }
+  }
+
+  async function remove(path: string) {
+    setError("");
+    try {
+      const response = await authenticatedFetch(
+        `${API_URL}/api/v1/restaurant/${path}`,
+        { method: "DELETE" },
+      );
+      const body = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(body.message ?? "Delete failed");
+      await load();
+      return true;
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Delete failed");
+      return false;
+    }
+  }
+
+  function resetMenuForm() {
+    setEditingItemId(null);
+    setItemName("");
+    setItemDescription("");
+    setPrice("");
+    setItemStation("KITCHEN");
+    setCourse("MAIN");
+    setProductType("Platos fuertes");
+    setCategories("");
+    setOrigin("HOUSE_MADE");
+    setPrepMinutes("10");
+    setAlcoholic(false);
+    setImageData(null);
+  }
+
+  function editMenuItem(item: MenuItem) {
+    setEditingItemId(item.id);
+    setItemName(item.name);
+    setItemDescription(item.description ?? "");
+    setPrice(String(item.price));
+    setItemStation(item.station as Station);
+    setCourse(item.course);
+    setProductType(item.productType);
+    setCategories(item.categories.join(", "));
+    setOrigin(item.origin);
+    setPrepMinutes(String(item.prepMinutes ?? 10));
+    setAlcoholic(item.alcoholic);
+    setImageData(item.imageData ?? null);
   }
   async function showQr(id: string) {
     try {
@@ -570,7 +624,9 @@ export default function RestaurantAdminDashboard() {
               )}
             </div>
             <div>
-              <h2 className="text-xl font-bold">Menu</h2>
+              <h2 className="text-xl font-bold">
+                {editingItemId ? "Editar producto" : "Menú"}
+              </h2>
               <form
                 className="my-3 space-y-2"
                 onSubmit={(event) => {
@@ -580,8 +636,9 @@ export default function RestaurantAdminDashboard() {
                     setError("Enter a valid price in colones");
                     return;
                   }
-                  void post("menu", {
+                  const payload = {
                     name: itemName,
+                    description: itemDescription || undefined,
                     price: value,
                     station: itemStation,
                     course,
@@ -595,10 +652,13 @@ export default function RestaurantAdminDashboard() {
                       origin === "HOUSE_MADE" ? Number(prepMinutes) : undefined,
                     alcoholic,
                     imageData,
-                  }).then(() => {
-                    setItemName("");
-                    setPrice("");
-                    setImageData(null);
+                  };
+                  void post(
+                    editingItemId ? `menu/${editingItemId}` : "menu",
+                    payload,
+                    editingItemId ? "PATCH" : "POST",
+                  ).then((saved) => {
+                    if (saved) resetMenuForm();
                   });
                 }}
               >
@@ -609,6 +669,13 @@ export default function RestaurantAdminDashboard() {
                   placeholder="Item name"
                   value={itemName}
                   onChange={(event) => setItemName(event.target.value)}
+                />
+                <textarea
+                  maxLength={500}
+                  className="w-full rounded border p-2"
+                  placeholder="Descripción del producto"
+                  value={itemDescription}
+                  onChange={(event) => setItemDescription(event.target.value)}
                 />
                 <input
                   required
@@ -668,6 +735,15 @@ export default function RestaurantAdminDashboard() {
                       void selectProductImage(event.target.files?.[0])
                     }
                   />
+                  {imageData && (
+                    <button
+                      type="button"
+                      className="mt-2 text-red-700 underline"
+                      onClick={() => setImageData(null)}
+                    >
+                      Quitar imagen
+                    </button>
+                  )}
                 </label>
                 <input
                   required
@@ -700,9 +776,18 @@ export default function RestaurantAdminDashboard() {
                     <option value="MAIN">Main</option>
                     <option value="OTHER">Other</option>
                   </select>
-                  <button className="rounded bg-slate-900 px-3 text-white">
-                    Add item
+                  <button className="rounded bg-slate-900 px-3 py-2 text-white">
+                    {editingItemId ? "Guardar cambios" : "Agregar producto"}
                   </button>
+                  {editingItemId && (
+                    <button
+                      type="button"
+                      className="rounded border px-3 py-2"
+                      onClick={resetMenuForm}
+                    >
+                      Cancelar edición
+                    </button>
+                  )}
                 </div>
               </form>
               {menu.map((item) => (
@@ -714,18 +799,40 @@ export default function RestaurantAdminDashboard() {
                     {item.name} · ₡{item.price.toLocaleString()} ·{" "}
                     {item.productType} {item.active ? "" : "(unavailable)"}
                   </span>
-                  <button
-                    className="text-emerald-700 underline"
-                    onClick={() =>
-                      void post(
-                        `menu/${item.id}`,
-                        { active: !item.active },
-                        "PATCH",
-                      )
-                    }
-                  >
-                    {item.active ? "Pause" : "Enable"}
-                  </button>
+                  <div className="flex flex-wrap justify-end gap-3 text-sm">
+                    <button
+                      className="text-sky-700 underline"
+                      onClick={() => editMenuItem(item)}
+                    >
+                      Editar
+                    </button>
+                    <button
+                      className="text-emerald-700 underline"
+                      onClick={() =>
+                        void post(
+                          `menu/${item.id}`,
+                          { active: !item.active },
+                          "PATCH",
+                        )
+                      }
+                    >
+                      {item.active ? "Archivar" : "Restaurar"}
+                    </button>
+                    <button
+                      className="text-red-700 underline"
+                      onClick={() => {
+                        if (
+                          window.confirm(
+                            "Solo se eliminará si el producto nunca se utilizó en una orden. ¿Continuar?",
+                          )
+                        ) {
+                          void remove(`menu/${item.id}`);
+                        }
+                      }}
+                    >
+                      Eliminar definitivamente
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>
@@ -746,12 +853,16 @@ export default function RestaurantAdminDashboard() {
               event.preventDefault();
               void post("promotions", {
                 title: promotionTitle,
-                productType: promotionType,
+                menuItemId: promotionItemId,
+                productType:
+                  menu.find((item) => item.id === promotionItemId)
+                    ?.productType ?? promotionType,
                 creditAmount: Number(promotionCredit),
                 startsAt: new Date(promotionStart).toISOString(),
                 endsAt: new Date(promotionEnd).toISOString(),
               }).then(() => {
                 setPromotionTitle("");
+                setPromotionItemId("");
                 setPromotionCredit("0");
               });
             }}
@@ -763,21 +874,27 @@ export default function RestaurantAdminDashboard() {
               value={promotionTitle}
               onChange={(event) => setPromotionTitle(event.target.value)}
             />
-            <input
+            <select
               required
               className="w-full rounded border p-2"
-              placeholder="Tipo de producto promocionado"
-              value={promotionType}
-              onChange={(event) => setPromotionType(event.target.value)}
-              list="restaurant-product-types"
-            />
-            <datalist id="restaurant-product-types">
-              {[...new Set(menu.map((item) => item.productType))].map(
-                (type) => (
-                  <option key={type} value={type} />
-                ),
-              )}
-            </datalist>
+              value={promotionItemId}
+              onChange={(event) => {
+                setPromotionItemId(event.target.value);
+                setPromotionType(
+                  menu.find((item) => item.id === event.target.value)
+                    ?.productType ?? "",
+                );
+              }}
+            >
+              <option value="">Seleccione el producto promocionado</option>
+              {menu
+                .filter((item) => item.active)
+                .map((item) => (
+                  <option key={item.id} value={item.id}>
+                    {item.name} · {item.productType}
+                  </option>
+                ))}
+            </select>
             <input
               required
               min="0"
@@ -832,8 +949,9 @@ export default function RestaurantAdminDashboard() {
                   </button>
                 </div>
                 <p className="text-sm">
-                  {promotion.productType} · crédito ₡
-                  {promotion.creditAmount.toLocaleString()}
+                  {menu.find((item) => item.id === promotion.menuItemId)
+                    ?.name ?? promotion.productType}{" "}
+                  · crédito ₡{promotion.creditAmount.toLocaleString()}
                 </p>
                 <p className="text-xs text-slate-500">
                   {new Date(promotion.startsAt).toLocaleString()} —{" "}

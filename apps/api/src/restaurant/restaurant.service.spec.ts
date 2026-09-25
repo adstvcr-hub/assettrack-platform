@@ -77,7 +77,13 @@ function createService() {
       updateMany: vi.fn(),
       count: vi.fn().mockResolvedValue(0),
     },
-    restaurantMenuItem: { findMany: vi.fn().mockResolvedValue([menuItem]) },
+    restaurantMenuItem: {
+      findFirst: vi.fn(),
+      findMany: vi.fn().mockResolvedValue([menuItem]),
+      findUnique: vi.fn(),
+      updateMany: vi.fn(),
+      delete: vi.fn(),
+    },
     restaurantPromotion: {
       findFirst: vi.fn().mockResolvedValue(null),
       findMany: vi.fn().mockResolvedValue([]),
@@ -92,6 +98,7 @@ function createService() {
     },
     restaurantOrderItem: {
       findFirst: vi.fn(),
+      update: vi.fn(),
       updateMany: vi.fn(),
       findUnique: vi.fn(),
       count: vi.fn().mockResolvedValue(0),
@@ -224,6 +231,7 @@ describe("RestaurantService", () => {
           select: {
             name: true,
             code: true,
+            kind: true,
             serviceChargeEnabled: true,
             waiter: { select: { id: true, name: true } },
           },
@@ -627,5 +635,62 @@ describe("RestaurantService", () => {
       where: { id: { in: ["table-1"] } },
       data: { waiterId: null },
     });
+  });
+
+  it("records a delivery-mode correction without requiring a private reason", async () => {
+    const { prisma, service } = createService();
+    const waiter = {
+      id: "waiter-a",
+      organizationId: "org-a",
+      role: UserRole.USER,
+      restaurantRole: RestaurantStaffRole.WAITER,
+      restaurantAvailability: RestaurantStaffAvailability.AVAILABLE,
+    };
+    prisma.restaurantOrderItem.findFirst.mockResolvedValue({
+      id: itemId,
+      status: "PREPARING",
+      fulfillment: "TAKEOUT",
+      order: { table: { waiterId: waiter.id } },
+    });
+    prisma.restaurantOrderItem.update.mockResolvedValue({
+      id: itemId,
+      fulfillment: "DINE_IN",
+    });
+
+    await service.updateItemFulfillment(waiter, itemId, {
+      fulfillment: "DINE_IN",
+    });
+
+    expect(prisma.restaurantItemEvent.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({
+        actorId: waiter.id,
+        note: "Fulfillment corrected from TAKEOUT to DINE_IN",
+      }),
+    });
+  });
+
+  it("deletes only menu products without order history", async () => {
+    const { prisma, service } = createService();
+    const admin = {
+      id: "admin-a",
+      organizationId: "org-a",
+      role: UserRole.ADMIN,
+      restaurantRole: null,
+      restaurantAvailability: RestaurantStaffAvailability.AVAILABLE,
+    };
+    prisma.restaurantMenuItem.findFirst.mockResolvedValue({ id: itemId });
+    prisma.restaurantOrderItem.count.mockResolvedValue(0);
+
+    await expect(service.deleteMenuItem(admin, itemId)).resolves.toEqual({
+      deleted: true,
+    });
+    expect(prisma.restaurantMenuItem.delete).toHaveBeenCalledWith({
+      where: { id: itemId },
+    });
+
+    prisma.restaurantOrderItem.count.mockResolvedValue(1);
+    await expect(service.deleteMenuItem(admin, itemId)).rejects.toBeInstanceOf(
+      ConflictException,
+    );
   });
 });

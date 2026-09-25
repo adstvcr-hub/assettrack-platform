@@ -150,8 +150,18 @@ export function OperationalDashboard({ station }: { station: Station }) {
                 <p className="text-2xl font-bold">{order.table.name}</p>
                 <p className="mt-1 text-xl">
                   {item.quantity} × {item.name}
-                  {item.fulfillment === "TAKEOUT" ? " · PARA LLEVAR" : ""}
                 </p>
+                <span
+                  className={`mt-3 inline-flex rounded-full px-4 py-2 text-lg font-black ${
+                    item.fulfillment === "TAKEOUT"
+                      ? "bg-fuchsia-100 text-fuchsia-900 ring-2 ring-fuchsia-300"
+                      : "bg-sky-100 text-sky-900 ring-2 ring-sky-300"
+                  }`}
+                >
+                  {item.fulfillment === "TAKEOUT"
+                    ? "PARA LLEVAR"
+                    : "CONSUMO EN EL LOCAL"}
+                </span>
                 <p className="mt-2 text-sm text-slate-600">
                   {labels[item.status] ?? item.status} · recibido a las{" "}
                   {new Date(order.createdAt).toLocaleTimeString()}

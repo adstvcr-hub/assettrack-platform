@@ -25,6 +25,7 @@ type Promotion = {
   productType?: string | null;
   menuItemId?: string | null;
   creditAmount: number;
+  menuItem: MenuItem;
 };
 type Menu = {
   restaurant: string;
@@ -57,6 +58,7 @@ export default function RestaurantTablePage() {
   const [trackedOrder, setTrackedOrder] = useState<string | null>(null);
   const [separateAcknowledged, setSeparateAcknowledged] = useState(false);
   const [promotion, setPromotion] = useState<Promotion | null>(null);
+  const [promotionQuantity, setPromotionQuantity] = useState(1);
   const requestId = useRef<string | null>(null);
 
   const load = useCallback(async () => {
@@ -85,7 +87,7 @@ export default function RestaurantTablePage() {
   }, [code, load]);
 
   useEffect(() => {
-    if (!data || !trackedOrder || promotion) return;
+    if (!data || promotion) return;
     const key = `assettrack_promotions_seen_${code}`;
     const seen = new Set<string>(
       JSON.parse(window.localStorage.getItem(key) ?? "[]") as string[],
@@ -99,7 +101,21 @@ export default function RestaurantTablePage() {
       window.localStorage.setItem(key, JSON.stringify([...seen]));
       setPromotion(selected);
     }
-  }, [code, data, promotion, trackedOrder]);
+  }, [code, data, promotion]);
+
+  function addPromotionToCart() {
+    if (!promotion?.menuItem.available) return;
+    setQuantities((current) => ({
+      ...current,
+      [promotion.menuItem.id]:
+        (current[promotion.menuItem.id] ?? 0) + promotionQuantity,
+    }));
+    setActiveType(promotion.menuItem.productType);
+    setError("");
+    document
+      .getElementById(`menu-item-${promotion.menuItem.id}`)
+      ?.scrollIntoView({ behavior: "smooth", block: "center" });
+  }
 
   const recentTypes = useMemo(() => {
     if (typeof window === "undefined") return [] as string[];
@@ -277,14 +293,42 @@ export default function RestaurantTablePage() {
           </section>
         )}
       {promotion && (
-        <section className="mb-5 rounded-xl bg-fuchsia-50 p-4 ring-1 ring-fuchsia-200">
+        <section className="mb-6 rounded-2xl bg-fuchsia-700 p-5 text-white shadow-lg ring-4 ring-fuchsia-200">
           <span className="text-xs font-bold uppercase tracking-wider text-fuchsia-700">
             Promoción
           </span>
-          <p className="font-bold">{promotion.title}</p>
+          <p className="text-2xl font-black">{promotion.title}</p>
+          <p className="mt-1 text-lg">{promotion.menuItem.name}</p>
           {promotion.creditAmount > 0 && (
-            <p>Crédito de hasta ₡{promotion.creditAmount.toLocaleString()}.</p>
+            <p className="font-semibold">
+              Crédito de hasta ₡{promotion.creditAmount.toLocaleString()}.
+            </p>
           )}
+          <div className="mt-4 flex flex-wrap items-center gap-3">
+            <label className="font-semibold">
+              Cantidad{" "}
+              <select
+                className="rounded bg-white px-3 py-2 text-slate-950"
+                value={promotionQuantity}
+                onChange={(event) =>
+                  setPromotionQuantity(Number(event.target.value))
+                }
+              >
+                {Array.from({ length: 10 }, (_, index) => (
+                  <option key={index + 1} value={index + 1}>
+                    {index + 1}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <button
+              type="button"
+              onClick={addPromotionToCart}
+              className="rounded-lg bg-white px-5 py-3 font-black text-fuchsia-800"
+            >
+              Agregar promoción al pedido
+            </button>
+          </div>
         </section>
       )}
       {error && (
@@ -347,6 +391,7 @@ export default function RestaurantTablePage() {
         {visibleItems.map((item) => (
           <section
             key={item.id}
+            id={`menu-item-${item.id}`}
             className={`overflow-hidden rounded-xl border shadow-sm ${
               item.available ? "bg-white" : "bg-amber-50"
             }`}
