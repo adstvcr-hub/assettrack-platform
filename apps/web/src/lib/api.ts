@@ -50,6 +50,7 @@ export async function authenticatedFetch(
     ...init,
     headers,
     credentials: 'include',
+    cache: init.cache ?? 'no-store',
   });
 
   if (response.status !== 401) {
@@ -70,6 +71,7 @@ export async function authenticatedFetch(
     ...init,
     headers,
     credentials: 'include',
+    cache: init.cache ?? 'no-store',
   });
 
   return response;
