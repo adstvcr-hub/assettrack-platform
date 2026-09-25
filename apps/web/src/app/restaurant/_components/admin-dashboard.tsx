@@ -134,16 +134,17 @@ export default function RestaurantAdminDashboard() {
 
   const load = useCallback(async () => {
     try {
+      const paths = [
+        "tables",
+        "menu",
+        "orders",
+        "staff-users",
+        "billing-settings",
+        "promotions",
+        "invoice-requests",
+      ];
       const responses = await Promise.all(
-        [
-          "tables",
-          "menu",
-          "orders",
-          "staff-users",
-          "billing-settings",
-          "promotions",
-          "invoice-requests",
-        ].map((path) =>
+        paths.map((path) =>
           authenticatedFetch(`${API_URL}/api/v1/restaurant/${path}`),
         ),
       );
@@ -155,8 +156,15 @@ export default function RestaurantAdminDashboard() {
         router.replace("/restaurant/staff");
         return;
       }
-      if (responses.some((response) => !response.ok))
-        throw new Error("Unable to load restaurant workspace");
+      const failedResponseIndex = responses.findIndex(
+        (response) => !response.ok,
+      );
+      if (failedResponseIndex >= 0) {
+        const failedResponse = responses[failedResponseIndex];
+        throw new Error(
+          `Unable to load restaurant workspace (${paths[failedResponseIndex]}: ${failedResponse.status})`,
+        );
+      }
       const [
         tableData,
         menuData,

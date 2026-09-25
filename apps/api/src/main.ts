@@ -2,11 +2,28 @@
 import { NestFactory } from "@nestjs/core";
 import { AppModule } from "./app.module";
 import * as cookieParser from "cookie-parser";
-import { json, urlencoded } from "express";
+import {
+  json,
+  urlencoded,
+  type NextFunction,
+  type Request,
+  type Response,
+} from "express";
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, { bodyParser: false });
-  app.getHttpAdapter().getInstance().set("trust proxy", 1);
+  const expressApp = app.getHttpAdapter().getInstance();
+  expressApp.set("trust proxy", 1);
+  expressApp.disable("etag");
+  app.use((_request: Request, response: Response, next: NextFunction) => {
+    response.setHeader(
+      "Cache-Control",
+      "no-store, no-cache, must-revalidate, proxy-revalidate",
+    );
+    response.setHeader("Pragma", "no-cache");
+    response.setHeader("Expires", "0");
+    next();
+  });
   app.use(cookieParser());
   // Product images in the free pilot are submitted as validated data URLs.
   app.use(json({ limit: "3mb" }));
