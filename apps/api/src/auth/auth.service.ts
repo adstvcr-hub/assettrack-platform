@@ -50,6 +50,7 @@ export class AuthService {
       sub: user.id,
       organizationId: user.organizationId,
       role: user.role,
+      restaurantRole: user.restaurantRole,
     };
 
     const accessToken = await this.jwtService.signAsync(payload);
@@ -75,6 +76,7 @@ export class AuthService {
         email: user.email,
         name: user.name,
         role: user.role,
+        restaurantRole: user.restaurantRole,
       },
     };
   }
@@ -117,6 +119,7 @@ export class AuthService {
       sub: storedToken.user.id,
       organizationId: storedToken.user.organizationId,
       role: storedToken.user.role,
+      restaurantRole: storedToken.user.restaurantRole,
     };
 
     const accessToken = await this.jwtService.signAsync(payload);

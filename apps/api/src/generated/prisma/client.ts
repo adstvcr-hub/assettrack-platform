@@ -45,6 +45,71 @@ export { Prisma }
  */
 export type Organization = Prisma.OrganizationModel
 /**
+ * Model RestaurantTable
+ * 
+ */
+export type RestaurantTable = Prisma.RestaurantTableModel
+/**
+ * Model RestaurantVisit
+ * 
+ */
+export type RestaurantVisit = Prisma.RestaurantVisitModel
+/**
+ * Model RestaurantLoyaltyMember
+ * 
+ */
+export type RestaurantLoyaltyMember = Prisma.RestaurantLoyaltyMemberModel
+/**
+ * Model RestaurantLoyaltyActivity
+ * 
+ */
+export type RestaurantLoyaltyActivity = Prisma.RestaurantLoyaltyActivityModel
+/**
+ * Model RestaurantRewardProgram
+ * 
+ */
+export type RestaurantRewardProgram = Prisma.RestaurantRewardProgramModel
+/**
+ * Model RestaurantVisitTransfer
+ * 
+ */
+export type RestaurantVisitTransfer = Prisma.RestaurantVisitTransferModel
+/**
+ * Model PlatformAdminEvent
+ * 
+ */
+export type PlatformAdminEvent = Prisma.PlatformAdminEventModel
+/**
+ * Model RestaurantMenuItem
+ * 
+ */
+export type RestaurantMenuItem = Prisma.RestaurantMenuItemModel
+/**
+ * Model RestaurantOrder
+ * 
+ */
+export type RestaurantOrder = Prisma.RestaurantOrderModel
+/**
+ * Model RestaurantOrderItem
+ * 
+ */
+export type RestaurantOrderItem = Prisma.RestaurantOrderItemModel
+/**
+ * Model RestaurantPromotion
+ * 
+ */
+export type RestaurantPromotion = Prisma.RestaurantPromotionModel
+/**
+ * Model RestaurantItemEvent
+ * 
+ */
+export type RestaurantItemEvent = Prisma.RestaurantItemEventModel
+/**
+ * Model RestaurantStaffEvent
+ * 
+ */
+export type RestaurantStaffEvent = Prisma.RestaurantStaffEventModel
+/**
  * Model OrganizationLocation
  * 
  */

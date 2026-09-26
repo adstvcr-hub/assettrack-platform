@@ -23,7 +23,11 @@ import { JwtStrategy } from './jwt.strategy';
         return {
           secret,
           signOptions: {
-            expiresIn: '15m',
+            // Restaurant workstations are expected to remain active for a
+            // complete shift. Refresh tokens still provide revocation and
+            // rotation, while a longer access token avoids a forced sign-in
+            // when browsers block cross-site refresh cookies.
+            expiresIn: '12h',
           },
         };
       },

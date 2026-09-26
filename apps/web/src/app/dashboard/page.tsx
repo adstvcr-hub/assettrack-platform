@@ -26,6 +26,11 @@ type User = {
   role: string;
 };
 
+type SessionUser = {
+  name: string;
+  role: "OWNER" | "ADMIN" | "USER" | "VIEWER";
+};
+
 type ScanEvent = {
   id: string;
   scannedAt: string;
@@ -44,6 +49,7 @@ export default function DashboardPage() {
   const router = useRouter();
 
   const [userName, setUserName] = useState("");
+  const [userRole, setUserRole] = useState<SessionUser["role"] | null>(null);
   const [organization, setOrganization] = useState<Organization | null>(null);
   const [assets, setAssets] = useState<Asset[]>([]);
   const [users, setUsers] = useState<User[]>([]);
@@ -53,6 +59,7 @@ export default function DashboardPage() {
   const [scanTotal, setScanTotal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [isPlatformAdmin, setIsPlatformAdmin] = useState(false);
 
   useEffect(() => {
     const token = sessionStorage.getItem("assettrack_token");
@@ -64,8 +71,9 @@ export default function DashboardPage() {
     }
 
     try {
-      const user = JSON.parse(storedUser);
+      const user = JSON.parse(storedUser) as SessionUser;
       setUserName(user.name);
+      setUserRole(user.role);
     } catch {
       sessionStorage.clear();
       router.replace("/");
@@ -129,6 +137,11 @@ export default function DashboardPage() {
         setScanTotal(
           Array.isArray(scansData) ? scansData.length : scansData.total,
         );
+        const platformResponse = await authenticatedFetch(
+          `${API_URL}/api/v1/platform-admin/profile`,
+          { headers },
+        );
+        setIsPlatformAdmin(platformResponse.ok);
       } catch {
         setError("Unable to load dashboard data");
       } finally {
@@ -220,6 +233,23 @@ export default function DashboardPage() {
           >
             Scan History
           </button>
+
+          {(userRole === "OWNER" || userRole === "ADMIN") && (
+            <button
+              onClick={() => router.push("/restaurant/admin")}
+              className="rounded-lg bg-emerald-700 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-800"
+            >
+              Administración del restaurante
+            </button>
+          )}
+          {isPlatformAdmin && (
+            <button
+              onClick={() => router.push("/platform/admin")}
+              className="rounded-lg bg-indigo-700 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-800"
+            >
+              Administración de AssetTrack
+            </button>
+          )}
         </div>
 
         {loading && <p className="mt-6 text-slate-600">Loading dashboard...</p>}

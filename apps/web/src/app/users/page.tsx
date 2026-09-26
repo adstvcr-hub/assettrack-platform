@@ -176,7 +176,7 @@ export default function UsersPage() {
                   value={name}
                   onChange={(event) => setName(event.target.value)}
                   placeholder="Full name"
-                  className="w-full rounded-lg border border-slate-300 px-4 py-3"
+                  className="w-full rounded-lg border border-slate-300 bg-white px-4 py-3 text-slate-900 placeholder:text-slate-400"
                   required
                 />
 
@@ -185,7 +185,7 @@ export default function UsersPage() {
                   value={email}
                   onChange={(event) => setEmail(event.target.value)}
                   placeholder="Email"
-                  className="w-full rounded-lg border border-slate-300 px-4 py-3"
+                  className="w-full rounded-lg border border-slate-300 bg-white px-4 py-3 text-slate-900 placeholder:text-slate-400"
                   required
                 />
 
@@ -194,7 +194,7 @@ export default function UsersPage() {
                   value={password}
                   onChange={(event) => setPassword(event.target.value)}
                   placeholder="Temporary password"
-                  className="w-full rounded-lg border border-slate-300 px-4 py-3"
+                  className="w-full rounded-lg border border-slate-300 bg-white px-4 py-3 text-slate-900 placeholder:text-slate-400"
                   minLength={8}
                   required
                 />
@@ -204,7 +204,7 @@ export default function UsersPage() {
                   onChange={(event) =>
                     setRole(event.target.value as User["role"])
                   }
-                  className="w-full rounded-lg border border-slate-300 px-4 py-3"
+                  className="w-full rounded-lg border border-slate-300 bg-white px-4 py-3 text-slate-900 placeholder:text-slate-400"
                 >
                   <option value="USER">User</option>
                   <option value="VIEWER">Viewer</option>
@@ -254,7 +254,6 @@ export default function UsersPage() {
                         <td className="py-4 pr-4 font-medium text-slate-900">
                           {user.name}
                         </td>
-
                         <td className="py-4 pr-4 text-slate-600">
                           {user.email}
                         </td>

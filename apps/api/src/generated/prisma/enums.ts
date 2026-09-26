@@ -51,3 +51,124 @@ export const LocationSource = {
 } as const
 
 export type LocationSource = (typeof LocationSource)[keyof typeof LocationSource]
+
+
+export const RestaurantStation = {
+  KITCHEN: 'KITCHEN',
+  BAR: 'BAR'
+} as const
+
+export type RestaurantStation = (typeof RestaurantStation)[keyof typeof RestaurantStation]
+
+
+export const RestaurantStaffRole = {
+  RESTAURANT_ADMIN: 'RESTAURANT_ADMIN',
+  KITCHEN: 'KITCHEN',
+  BAR: 'BAR',
+  WAITER: 'WAITER'
+} as const
+
+export type RestaurantStaffRole = (typeof RestaurantStaffRole)[keyof typeof RestaurantStaffRole]
+
+
+export const RestaurantStaffAvailability = {
+  AVAILABLE: 'AVAILABLE',
+  BREAK: 'BREAK',
+  TEMPORARILY_UNAVAILABLE: 'TEMPORARILY_UNAVAILABLE',
+  OFF_SHIFT: 'OFF_SHIFT'
+} as const
+
+export type RestaurantStaffAvailability = (typeof RestaurantStaffAvailability)[keyof typeof RestaurantStaffAvailability]
+
+
+export const RestaurantCourse = {
+  DRINK: 'DRINK',
+  STARTER: 'STARTER',
+  MAIN: 'MAIN',
+  OTHER: 'OTHER'
+} as const
+
+export type RestaurantCourse = (typeof RestaurantCourse)[keyof typeof RestaurantCourse]
+
+
+export const RestaurantItemStatus = {
+  RECEIVED: 'RECEIVED',
+  ACCEPTED: 'ACCEPTED',
+  PREPARING: 'PREPARING',
+  READY: 'READY',
+  DELIVERED: 'DELIVERED',
+  CANCELLED: 'CANCELLED'
+} as const
+
+export type RestaurantItemStatus = (typeof RestaurantItemStatus)[keyof typeof RestaurantItemStatus]
+
+
+export const RestaurantVisitStatus = {
+  OPEN: 'OPEN',
+  CLOSED: 'CLOSED'
+} as const
+
+export type RestaurantVisitStatus = (typeof RestaurantVisitStatus)[keyof typeof RestaurantVisitStatus]
+
+
+export const RestaurantProductOrigin = {
+  HOUSE_MADE: 'HOUSE_MADE',
+  THIRD_PARTY: 'THIRD_PARTY'
+} as const
+
+export type RestaurantProductOrigin = (typeof RestaurantProductOrigin)[keyof typeof RestaurantProductOrigin]
+
+
+export const RestaurantFulfillment = {
+  DINE_IN: 'DINE_IN',
+  TAKEOUT: 'TAKEOUT'
+} as const
+
+export type RestaurantFulfillment = (typeof RestaurantFulfillment)[keyof typeof RestaurantFulfillment]
+
+
+export const RestaurantTableKind = {
+  DINING: 'DINING',
+  BAR_SEAT: 'BAR_SEAT',
+  TAKEOUT_STATION: 'TAKEOUT_STATION'
+} as const
+
+export type RestaurantTableKind = (typeof RestaurantTableKind)[keyof typeof RestaurantTableKind]
+
+
+export const RestaurantRewardType = {
+  MENU_ITEM: 'MENU_ITEM',
+  DISCOUNT_PERCENT: 'DISCOUNT_PERCENT',
+  CUSTOM: 'CUSTOM'
+} as const
+
+export type RestaurantRewardType = (typeof RestaurantRewardType)[keyof typeof RestaurantRewardType]
+
+
+export const RestaurantInvoiceRequestStatus = {
+  NOT_REQUESTED: 'NOT_REQUESTED',
+  PENDING: 'PENDING',
+  PROCESSED: 'PROCESSED',
+  REJECTED: 'REJECTED'
+} as const
+
+export type RestaurantInvoiceRequestStatus = (typeof RestaurantInvoiceRequestStatus)[keyof typeof RestaurantInvoiceRequestStatus]
+
+
+export const RestaurantLoyaltyActivityType = {
+  QR_SCAN: 'QR_SCAN',
+  VISIT_COMPLETED: 'VISIT_COMPLETED',
+  REWARD_EARNED: 'REWARD_EARNED',
+  REWARD_REDEEMED: 'REWARD_REDEEMED',
+  MANUAL_ADJUSTMENT: 'MANUAL_ADJUSTMENT'
+} as const
+
+export type RestaurantLoyaltyActivityType = (typeof RestaurantLoyaltyActivityType)[keyof typeof RestaurantLoyaltyActivityType]
+
+
+export const RestaurantRewardSponsor = {
+  RESTAURANT: 'RESTAURANT',
+  ASSETTRACK: 'ASSETTRACK'
+} as const
+
+export type RestaurantRewardSponsor = (typeof RestaurantRewardSponsor)[keyof typeof RestaurantRewardSponsor]

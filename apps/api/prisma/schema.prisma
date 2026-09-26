@@ -39,6 +39,88 @@ enum LocationSource {
   UTC_FALLBACK
 }
 
+enum RestaurantStation {
+  KITCHEN
+  BAR
+}
+
+enum RestaurantStaffRole {
+  RESTAURANT_ADMIN
+  KITCHEN
+  BAR
+  WAITER
+}
+
+enum RestaurantStaffAvailability {
+  AVAILABLE
+  BREAK
+  TEMPORARILY_UNAVAILABLE
+  OFF_SHIFT
+}
+
+enum RestaurantCourse {
+  DRINK
+  STARTER
+  MAIN
+  OTHER
+}
+
+enum RestaurantItemStatus {
+  RECEIVED
+  ACCEPTED
+  PREPARING
+  READY
+  DELIVERED
+  CANCELLED
+}
+
+enum RestaurantVisitStatus {
+  OPEN
+  CLOSED
+}
+
+enum RestaurantProductOrigin {
+  HOUSE_MADE
+  THIRD_PARTY
+}
+
+enum RestaurantFulfillment {
+  DINE_IN
+  TAKEOUT
+}
+
+enum RestaurantTableKind {
+  DINING
+  BAR_SEAT
+  TAKEOUT_STATION
+}
+
+enum RestaurantRewardType {
+  MENU_ITEM
+  DISCOUNT_PERCENT
+  CUSTOM
+}
+
+enum RestaurantInvoiceRequestStatus {
+  NOT_REQUESTED
+  PENDING
+  PROCESSED
+  REJECTED
+}
+
+enum RestaurantLoyaltyActivityType {
+  QR_SCAN
+  VISIT_COMPLETED
+  REWARD_EARNED
+  REWARD_REDEEMED
+  MANUAL_ADJUSTMENT
+}
+
+enum RestaurantRewardSponsor {
+  RESTAURANT
+  ASSETTRACK
+}
+
 model Organization {
   id        String   @id @default(uuid())
   name      String
@@ -46,11 +128,298 @@ model Organization {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  users     User[]
-  assets    Asset[]
-  locations OrganizationLocation[]
+  users                       User[]
+  assets                      Asset[]
+  locations                   OrganizationLocation[]
+  restaurantTables            RestaurantTable[]
+  restaurantMenuItems         RestaurantMenuItem[]
+  restaurantOrders            RestaurantOrder[]
+  restaurantVisits            RestaurantVisit[]
+  restaurantPromotions        RestaurantPromotion[]
+  restaurantLoyaltyActivities RestaurantLoyaltyActivity[]
+  restaurantRewardPrograms    RestaurantRewardProgram[]
+
+  restaurantTaxRateBps              Int     @default(1300)
+  restaurantTaxIncluded             Boolean @default(false)
+  restaurantServiceRateBps          Int     @default(1000)
+  restaurantAccessEnabled           Boolean @default(true)
+  restaurantDisplayName             String?
+  restaurantHeaderImageData         String?
+  restaurantUseHeaderImage          Boolean @default(false)
+  restaurantMenuBackgroundImageData String?
+  restaurantMenuBackgroundEnabled   Boolean @default(false)
+  restaurantMenuBackgroundPosition  String  @default("center")
+  restaurantMenuBackgroundSize      String  @default("cover")
 
   @@map("organizations")
+}
+
+model RestaurantTable {
+  id                   String                    @id @default(uuid())
+  organizationId       String
+  name                 String
+  code                 String                    @unique @default(uuid())
+  active               Boolean                   @default(true)
+  createdAt            DateTime                  @default(now())
+  waiterId             String?
+  serviceChargeEnabled Boolean                   @default(true)
+  kind                 RestaurantTableKind       @default(DINING)
+  organization         Organization              @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  waiter               User?                     @relation("RestaurantWaiterTables", fields: [waiterId], references: [id], onDelete: SetNull)
+  orders               RestaurantOrder[]
+  visits               RestaurantVisit[]
+  visitTransfersFrom   RestaurantVisitTransfer[] @relation("VisitTransferFrom")
+  visitTransfersTo     RestaurantVisitTransfer[] @relation("VisitTransferTo")
+
+  @@unique([organizationId, name])
+  @@index([organizationId])
+  @@index([waiterId])
+  @@map("restaurant_tables")
+}
+
+model RestaurantVisit {
+  id                   String                         @id @default(uuid())
+  organizationId       String
+  tableId              String
+  accessCode           String                         @unique @default(uuid())
+  status               RestaurantVisitStatus          @default(OPEN)
+  openedAt             DateTime                       @default(now())
+  closedAt             DateTime?
+  taxRateBps           Int                            @default(1300)
+  taxIncluded          Boolean                        @default(false)
+  serviceRateBps       Int                            @default(1000)
+  serviceChargeEnabled Boolean                        @default(true)
+  invoiceRequestStatus RestaurantInvoiceRequestStatus @default(NOT_REQUESTED)
+  invoiceRequestedAt   DateTime?
+  invoiceName          String?
+  invoiceEmail         String?
+  invoicePhone         String?
+  invoiceTaxId         String?
+  invoiceReference     String?
+  responsibleStaffId   String?
+  fallbackStaffId      String?
+  organization         Organization                   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  table                RestaurantTable                @relation(fields: [tableId], references: [id])
+  responsibleStaff     User?                          @relation("RestaurantVisitResponsible", fields: [responsibleStaffId], references: [id], onDelete: SetNull)
+  fallbackStaff        User?                          @relation("RestaurantVisitFallback", fields: [fallbackStaffId], references: [id], onDelete: SetNull)
+  orders               RestaurantOrder[]
+  loyaltyActivities    RestaurantLoyaltyActivity[]
+  transfers            RestaurantVisitTransfer[]
+
+  @@index([organizationId, status])
+  @@index([tableId, status])
+  @@index([responsibleStaffId, status])
+  @@map("restaurant_visits")
+}
+
+model RestaurantLoyaltyMember {
+  id                 String                      @id @default(uuid())
+  email              String                      @unique
+  nickname           String
+  marketingOptIn     Boolean                     @default(false)
+  marketingConsentAt DateTime?
+  joinedAt           DateTime                    @default(now())
+  updatedAt          DateTime                    @updatedAt
+  deletedAt          DateTime?
+  assettrackPoints   Int                         @default(0)
+  vipTier            String                      @default("MEMBER")
+  activities         RestaurantLoyaltyActivity[]
+
+  @@index([joinedAt])
+  @@map("restaurant_loyalty_members")
+}
+
+model RestaurantLoyaltyActivity {
+  id             String                        @id @default(uuid())
+  memberId       String
+  organizationId String
+  visitId        String?
+  type           RestaurantLoyaltyActivityType
+  points         Int                           @default(0)
+  metadata       Json?
+  createdAt      DateTime                      @default(now())
+  member         RestaurantLoyaltyMember       @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  organization   Organization                  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  visit          RestaurantVisit?              @relation(fields: [visitId], references: [id], onDelete: SetNull)
+
+  @@unique([memberId, visitId, type])
+  @@index([organizationId, createdAt])
+  @@index([memberId, createdAt])
+  @@map("restaurant_loyalty_activities")
+}
+
+model RestaurantRewardProgram {
+  id                String                  @id @default(uuid())
+  organizationId    String?
+  sponsor           RestaurantRewardSponsor
+  name              String
+  description       String?
+  pointsRequired    Int
+  rewardType        RestaurantRewardType    @default(CUSTOM)
+  menuItemId        String?
+  discountBps       Int?
+  maxDiscountAmount Int?
+  vipTier           String?
+  active            Boolean                 @default(true)
+  startsAt          DateTime?
+  endsAt            DateTime?
+  createdAt         DateTime                @default(now())
+  updatedAt         DateTime                @updatedAt
+  organization      Organization?           @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  menuItem          RestaurantMenuItem?     @relation(fields: [menuItemId], references: [id], onDelete: SetNull)
+
+  @@index([organizationId, active])
+  @@index([sponsor, active])
+  @@map("restaurant_reward_programs")
+}
+
+model RestaurantVisitTransfer {
+  id          String          @id @default(uuid())
+  visitId     String
+  fromTableId String
+  toTableId   String
+  actorId     String
+  createdAt   DateTime        @default(now())
+  visit       RestaurantVisit @relation(fields: [visitId], references: [id], onDelete: Cascade)
+  fromTable   RestaurantTable @relation("VisitTransferFrom", fields: [fromTableId], references: [id])
+  toTable     RestaurantTable @relation("VisitTransferTo", fields: [toTableId], references: [id])
+
+  @@index([visitId, createdAt])
+  @@map("restaurant_visit_transfers")
+}
+
+model PlatformAdminEvent {
+  id             String   @id @default(uuid())
+  actorId        String
+  action         String
+  organizationId String?
+  targetUserId   String?
+  reason         String?
+  metadata       Json?
+  createdAt      DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([organizationId, createdAt])
+  @@map("platform_admin_events")
+}
+
+model RestaurantMenuItem {
+  id             String                    @id @default(uuid())
+  organizationId String
+  name           String
+  description    String?
+  price          Int
+  station        RestaurantStation
+  course         RestaurantCourse
+  active         Boolean                   @default(true)
+  productType    String                    @default("Otros")
+  categories     String[]                  @default([])
+  origin         RestaurantProductOrigin   @default(HOUSE_MADE)
+  prepMinutes    Int?
+  alcoholic      Boolean                   @default(false)
+  imageData      String?
+  createdAt      DateTime                  @default(now())
+  organization   Organization              @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  orderItems     RestaurantOrderItem[]
+  rewardPrograms RestaurantRewardProgram[]
+
+  @@index([organizationId, active])
+  @@map("restaurant_menu_items")
+}
+
+model RestaurantOrder {
+  id               String                @id @default(uuid())
+  organizationId   String
+  tableId          String
+  visitId          String?
+  accessCode       String                @unique @default(uuid())
+  requestId        String                @unique
+  createdAt        DateTime              @default(now())
+  fulfillment      RestaurantFulfillment @default(DINE_IN)
+  promotionId      String?
+  promotionTitle   String?
+  promotionCredit  Int                   @default(0)
+  expectedMinutes  Int?
+  thresholdMinutes Int?
+  delayedAt        DateTime?
+  organization     Organization          @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  table            RestaurantTable       @relation(fields: [tableId], references: [id])
+  visit            RestaurantVisit?      @relation(fields: [visitId], references: [id])
+  items            RestaurantOrderItem[]
+
+  @@index([organizationId, createdAt])
+  @@index([visitId])
+  @@map("restaurant_orders")
+}
+
+model RestaurantOrderItem {
+  id          String                @id @default(uuid())
+  orderId     String
+  menuItemId  String
+  name        String
+  price       Int
+  station     RestaurantStation
+  course      RestaurantCourse
+  quantity    Int
+  fulfillment RestaurantFulfillment @default(DINE_IN)
+  prepMinutes Int?
+  status      RestaurantItemStatus  @default(RECEIVED)
+  acceptedAt  DateTime?
+  readyAt     DateTime?
+  deliveredAt DateTime?
+  handedOffAt DateTime?
+  order       RestaurantOrder       @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  menuItem    RestaurantMenuItem    @relation(fields: [menuItemId], references: [id])
+  events      RestaurantItemEvent[]
+
+  @@index([station, status])
+  @@map("restaurant_order_items")
+}
+
+model RestaurantPromotion {
+  id             String       @id @default(uuid())
+  organizationId String
+  title          String
+  productType    String?
+  menuItemId     String?
+  creditAmount   Int          @default(0)
+  startsAt       DateTime
+  endsAt         DateTime
+  active         Boolean      @default(true)
+  createdById    String
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, active, startsAt, endsAt])
+  @@map("restaurant_promotions")
+}
+
+model RestaurantItemEvent {
+  id        String               @id @default(uuid())
+  itemId    String
+  actorId   String?
+  status    RestaurantItemStatus
+  note      String?
+  createdAt DateTime             @default(now())
+  item      RestaurantOrderItem  @relation(fields: [itemId], references: [id], onDelete: Cascade)
+
+  @@index([itemId, createdAt])
+  @@map("restaurant_item_events")
+}
+
+model RestaurantStaffEvent {
+  id             String                      @id @default(uuid())
+  organizationId String
+  userId         String
+  actorId        String
+  availability   RestaurantStaffAvailability
+  reason         String?
+  createdAt      DateTime                    @default(now())
+
+  @@index([organizationId, createdAt])
+  @@index([userId, createdAt])
+  @@map("restaurant_staff_events")
 }
 
 model OrganizationLocation {
@@ -84,18 +453,23 @@ model OrganizationLocation {
 }
 
 model User {
-  id             String   @id @default(uuid())
-  organizationId String
-  email          String
-  name           String
-  passwordHash   String
-  role           UserRole @default(USER)
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  id                     String                      @id @default(uuid())
+  organizationId         String
+  email                  String
+  name                   String
+  passwordHash           String
+  role                   UserRole                    @default(USER)
+  restaurantRole         RestaurantStaffRole?
+  restaurantAvailability RestaurantStaffAvailability @default(AVAILABLE)
+  createdAt              DateTime                    @default(now())
+  updatedAt              DateTime                    @updatedAt
 
-  organization  Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  scanEvents    ScanEvent[]
-  refreshTokens RefreshToken[]
+  organization                Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  scanEvents                  ScanEvent[]
+  refreshTokens               RefreshToken[]
+  restaurantTables            RestaurantTable[] @relation("RestaurantWaiterTables")
+  responsibleRestaurantVisits RestaurantVisit[] @relation("RestaurantVisitResponsible")
+  fallbackRestaurantVisits    RestaurantVisit[] @relation("RestaurantVisitFallback")
 
   @@unique([organizationId, email])
   @@index([organizationId])
