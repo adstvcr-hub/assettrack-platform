@@ -101,6 +101,19 @@ enum RestaurantInvoiceRequestStatus {
   REJECTED
 }
 
+enum RestaurantLoyaltyActivityType {
+  QR_SCAN
+  VISIT_COMPLETED
+  REWARD_EARNED
+  REWARD_REDEEMED
+  MANUAL_ADJUSTMENT
+}
+
+enum RestaurantRewardSponsor {
+  RESTAURANT
+  ASSETTRACK
+}
+
 model Organization {
   id        String   @id @default(uuid())
   name      String
@@ -116,10 +129,13 @@ model Organization {
   restaurantOrders     RestaurantOrder[]
   restaurantVisits     RestaurantVisit[]
   restaurantPromotions RestaurantPromotion[]
+  restaurantLoyaltyActivities RestaurantLoyaltyActivity[]
+  restaurantRewardPrograms RestaurantRewardProgram[]
 
   restaurantTaxRateBps     Int     @default(1300)
   restaurantTaxIncluded    Boolean @default(false)
   restaurantServiceRateBps Int     @default(1000)
+  restaurantAccessEnabled  Boolean @default(true)
 
   @@map("organizations")
 }
@@ -167,10 +183,82 @@ model RestaurantVisit {
   organization         Organization                   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   table                RestaurantTable                @relation(fields: [tableId], references: [id])
   orders               RestaurantOrder[]
+  loyaltyActivities    RestaurantLoyaltyActivity[]
 
   @@index([organizationId, status])
   @@index([tableId, status])
   @@map("restaurant_visits")
+}
+
+model RestaurantLoyaltyMember {
+  id                  String   @id @default(uuid())
+  email               String   @unique
+  nickname            String
+  marketingOptIn      Boolean  @default(false)
+  marketingConsentAt  DateTime?
+  joinedAt             DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+  deletedAt            DateTime?
+  assettrackPoints     Int      @default(0)
+  vipTier              String   @default("MEMBER")
+  activities           RestaurantLoyaltyActivity[]
+
+  @@index([joinedAt])
+  @@map("restaurant_loyalty_members")
+}
+
+model RestaurantLoyaltyActivity {
+  id             String                        @id @default(uuid())
+  memberId       String
+  organizationId String
+  visitId        String?
+  type           RestaurantLoyaltyActivityType
+  points         Int                           @default(0)
+  metadata       Json?
+  createdAt      DateTime                      @default(now())
+  member         RestaurantLoyaltyMember       @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  organization   Organization                  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  visit          RestaurantVisit?              @relation(fields: [visitId], references: [id], onDelete: SetNull)
+
+  @@unique([memberId, visitId, type])
+  @@index([organizationId, createdAt])
+  @@index([memberId, createdAt])
+  @@map("restaurant_loyalty_activities")
+}
+
+model RestaurantRewardProgram {
+  id             String                  @id @default(uuid())
+  organizationId String?
+  sponsor        RestaurantRewardSponsor
+  name           String
+  description    String?
+  pointsRequired Int
+  vipTier        String?
+  active         Boolean                 @default(true)
+  startsAt       DateTime?
+  endsAt         DateTime?
+  createdAt      DateTime                @default(now())
+  updatedAt      DateTime                @updatedAt
+  organization   Organization?           @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, active])
+  @@index([sponsor, active])
+  @@map("restaurant_reward_programs")
+}
+
+model PlatformAdminEvent {
+  id             String   @id @default(uuid())
+  actorId        String
+  action         String
+  organizationId String?
+  targetUserId   String?
+  reason         String?
+  metadata       Json?
+  createdAt      DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([organizationId, createdAt])
+  @@map("platform_admin_events")
 }
 
 model RestaurantMenuItem {

@@ -16,9 +16,11 @@ import { RolesGuard } from "../auth/roles.guard";
 import {
   AssignWaiterDto,
   CancelOrderDto,
+  CreateRewardProgramDto,
   CreatePromotionDto,
   CreateMenuItemDto,
   CreateTableDto,
+  JoinLoyaltyDto,
   PlaceOrderDto,
   RequestInvoiceDto,
   UpdateItemStatusDto,
@@ -32,6 +34,7 @@ import {
   UpdatePromotionDto,
 } from "./dto/restaurant.dto";
 import { RestaurantActor, RestaurantService } from "./restaurant.service";
+import { RestaurantAccessGuard } from "./restaurant-access.guard";
 
 type StaffRequest = Request & { user: RestaurantActor };
 
@@ -64,9 +67,23 @@ export class RestaurantGuestController {
   ) {
     return this.restaurant.requestInvoice(accessCode, dto);
   }
+
+  @Throttle({ default: { limit: 5, ttl: 60000 } })
+  @Post("orders/:accessCode/loyalty")
+  joinLoyalty(
+    @Param("accessCode") accessCode: string,
+    @Body() dto: JoinLoyaltyDto,
+  ) {
+    return this.restaurant.joinLoyalty(accessCode, dto);
+  }
+
+  @Get("orders/:accessCode/receipt")
+  receipt(@Param("accessCode") accessCode: string) {
+    return this.restaurant.guestReceipt(accessCode);
+  }
 }
 
-@UseGuards(JwtAuthGuard, RolesGuard)
+@UseGuards(JwtAuthGuard, RolesGuard, RestaurantAccessGuard)
 @Controller("restaurant")
 export class RestaurantStaffController {
   constructor(private readonly restaurant: RestaurantService) {}
@@ -149,6 +166,24 @@ export class RestaurantStaffController {
   @Get("promotions")
   promotions(@Req() req: StaffRequest) {
     return this.restaurant.promotions(req.user);
+  }
+
+  @Get("loyalty/summary")
+  loyaltySummary(@Req() req: StaffRequest) {
+    return this.restaurant.loyaltySummary(req.user);
+  }
+
+  @Get("loyalty/rewards")
+  rewardPrograms(@Req() req: StaffRequest) {
+    return this.restaurant.rewardPrograms(req.user);
+  }
+
+  @Post("loyalty/rewards")
+  addRewardProgram(
+    @Req() req: StaffRequest,
+    @Body() dto: CreateRewardProgramDto,
+  ) {
+    return this.restaurant.addRewardProgram(req.user, dto);
   }
 
   @Post("promotions")

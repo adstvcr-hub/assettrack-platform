@@ -10,6 +10,8 @@ type Order = {
   id: string;
   status: "OPEN" | "CLOSED";
   createdAt: string;
+  closedAt?: string | null;
+  restaurant?: string;
   table: {
     name: string;
     code: string;
@@ -74,6 +76,14 @@ export default function RestaurantOrderPage() {
   const [promotionQuantity, setPromotionQuantity] = useState(1);
   const [addingPromotion, setAddingPromotion] = useState(false);
   const [promotionMessage, setPromotionMessage] = useState("");
+  const [showExitOptions, setShowExitOptions] = useState(false);
+  const [visitEnded, setVisitEnded] = useState(false);
+  const [loyaltyForm, setLoyaltyForm] = useState({
+    nickname: "",
+    email: "",
+    marketingOptIn: false,
+  });
+  const [loyaltyMessage, setLoyaltyMessage] = useState("");
   const load = useCallback(async () => {
     try {
       const response = await fetch(
@@ -181,6 +191,74 @@ export default function RestaurantOrderPage() {
     setPromotionMessage("La promoción fue agregada a su cuenta.");
     await load();
   }
+
+  async function joinLoyalty(event: FormEvent) {
+    event.preventDefault();
+    const response = await fetch(
+      `${API_URL}/api/v1/restaurant/guest/orders/${encodeURIComponent(accessCode)}/loyalty`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(loyaltyForm),
+      },
+    );
+    const body = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      setError(body.message ?? "No se pudo completar la afiliación");
+      return;
+    }
+    setLoyaltyMessage(
+      `Afiliación confirmada. Nivel ${body.vipTier}; ${body.assettrackPoints} puntos AssetTrack.`,
+    );
+  }
+
+  function receiptText() {
+    if (!order) return "";
+    const lines = order.items.map(
+      (item) =>
+        `${item.quantity} x ${item.name}: ₡${(item.price * item.quantity).toLocaleString()}`,
+    );
+    return [
+      order.restaurant ?? "Restaurante",
+      order.table.name,
+      ...lines,
+      `Subtotal neto: ₡${order.billing.subtotal.toLocaleString()}`,
+      `IVA: ₡${order.billing.tax.toLocaleString()}`,
+      `Servicio: ₡${order.billing.service.toLocaleString()}`,
+      `Total: ₡${order.billing.total.toLocaleString()}`,
+    ].join("\n");
+  }
+
+  function downloadReceipt() {
+    const blob = new Blob([receiptText()], { type: "text/plain;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = `comprobante-${accessCode.slice(0, 8)}.txt`;
+    anchor.click();
+    URL.revokeObjectURL(url);
+  }
+
+  function emailReceipt() {
+    window.location.href = `mailto:?subject=${encodeURIComponent("Comprobante de consumo")}&body=${encodeURIComponent(receiptText())}`;
+  }
+
+  function finishVisit() {
+    if (order) {
+      window.localStorage.removeItem(`assettrack_restaurant_order_${order.table.code}`);
+    }
+    setVisitEnded(true);
+  }
+
+  if (visitEnded) {
+    return (
+      <main className="mx-auto max-w-xl px-4 py-16 text-center text-slate-900">
+        <p className="font-semibold tracking-widest text-emerald-700">ASSETTRACK · RESTAURANT</p>
+        <h1 className="mt-3 text-3xl font-bold">Gracias por su visita</h1>
+        <p className="mt-4 text-slate-600">La sesión de esta mesa fue retirada de este dispositivo.</p>
+      </main>
+    );
+  }
   return (
     <main className="mx-auto max-w-2xl px-4 py-8 text-slate-900">
       <p className="font-semibold tracking-widest text-emerald-700">
@@ -193,6 +271,36 @@ export default function RestaurantOrderPage() {
             ? `Mesero a cargo: ${order.table.waiter.name}`
             : "Asignando mesero, es un gusto servirle."}
         </p>
+      )}
+      {order?.status === "CLOSED" && (
+        <section className="mt-6 rounded-xl border-2 border-emerald-600 bg-emerald-50 p-5">
+          <h2 className="text-xl font-bold">Afíliate para obtener premios y promociones</h2>
+          <p className="mt-2 text-sm text-slate-700">La afiliación y el permiso para recibir mensajes promocionales son decisiones independientes.</p>
+          <form className="mt-4 space-y-3" onSubmit={joinLoyalty}>
+            <input required maxLength={60} className="w-full rounded border bg-white p-3 text-slate-900" placeholder="Nombre o nickname (sin apellidos)" value={loyaltyForm.nickname} onChange={(event) => setLoyaltyForm((current) => ({ ...current, nickname: event.target.value }))} />
+            <input required type="email" maxLength={160} className="w-full rounded border bg-white p-3 text-slate-900" placeholder="Correo electrónico" value={loyaltyForm.email} onChange={(event) => setLoyaltyForm((current) => ({ ...current, email: event.target.value }))} />
+            <label className="flex items-start gap-2 text-sm">
+              <input type="checkbox" className="mt-1" checked={loyaltyForm.marketingOptIn} onChange={(event) => setLoyaltyForm((current) => ({ ...current, marketingOptIn: event.target.checked }))} />
+              Deseo recibir mensajes promocionales. Puedo cancelar este permiso posteriormente.
+            </label>
+            <button className="rounded bg-emerald-700 px-4 py-2 font-semibold text-white">Afiliarme</button>
+          </form>
+          {loyaltyMessage && <p className="mt-3 font-semibold text-emerald-800">{loyaltyMessage}</p>}
+        </section>
+      )}
+      {order?.status === "CLOSED" && (
+        <section className="mt-6 rounded-xl border bg-white p-5 shadow-sm">
+          <h2 className="text-xl font-bold">Finalizar visita</h2>
+          {!showExitOptions ? (
+            <button className="mt-3 rounded bg-slate-900 px-4 py-2 font-semibold text-white" onClick={() => setShowExitOptions(true)}>Salir</button>
+          ) : (
+            <div className="mt-4 grid gap-3 sm:grid-cols-3">
+              <button className="rounded bg-indigo-700 px-4 py-3 font-semibold text-white" onClick={downloadReceipt}>Guardar comprobante</button>
+              <button className="rounded bg-sky-700 px-4 py-3 font-semibold text-white" onClick={emailReceipt}>Enviar por correo</button>
+              <button className="rounded bg-slate-700 px-4 py-3 font-semibold text-white" onClick={finishVisit}>Salir sin guardar</button>
+            </div>
+          )}
+        </section>
       )}
       {order?.promotions[0] && (
         <section className="mb-6 rounded-2xl bg-fuchsia-700 p-5 text-white shadow-lg ring-4 ring-fuchsia-200">

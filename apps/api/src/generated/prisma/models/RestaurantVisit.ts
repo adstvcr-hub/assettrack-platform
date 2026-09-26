@@ -327,6 +327,7 @@ export type RestaurantVisitWhereInput = {
   organization?: Prisma.XOR<Prisma.OrganizationScalarRelationFilter, Prisma.OrganizationWhereInput>
   table?: Prisma.XOR<Prisma.RestaurantTableScalarRelationFilter, Prisma.RestaurantTableWhereInput>
   orders?: Prisma.RestaurantOrderListRelationFilter
+  loyaltyActivities?: Prisma.RestaurantLoyaltyActivityListRelationFilter
 }
 
 export type RestaurantVisitOrderByWithRelationInput = {
@@ -351,6 +352,7 @@ export type RestaurantVisitOrderByWithRelationInput = {
   organization?: Prisma.OrganizationOrderByWithRelationInput
   table?: Prisma.RestaurantTableOrderByWithRelationInput
   orders?: Prisma.RestaurantOrderOrderByRelationAggregateInput
+  loyaltyActivities?: Prisma.RestaurantLoyaltyActivityOrderByRelationAggregateInput
 }
 
 export type RestaurantVisitWhereUniqueInput = Prisma.AtLeast<{
@@ -378,6 +380,7 @@ export type RestaurantVisitWhereUniqueInput = Prisma.AtLeast<{
   organization?: Prisma.XOR<Prisma.OrganizationScalarRelationFilter, Prisma.OrganizationWhereInput>
   table?: Prisma.XOR<Prisma.RestaurantTableScalarRelationFilter, Prisma.RestaurantTableWhereInput>
   orders?: Prisma.RestaurantOrderListRelationFilter
+  loyaltyActivities?: Prisma.RestaurantLoyaltyActivityListRelationFilter
 }, "id" | "accessCode">
 
 export type RestaurantVisitOrderByWithAggregationInput = {
@@ -450,6 +453,7 @@ export type RestaurantVisitCreateInput = {
   organization: Prisma.OrganizationCreateNestedOneWithoutRestaurantVisitsInput
   table: Prisma.RestaurantTableCreateNestedOneWithoutVisitsInput
   orders?: Prisma.RestaurantOrderCreateNestedManyWithoutVisitInput
+  loyaltyActivities?: Prisma.RestaurantLoyaltyActivityCreateNestedManyWithoutVisitInput
 }
 
 export type RestaurantVisitUncheckedCreateInput = {
@@ -472,6 +476,7 @@ export type RestaurantVisitUncheckedCreateInput = {
   invoiceTaxId?: string | null
   invoiceReference?: string | null
   orders?: Prisma.RestaurantOrderUncheckedCreateNestedManyWithoutVisitInput
+  loyaltyActivities?: Prisma.RestaurantLoyaltyActivityUncheckedCreateNestedManyWithoutVisitInput
 }
 
 export type RestaurantVisitUpdateInput = {
@@ -494,6 +499,7 @@ export type RestaurantVisitUpdateInput = {
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutRestaurantVisitsNestedInput
   table?: Prisma.RestaurantTableUpdateOneRequiredWithoutVisitsNestedInput
   orders?: Prisma.RestaurantOrderUpdateManyWithoutVisitNestedInput
+  loyaltyActivities?: Prisma.RestaurantLoyaltyActivityUpdateManyWithoutVisitNestedInput
 }
 
 export type RestaurantVisitUncheckedUpdateInput = {
@@ -516,6 +522,7 @@ export type RestaurantVisitUncheckedUpdateInput = {
   invoiceTaxId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   invoiceReference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   orders?: Prisma.RestaurantOrderUncheckedUpdateManyWithoutVisitNestedInput
+  loyaltyActivities?: Prisma.RestaurantLoyaltyActivityUncheckedUpdateManyWithoutVisitNestedInput
 }
 
 export type RestaurantVisitCreateManyInput = {
@@ -763,6 +770,22 @@ export type EnumRestaurantInvoiceRequestStatusFieldUpdateOperationsInput = {
   set?: $Enums.RestaurantInvoiceRequestStatus
 }
 
+export type RestaurantVisitCreateNestedOneWithoutLoyaltyActivitiesInput = {
+  create?: Prisma.XOR<Prisma.RestaurantVisitCreateWithoutLoyaltyActivitiesInput, Prisma.RestaurantVisitUncheckedCreateWithoutLoyaltyActivitiesInput>
+  connectOrCreate?: Prisma.RestaurantVisitCreateOrConnectWithoutLoyaltyActivitiesInput
+  connect?: Prisma.RestaurantVisitWhereUniqueInput
+}
+
+export type RestaurantVisitUpdateOneWithoutLoyaltyActivitiesNestedInput = {
+  create?: Prisma.XOR<Prisma.RestaurantVisitCreateWithoutLoyaltyActivitiesInput, Prisma.RestaurantVisitUncheckedCreateWithoutLoyaltyActivitiesInput>
+  connectOrCreate?: Prisma.RestaurantVisitCreateOrConnectWithoutLoyaltyActivitiesInput
+  upsert?: Prisma.RestaurantVisitUpsertWithoutLoyaltyActivitiesInput
+  disconnect?: Prisma.RestaurantVisitWhereInput | boolean
+  delete?: Prisma.RestaurantVisitWhereInput | boolean
+  connect?: Prisma.RestaurantVisitWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.RestaurantVisitUpdateToOneWithWhereWithoutLoyaltyActivitiesInput, Prisma.RestaurantVisitUpdateWithoutLoyaltyActivitiesInput>, Prisma.RestaurantVisitUncheckedUpdateWithoutLoyaltyActivitiesInput>
+}
+
 export type RestaurantVisitCreateNestedOneWithoutOrdersInput = {
   create?: Prisma.XOR<Prisma.RestaurantVisitCreateWithoutOrdersInput, Prisma.RestaurantVisitUncheckedCreateWithoutOrdersInput>
   connectOrCreate?: Prisma.RestaurantVisitCreateOrConnectWithoutOrdersInput
@@ -798,6 +821,7 @@ export type RestaurantVisitCreateWithoutOrganizationInput = {
   invoiceReference?: string | null
   table: Prisma.RestaurantTableCreateNestedOneWithoutVisitsInput
   orders?: Prisma.RestaurantOrderCreateNestedManyWithoutVisitInput
+  loyaltyActivities?: Prisma.RestaurantLoyaltyActivityCreateNestedManyWithoutVisitInput
 }
 
 export type RestaurantVisitUncheckedCreateWithoutOrganizationInput = {
@@ -819,6 +843,7 @@ export type RestaurantVisitUncheckedCreateWithoutOrganizationInput = {
   invoiceTaxId?: string | null
   invoiceReference?: string | null
   orders?: Prisma.RestaurantOrderUncheckedCreateNestedManyWithoutVisitInput
+  loyaltyActivities?: Prisma.RestaurantLoyaltyActivityUncheckedCreateNestedManyWithoutVisitInput
 }
 
 export type RestaurantVisitCreateOrConnectWithoutOrganizationInput = {
@@ -890,6 +915,7 @@ export type RestaurantVisitCreateWithoutTableInput = {
   invoiceReference?: string | null
   organization: Prisma.OrganizationCreateNestedOneWithoutRestaurantVisitsInput
   orders?: Prisma.RestaurantOrderCreateNestedManyWithoutVisitInput
+  loyaltyActivities?: Prisma.RestaurantLoyaltyActivityCreateNestedManyWithoutVisitInput
 }
 
 export type RestaurantVisitUncheckedCreateWithoutTableInput = {
@@ -911,6 +937,7 @@ export type RestaurantVisitUncheckedCreateWithoutTableInput = {
   invoiceTaxId?: string | null
   invoiceReference?: string | null
   orders?: Prisma.RestaurantOrderUncheckedCreateNestedManyWithoutVisitInput
+  loyaltyActivities?: Prisma.RestaurantLoyaltyActivityUncheckedCreateNestedManyWithoutVisitInput
 }
 
 export type RestaurantVisitCreateOrConnectWithoutTableInput = {
@@ -939,6 +966,110 @@ export type RestaurantVisitUpdateManyWithWhereWithoutTableInput = {
   data: Prisma.XOR<Prisma.RestaurantVisitUpdateManyMutationInput, Prisma.RestaurantVisitUncheckedUpdateManyWithoutTableInput>
 }
 
+export type RestaurantVisitCreateWithoutLoyaltyActivitiesInput = {
+  id?: string
+  accessCode?: string
+  status?: $Enums.RestaurantVisitStatus
+  openedAt?: Date | string
+  closedAt?: Date | string | null
+  taxRateBps?: number
+  taxIncluded?: boolean
+  serviceRateBps?: number
+  serviceChargeEnabled?: boolean
+  invoiceRequestStatus?: $Enums.RestaurantInvoiceRequestStatus
+  invoiceRequestedAt?: Date | string | null
+  invoiceName?: string | null
+  invoiceEmail?: string | null
+  invoicePhone?: string | null
+  invoiceTaxId?: string | null
+  invoiceReference?: string | null
+  organization: Prisma.OrganizationCreateNestedOneWithoutRestaurantVisitsInput
+  table: Prisma.RestaurantTableCreateNestedOneWithoutVisitsInput
+  orders?: Prisma.RestaurantOrderCreateNestedManyWithoutVisitInput
+}
+
+export type RestaurantVisitUncheckedCreateWithoutLoyaltyActivitiesInput = {
+  id?: string
+  organizationId: string
+  tableId: string
+  accessCode?: string
+  status?: $Enums.RestaurantVisitStatus
+  openedAt?: Date | string
+  closedAt?: Date | string | null
+  taxRateBps?: number
+  taxIncluded?: boolean
+  serviceRateBps?: number
+  serviceChargeEnabled?: boolean
+  invoiceRequestStatus?: $Enums.RestaurantInvoiceRequestStatus
+  invoiceRequestedAt?: Date | string | null
+  invoiceName?: string | null
+  invoiceEmail?: string | null
+  invoicePhone?: string | null
+  invoiceTaxId?: string | null
+  invoiceReference?: string | null
+  orders?: Prisma.RestaurantOrderUncheckedCreateNestedManyWithoutVisitInput
+}
+
+export type RestaurantVisitCreateOrConnectWithoutLoyaltyActivitiesInput = {
+  where: Prisma.RestaurantVisitWhereUniqueInput
+  create: Prisma.XOR<Prisma.RestaurantVisitCreateWithoutLoyaltyActivitiesInput, Prisma.RestaurantVisitUncheckedCreateWithoutLoyaltyActivitiesInput>
+}
+
+export type RestaurantVisitUpsertWithoutLoyaltyActivitiesInput = {
+  update: Prisma.XOR<Prisma.RestaurantVisitUpdateWithoutLoyaltyActivitiesInput, Prisma.RestaurantVisitUncheckedUpdateWithoutLoyaltyActivitiesInput>
+  create: Prisma.XOR<Prisma.RestaurantVisitCreateWithoutLoyaltyActivitiesInput, Prisma.RestaurantVisitUncheckedCreateWithoutLoyaltyActivitiesInput>
+  where?: Prisma.RestaurantVisitWhereInput
+}
+
+export type RestaurantVisitUpdateToOneWithWhereWithoutLoyaltyActivitiesInput = {
+  where?: Prisma.RestaurantVisitWhereInput
+  data: Prisma.XOR<Prisma.RestaurantVisitUpdateWithoutLoyaltyActivitiesInput, Prisma.RestaurantVisitUncheckedUpdateWithoutLoyaltyActivitiesInput>
+}
+
+export type RestaurantVisitUpdateWithoutLoyaltyActivitiesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  accessCode?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumRestaurantVisitStatusFieldUpdateOperationsInput | $Enums.RestaurantVisitStatus
+  openedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  closedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  taxRateBps?: Prisma.IntFieldUpdateOperationsInput | number
+  taxIncluded?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  serviceRateBps?: Prisma.IntFieldUpdateOperationsInput | number
+  serviceChargeEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  invoiceRequestStatus?: Prisma.EnumRestaurantInvoiceRequestStatusFieldUpdateOperationsInput | $Enums.RestaurantInvoiceRequestStatus
+  invoiceRequestedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  invoiceName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  invoiceEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  invoicePhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  invoiceTaxId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  invoiceReference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  organization?: Prisma.OrganizationUpdateOneRequiredWithoutRestaurantVisitsNestedInput
+  table?: Prisma.RestaurantTableUpdateOneRequiredWithoutVisitsNestedInput
+  orders?: Prisma.RestaurantOrderUpdateManyWithoutVisitNestedInput
+}
+
+export type RestaurantVisitUncheckedUpdateWithoutLoyaltyActivitiesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  organizationId?: Prisma.StringFieldUpdateOperationsInput | string
+  tableId?: Prisma.StringFieldUpdateOperationsInput | string
+  accessCode?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumRestaurantVisitStatusFieldUpdateOperationsInput | $Enums.RestaurantVisitStatus
+  openedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  closedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  taxRateBps?: Prisma.IntFieldUpdateOperationsInput | number
+  taxIncluded?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  serviceRateBps?: Prisma.IntFieldUpdateOperationsInput | number
+  serviceChargeEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  invoiceRequestStatus?: Prisma.EnumRestaurantInvoiceRequestStatusFieldUpdateOperationsInput | $Enums.RestaurantInvoiceRequestStatus
+  invoiceRequestedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  invoiceName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  invoiceEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  invoicePhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  invoiceTaxId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  invoiceReference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  orders?: Prisma.RestaurantOrderUncheckedUpdateManyWithoutVisitNestedInput
+}
+
 export type RestaurantVisitCreateWithoutOrdersInput = {
   id?: string
   accessCode?: string
@@ -958,6 +1089,7 @@ export type RestaurantVisitCreateWithoutOrdersInput = {
   invoiceReference?: string | null
   organization: Prisma.OrganizationCreateNestedOneWithoutRestaurantVisitsInput
   table: Prisma.RestaurantTableCreateNestedOneWithoutVisitsInput
+  loyaltyActivities?: Prisma.RestaurantLoyaltyActivityCreateNestedManyWithoutVisitInput
 }
 
 export type RestaurantVisitUncheckedCreateWithoutOrdersInput = {
@@ -979,6 +1111,7 @@ export type RestaurantVisitUncheckedCreateWithoutOrdersInput = {
   invoicePhone?: string | null
   invoiceTaxId?: string | null
   invoiceReference?: string | null
+  loyaltyActivities?: Prisma.RestaurantLoyaltyActivityUncheckedCreateNestedManyWithoutVisitInput
 }
 
 export type RestaurantVisitCreateOrConnectWithoutOrdersInput = {
@@ -1016,6 +1149,7 @@ export type RestaurantVisitUpdateWithoutOrdersInput = {
   invoiceReference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutRestaurantVisitsNestedInput
   table?: Prisma.RestaurantTableUpdateOneRequiredWithoutVisitsNestedInput
+  loyaltyActivities?: Prisma.RestaurantLoyaltyActivityUpdateManyWithoutVisitNestedInput
 }
 
 export type RestaurantVisitUncheckedUpdateWithoutOrdersInput = {
@@ -1037,6 +1171,7 @@ export type RestaurantVisitUncheckedUpdateWithoutOrdersInput = {
   invoicePhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   invoiceTaxId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   invoiceReference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  loyaltyActivities?: Prisma.RestaurantLoyaltyActivityUncheckedUpdateManyWithoutVisitNestedInput
 }
 
 export type RestaurantVisitCreateManyOrganizationInput = {
@@ -1078,6 +1213,7 @@ export type RestaurantVisitUpdateWithoutOrganizationInput = {
   invoiceReference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   table?: Prisma.RestaurantTableUpdateOneRequiredWithoutVisitsNestedInput
   orders?: Prisma.RestaurantOrderUpdateManyWithoutVisitNestedInput
+  loyaltyActivities?: Prisma.RestaurantLoyaltyActivityUpdateManyWithoutVisitNestedInput
 }
 
 export type RestaurantVisitUncheckedUpdateWithoutOrganizationInput = {
@@ -1099,6 +1235,7 @@ export type RestaurantVisitUncheckedUpdateWithoutOrganizationInput = {
   invoiceTaxId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   invoiceReference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   orders?: Prisma.RestaurantOrderUncheckedUpdateManyWithoutVisitNestedInput
+  loyaltyActivities?: Prisma.RestaurantLoyaltyActivityUncheckedUpdateManyWithoutVisitNestedInput
 }
 
 export type RestaurantVisitUncheckedUpdateManyWithoutOrganizationInput = {
@@ -1160,6 +1297,7 @@ export type RestaurantVisitUpdateWithoutTableInput = {
   invoiceReference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutRestaurantVisitsNestedInput
   orders?: Prisma.RestaurantOrderUpdateManyWithoutVisitNestedInput
+  loyaltyActivities?: Prisma.RestaurantLoyaltyActivityUpdateManyWithoutVisitNestedInput
 }
 
 export type RestaurantVisitUncheckedUpdateWithoutTableInput = {
@@ -1181,6 +1319,7 @@ export type RestaurantVisitUncheckedUpdateWithoutTableInput = {
   invoiceTaxId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   invoiceReference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   orders?: Prisma.RestaurantOrderUncheckedUpdateManyWithoutVisitNestedInput
+  loyaltyActivities?: Prisma.RestaurantLoyaltyActivityUncheckedUpdateManyWithoutVisitNestedInput
 }
 
 export type RestaurantVisitUncheckedUpdateManyWithoutTableInput = {
@@ -1210,10 +1349,12 @@ export type RestaurantVisitUncheckedUpdateManyWithoutTableInput = {
 
 export type RestaurantVisitCountOutputType = {
   orders: number
+  loyaltyActivities: number
 }
 
 export type RestaurantVisitCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   orders?: boolean | RestaurantVisitCountOutputTypeCountOrdersArgs
+  loyaltyActivities?: boolean | RestaurantVisitCountOutputTypeCountLoyaltyActivitiesArgs
 }
 
 /**
@@ -1231,6 +1372,13 @@ export type RestaurantVisitCountOutputTypeDefaultArgs<ExtArgs extends runtime.Ty
  */
 export type RestaurantVisitCountOutputTypeCountOrdersArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.RestaurantOrderWhereInput
+}
+
+/**
+ * RestaurantVisitCountOutputType without action
+ */
+export type RestaurantVisitCountOutputTypeCountLoyaltyActivitiesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.RestaurantLoyaltyActivityWhereInput
 }
 
 
@@ -1256,6 +1404,7 @@ export type RestaurantVisitSelect<ExtArgs extends runtime.Types.Extensions.Inter
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
   table?: boolean | Prisma.RestaurantTableDefaultArgs<ExtArgs>
   orders?: boolean | Prisma.RestaurantVisit$ordersArgs<ExtArgs>
+  loyaltyActivities?: boolean | Prisma.RestaurantVisit$loyaltyActivitiesArgs<ExtArgs>
   _count?: boolean | Prisma.RestaurantVisitCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["restaurantVisit"]>
 
@@ -1331,6 +1480,7 @@ export type RestaurantVisitInclude<ExtArgs extends runtime.Types.Extensions.Inte
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
   table?: boolean | Prisma.RestaurantTableDefaultArgs<ExtArgs>
   orders?: boolean | Prisma.RestaurantVisit$ordersArgs<ExtArgs>
+  loyaltyActivities?: boolean | Prisma.RestaurantVisit$loyaltyActivitiesArgs<ExtArgs>
   _count?: boolean | Prisma.RestaurantVisitCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type RestaurantVisitIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1348,6 +1498,7 @@ export type $RestaurantVisitPayload<ExtArgs extends runtime.Types.Extensions.Int
     organization: Prisma.$OrganizationPayload<ExtArgs>
     table: Prisma.$RestaurantTablePayload<ExtArgs>
     orders: Prisma.$RestaurantOrderPayload<ExtArgs>[]
+    loyaltyActivities: Prisma.$RestaurantLoyaltyActivityPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1765,6 +1916,7 @@ export interface Prisma__RestaurantVisitClient<T, Null = never, ExtArgs extends 
   organization<T extends Prisma.OrganizationDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.OrganizationDefaultArgs<ExtArgs>>): Prisma.Prisma__OrganizationClient<runtime.Types.Result.GetResult<Prisma.$OrganizationPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   table<T extends Prisma.RestaurantTableDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.RestaurantTableDefaultArgs<ExtArgs>>): Prisma.Prisma__RestaurantTableClient<runtime.Types.Result.GetResult<Prisma.$RestaurantTablePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   orders<T extends Prisma.RestaurantVisit$ordersArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.RestaurantVisit$ordersArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$RestaurantOrderPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  loyaltyActivities<T extends Prisma.RestaurantVisit$loyaltyActivitiesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.RestaurantVisit$loyaltyActivitiesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$RestaurantLoyaltyActivityPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2234,6 +2386,30 @@ export type RestaurantVisit$ordersArgs<ExtArgs extends runtime.Types.Extensions.
   take?: number
   skip?: number
   distinct?: Prisma.RestaurantOrderScalarFieldEnum | Prisma.RestaurantOrderScalarFieldEnum[]
+}
+
+/**
+ * RestaurantVisit.loyaltyActivities
+ */
+export type RestaurantVisit$loyaltyActivitiesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the RestaurantLoyaltyActivity
+   */
+  select?: Prisma.RestaurantLoyaltyActivitySelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the RestaurantLoyaltyActivity
+   */
+  omit?: Prisma.RestaurantLoyaltyActivityOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.RestaurantLoyaltyActivityInclude<ExtArgs> | null
+  where?: Prisma.RestaurantLoyaltyActivityWhereInput
+  orderBy?: Prisma.RestaurantLoyaltyActivityOrderByWithRelationInput | Prisma.RestaurantLoyaltyActivityOrderByWithRelationInput[]
+  cursor?: Prisma.RestaurantLoyaltyActivityWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.RestaurantLoyaltyActivityScalarFieldEnum | Prisma.RestaurantLoyaltyActivityScalarFieldEnum[]
 }
 
 /**

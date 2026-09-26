@@ -4,9 +4,10 @@ import {
   RestaurantStaffController,
 } from "./restaurant.controller";
 import { RestaurantService } from "./restaurant.service";
+import { RestaurantAccessGuard } from "./restaurant-access.guard";
 
 @Module({
   controllers: [RestaurantGuestController, RestaurantStaffController],
-  providers: [RestaurantService],
+  providers: [RestaurantService, RestaurantAccessGuard],
 })
 export class RestaurantModule {}

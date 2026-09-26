@@ -11,6 +11,8 @@ import {
   RestaurantFulfillment,
   RestaurantInvoiceRequestStatus,
   RestaurantItemStatus,
+  RestaurantLoyaltyActivityType,
+  RestaurantRewardSponsor,
   RestaurantStaffAvailability,
   RestaurantStaffRole,
   RestaurantStation,
@@ -21,8 +23,10 @@ import {
 import {
   CreateMenuItemDto,
   CreatePromotionDto,
+  CreateRewardProgramDto,
   CreateTableDto,
   PlaceOrderDto,
+  JoinLoyaltyDto,
   RequestInvoiceDto,
   UpdateItemStatusDto,
   UpdateItemFulfillmentDto,
@@ -858,12 +862,16 @@ export class RestaurantService {
             restaurantTaxRateBps: true,
             restaurantTaxIncluded: true,
             restaurantServiceRateBps: true,
+            restaurantAccessEnabled: true,
           },
         },
         waiter: { select: { id: true, name: true } },
       },
     });
     if (!table?.active) throw new NotFoundException("Table not found");
+    if (table.organization.restaurantAccessEnabled === false) {
+      throw new ForbiddenException("Restaurant ordering is temporarily unavailable");
+    }
     const availableStations = await this.availableStations(
       table.organizationId,
     );
@@ -960,8 +968,14 @@ export class RestaurantService {
   async placeOrder(code: string, dto: PlaceOrderDto) {
     const table = await this.prisma.restaurantTable.findUnique({
       where: { code },
+      include: {
+        organization: { select: { restaurantAccessEnabled: true } },
+      },
     });
     if (!table?.active) throw new NotFoundException("Table not found");
+    if (table.organization?.restaurantAccessEnabled === false) {
+      throw new ForbiddenException("Restaurant ordering is temporarily unavailable");
+    }
     const include = {
       items: true,
       table: { select: { name: true } },
@@ -1204,6 +1218,7 @@ export class RestaurantService {
     const visit = await this.prisma.restaurantVisit.findUnique({
       where: { accessCode },
       include: {
+        organization: { select: { name: true } },
         table: {
           select: {
             name: true,
@@ -1259,6 +1274,8 @@ export class RestaurantService {
       accessCode: visit.accessCode,
       status: visit.status,
       createdAt: visit.openedAt,
+      closedAt: visit.closedAt,
+      restaurant: visit.organization?.name ?? "Restaurante",
       table: visit.table,
       orders: visit.orders,
       items,
@@ -1274,6 +1291,198 @@ export class RestaurantService {
         ),
       ),
     };
+  }
+
+  async guestReceipt(accessCode: string) {
+    const account = await this.guestOrder(accessCode);
+    return {
+      receiptNumber: account.id,
+      restaurant: account.restaurant,
+      table: account.table.name,
+      openedAt: account.createdAt,
+      closedAt: account.closedAt,
+      status: account.status,
+      items: account.items.map((item) => ({
+        name: item.name,
+        quantity: item.quantity,
+        unitPrice: item.price,
+        total: item.price * item.quantity,
+        status: item.status,
+      })),
+      billing: account.billing,
+    };
+  }
+
+  async joinLoyalty(accessCode: string, dto: JoinLoyaltyDto) {
+    const nickname = dto.nickname.trim();
+    const email = dto.email.trim().toLowerCase();
+    if (!nickname) throw new BadRequestException("Name or nickname required");
+    const visit = await this.prisma.restaurantVisit.findUnique({
+      where: { accessCode },
+      select: { id: true, organizationId: true, status: true },
+    });
+    if (!visit) throw new NotFoundException("Account not found");
+    if (visit.status !== RestaurantVisitStatus.CLOSED) {
+      throw new ConflictException("Loyalty enrollment is available after checkout");
+    }
+
+    return this.prisma.$transaction(async (tx) => {
+      const member = await tx.restaurantLoyaltyMember.upsert({
+        where: { email },
+        create: {
+          email,
+          nickname,
+          marketingOptIn: dto.marketingOptIn,
+          marketingConsentAt: dto.marketingOptIn ? new Date() : null,
+        },
+        update: {
+          nickname,
+          marketingOptIn: dto.marketingOptIn,
+          marketingConsentAt: dto.marketingOptIn ? new Date() : null,
+          deletedAt: null,
+        },
+      });
+      await tx.restaurantLoyaltyActivity.upsert({
+        where: {
+          memberId_visitId_type: {
+            memberId: member.id,
+            visitId: visit.id,
+            type: RestaurantLoyaltyActivityType.VISIT_COMPLETED,
+          },
+        },
+        create: {
+          memberId: member.id,
+          organizationId: visit.organizationId,
+          visitId: visit.id,
+          type: RestaurantLoyaltyActivityType.VISIT_COMPLETED,
+          points: 10,
+        },
+        update: {},
+      });
+      const visits = await tx.restaurantLoyaltyActivity.count({
+        where: {
+          memberId: member.id,
+          type: RestaurantLoyaltyActivityType.VISIT_COMPLETED,
+        },
+      });
+      const vipTier = visits >= 15 ? "GOLD" : visits >= 5 ? "VIP" : "MEMBER";
+      const points = visits * 10;
+      const updated = await tx.restaurantLoyaltyMember.update({
+        where: { id: member.id },
+        data: { vipTier, assettrackPoints: points },
+        select: {
+          nickname: true,
+          email: true,
+          marketingOptIn: true,
+          vipTier: true,
+          assettrackPoints: true,
+        },
+      });
+      const localVisits = await tx.restaurantLoyaltyActivity.count({
+        where: {
+          memberId: member.id,
+          organizationId: visit.organizationId,
+          type: RestaurantLoyaltyActivityType.VISIT_COMPLETED,
+        },
+      });
+      const rewards = await tx.restaurantRewardProgram.findMany({
+        where: {
+          active: true,
+          pointsRequired: { lte: points },
+          OR: [
+            { organizationId: visit.organizationId },
+            { sponsor: RestaurantRewardSponsor.ASSETTRACK, organizationId: null },
+          ],
+          AND: [
+            { OR: [{ startsAt: null }, { startsAt: { lte: new Date() } }] },
+            { OR: [{ endsAt: null }, { endsAt: { gt: new Date() } }] },
+          ],
+        },
+        select: {
+          id: true,
+          name: true,
+          description: true,
+          pointsRequired: true,
+          sponsor: true,
+        },
+        orderBy: { pointsRequired: "asc" },
+      });
+      return { ...updated, visits, localVisits, rewards };
+    });
+  }
+
+  async loyaltySummary(actor: RestaurantActor) {
+    this.requireRestaurantAdmin(actor);
+    const activities = await this.prisma.restaurantLoyaltyActivity.findMany({
+      where: {
+        organizationId: actor.organizationId,
+        type: RestaurantLoyaltyActivityType.VISIT_COMPLETED,
+      },
+      select: {
+        memberId: true,
+        createdAt: true,
+        member: { select: { nickname: true, vipTier: true } },
+      },
+      orderBy: { createdAt: "desc" },
+    });
+    const counts = new Map<string, { nickname: string; vipTier: string; visits: number }>();
+    for (const activity of activities) {
+      const current = counts.get(activity.memberId) ?? {
+        nickname: activity.member.nickname,
+        vipTier: activity.member.vipTier,
+        visits: 0,
+      };
+      current.visits += 1;
+      counts.set(activity.memberId, current);
+    }
+    return {
+      enrolledCustomers: counts.size,
+      completedVisits: activities.length,
+      frequentCustomers: [...counts.values()]
+        .filter((entry) => entry.visits > 1)
+        .sort((a, b) => b.visits - a.visits)
+        .slice(0, 20),
+    };
+  }
+
+  rewardPrograms(actor: RestaurantActor) {
+    this.requireRestaurantAdmin(actor);
+    const now = new Date();
+    return this.prisma.restaurantRewardProgram.findMany({
+      where: {
+        active: true,
+        OR: [
+          { organizationId: actor.organizationId },
+          { sponsor: RestaurantRewardSponsor.ASSETTRACK, organizationId: null },
+        ],
+        AND: [
+          { OR: [{ startsAt: null }, { startsAt: { lte: now } }] },
+          { OR: [{ endsAt: null }, { endsAt: { gt: now } }] },
+        ],
+      },
+      orderBy: [{ sponsor: "asc" }, { pointsRequired: "asc" }],
+    });
+  }
+
+  addRewardProgram(actor: RestaurantActor, dto: CreateRewardProgramDto) {
+    this.requireRestaurantAdmin(actor);
+    const startsAt = dto.startsAt ? new Date(dto.startsAt) : null;
+    const endsAt = dto.endsAt ? new Date(dto.endsAt) : null;
+    if (startsAt && endsAt && endsAt <= startsAt) {
+      throw new BadRequestException("Reward end must follow its start");
+    }
+    return this.prisma.restaurantRewardProgram.create({
+      data: {
+        organizationId: actor.organizationId,
+        sponsor: RestaurantRewardSponsor.RESTAURANT,
+        name: dto.name.trim(),
+        description: dto.description?.trim() || null,
+        pointsRequired: dto.pointsRequired,
+        vipTier: dto.vipTier?.trim().toUpperCase() || null,
+        startsAt,
+        endsAt,
+      },
+    });
   }
 
   async orders(actor: RestaurantActor) {

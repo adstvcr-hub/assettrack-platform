@@ -59,6 +59,7 @@ export default function DashboardPage() {
   const [scanTotal, setScanTotal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [isPlatformAdmin, setIsPlatformAdmin] = useState(false);
 
   useEffect(() => {
     const token = sessionStorage.getItem("assettrack_token");
@@ -136,6 +137,11 @@ export default function DashboardPage() {
         setScanTotal(
           Array.isArray(scansData) ? scansData.length : scansData.total,
         );
+        const platformResponse = await authenticatedFetch(
+          `${API_URL}/api/v1/platform-admin/profile`,
+          { headers },
+        );
+        setIsPlatformAdmin(platformResponse.ok);
       } catch {
         setError("Unable to load dashboard data");
       } finally {
@@ -234,6 +240,14 @@ export default function DashboardPage() {
               className="rounded-lg bg-emerald-700 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-800"
             >
               Administración del restaurante
+            </button>
+          )}
+          {isPlatformAdmin && (
+            <button
+              onClick={() => router.push("/platform/admin")}
+              className="rounded-lg bg-indigo-700 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-800"
+            >
+              Administración de AssetTrack
             </button>
           )}
         </div>

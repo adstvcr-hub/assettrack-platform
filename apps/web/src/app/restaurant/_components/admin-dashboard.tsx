@@ -82,6 +82,19 @@ type BillingSettings = {
   restaurantTaxIncluded: boolean;
   restaurantServiceRateBps: number;
 };
+type LoyaltySummary = {
+  enrolledCustomers: number;
+  completedVisits: number;
+  frequentCustomers: Array<{ nickname: string; vipTier: string; visits: number }>;
+};
+type RewardProgram = {
+  id: string;
+  sponsor: "RESTAURANT" | "ASSETTRACK";
+  name: string;
+  description?: string | null;
+  pointsRequired: number;
+  vipTier?: string | null;
+};
 const nextStatus: Record<string, string | null> = {
   RECEIVED: "ACCEPTED",
   ACCEPTED: "PREPARING",
@@ -130,6 +143,10 @@ export default function RestaurantAdminDashboard() {
   const [taxRate, setTaxRate] = useState("13");
   const [serviceRate, setServiceRate] = useState("10");
   const [taxIncluded, setTaxIncluded] = useState(false);
+  const [loyalty, setLoyalty] = useState<LoyaltySummary | null>(null);
+  const [rewards, setRewards] = useState<RewardProgram[]>([]);
+  const [rewardName, setRewardName] = useState("");
+  const [rewardPoints, setRewardPoints] = useState("50");
   const billingInitialized = useRef(false);
 
   const load = useCallback(async () => {
@@ -142,6 +159,8 @@ export default function RestaurantAdminDashboard() {
         "billing-settings",
         "promotions",
         "invoice-requests",
+        "loyalty/summary",
+        "loyalty/rewards",
       ];
       const responses = await Promise.all(
         paths.map((path) =>
@@ -173,6 +192,8 @@ export default function RestaurantAdminDashboard() {
         billingData,
         promotionData,
         invoiceData,
+        loyaltyData,
+        rewardData,
       ] = await Promise.all(responses.map((response) => response.json()));
       setTables(tableData);
       setMenu(menuData);
@@ -181,6 +202,8 @@ export default function RestaurantAdminDashboard() {
       setBilling(billingData);
       setPromotions(promotionData);
       setInvoiceRequests(invoiceData);
+      setLoyalty(loyaltyData);
+      setRewards(rewardData);
       if (!billingInitialized.current) {
         setTaxRate(String(billingData.restaurantTaxRateBps / 100));
         setServiceRate(String(billingData.restaurantServiceRateBps / 100));
@@ -1027,6 +1050,47 @@ export default function RestaurantAdminDashboard() {
                 )}
               </article>
             ))}
+          </div>
+        </div>
+      </section>
+      <section className="mt-12">
+        <h2 className="text-xl font-bold">Fidelidad y premios</h2>
+        <p className="mt-1 text-sm text-slate-600">
+          Los datos visibles pertenecen únicamente a este restaurante. AssetTrack conserva las métricas globales de forma separada.
+        </p>
+        <div className="mt-4 grid gap-5 lg:grid-cols-2">
+          <div className="rounded-xl border bg-white p-5">
+            <h3 className="font-bold">Clientes frecuentes</h3>
+            <p className="mt-2 text-2xl font-bold">{loyalty?.enrolledCustomers ?? 0} afiliados</p>
+            <p className="text-sm text-slate-600">{loyalty?.completedVisits ?? 0} visitas verificadas</p>
+            <div className="mt-3 space-y-2">
+              {loyalty?.frequentCustomers.map((customer) => (
+                <div key={`${customer.nickname}-${customer.visits}`} className="flex justify-between border-t pt-2">
+                  <span>{customer.nickname} · {customer.vipTier}</span>
+                  <strong>{customer.visits} visitas</strong>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="rounded-xl border bg-white p-5">
+            <h3 className="font-bold">Política de premios</h3>
+            <div className="mt-3 flex flex-wrap gap-2">
+              <input className="min-w-48 flex-1 rounded border p-2" placeholder="Nombre del premio" value={rewardName} onChange={(event) => setRewardName(event.target.value)} />
+              <input className="w-28 rounded border p-2" type="number" min="1" value={rewardPoints} onChange={(event) => setRewardPoints(event.target.value)} />
+              <button className="rounded bg-indigo-700 px-4 py-2 font-semibold text-white" onClick={async () => {
+                if (!rewardName.trim()) return;
+                const saved = await post("loyalty/rewards", { name: rewardName, pointsRequired: Number(rewardPoints) });
+                if (saved) setRewardName("");
+              }}>Crear premio</button>
+            </div>
+            <div className="mt-4 space-y-2">
+              {rewards.map((reward) => (
+                <div key={reward.id} className="rounded border p-3">
+                  <strong>{reward.name}</strong>
+                  <p className="text-sm">{reward.pointsRequired} puntos · {reward.sponsor === "ASSETTRACK" ? "AssetTrack" : "Restaurante"}</p>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </section>

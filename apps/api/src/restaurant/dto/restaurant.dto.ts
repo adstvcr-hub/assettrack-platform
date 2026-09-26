@@ -179,3 +179,18 @@ export class UpdatePromotionDto {
   @IsOptional() @IsDateString() endsAt?: string;
   @IsOptional() @IsBoolean() active?: boolean;
 }
+
+export class JoinLoyaltyDto {
+  @IsString() @MaxLength(60) nickname!: string;
+  @IsEmail() @MaxLength(160) email!: string;
+  @IsBoolean() marketingOptIn!: boolean;
+}
+
+export class CreateRewardProgramDto {
+  @IsString() @MaxLength(100) name!: string;
+  @IsOptional() @IsString() @MaxLength(500) description?: string;
+  @IsInt() @Min(1) @Max(1000000) pointsRequired!: number;
+  @IsOptional() @IsString() @MaxLength(40) vipTier?: string;
+  @IsOptional() @IsDateString() startsAt?: string;
+  @IsOptional() @IsDateString() endsAt?: string;
+}

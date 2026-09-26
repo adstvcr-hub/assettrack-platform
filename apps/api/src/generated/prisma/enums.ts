@@ -143,3 +143,22 @@ export const RestaurantInvoiceRequestStatus = {
 } as const
 
 export type RestaurantInvoiceRequestStatus = (typeof RestaurantInvoiceRequestStatus)[keyof typeof RestaurantInvoiceRequestStatus]
+
+
+export const RestaurantLoyaltyActivityType = {
+  QR_SCAN: 'QR_SCAN',
+  VISIT_COMPLETED: 'VISIT_COMPLETED',
+  REWARD_EARNED: 'REWARD_EARNED',
+  REWARD_REDEEMED: 'REWARD_REDEEMED',
+  MANUAL_ADJUSTMENT: 'MANUAL_ADJUSTMENT'
+} as const
+
+export type RestaurantLoyaltyActivityType = (typeof RestaurantLoyaltyActivityType)[keyof typeof RestaurantLoyaltyActivityType]
+
+
+export const RestaurantRewardSponsor = {
+  RESTAURANT: 'RESTAURANT',
+  ASSETTRACK: 'ASSETTRACK'
+} as const
+
+export type RestaurantRewardSponsor = (typeof RestaurantRewardSponsor)[keyof typeof RestaurantRewardSponsor]

@@ -55,6 +55,26 @@ export type RestaurantTable = Prisma.RestaurantTableModel
  */
 export type RestaurantVisit = Prisma.RestaurantVisitModel
 /**
+ * Model RestaurantLoyaltyMember
+ *
+ */
+export type RestaurantLoyaltyMember = Prisma.RestaurantLoyaltyMemberModel
+/**
+ * Model RestaurantLoyaltyActivity
+ *
+ */
+export type RestaurantLoyaltyActivity = Prisma.RestaurantLoyaltyActivityModel
+/**
+ * Model RestaurantRewardProgram
+ *
+ */
+export type RestaurantRewardProgram = Prisma.RestaurantRewardProgramModel
+/**
+ * Model PlatformAdminEvent
+ *
+ */
+export type PlatformAdminEvent = Prisma.PlatformAdminEventModel
+/**
  * Model RestaurantMenuItem
  *
  */
