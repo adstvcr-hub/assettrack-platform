@@ -234,6 +234,11 @@ export class RestaurantStaffController {
     return this.restaurant.updateStatus(req.user, id, dto);
   }
 
+  @Patch("items/:id/handoff")
+  handoff(@Req() req: StaffRequest, @Param("id") id: string) {
+    return this.restaurant.handoffItem(req.user, id);
+  }
+
   @Patch("items/:id/fulfillment")
   fulfillment(
     @Req() req: StaffRequest,

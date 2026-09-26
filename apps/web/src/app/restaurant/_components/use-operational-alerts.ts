@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 function playTone() {
   const AudioContextClass = window.AudioContext;
@@ -8,10 +8,10 @@ function playTone() {
   const context = new AudioContextClass();
   const oscillator = context.createOscillator();
   const gain = context.createGain();
-  oscillator.type = "sine";
+  oscillator.type = "square";
   oscillator.frequency.setValueAtTime(880, context.currentTime);
   oscillator.frequency.setValueAtTime(1175, context.currentTime + 0.18);
-  gain.gain.setValueAtTime(0.18, context.currentTime);
+  gain.gain.setValueAtTime(0.12, context.currentTime);
   gain.gain.exponentialRampToValueAtTime(0.001, context.currentTime + 0.42);
   oscillator.connect(gain);
   gain.connect(context.destination);
@@ -20,38 +20,83 @@ function playTone() {
   oscillator.addEventListener("ended", () => void context.close());
 }
 
-export function useOperationalAlerts(channel: string, actionKeys: string[]) {
+type OperationalAlertOptions = {
+  maxAttempts?: number | null;
+  repeatMs?: number;
+};
+
+export function useOperationalAlerts(
+  channel: string,
+  actionKeys: string[],
+  options: OperationalAlertOptions = {},
+) {
+  const { maxAttempts = 3, repeatMs = 12_000 } = options;
   const storageKey = `assettrack_alerts_${channel}`;
-  const initialized = useRef(false);
-  const previous = useRef(new Set<string>());
+  const attemptsKey = `${storageKey}_attempts`;
+  const attempts = useRef<Record<string, number>>({});
+  const skipNextImmediate = useRef(false);
   const [enabled, setEnabled] = useState(false);
-  const [flash, setFlash] = useState(false);
+  const signature = [...new Set(actionKeys)].sort().join("|");
+  const uniqueKeys = useMemo(
+    () => (signature ? signature.split("|") : []),
+    [signature],
+  );
 
   useEffect(() => {
     setEnabled(window.localStorage.getItem(storageKey) === "enabled");
-  }, [storageKey]);
+    try {
+      attempts.current = JSON.parse(
+        window.sessionStorage.getItem(attemptsKey) ?? "{}",
+      );
+    } catch {
+      attempts.current = {};
+    }
+  }, [attemptsKey, storageKey]);
 
   const notify = useCallback(() => {
     playTone();
     if ("vibrate" in navigator) navigator.vibrate([250, 120, 250]);
-    setFlash(true);
-    window.setTimeout(() => setFlash(false), 5000);
   }, []);
 
   useEffect(() => {
-    const next = new Set(actionKeys);
-    if (!initialized.current) {
-      previous.current = next;
-      initialized.current = true;
-      return;
+    const active = new Set(uniqueKeys);
+    for (const key of Object.keys(attempts.current)) {
+      if (!active.has(key)) delete attempts.current[key];
     }
-    const hasNewAction = actionKeys.some((key) => !previous.current.has(key));
-    previous.current = next;
-    if (enabled && hasNewAction) notify();
-  }, [actionKeys, enabled, notify]);
+    window.sessionStorage.setItem(
+      attemptsKey,
+      JSON.stringify(attempts.current),
+    );
+    if (!enabled || uniqueKeys.length === 0) return;
+
+    const notifyPending = () => {
+      const eligible = uniqueKeys.filter(
+        (key) =>
+          maxAttempts === null || (attempts.current[key] ?? 0) < maxAttempts,
+      );
+      if (!eligible.length) return;
+      for (const key of eligible) {
+        attempts.current[key] = (attempts.current[key] ?? 0) + 1;
+      }
+      window.sessionStorage.setItem(
+        attemptsKey,
+        JSON.stringify(attempts.current),
+      );
+      notify();
+    };
+
+    if (skipNextImmediate.current) {
+      skipNextImmediate.current = false;
+    } else {
+      notifyPending();
+    }
+    const timer = window.setInterval(notifyPending, repeatMs);
+    return () => window.clearInterval(timer);
+  }, [attemptsKey, enabled, maxAttempts, notify, repeatMs, uniqueKeys]);
 
   function enableAndTest() {
     window.localStorage.setItem(storageKey, "enabled");
+    skipNextImmediate.current = uniqueKeys.length > 0;
     setEnabled(true);
     notify();
   }
@@ -62,5 +107,11 @@ export function useOperationalAlerts(channel: string, actionKeys: string[]) {
     if ("vibrate" in navigator) navigator.vibrate(0);
   }
 
-  return { enabled, flash, enableAndTest, disable };
+  return {
+    enabled,
+    flash: uniqueKeys.length > 0,
+    activeCount: uniqueKeys.length,
+    enableAndTest,
+    disable,
+  };
 }

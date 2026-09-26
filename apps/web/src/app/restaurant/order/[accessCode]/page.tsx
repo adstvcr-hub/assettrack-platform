@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import type { FormEvent } from "react";
+import { useGuestAlerts } from "../../_components/use-guest-alerts";
 
 type Order = {
   id: string;
@@ -15,9 +16,14 @@ type Order = {
   table: {
     name: string;
     code: string;
-    kind: "DINING" | "TAKEOUT_STATION";
+    kind: "DINING" | "BAR_SEAT" | "TAKEOUT_STATION";
     waiter: { id: string; name: string } | null;
   };
+  responsibleStaff?: {
+    id: string;
+    name: string;
+    restaurantRole: "WAITER" | "BAR" | "KITCHEN" | "RESTAURANT_ADMIN";
+  } | null;
   items: {
     id: string;
     name: string;
@@ -84,6 +90,26 @@ export default function RestaurantOrderPage() {
     marketingOptIn: false,
   });
   const [loyaltyMessage, setLoyaltyMessage] = useState("");
+  const guestEventKey = order
+    ? `${order.status}:${order.items.map((item) => `${item.id}:${item.status}`).join("|")}`
+    : "";
+  const guestEventMessage =
+    order?.status === "CLOSED"
+      ? "Su cuenta ha sido cerrada. Gracias por su visita."
+      : order?.items.length &&
+          order.items.every(
+            (item) =>
+              item.status === "DELIVERED" || item.status === "CANCELLED",
+          )
+        ? "La entrega de su pedido fue confirmada."
+        : order?.items.some((item) => item.status === "READY")
+          ? "Una parte de su pedido está lista."
+          : order?.items.some((item) => item.status === "PREPARING")
+            ? "Estamos preparando su pedido."
+            : order?.items.some((item) => item.status === "ACCEPTED")
+              ? "Su pedido fue aceptado."
+              : "Su pedido fue recibido.";
+  const guestAlerts = useGuestAlerts(guestEventKey, guestEventMessage);
   const load = useCallback(async () => {
     try {
       const response = await fetch(
@@ -230,7 +256,9 @@ export default function RestaurantOrderPage() {
   }
 
   function downloadReceipt() {
-    const blob = new Blob([receiptText()], { type: "text/plain;charset=utf-8" });
+    const blob = new Blob([receiptText()], {
+      type: "text/plain;charset=utf-8",
+    });
     const url = URL.createObjectURL(blob);
     const anchor = document.createElement("a");
     anchor.href = url;
@@ -245,7 +273,9 @@ export default function RestaurantOrderPage() {
 
   function finishVisit() {
     if (order) {
-      window.localStorage.removeItem(`assettrack_restaurant_order_${order.table.code}`);
+      window.localStorage.removeItem(
+        `assettrack_restaurant_order_${order.table.code}`,
+      );
     }
     setVisitEnded(true);
   }
@@ -253,9 +283,13 @@ export default function RestaurantOrderPage() {
   if (visitEnded) {
     return (
       <main className="mx-auto max-w-xl px-4 py-16 text-center text-slate-900">
-        <p className="font-semibold tracking-widest text-emerald-700">ASSETTRACK · RESTAURANT</p>
+        <p className="font-semibold tracking-widest text-emerald-700">
+          ASSETTRACK · RESTAURANT
+        </p>
         <h1 className="mt-3 text-3xl font-bold">Gracias por su visita</h1>
-        <p className="mt-4 text-slate-600">La sesión de esta mesa fue retirada de este dispositivo.</p>
+        <p className="mt-4 text-slate-600">
+          La sesión de esta mesa fue retirada de este dispositivo.
+        </p>
       </main>
     );
   }
@@ -265,39 +299,160 @@ export default function RestaurantOrderPage() {
         ASSETTRACK · RESTAURANT
       </p>
       <h1 className="text-3xl font-bold">Your order · {order?.table.name}</h1>
+      <section className="mt-4 rounded-2xl border border-sky-200 bg-gradient-to-r from-sky-50 via-cyan-50 to-violet-50 p-4 text-slate-800 shadow-sm">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h2 className="font-bold text-sky-950">Avisos de seguimiento</h2>
+            <p className="text-sm text-slate-600">
+              Sonidos y vibraciones suaves para mantenerle informado.
+            </p>
+          </div>
+          <button
+            className="rounded-lg bg-sky-700 px-4 py-2 font-semibold text-white"
+            onClick={
+              guestAlerts.settings.enabled
+                ? guestAlerts.disable
+                : guestAlerts.enableAndTest
+            }
+          >
+            {guestAlerts.settings.enabled
+              ? "Apagar alertas"
+              : "Activar y probar"}
+          </button>
+        </div>
+        {guestAlerts.settings.enabled && (
+          <div className="mt-3 flex flex-wrap gap-4 text-sm">
+            <label className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={guestAlerts.settings.sound}
+                onChange={(event) => guestAlerts.setSound(event.target.checked)}
+              />
+              Sonido
+            </label>
+            <label className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={guestAlerts.settings.vibration}
+                onChange={(event) =>
+                  guestAlerts.setVibration(event.target.checked)
+                }
+              />
+              Vibración
+            </label>
+          </div>
+        )}
+        {guestAlerts.notice && (
+          <p
+            role="status"
+            className="mt-3 rounded-xl bg-white/80 px-4 py-3 font-semibold text-teal-900 ring-1 ring-teal-200"
+          >
+            {guestAlerts.notice}
+          </p>
+        )}
+      </section>
       {order && (
         <p className="mt-3 rounded-lg bg-sky-50 px-4 py-3 font-semibold text-sky-900">
-          {order.table.waiter
-            ? `Mesero a cargo: ${order.table.waiter.name}`
-            : "Asignando mesero, es un gusto servirle."}
+          {order.responsibleStaff
+            ? `${order.responsibleStaff.restaurantRole === "BAR" ? "Bartender" : "Mesero"} a cargo: ${order.responsibleStaff.name}`
+            : order.table.waiter
+              ? `Mesero a cargo: ${order.table.waiter.name}`
+              : "Asignando mesero, es un gusto servirle."}
         </p>
       )}
       {order?.status === "CLOSED" && (
         <section className="mt-6 rounded-xl border-2 border-emerald-600 bg-emerald-50 p-5">
-          <h2 className="text-xl font-bold">Afíliate para obtener premios y promociones</h2>
-          <p className="mt-2 text-sm text-slate-700">La afiliación y el permiso para recibir mensajes promocionales son decisiones independientes.</p>
+          <h2 className="text-xl font-bold">
+            Afíliate para obtener premios y promociones
+          </h2>
+          <p className="mt-2 text-sm text-slate-700">
+            La afiliación y el permiso para recibir mensajes promocionales son
+            decisiones independientes.
+          </p>
           <form className="mt-4 space-y-3" onSubmit={joinLoyalty}>
-            <input required maxLength={60} className="w-full rounded border bg-white p-3 text-slate-900" placeholder="Nombre o nickname (sin apellidos)" value={loyaltyForm.nickname} onChange={(event) => setLoyaltyForm((current) => ({ ...current, nickname: event.target.value }))} />
-            <input required type="email" maxLength={160} className="w-full rounded border bg-white p-3 text-slate-900" placeholder="Correo electrónico" value={loyaltyForm.email} onChange={(event) => setLoyaltyForm((current) => ({ ...current, email: event.target.value }))} />
+            <input
+              required
+              maxLength={60}
+              className="w-full rounded border bg-white p-3 text-slate-900"
+              placeholder="Nombre o nickname (sin apellidos)"
+              value={loyaltyForm.nickname}
+              onChange={(event) =>
+                setLoyaltyForm((current) => ({
+                  ...current,
+                  nickname: event.target.value,
+                }))
+              }
+            />
+            <input
+              required
+              type="email"
+              maxLength={160}
+              className="w-full rounded border bg-white p-3 text-slate-900"
+              placeholder="Correo electrónico"
+              value={loyaltyForm.email}
+              onChange={(event) =>
+                setLoyaltyForm((current) => ({
+                  ...current,
+                  email: event.target.value,
+                }))
+              }
+            />
             <label className="flex items-start gap-2 text-sm">
-              <input type="checkbox" className="mt-1" checked={loyaltyForm.marketingOptIn} onChange={(event) => setLoyaltyForm((current) => ({ ...current, marketingOptIn: event.target.checked }))} />
-              Deseo recibir mensajes promocionales. Puedo cancelar este permiso posteriormente.
+              <input
+                type="checkbox"
+                className="mt-1"
+                checked={loyaltyForm.marketingOptIn}
+                onChange={(event) =>
+                  setLoyaltyForm((current) => ({
+                    ...current,
+                    marketingOptIn: event.target.checked,
+                  }))
+                }
+              />
+              Deseo recibir mensajes promocionales. Puedo cancelar este permiso
+              posteriormente.
             </label>
-            <button className="rounded bg-emerald-700 px-4 py-2 font-semibold text-white">Afiliarme</button>
+            <button className="rounded bg-emerald-700 px-4 py-2 font-semibold text-white">
+              Afiliarme
+            </button>
           </form>
-          {loyaltyMessage && <p className="mt-3 font-semibold text-emerald-800">{loyaltyMessage}</p>}
+          {loyaltyMessage && (
+            <p className="mt-3 font-semibold text-emerald-800">
+              {loyaltyMessage}
+            </p>
+          )}
         </section>
       )}
       {order?.status === "CLOSED" && (
         <section className="mt-6 rounded-xl border bg-white p-5 shadow-sm">
           <h2 className="text-xl font-bold">Finalizar visita</h2>
           {!showExitOptions ? (
-            <button className="mt-3 rounded bg-slate-900 px-4 py-2 font-semibold text-white" onClick={() => setShowExitOptions(true)}>Salir</button>
+            <button
+              className="mt-3 rounded bg-slate-900 px-4 py-2 font-semibold text-white"
+              onClick={() => setShowExitOptions(true)}
+            >
+              Salir
+            </button>
           ) : (
             <div className="mt-4 grid gap-3 sm:grid-cols-3">
-              <button className="rounded bg-indigo-700 px-4 py-3 font-semibold text-white" onClick={downloadReceipt}>Guardar comprobante</button>
-              <button className="rounded bg-sky-700 px-4 py-3 font-semibold text-white" onClick={emailReceipt}>Enviar por correo</button>
-              <button className="rounded bg-slate-700 px-4 py-3 font-semibold text-white" onClick={finishVisit}>Salir sin guardar</button>
+              <button
+                className="rounded bg-indigo-700 px-4 py-3 font-semibold text-white"
+                onClick={downloadReceipt}
+              >
+                Guardar comprobante
+              </button>
+              <button
+                className="rounded bg-sky-700 px-4 py-3 font-semibold text-white"
+                onClick={emailReceipt}
+              >
+                Enviar por correo
+              </button>
+              <button
+                className="rounded bg-slate-700 px-4 py-3 font-semibold text-white"
+                onClick={finishVisit}
+              >
+                Salir sin guardar
+              </button>
             </div>
           )}
         </section>

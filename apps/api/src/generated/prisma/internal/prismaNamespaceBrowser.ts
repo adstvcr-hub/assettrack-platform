@@ -137,7 +137,9 @@ export const RestaurantVisitScalarFieldEnum = {
   invoiceEmail: 'invoiceEmail',
   invoicePhone: 'invoicePhone',
   invoiceTaxId: 'invoiceTaxId',
-  invoiceReference: 'invoiceReference'
+  invoiceReference: 'invoiceReference',
+  responsibleStaffId: 'responsibleStaffId',
+  fallbackStaffId: 'fallbackStaffId'
 } as const
 
 export type RestaurantVisitScalarFieldEnum = (typeof RestaurantVisitScalarFieldEnum)[keyof typeof RestaurantVisitScalarFieldEnum]
@@ -276,7 +278,8 @@ export const RestaurantOrderItemScalarFieldEnum = {
   status: 'status',
   acceptedAt: 'acceptedAt',
   readyAt: 'readyAt',
-  deliveredAt: 'deliveredAt'
+  deliveredAt: 'deliveredAt',
+  handedOffAt: 'handedOffAt'
 } as const
 
 export type RestaurantOrderItemScalarFieldEnum = (typeof RestaurantOrderItemScalarFieldEnum)[keyof typeof RestaurantOrderItemScalarFieldEnum]

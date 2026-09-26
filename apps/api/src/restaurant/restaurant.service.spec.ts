@@ -432,13 +432,27 @@ describe("RestaurantService", () => {
       serviceChargeEnabled: false,
       active: true,
     });
+    prisma.user.findFirst.mockResolvedValue({
+      id: "waiter-a",
+      name: "Mesero 1",
+      restaurantRole: RestaurantStaffRole.WAITER,
+      restaurantAvailability: RestaurantStaffAvailability.AVAILABLE,
+    });
+    prisma.user.findMany.mockResolvedValue([
+      { id: "bartender-a", name: "Bartender 1" },
+    ]);
     prisma.restaurantVisit.update.mockResolvedValue({ id: "visit-a" });
 
     const result = await service.transferVisit(waiter, "visit-a", "bar-1");
 
     expect(prisma.restaurantVisit.update).toHaveBeenCalledWith({
       where: { id: "visit-a" },
-      data: { tableId: "bar-1", serviceChargeEnabled: false },
+      data: {
+        tableId: "bar-1",
+        serviceChargeEnabled: false,
+        responsibleStaffId: "bartender-a",
+        fallbackStaffId: "waiter-a",
+      },
     });
     expect(prisma.restaurantOrder.updateMany).toHaveBeenCalledWith({
       where: { visitId: "visit-a" },
@@ -453,6 +467,130 @@ describe("RestaurantService", () => {
       }),
     });
     expect(result.destination.name).toBe("Barra 1");
+  });
+
+  it("assigns the bartender even when the original waiter has a lighter load", async () => {
+    const { prisma, service } = createService();
+    const waiter = {
+      id: "waiter-a",
+      organizationId: "org-a",
+      role: UserRole.USER,
+      restaurantRole: RestaurantStaffRole.WAITER,
+      restaurantAvailability: RestaurantStaffAvailability.AVAILABLE,
+    };
+    prisma.restaurantVisit.findFirst.mockResolvedValue({
+      id: "visit-a",
+      organizationId: "org-a",
+      tableId: "table-a",
+      status: "OPEN",
+      responsibleStaffId: "waiter-a",
+      table: { id: "table-a", waiterId: "waiter-a" },
+    });
+    prisma.restaurantTable.findFirst.mockResolvedValue({
+      id: "bar-1",
+      name: "Barra 1",
+      organizationId: "org-a",
+      kind: "BAR_SEAT",
+      serviceChargeEnabled: false,
+      active: true,
+    });
+    prisma.user.findFirst.mockResolvedValue({
+      id: "waiter-a",
+      name: "Mesero 1",
+      restaurantRole: RestaurantStaffRole.WAITER,
+      restaurantAvailability: RestaurantStaffAvailability.AVAILABLE,
+    });
+    prisma.user.findMany.mockResolvedValue([
+      { id: "bartender-a", name: "Bartender 1" },
+    ]);
+    prisma.restaurantVisit.count
+      .mockResolvedValueOnce(5)
+      .mockResolvedValueOnce(1)
+      .mockResolvedValueOnce(2);
+    prisma.restaurantVisit.update.mockResolvedValue({ id: "visit-a" });
+
+    await service.transferVisit(waiter, "visit-a", "bar-1");
+
+    expect(prisma.restaurantVisit.update).toHaveBeenCalledWith({
+      where: { id: "visit-a" },
+      data: expect.objectContaining({
+        responsibleStaffId: "bartender-a",
+        fallbackStaffId: "waiter-a",
+        serviceChargeEnabled: false,
+      }),
+    });
+  });
+
+  it("blocks a waiter from moving an account to an unattended bar", async () => {
+    const { prisma, service } = createService();
+    const waiter = {
+      id: "waiter-a",
+      organizationId: "org-a",
+      role: UserRole.USER,
+      restaurantRole: RestaurantStaffRole.WAITER,
+      restaurantAvailability: RestaurantStaffAvailability.AVAILABLE,
+    };
+    prisma.restaurantVisit.findFirst.mockResolvedValue({
+      id: "visit-a",
+      organizationId: "org-a",
+      tableId: "table-a",
+      status: "OPEN",
+      responsibleStaffId: "waiter-a",
+      table: { id: "table-a", waiterId: "waiter-a" },
+    });
+    prisma.restaurantTable.findFirst.mockResolvedValue({
+      id: "bar-1",
+      name: "Barra 1",
+      organizationId: "org-a",
+      kind: "BAR_SEAT",
+      serviceChargeEnabled: false,
+      active: true,
+    });
+    prisma.user.findFirst.mockResolvedValue({
+      id: "waiter-a",
+      name: "Mesero 1",
+      restaurantRole: RestaurantStaffRole.WAITER,
+      restaurantAvailability: RestaurantStaffAvailability.AVAILABLE,
+    });
+    prisma.user.findMany.mockResolvedValue([]);
+
+    await expect(
+      service.transferVisit(waiter, "visit-a", "bar-1"),
+    ).rejects.toBeInstanceOf(ConflictException);
+    expect(prisma.restaurantVisit.update).not.toHaveBeenCalled();
+  });
+
+  it("allows the responsible bartender to close a fully delivered account", async () => {
+    const { prisma, service } = createService();
+    const bartender = {
+      id: "bartender-a",
+      organizationId: "org-a",
+      role: UserRole.USER,
+      restaurantRole: RestaurantStaffRole.BAR,
+      restaurantAvailability: RestaurantStaffAvailability.AVAILABLE,
+    };
+    prisma.restaurantVisit.findFirst.mockResolvedValue({
+      id: "visit-a",
+      organizationId: "org-a",
+      responsibleStaffId: "bartender-a",
+      responsibleStaff: {
+        id: "bartender-a",
+        restaurantAvailability: RestaurantStaffAvailability.AVAILABLE,
+      },
+      table: { waiterId: null },
+      orders: [{ items: [{ status: "DELIVERED" }] }],
+    });
+    prisma.restaurantVisit.update.mockResolvedValue({
+      id: "visit-a",
+      status: "CLOSED",
+    });
+
+    await service.closeVisit(bartender, "visit-a");
+
+    expect(prisma.restaurantVisit.update).toHaveBeenCalledWith({
+      where: { id: "visit-a" },
+      data: { status: "CLOSED", closedAt: expect.any(Date) },
+    });
   });
 
   it("returns the existing order when the same request is retried", async () => {
@@ -491,7 +629,12 @@ describe("RestaurantService", () => {
     expect(prisma.restaurantOrderItem.findFirst).toHaveBeenCalledWith({
       where: { id: "item", order: { organizationId: "org-a" } },
       include: {
-        order: { select: { table: { select: { waiterId: true } } } },
+        order: {
+          select: {
+            table: { select: { waiterId: true } },
+            visit: { select: { responsibleStaffId: true } },
+          },
+        },
       },
     });
   });
@@ -553,6 +696,7 @@ describe("RestaurantService", () => {
     prisma.restaurantOrderItem.findFirst.mockResolvedValue({
       status: "READY",
       station: "BAR",
+      handedOffAt: new Date("2026-09-25T12:00:00.000Z"),
       order: { table: { waiterId: "waiter-a" } },
     });
     prisma.restaurantOrderItem.updateMany.mockResolvedValue({ count: 1 });
@@ -569,6 +713,45 @@ describe("RestaurantService", () => {
         status: "DELIVERED",
       }),
     ).rejects.toBeInstanceOf(ForbiddenException);
+  });
+
+  it("records when the responsible waiter receives a ready item", async () => {
+    const { prisma, service } = createService();
+    prisma.restaurantOrderItem.findFirst.mockResolvedValue({
+      id: "item-a",
+      status: "READY",
+      handedOffAt: null,
+      order: {
+        table: { waiterId: "waiter-a" },
+        visit: { responsibleStaffId: "waiter-a" },
+      },
+    });
+    prisma.restaurantOrderItem.updateMany.mockResolvedValue({ count: 1 });
+    prisma.restaurantOrderItem.findUnique.mockResolvedValue({
+      id: "item-a",
+      handedOffAt: new Date(),
+    });
+    const waiter = {
+      id: "waiter-a",
+      organizationId: "org-a",
+      role: UserRole.USER,
+      restaurantRole: RestaurantStaffRole.WAITER,
+      restaurantAvailability: RestaurantStaffAvailability.AVAILABLE,
+    };
+
+    await service.handoffItem(waiter, "item-a");
+
+    expect(prisma.restaurantOrderItem.updateMany).toHaveBeenCalledWith({
+      where: { id: "item-a", status: "READY", handedOffAt: null },
+      data: { handedOffAt: expect.any(Date) },
+    });
+    expect(prisma.restaurantItemEvent.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({
+        itemId: "item-a",
+        actorId: "waiter-a",
+        note: "HANDOFF_CONFIRMED",
+      }),
+    });
   });
 
   it("blocks status changes while a staff member is unavailable", async () => {

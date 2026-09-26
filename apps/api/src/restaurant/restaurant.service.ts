@@ -159,6 +159,102 @@ export class RestaurantService {
     return { reassignments, unassignedTables: [] };
   }
 
+  private async reassignOpenAccounts(
+    tx: Prisma.TransactionClient,
+    organizationId: string,
+    unavailableUserId: string,
+  ) {
+    const visits =
+      (await tx.restaurantVisit.findMany({
+        where: {
+          organizationId,
+          status: RestaurantVisitStatus.OPEN,
+          responsibleStaffId: unavailableUserId,
+        },
+        include: {
+          table: { select: { waiterId: true, kind: true } },
+          fallbackStaff: {
+            select: {
+              id: true,
+              restaurantAvailability: true,
+              restaurantRole: true,
+            },
+          },
+        },
+      })) ?? [];
+    const accountReassignments: Array<{
+      visitId: string;
+      responsibleStaffId: string;
+    }> = [];
+    const unassignedAccounts: string[] = [];
+    for (const visit of visits) {
+      let candidateId: string | null = null;
+      if (visit.table.kind === RestaurantTableKind.BAR_SEAT) {
+        const bartender = await tx.user.findFirst({
+          where: {
+            organizationId,
+            restaurantRole: RestaurantStaffRole.BAR,
+            restaurantAvailability: RestaurantStaffAvailability.AVAILABLE,
+            id: { not: unavailableUserId },
+          },
+          select: { id: true },
+          orderBy: [{ updatedAt: "asc" }, { id: "asc" }],
+        });
+        candidateId = bartender?.id ?? null;
+        if (!candidateId) {
+          const administrator = await tx.user.findFirst({
+            where: {
+              organizationId,
+              OR: [
+                { role: { in: [UserRole.OWNER, UserRole.ADMIN] } },
+                { restaurantRole: RestaurantStaffRole.RESTAURANT_ADMIN },
+              ],
+              restaurantAvailability: RestaurantStaffAvailability.AVAILABLE,
+              id: { not: unavailableUserId },
+            },
+            select: { id: true },
+            orderBy: [{ updatedAt: "asc" }, { id: "asc" }],
+          });
+          candidateId = administrator?.id ?? null;
+        }
+      } else {
+        candidateId =
+          visit.fallbackStaff?.restaurantAvailability ===
+          RestaurantStaffAvailability.AVAILABLE
+            ? visit.fallbackStaff.id
+            : null;
+      }
+      if (
+        !candidateId &&
+        visit.table.kind !== RestaurantTableKind.BAR_SEAT &&
+        visit.table.waiterId
+      ) {
+        const waiter = await tx.user.findFirst({
+          where: {
+            id: visit.table.waiterId,
+            organizationId,
+            restaurantAvailability: RestaurantStaffAvailability.AVAILABLE,
+          },
+          select: { id: true },
+        });
+        candidateId = waiter?.id ?? null;
+      }
+      if (!candidateId) {
+        unassignedAccounts.push(visit.id);
+        continue;
+      }
+      await tx.restaurantVisit.update({
+        where: { id: visit.id },
+        data: { responsibleStaffId: candidateId },
+      });
+      accountReassignments.push({
+        visitId: visit.id,
+        responsibleStaffId: candidateId,
+      });
+    }
+    return { accountReassignments, unassignedAccounts };
+  }
+
   async profile(actor: RestaurantActor) {
     const user = await this.prisma.user.findFirst({
       where: { id: actor.id, organizationId: actor.organizationId },
@@ -383,7 +479,11 @@ export class RestaurantService {
         tx,
         actor.organizationId,
       );
-      return { staff: updated, ...balance };
+      const accounts =
+        dto.availability === RestaurantStaffAvailability.AVAILABLE
+          ? { accountReassignments: [], unassignedAccounts: [] }
+          : await this.reassignOpenAccounts(tx, actor.organizationId, userId);
+      return { staff: updated, ...balance, ...accounts };
     });
   }
 
@@ -435,8 +535,12 @@ export class RestaurantService {
         user.restaurantRole === RestaurantStaffRole.WAITER
           ? await this.rebalanceWaiterTables(tx, actor.organizationId)
           : { reassignments: [], unassignedTables: [] };
+      const accounts =
+        dto.availability === RestaurantStaffAvailability.AVAILABLE
+          ? { accountReassignments: [], unassignedAccounts: [] }
+          : await this.reassignOpenAccounts(tx, actor.organizationId, actor.id);
 
-      return { staff: updated, ...balance };
+      return { staff: updated, ...balance, ...accounts };
     });
   }
 
@@ -480,6 +584,9 @@ export class RestaurantService {
       where: { id: visitId, organizationId: actor.organizationId },
       include: {
         table: { select: { waiterId: true } },
+        responsibleStaff: {
+          select: { id: true, restaurantAvailability: true },
+        },
         orders: {
           select: { items: { select: { status: true } } },
         },
@@ -487,13 +594,15 @@ export class RestaurantService {
     });
     if (!visit) throw new NotFoundException("Restaurant account not found");
     const isAdmin = role === RestaurantStaffRole.RESTAURANT_ADMIN;
-    const isAssignedWaiter =
-      role === RestaurantStaffRole.WAITER &&
-      visit.table.waiterId === actor.id &&
+    const isResponsibleStaff =
+      (role === RestaurantStaffRole.WAITER ||
+        role === RestaurantStaffRole.BAR) &&
+      (visit.responsibleStaffId === actor.id ||
+        (!visit.responsibleStaffId && visit.table.waiterId === actor.id)) &&
       actor.restaurantAvailability === RestaurantStaffAvailability.AVAILABLE;
-    if (!isAdmin && !isAssignedWaiter) {
+    if (!isAdmin && !isResponsibleStaff) {
       throw new ForbiddenException(
-        "Only the assigned waiter can close this account",
+        "Only the staff member responsible for this account can close it",
       );
     }
     const hasOpenItems = visit.orders.some((order) =>
@@ -520,25 +629,39 @@ export class RestaurantService {
     const role = this.effectiveRole(actor);
     if (
       role !== RestaurantStaffRole.RESTAURANT_ADMIN &&
-      role !== RestaurantStaffRole.WAITER
+      role !== RestaurantStaffRole.WAITER &&
+      role !== RestaurantStaffRole.BAR
     ) {
       throw new ForbiddenException("Waiter access required");
     }
     return this.prisma.$transaction(async (tx) => {
       const visit = await tx.restaurantVisit.findFirst({
         where: { id: visitId, organizationId: actor.organizationId },
-        include: { table: true },
+        include: {
+          table: true,
+          responsibleStaff: {
+            select: {
+              id: true,
+              restaurantRole: true,
+              restaurantAvailability: true,
+            },
+          },
+        },
       });
       if (!visit) throw new NotFoundException("Restaurant account not found");
       if (visit.status !== RestaurantVisitStatus.OPEN) {
         throw new ConflictException("Only open accounts can be transferred");
       }
-      if (
-        role === RestaurantStaffRole.WAITER &&
-        visit.table.waiterId !== actor.id
-      ) {
+      const canMoveAccount =
+        role === RestaurantStaffRole.RESTAURANT_ADMIN ||
+        ((role === RestaurantStaffRole.WAITER ||
+          role === RestaurantStaffRole.BAR) &&
+          (visit.responsibleStaffId === actor.id ||
+            visit.fallbackStaffId === actor.id ||
+            (!visit.responsibleStaffId && visit.table.waiterId === actor.id)));
+      if (!canMoveAccount) {
         throw new ForbiddenException(
-          "Only the assigned waiter can move this account",
+          "Only the staff member responsible for this account can move it",
         );
       }
       const destination = await tx.restaurantTable.findFirst({
@@ -555,11 +678,100 @@ export class RestaurantService {
       const serviceChargeEnabled =
         destination.kind === RestaurantTableKind.DINING &&
         destination.serviceChargeEnabled;
+      const currentResponsibleId =
+        visit.responsibleStaffId ?? visit.table.waiterId ?? null;
+      const currentResponsible = currentResponsibleId
+        ? await tx.user.findFirst({
+            where: {
+              id: currentResponsibleId,
+              organizationId: actor.organizationId,
+            },
+            select: {
+              id: true,
+              name: true,
+              restaurantRole: true,
+              restaurantAvailability: true,
+            },
+          })
+        : null;
+      const currentAvailable =
+        currentResponsible?.restaurantAvailability ===
+        RestaurantStaffAvailability.AVAILABLE;
+      let responsibleStaffId = currentAvailable ? currentResponsible!.id : null;
+      let fallbackStaffId: string | null = null;
+
+      if (destination.kind === RestaurantTableKind.DINING) {
+        const destinationWaiter = destination.waiterId
+          ? await tx.user.findFirst({
+              where: {
+                id: destination.waiterId,
+                organizationId: actor.organizationId,
+                restaurantRole: RestaurantStaffRole.WAITER,
+                restaurantAvailability: RestaurantStaffAvailability.AVAILABLE,
+              },
+              select: { id: true },
+            })
+          : null;
+        if (!destinationWaiter) {
+          throw new ConflictException(
+            "The destination table has no available waiter",
+          );
+        }
+        responsibleStaffId = destinationWaiter.id;
+      } else if (destination.kind === RestaurantTableKind.BAR_SEAT) {
+        const bartenders = await tx.user.findMany({
+          where: {
+            organizationId: actor.organizationId,
+            restaurantRole: RestaurantStaffRole.BAR,
+            restaurantAvailability: RestaurantStaffAvailability.AVAILABLE,
+          },
+          select: { id: true, name: true },
+          orderBy: [{ updatedAt: "asc" }, { id: "asc" }],
+        });
+        const bartenderLoads = await Promise.all(
+          bartenders.map(async (bartender) => ({
+            ...bartender,
+            load: await tx.restaurantVisit.count({
+              where: {
+                responsibleStaffId: bartender.id,
+                status: RestaurantVisitStatus.OPEN,
+              },
+            }),
+          })),
+        );
+        bartenderLoads.sort((left, right) => left.load - right.load);
+        const bartender = bartenderLoads[0] ?? null;
+        const originalWaiterAvailable =
+          currentAvailable &&
+          currentResponsible?.restaurantRole === RestaurantStaffRole.WAITER;
+        if (bartender) {
+          responsibleStaffId = bartender.id;
+          fallbackStaffId = originalWaiterAvailable
+            ? currentResponsible!.id
+            : null;
+        } else if (role === RestaurantStaffRole.RESTAURANT_ADMIN) {
+          responsibleStaffId = actor.id;
+          fallbackStaffId = originalWaiterAvailable
+            ? currentResponsible!.id
+            : null;
+        } else {
+          throw new ConflictException(
+            "No bartender is available for this bar account",
+          );
+        }
+      } else if (!responsibleStaffId) {
+        throw new ConflictException(
+          "No available staff member can retain responsibility for this account",
+        );
+      }
+
       const updated = await tx.restaurantVisit.update({
         where: { id: visit.id },
         data: {
           tableId: destination.id,
           serviceChargeEnabled,
+          responsibleStaffId,
+          fallbackStaffId,
         },
       });
       await tx.restaurantOrder.updateMany({
@@ -583,6 +795,7 @@ export class RestaurantService {
       return {
         ...updated,
         destination,
+        responsibleStaffId,
         activeAccountsAtDestination,
       };
     });
@@ -1124,6 +1337,50 @@ export class RestaurantService {
               restaurantServiceRateBps: true,
             },
           });
+          let responsibleStaffId = table.waiterId;
+          if (
+            table.kind === RestaurantTableKind.BAR_SEAT ||
+            table.kind === RestaurantTableKind.TAKEOUT_STATION
+          ) {
+            const preferredRole =
+              table.kind === RestaurantTableKind.BAR_SEAT
+                ? RestaurantStaffRole.BAR
+                : undefined;
+            const staff = await tx.user.findMany({
+              where: {
+                organizationId: table.organizationId,
+                restaurantAvailability: RestaurantStaffAvailability.AVAILABLE,
+                restaurantRole: preferredRole
+                  ? preferredRole
+                  : {
+                      in: [RestaurantStaffRole.BAR, RestaurantStaffRole.WAITER],
+                    },
+              },
+              select: { id: true },
+              orderBy: [{ updatedAt: "asc" }, { id: "asc" }],
+            });
+            const loads = await Promise.all(
+              staff.map(async (candidate) => ({
+                id: candidate.id,
+                load: await tx.restaurantVisit.count({
+                  where: {
+                    responsibleStaffId: candidate.id,
+                    status: RestaurantVisitStatus.OPEN,
+                  },
+                }),
+              })),
+            );
+            loads.sort((left, right) => left.load - right.load);
+            responsibleStaffId = loads[0]?.id ?? null;
+            if (
+              table.kind === RestaurantTableKind.BAR_SEAT &&
+              !responsibleStaffId
+            ) {
+              throw new ConflictException(
+                "Bar service is temporarily unavailable",
+              );
+            }
+          }
           visit = await tx.restaurantVisit.create({
             data: {
               organizationId: table.organizationId,
@@ -1132,6 +1389,7 @@ export class RestaurantService {
               taxIncluded: settings.restaurantTaxIncluded,
               serviceRateBps: settings.restaurantServiceRateBps,
               serviceChargeEnabled: table.serviceChargeEnabled,
+              responsibleStaffId,
             },
           });
         }
@@ -1300,6 +1558,9 @@ export class RestaurantService {
       where: { accessCode },
       include: {
         organization: { select: { name: true } },
+        responsibleStaff: {
+          select: { id: true, name: true, restaurantRole: true },
+        },
         table: {
           select: {
             name: true,
@@ -1358,6 +1619,7 @@ export class RestaurantService {
       closedAt: visit.closedAt,
       restaurant: visit.organization?.name ?? "Restaurante",
       table: visit.table,
+      responsibleStaff: visit.responsibleStaff,
       orders: visit.orders,
       items,
       invoiceRequestStatus: visit.invoiceRequestStatus,
@@ -1610,58 +1872,110 @@ export class RestaurantService {
   async orders(actor: RestaurantActor) {
     const role = this.effectiveRole(actor);
     if (!role) throw new ForbiddenException("Restaurant role required");
-    const station =
-      role === RestaurantStaffRole.KITCHEN
-        ? RestaurantStation.KITCHEN
-        : role === RestaurantStaffRole.BAR
-          ? RestaurantStation.BAR
-          : null;
     const openStatuses: RestaurantItemStatus[] = [
       RestaurantItemStatus.RECEIVED,
       RestaurantItemStatus.ACCEPTED,
       RestaurantItemStatus.PREPARING,
       RestaurantItemStatus.READY,
     ];
+    const roleWhere: Prisma.RestaurantOrderWhereInput =
+      role === RestaurantStaffRole.KITCHEN
+        ? {
+            items: {
+              some: {
+                status: { in: openStatuses },
+                station: RestaurantStation.KITCHEN,
+              },
+            },
+          }
+        : role === RestaurantStaffRole.BAR
+          ? {
+              OR: [
+                {
+                  items: {
+                    some: {
+                      status: { in: openStatuses },
+                      station: RestaurantStation.BAR,
+                    },
+                  },
+                },
+                {
+                  visit: { responsibleStaffId: actor.id },
+                  items: {
+                    some: { status: RestaurantItemStatus.READY },
+                  },
+                },
+              ],
+            }
+          : role === RestaurantStaffRole.WAITER
+            ? {
+                OR: [
+                  { visit: { responsibleStaffId: actor.id } },
+                  {
+                    visit: { responsibleStaffId: null },
+                    table: { waiterId: actor.id },
+                  },
+                ],
+              }
+            : {};
     const orders = await this.prisma.restaurantOrder.findMany({
       where: {
         organizationId: actor.organizationId,
-        ...(role === RestaurantStaffRole.WAITER
-          ? { table: { waiterId: actor.id } }
-          : {}),
-        items: {
-          some: {
-            status: { in: openStatuses },
-            ...(station ? { station } : {}),
-          },
-        },
+        ...roleWhere,
       },
       include: {
         items: {
           where: {
             status: { in: openStatuses },
-            ...(station ? { station } : {}),
+            ...(role === RestaurantStaffRole.KITCHEN
+              ? { station: RestaurantStation.KITCHEN }
+              : {}),
           },
         },
         table: { select: { id: true, name: true, waiterId: true } },
-        visit: { select: { id: true, status: true } },
+        visit: {
+          select: { id: true, status: true, responsibleStaffId: true },
+        },
       },
       orderBy: { createdAt: "desc" },
       take: 100,
     });
-    const evaluated = orders.map((order) => ({
-      ...order,
-      isDelayed:
-        order.thresholdMinutes !== null &&
-        Date.now() - order.createdAt.getTime() >
-          order.thresholdMinutes * 60_000 &&
-        order.items.some(
-          (item) =>
-            item.status === RestaurantItemStatus.RECEIVED ||
-            item.status === RestaurantItemStatus.ACCEPTED ||
-            item.status === RestaurantItemStatus.PREPARING ||
-            item.status === RestaurantItemStatus.READY,
-        ),
-    }));
+    const evaluated = orders
+      .map((order) => {
+        const isResponsible =
+          order.visit?.responsibleStaffId === actor.id ||
+          (!order.visit?.responsibleStaffId &&
+            order.table.waiterId === actor.id);
+        const visibleItems = order.items
+          .filter((item) => {
+            if (role === RestaurantStaffRole.KITCHEN) {
+              return item.station === RestaurantStation.KITCHEN;
+            }
+            if (role === RestaurantStaffRole.BAR) {
+              return (
+                item.station === RestaurantStation.BAR ||
+                (isResponsible && item.status === RestaurantItemStatus.READY)
+              );
+            }
+            return true;
+          })
+          .map((item) => ({
+            ...item,
+            serviceAction:
+              isResponsible && item.status === RestaurantItemStatus.READY,
+          }));
+        return {
+          ...order,
+          items: visibleItems,
+          isResponsible,
+          isDelayed:
+            order.thresholdMinutes !== null &&
+            Date.now() - order.createdAt.getTime() >
+              order.thresholdMinutes * 60_000 &&
+            visibleItems.length > 0,
+        };
+      })
+      .filter((order) => order.items.length > 0);
     const newlyDelayed = evaluated
       .filter((order) => order.isDelayed && order.delayedAt === null)
       .map((order) => order.id);
@@ -1682,7 +1996,8 @@ export class RestaurantService {
     const role = this.effectiveRole(actor);
     if (
       role !== RestaurantStaffRole.RESTAURANT_ADMIN &&
-      role !== RestaurantStaffRole.WAITER
+      role !== RestaurantStaffRole.WAITER &&
+      role !== RestaurantStaffRole.BAR
     ) {
       throw new ForbiddenException("Waiter access required");
     }
@@ -1691,16 +2006,27 @@ export class RestaurantService {
         organizationId: actor.organizationId,
         status: RestaurantVisitStatus.OPEN,
         ...(role === RestaurantStaffRole.WAITER
-          ? { table: { waiterId: actor.id } }
-          : {}),
+          ? {
+              OR: [
+                { responsibleStaffId: actor.id },
+                { responsibleStaffId: null, table: { waiterId: actor.id } },
+              ],
+            }
+          : role === RestaurantStaffRole.BAR
+            ? { responsibleStaffId: actor.id }
+            : {}),
       },
       include: {
+        responsibleStaff: {
+          select: { id: true, name: true, restaurantRole: true },
+        },
         table: {
           select: {
             id: true,
             name: true,
             waiterId: true,
             serviceChargeEnabled: true,
+            kind: true,
           },
         },
         orders: { include: { items: true } },
@@ -1735,6 +2061,7 @@ export class RestaurantService {
         id: visit.id,
         openedAt: visit.openedAt,
         table: visit.table,
+        responsibleStaff: visit.responsibleStaff,
         items,
         billing: this.billingTotals(
           items,
@@ -1770,7 +2097,12 @@ export class RestaurantService {
       const item = await tx.restaurantOrderItem.findFirst({
         where: { id, order: { organizationId: actor.organizationId } },
         include: {
-          order: { select: { table: { select: { waiterId: true } } } },
+          order: {
+            select: {
+              table: { select: { waiterId: true } },
+              visit: { select: { responsibleStaffId: true } },
+            },
+          },
         },
       });
       if (!item) throw new NotFoundException("Order item not found");
@@ -1787,9 +2119,12 @@ export class RestaurantService {
           item.station === RestaurantStation.KITCHEN) ||
         (role === RestaurantStaffRole.BAR &&
           item.station === RestaurantStation.BAR);
-      const isAssignedWaiter =
-        role === RestaurantStaffRole.WAITER &&
-        item.order.table.waiterId === actor.id;
+      const isAssignedResponsible =
+        (role === RestaurantStaffRole.WAITER ||
+          role === RestaurantStaffRole.BAR) &&
+        (item.order.visit?.responsibleStaffId === actor.id ||
+          (!item.order.visit?.responsibleStaffId &&
+            item.order.table.waiterId === actor.id));
       const stationTarget: boolean = (
         [
           RestaurantItemStatus.ACCEPTED,
@@ -1800,7 +2135,10 @@ export class RestaurantService {
       const waiterTarget = dto.status === RestaurantItemStatus.DELIVERED;
       if (
         !isAdmin &&
-        !((isStation && stationTarget) || (isAssignedWaiter && waiterTarget))
+        !(
+          (isStation && stationTarget) ||
+          (isAssignedResponsible && waiterTarget)
+        )
       ) {
         throw new ForbiddenException(
           "Status change is not allowed for this role",
@@ -1808,6 +2146,15 @@ export class RestaurantService {
       }
       if (!transitions[item.status].includes(dto.status))
         throw new BadRequestException("Invalid status change");
+      if (
+        !isAdmin &&
+        dto.status === RestaurantItemStatus.DELIVERED &&
+        !item.handedOffAt
+      ) {
+        throw new ConflictException(
+          "Confirm receipt from the preparation station before delivery",
+        );
+      }
       const now = new Date();
       const result = await tx.restaurantOrderItem.updateMany({
         where: { id, status: item.status },
@@ -1822,6 +2169,63 @@ export class RestaurantService {
         throw new ConflictException("Item was updated by someone else");
       await tx.restaurantItemEvent.create({
         data: { itemId: id, actorId: actor.id, status: dto.status },
+      });
+      return tx.restaurantOrderItem.findUnique({ where: { id } });
+    });
+  }
+
+  async handoffItem(actor: RestaurantActor, id: string) {
+    return this.prisma.$transaction(async (tx) => {
+      const item = await tx.restaurantOrderItem.findFirst({
+        where: { id, order: { organizationId: actor.organizationId } },
+        include: {
+          order: {
+            select: {
+              table: { select: { waiterId: true } },
+              visit: { select: { responsibleStaffId: true } },
+            },
+          },
+        },
+      });
+      if (!item) throw new NotFoundException("Order item not found");
+      if (item.status !== RestaurantItemStatus.READY) {
+        throw new ConflictException("Only ready items can be received");
+      }
+      if (item.handedOffAt) return item;
+      const role = this.effectiveRole(actor);
+      const isAdmin = role === RestaurantStaffRole.RESTAURANT_ADMIN;
+      const isResponsible =
+        (role === RestaurantStaffRole.WAITER ||
+          role === RestaurantStaffRole.BAR) &&
+        (item.order.visit?.responsibleStaffId === actor.id ||
+          (!item.order.visit?.responsibleStaffId &&
+            item.order.table.waiterId === actor.id));
+      if (!isAdmin && !isResponsible) {
+        throw new ForbiddenException(
+          "Only the staff member responsible for this account can receive it",
+        );
+      }
+      if (
+        !isAdmin &&
+        actor.restaurantAvailability !== RestaurantStaffAvailability.AVAILABLE
+      ) {
+        throw new ForbiddenException("Staff member is not available for work");
+      }
+      const handedOffAt = new Date();
+      const result = await tx.restaurantOrderItem.updateMany({
+        where: { id, status: RestaurantItemStatus.READY, handedOffAt: null },
+        data: { handedOffAt },
+      });
+      if (!result.count) {
+        throw new ConflictException("Item was received by someone else");
+      }
+      await tx.restaurantItemEvent.create({
+        data: {
+          itemId: id,
+          actorId: actor.id,
+          status: RestaurantItemStatus.READY,
+          note: "HANDOFF_CONFIRMED",
+        },
       });
       return tx.restaurantOrderItem.findUnique({ where: { id } });
     });

@@ -13,6 +13,8 @@ type Item = {
   station: "KITCHEN" | "BAR";
   status: string;
   fulfillment: "DINE_IN" | "TAKEOUT";
+  handedOffAt?: string | null;
+  serviceAction?: boolean;
 };
 type Order = {
   id: string;
@@ -23,7 +25,12 @@ type Order = {
 };
 type Visit = {
   id: string;
-  table: { name: string };
+  table: { name: string; kind?: "DINING" | "BAR_SEAT" | "TAKEOUT_STATION" };
+  responsibleStaff?: {
+    id: string;
+    name: string;
+    restaurantRole: string;
+  } | null;
   canClose: boolean;
   transferDestinations: Array<{
     id: string;
@@ -53,6 +60,7 @@ type Visit = {
     price: number;
     status: string;
     fulfillment: "DINE_IN" | "TAKEOUT";
+    handedOffAt?: string | null;
   }>;
 };
 
@@ -141,6 +149,19 @@ export default function WaiterPage() {
     if (!response.ok) {
       const body = await response.json().catch(() => ({}));
       setError(body.message ?? "No se pudo confirmar la entrega");
+      return;
+    }
+    await load();
+  }
+
+  async function handoff(itemId: string) {
+    const response = await authenticatedFetch(
+      `${API_URL}/api/v1/restaurant/items/${itemId}/handoff`,
+      { method: "PATCH" },
+    );
+    if (!response.ok) {
+      const body = await response.json().catch(() => ({}));
+      setError(body.message ?? "No se pudo confirmar la recepción");
       return;
     }
     await load();
@@ -290,14 +311,16 @@ export default function WaiterPage() {
 
   const readyCount = orders
     .flatMap((order) => order.items)
-    .filter((item) => item.status === "READY").length;
+    .filter((item) => item.status === "READY" && !item.handedOffAt).length;
   const alerts = useOperationalAlerts(
     "waiter",
     orders.flatMap((order) =>
       order.items
         .filter((item) => item.status === "READY")
+        .filter((item) => !item.handedOffAt)
         .map((item) => item.id),
     ),
+    { maxAttempts: null },
   );
 
   return (
@@ -402,6 +425,9 @@ export default function WaiterPage() {
                   <div className="flex flex-wrap items-center justify-between gap-3">
                     <div>
                       <p className="font-bold">{visit.table.name}</p>
+                      <p className="text-sm text-slate-600">
+                        Responsable: {visit.responsibleStaff?.name ?? staffName}
+                      </p>
                       <p>
                         Total acumulado: ₡{visit.billing.total.toLocaleString()}
                       </p>
@@ -599,9 +625,15 @@ export default function WaiterPage() {
                     {item.status === "READY" && (
                       <button
                         className="rounded-lg bg-sky-700 px-5 py-3 font-bold text-white"
-                        onClick={() => void deliver(item.id)}
+                        onClick={() =>
+                          void (item.handedOffAt
+                            ? deliver(item.id)
+                            : handoff(item.id))
+                        }
                       >
-                        Confirmar entrega
+                        {item.handedOffAt
+                          ? "Confirmar entrega al cliente"
+                          : "Recibido de cocina o bar"}
                       </button>
                     )}
                   </div>
