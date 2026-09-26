@@ -110,6 +110,18 @@ export default function RestaurantOrderPage() {
               ? "Su pedido fue aceptado."
               : "Su pedido fue recibido.";
   const guestAlerts = useGuestAlerts(guestEventKey, guestEventMessage);
+  const clearStoredAccountReferences = useCallback((accountCode: string) => {
+    const prefix = "assettrack_restaurant_order_";
+    for (let index = window.localStorage.length - 1; index >= 0; index -= 1) {
+      const key = window.localStorage.key(index);
+      if (
+        key?.startsWith(prefix) &&
+        window.localStorage.getItem(key) === accountCode
+      ) {
+        window.localStorage.removeItem(key);
+      }
+    }
+  }, []);
   const load = useCallback(async () => {
     try {
       const response = await fetch(
@@ -121,16 +133,15 @@ export default function RestaurantOrderPage() {
       const nextOrder: Order = await response.json();
       setOrder(nextOrder);
       const storageKey = `assettrack_restaurant_order_${nextOrder.table.code}`;
+      clearStoredAccountReferences(accessCode);
       if (nextOrder.status === "OPEN") {
         window.localStorage.setItem(storageKey, accessCode);
-      } else if (window.localStorage.getItem(storageKey) === accessCode) {
-        window.localStorage.removeItem(storageKey);
       }
       setError("");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unable to update order");
     }
-  }, [accessCode]);
+  }, [accessCode, clearStoredAccountReferences]);
   useEffect(() => {
     void load();
     const timer = setInterval(() => {
@@ -273,9 +284,7 @@ export default function RestaurantOrderPage() {
 
   function finishVisit() {
     if (order) {
-      window.localStorage.removeItem(
-        `assettrack_restaurant_order_${order.table.code}`,
-      );
+      clearStoredAccountReferences(accessCode);
     }
     setVisitEnded(true);
   }

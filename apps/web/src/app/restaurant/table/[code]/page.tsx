@@ -81,9 +81,39 @@ export default function RestaurantTablePage() {
 
   useEffect(() => {
     void load();
-    setTrackedOrder(
-      window.localStorage.getItem(`assettrack_restaurant_order_${code}`),
-    );
+    const storageKey = `assettrack_restaurant_order_${code}`;
+    const storedAccessCode = window.localStorage.getItem(storageKey);
+    if (!storedAccessCode) {
+      setTrackedOrder(null);
+      return;
+    }
+    let active = true;
+    void fetch(
+      `${API_URL}/api/v1/restaurant/guest/orders/${encodeURIComponent(storedAccessCode)}`,
+      { cache: "no-store" },
+    )
+      .then(async (response) => {
+        if (!response.ok) return null;
+        return response.json() as Promise<{
+          status: "OPEN" | "CLOSED";
+          table: { code: string };
+        }>;
+      })
+      .then((account) => {
+        if (!active) return;
+        if (account?.status === "OPEN" && account.table.code === code) {
+          setTrackedOrder(storedAccessCode);
+          return;
+        }
+        window.localStorage.removeItem(storageKey);
+        setTrackedOrder(null);
+      })
+      .catch(() => {
+        if (active) setTrackedOrder(storedAccessCode);
+      });
+    return () => {
+      active = false;
+    };
   }, [code, load]);
 
   useEffect(() => {
@@ -181,9 +211,24 @@ export default function RestaurantTablePage() {
       );
       const body = await response.json();
       if (!response.ok) {
-        throw new Error(
-          Array.isArray(body.message) ? body.message.join(", ") : body.message,
-        );
+        const message = Array.isArray(body.message)
+          ? body.message.join(", ")
+          : body.message;
+        if (
+          response.status === 400 &&
+          typeof message === "string" &&
+          (message.includes("cuenta anterior") ||
+            message.includes("selected account"))
+        ) {
+          window.localStorage.removeItem(`assettrack_restaurant_order_${code}`);
+          setTrackedOrder(null);
+          setSeparateAcknowledged(false);
+          requestId.current = null;
+          throw new Error(
+            "La cuenta anterior ya fue cerrada o trasladada. Revise el menú y confirme nuevamente para iniciar una cuenta nueva.",
+          );
+        }
+        throw new Error(message || "No se pudo enviar la orden");
       }
       const orderedTypes = [
         ...new Set(

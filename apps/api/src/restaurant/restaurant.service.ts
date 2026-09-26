@@ -1325,7 +1325,7 @@ export class RestaurantService {
           : null;
         if (dto.accountAccessCode && !visit) {
           throw new BadRequestException(
-            "The selected account is closed or does not belong to this table",
+            "La cuenta anterior fue cerrada o trasladada a otra posición",
           );
         }
         if (!visit) {

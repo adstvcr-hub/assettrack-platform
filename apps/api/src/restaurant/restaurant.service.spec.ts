@@ -174,6 +174,19 @@ describe("RestaurantService", () => {
     );
   });
 
+  it("rejects a stale private account with a guest-friendly message", async () => {
+    const { service } = createService();
+
+    await expect(
+      service.placeOrder("table-code", {
+        ...payload,
+        accountAccessCode: "4e042db9-2f69-466f-bc62-8f50c9044ceb",
+      }),
+    ).rejects.toThrow(
+      "La cuenta anterior fue cerrada o trasladada a otra posición",
+    );
+  });
+
   it("keeps unavailable station items visible in the guest menu", async () => {
     const { prisma, service } = createService();
     prisma.restaurantTable.findUnique.mockResolvedValue({
