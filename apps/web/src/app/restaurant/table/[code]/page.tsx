@@ -445,10 +445,10 @@ export default function RestaurantTablePage() {
               <Image
                 src={item.imageData}
                 alt={item.name}
-                width={800}
+                width={520}
                 height={600}
                 unoptimized
-                className="h-44 w-full object-cover"
+                className="mx-auto block h-[60mm] max-h-[60mm] w-[52mm] max-w-full object-cover object-center"
               />
             )}
             <div className="p-4">
