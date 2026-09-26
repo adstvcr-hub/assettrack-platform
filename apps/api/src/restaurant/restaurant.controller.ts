@@ -32,6 +32,7 @@ import {
   UpdateStaffAvailabilityDto,
   UpdateTableBillingDto,
   UpdatePromotionDto,
+  TransferVisitDto,
 } from "./dto/restaurant.dto";
 import { RestaurantActor, RestaurantService } from "./restaurant.service";
 import { RestaurantAccessGuard } from "./restaurant-access.guard";
@@ -285,5 +286,14 @@ export class RestaurantStaffController {
   @Patch("visits/:id/close")
   closeVisit(@Req() req: StaffRequest, @Param("id") id: string) {
     return this.restaurant.closeVisit(req.user, id);
+  }
+
+  @Patch("visits/:id/transfer")
+  transferVisit(
+    @Req() req: StaffRequest,
+    @Param("id") id: string,
+    @Body() dto: TransferVisitDto,
+  ) {
+    return this.restaurant.transferVisit(req.user, id, dto.destinationTableId);
   }
 }

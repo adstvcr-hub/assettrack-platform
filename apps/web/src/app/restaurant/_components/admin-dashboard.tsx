@@ -13,7 +13,7 @@ type Table = {
   waiterId?: string | null;
   waiter?: { id: string; name: string; email: string } | null;
   serviceChargeEnabled: boolean;
-  kind: "DINING" | "TAKEOUT_STATION";
+  kind: "DINING" | "BAR_SEAT" | "TAKEOUT_STATION";
 };
 type RestaurantRole = "RESTAURANT_ADMIN" | "KITCHEN" | "BAR" | "WAITER";
 type StaffUser = {
@@ -85,7 +85,11 @@ type BillingSettings = {
 type LoyaltySummary = {
   enrolledCustomers: number;
   completedVisits: number;
-  frequentCustomers: Array<{ nickname: string; vipTier: string; visits: number }>;
+  frequentCustomers: Array<{
+    nickname: string;
+    vipTier: string;
+    visits: number;
+  }>;
 };
 type RewardProgram = {
   id: string;
@@ -94,6 +98,10 @@ type RewardProgram = {
   description?: string | null;
   pointsRequired: number;
   vipTier?: string | null;
+  rewardType: "MENU_ITEM" | "DISCOUNT_PERCENT" | "CUSTOM";
+  discountBps?: number | null;
+  maxDiscountAmount?: number | null;
+  menuItem?: { id: string; name: string } | null;
 };
 const nextStatus: Record<string, string | null> = {
   RECEIVED: "ACCEPTED",
@@ -112,9 +120,9 @@ export default function RestaurantAdminDashboard() {
   const [staffUsers, setStaffUsers] = useState<StaffUser[]>([]);
   const [station, setStation] = useState<Station>("KITCHEN");
   const [tableName, setTableName] = useState("");
-  const [tableKind, setTableKind] = useState<"DINING" | "TAKEOUT_STATION">(
-    "DINING",
-  );
+  const [tableKind, setTableKind] = useState<
+    "DINING" | "BAR_SEAT" | "TAKEOUT_STATION"
+  >("DINING");
   const [itemName, setItemName] = useState("");
   const [itemDescription, setItemDescription] = useState("");
   const [editingItemId, setEditingItemId] = useState<string | null>(null);
@@ -147,6 +155,12 @@ export default function RestaurantAdminDashboard() {
   const [rewards, setRewards] = useState<RewardProgram[]>([]);
   const [rewardName, setRewardName] = useState("");
   const [rewardPoints, setRewardPoints] = useState("50");
+  const [rewardType, setRewardType] = useState<
+    "MENU_ITEM" | "DISCOUNT_PERCENT" | "CUSTOM"
+  >("MENU_ITEM");
+  const [rewardMenuItemId, setRewardMenuItemId] = useState("");
+  const [rewardDiscount, setRewardDiscount] = useState("10");
+  const [rewardDiscountCap, setRewardDiscountCap] = useState("");
   const billingInitialized = useRef(false);
 
   const load = useCallback(async () => {
@@ -567,11 +581,15 @@ export default function RestaurantAdminDashboard() {
                   value={tableKind}
                   onChange={(event) =>
                     setTableKind(
-                      event.target.value as "DINING" | "TAKEOUT_STATION",
+                      event.target.value as
+                        "DINING" | "BAR_SEAT" | "TAKEOUT_STATION",
                     )
                   }
                 >
                   <option value="DINING">Mesa de salón</option>
+                  <option value="BAR_SEAT">
+                    Posición de barra (sin servicio)
+                  </option>
                   <option value="TAKEOUT_STATION">Estación para llevar</option>
                 </select>
                 <button className="rounded bg-slate-900 px-3 text-white">
@@ -604,6 +622,10 @@ export default function RestaurantAdminDashboard() {
                         </option>
                       ))}
                     </select>
+                  ) : table.kind === "BAR_SEAT" ? (
+                    <span className="rounded bg-violet-50 p-2 text-sm font-semibold text-violet-900">
+                      Barra · atención del bartender
+                    </span>
                   ) : (
                     <span className="rounded bg-amber-50 p-2 text-sm font-semibold">
                       Pedidos para llevar
@@ -619,6 +641,7 @@ export default function RestaurantAdminDashboard() {
                     <input
                       type="checkbox"
                       checked={table.serviceChargeEnabled}
+                      disabled={table.kind === "BAR_SEAT"}
                       onChange={(event) =>
                         void post(
                           `tables/${table.id}/billing`,
@@ -1056,17 +1079,27 @@ export default function RestaurantAdminDashboard() {
       <section className="mt-12">
         <h2 className="text-xl font-bold">Fidelidad y premios</h2>
         <p className="mt-1 text-sm text-slate-600">
-          Los datos visibles pertenecen únicamente a este restaurante. AssetTrack conserva las métricas globales de forma separada.
+          Los datos visibles pertenecen únicamente a este restaurante.
+          AssetTrack conserva las métricas globales de forma separada.
         </p>
         <div className="mt-4 grid gap-5 lg:grid-cols-2">
           <div className="rounded-xl border bg-white p-5">
             <h3 className="font-bold">Clientes frecuentes</h3>
-            <p className="mt-2 text-2xl font-bold">{loyalty?.enrolledCustomers ?? 0} afiliados</p>
-            <p className="text-sm text-slate-600">{loyalty?.completedVisits ?? 0} visitas verificadas</p>
+            <p className="mt-2 text-2xl font-bold">
+              {loyalty?.enrolledCustomers ?? 0} afiliados
+            </p>
+            <p className="text-sm text-slate-600">
+              {loyalty?.completedVisits ?? 0} visitas verificadas
+            </p>
             <div className="mt-3 space-y-2">
               {loyalty?.frequentCustomers.map((customer) => (
-                <div key={`${customer.nickname}-${customer.visits}`} className="flex justify-between border-t pt-2">
-                  <span>{customer.nickname} · {customer.vipTier}</span>
+                <div
+                  key={`${customer.nickname}-${customer.visits}`}
+                  className="flex justify-between border-t pt-2"
+                >
+                  <span>
+                    {customer.nickname} · {customer.vipTier}
+                  </span>
                   <strong>{customer.visits} visitas</strong>
                 </div>
               ))}
@@ -1074,20 +1107,122 @@ export default function RestaurantAdminDashboard() {
           </div>
           <div className="rounded-xl border bg-white p-5">
             <h3 className="font-bold">Política de premios</h3>
-            <div className="mt-3 flex flex-wrap gap-2">
-              <input className="min-w-48 flex-1 rounded border p-2" placeholder="Nombre del premio" value={rewardName} onChange={(event) => setRewardName(event.target.value)} />
-              <input className="w-28 rounded border p-2" type="number" min="1" value={rewardPoints} onChange={(event) => setRewardPoints(event.target.value)} />
-              <button className="rounded bg-indigo-700 px-4 py-2 font-semibold text-white" onClick={async () => {
-                if (!rewardName.trim()) return;
-                const saved = await post("loyalty/rewards", { name: rewardName, pointsRequired: Number(rewardPoints) });
-                if (saved) setRewardName("");
-              }}>Crear premio</button>
+            <div className="mt-3 grid gap-2">
+              <select
+                className="rounded border bg-white p-2"
+                value={rewardType}
+                onChange={(event) =>
+                  setRewardType(event.target.value as typeof rewardType)
+                }
+              >
+                <option value="MENU_ITEM">Producto del menú</option>
+                <option value="DISCOUNT_PERCENT">
+                  Porcentaje de descuento
+                </option>
+                <option value="CUSTOM">Premio personalizado</option>
+              </select>
+              {rewardType === "MENU_ITEM" && (
+                <select
+                  className="rounded border bg-white p-2"
+                  value={rewardMenuItemId}
+                  onChange={(event) => {
+                    setRewardMenuItemId(event.target.value);
+                    const item = menu.find(
+                      (candidate) => candidate.id === event.target.value,
+                    );
+                    if (item) setRewardName(item.name);
+                  }}
+                >
+                  <option value="">Seleccione un producto</option>
+                  {menu
+                    .filter((item) => item.active)
+                    .map((item) => (
+                      <option key={item.id} value={item.id}>
+                        {item.name}
+                      </option>
+                    ))}
+                </select>
+              )}
+              {rewardType === "DISCOUNT_PERCENT" && (
+                <div className="flex gap-2">
+                  <select
+                    className="rounded border bg-white p-2"
+                    value={rewardDiscount}
+                    onChange={(event) => {
+                      setRewardDiscount(event.target.value);
+                      setRewardName(`${event.target.value}% de descuento`);
+                    }}
+                  >
+                    {[5, 10, 15, 20, 25, 50].map((value) => (
+                      <option key={value} value={value}>
+                        {value}%
+                      </option>
+                    ))}
+                  </select>
+                  <input
+                    className="min-w-44 flex-1 rounded border p-2"
+                    type="number"
+                    min="0"
+                    placeholder="Tope máximo en colones (opcional)"
+                    value={rewardDiscountCap}
+                    onChange={(event) =>
+                      setRewardDiscountCap(event.target.value)
+                    }
+                  />
+                </div>
+              )}
+              <input
+                className="rounded border p-2"
+                placeholder="Nombre visible del premio"
+                value={rewardName}
+                onChange={(event) => setRewardName(event.target.value)}
+              />
+              <div className="flex flex-wrap gap-2">
+                <input
+                  className="w-28 rounded border p-2"
+                  type="number"
+                  min="1"
+                  value={rewardPoints}
+                  onChange={(event) => setRewardPoints(event.target.value)}
+                />
+                <button
+                  className="rounded bg-indigo-700 px-4 py-2 font-semibold text-white"
+                  onClick={async () => {
+                    if (!rewardName.trim()) return;
+                    const saved = await post("loyalty/rewards", {
+                      name: rewardName,
+                      pointsRequired: Number(rewardPoints),
+                      rewardType,
+                      menuItemId:
+                        rewardType === "MENU_ITEM"
+                          ? rewardMenuItemId
+                          : undefined,
+                      discountBps:
+                        rewardType === "DISCOUNT_PERCENT"
+                          ? Number(rewardDiscount) * 100
+                          : undefined,
+                      maxDiscountAmount:
+                        rewardType === "DISCOUNT_PERCENT" && rewardDiscountCap
+                          ? Number(rewardDiscountCap)
+                          : undefined,
+                    });
+                    if (saved) setRewardName("");
+                  }}
+                >
+                  Crear premio
+                </button>
+              </div>
             </div>
             <div className="mt-4 space-y-2">
               {rewards.map((reward) => (
                 <div key={reward.id} className="rounded border p-3">
                   <strong>{reward.name}</strong>
-                  <p className="text-sm">{reward.pointsRequired} puntos · {reward.sponsor === "ASSETTRACK" ? "AssetTrack" : "Restaurante"}</p>
+                  <p className="text-sm">
+                    {reward.pointsRequired} puntos{" "}
+                    {reward.sponsor === "ASSETTRACK"
+                      ? "globales · AssetTrack"
+                      : "de este local · Restaurante"}
+                  </p>
                 </div>
               ))}
             </div>

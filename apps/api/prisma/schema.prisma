@@ -91,7 +91,14 @@ enum RestaurantFulfillment {
 
 enum RestaurantTableKind {
   DINING
+  BAR_SEAT
   TAKEOUT_STATION
+}
+
+enum RestaurantRewardType {
+  MENU_ITEM
+  DISCOUNT_PERCENT
+  CUSTOM
 }
 
 enum RestaurantInvoiceRequestStatus {
@@ -154,6 +161,8 @@ model RestaurantTable {
   waiter               User?               @relation("RestaurantWaiterTables", fields: [waiterId], references: [id], onDelete: SetNull)
   orders               RestaurantOrder[]
   visits               RestaurantVisit[]
+  visitTransfersFrom   RestaurantVisitTransfer[] @relation("VisitTransferFrom")
+  visitTransfersTo     RestaurantVisitTransfer[] @relation("VisitTransferTo")
 
   @@unique([organizationId, name])
   @@index([organizationId])
@@ -184,6 +193,7 @@ model RestaurantVisit {
   table                RestaurantTable                @relation(fields: [tableId], references: [id])
   orders               RestaurantOrder[]
   loyaltyActivities    RestaurantLoyaltyActivity[]
+  transfers            RestaurantVisitTransfer[]
 
   @@index([organizationId, status])
   @@index([tableId, status])
@@ -233,6 +243,10 @@ model RestaurantRewardProgram {
   name           String
   description    String?
   pointsRequired Int
+  rewardType     RestaurantRewardType @default(CUSTOM)
+  menuItemId     String?
+  discountBps    Int?
+  maxDiscountAmount Int?
   vipTier        String?
   active         Boolean                 @default(true)
   startsAt       DateTime?
@@ -240,10 +254,26 @@ model RestaurantRewardProgram {
   createdAt      DateTime                @default(now())
   updatedAt      DateTime                @updatedAt
   organization   Organization?           @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  menuItem       RestaurantMenuItem?      @relation(fields: [menuItemId], references: [id], onDelete: SetNull)
 
   @@index([organizationId, active])
   @@index([sponsor, active])
   @@map("restaurant_reward_programs")
+}
+
+model RestaurantVisitTransfer {
+  id          String   @id @default(uuid())
+  visitId     String
+  fromTableId String
+  toTableId   String
+  actorId     String
+  createdAt   DateTime @default(now())
+  visit       RestaurantVisit @relation(fields: [visitId], references: [id], onDelete: Cascade)
+  fromTable   RestaurantTable @relation("VisitTransferFrom", fields: [fromTableId], references: [id])
+  toTable     RestaurantTable @relation("VisitTransferTo", fields: [toTableId], references: [id])
+
+  @@index([visitId, createdAt])
+  @@map("restaurant_visit_transfers")
 }
 
 model PlatformAdminEvent {
@@ -279,6 +309,7 @@ model RestaurantMenuItem {
   createdAt      DateTime                @default(now())
   organization   Organization            @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   orderItems     RestaurantOrderItem[]
+  rewardPrograms RestaurantRewardProgram[]
 
   @@index([organizationId, active])
   @@map("restaurant_menu_items")

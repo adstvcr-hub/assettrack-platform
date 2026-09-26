@@ -28,10 +28,14 @@ export type AggregateRestaurantRewardProgram = {
 
 export type RestaurantRewardProgramAvgAggregateOutputType = {
   pointsRequired: number | null
+  discountBps: number | null
+  maxDiscountAmount: number | null
 }
 
 export type RestaurantRewardProgramSumAggregateOutputType = {
   pointsRequired: number | null
+  discountBps: number | null
+  maxDiscountAmount: number | null
 }
 
 export type RestaurantRewardProgramMinAggregateOutputType = {
@@ -41,6 +45,10 @@ export type RestaurantRewardProgramMinAggregateOutputType = {
   name: string | null
   description: string | null
   pointsRequired: number | null
+  rewardType: $Enums.RestaurantRewardType | null
+  menuItemId: string | null
+  discountBps: number | null
+  maxDiscountAmount: number | null
   vipTier: string | null
   active: boolean | null
   startsAt: Date | null
@@ -56,6 +64,10 @@ export type RestaurantRewardProgramMaxAggregateOutputType = {
   name: string | null
   description: string | null
   pointsRequired: number | null
+  rewardType: $Enums.RestaurantRewardType | null
+  menuItemId: string | null
+  discountBps: number | null
+  maxDiscountAmount: number | null
   vipTier: string | null
   active: boolean | null
   startsAt: Date | null
@@ -71,6 +83,10 @@ export type RestaurantRewardProgramCountAggregateOutputType = {
   name: number
   description: number
   pointsRequired: number
+  rewardType: number
+  menuItemId: number
+  discountBps: number
+  maxDiscountAmount: number
   vipTier: number
   active: number
   startsAt: number
@@ -83,10 +99,14 @@ export type RestaurantRewardProgramCountAggregateOutputType = {
 
 export type RestaurantRewardProgramAvgAggregateInputType = {
   pointsRequired?: true
+  discountBps?: true
+  maxDiscountAmount?: true
 }
 
 export type RestaurantRewardProgramSumAggregateInputType = {
   pointsRequired?: true
+  discountBps?: true
+  maxDiscountAmount?: true
 }
 
 export type RestaurantRewardProgramMinAggregateInputType = {
@@ -96,6 +116,10 @@ export type RestaurantRewardProgramMinAggregateInputType = {
   name?: true
   description?: true
   pointsRequired?: true
+  rewardType?: true
+  menuItemId?: true
+  discountBps?: true
+  maxDiscountAmount?: true
   vipTier?: true
   active?: true
   startsAt?: true
@@ -111,6 +135,10 @@ export type RestaurantRewardProgramMaxAggregateInputType = {
   name?: true
   description?: true
   pointsRequired?: true
+  rewardType?: true
+  menuItemId?: true
+  discountBps?: true
+  maxDiscountAmount?: true
   vipTier?: true
   active?: true
   startsAt?: true
@@ -126,6 +154,10 @@ export type RestaurantRewardProgramCountAggregateInputType = {
   name?: true
   description?: true
   pointsRequired?: true
+  rewardType?: true
+  menuItemId?: true
+  discountBps?: true
+  maxDiscountAmount?: true
   vipTier?: true
   active?: true
   startsAt?: true
@@ -228,6 +260,10 @@ export type RestaurantRewardProgramGroupByOutputType = {
   name: string
   description: string | null
   pointsRequired: number
+  rewardType: $Enums.RestaurantRewardType
+  menuItemId: string | null
+  discountBps: number | null
+  maxDiscountAmount: number | null
   vipTier: string | null
   active: boolean
   startsAt: Date | null
@@ -266,6 +302,10 @@ export type RestaurantRewardProgramWhereInput = {
   name?: Prisma.StringFilter<"RestaurantRewardProgram"> | string
   description?: Prisma.StringNullableFilter<"RestaurantRewardProgram"> | string | null
   pointsRequired?: Prisma.IntFilter<"RestaurantRewardProgram"> | number
+  rewardType?: Prisma.EnumRestaurantRewardTypeFilter<"RestaurantRewardProgram"> | $Enums.RestaurantRewardType
+  menuItemId?: Prisma.StringNullableFilter<"RestaurantRewardProgram"> | string | null
+  discountBps?: Prisma.IntNullableFilter<"RestaurantRewardProgram"> | number | null
+  maxDiscountAmount?: Prisma.IntNullableFilter<"RestaurantRewardProgram"> | number | null
   vipTier?: Prisma.StringNullableFilter<"RestaurantRewardProgram"> | string | null
   active?: Prisma.BoolFilter<"RestaurantRewardProgram"> | boolean
   startsAt?: Prisma.DateTimeNullableFilter<"RestaurantRewardProgram"> | Date | string | null
@@ -273,6 +313,7 @@ export type RestaurantRewardProgramWhereInput = {
   createdAt?: Prisma.DateTimeFilter<"RestaurantRewardProgram"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"RestaurantRewardProgram"> | Date | string
   organization?: Prisma.XOR<Prisma.OrganizationNullableScalarRelationFilter, Prisma.OrganizationWhereInput> | null
+  menuItem?: Prisma.XOR<Prisma.RestaurantMenuItemNullableScalarRelationFilter, Prisma.RestaurantMenuItemWhereInput> | null
 }
 
 export type RestaurantRewardProgramOrderByWithRelationInput = {
@@ -282,6 +323,10 @@ export type RestaurantRewardProgramOrderByWithRelationInput = {
   name?: Prisma.SortOrder
   description?: Prisma.SortOrderInput | Prisma.SortOrder
   pointsRequired?: Prisma.SortOrder
+  rewardType?: Prisma.SortOrder
+  menuItemId?: Prisma.SortOrderInput | Prisma.SortOrder
+  discountBps?: Prisma.SortOrderInput | Prisma.SortOrder
+  maxDiscountAmount?: Prisma.SortOrderInput | Prisma.SortOrder
   vipTier?: Prisma.SortOrderInput | Prisma.SortOrder
   active?: Prisma.SortOrder
   startsAt?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -289,6 +334,7 @@ export type RestaurantRewardProgramOrderByWithRelationInput = {
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   organization?: Prisma.OrganizationOrderByWithRelationInput
+  menuItem?: Prisma.RestaurantMenuItemOrderByWithRelationInput
 }
 
 export type RestaurantRewardProgramWhereUniqueInput = Prisma.AtLeast<{
@@ -301,6 +347,10 @@ export type RestaurantRewardProgramWhereUniqueInput = Prisma.AtLeast<{
   name?: Prisma.StringFilter<"RestaurantRewardProgram"> | string
   description?: Prisma.StringNullableFilter<"RestaurantRewardProgram"> | string | null
   pointsRequired?: Prisma.IntFilter<"RestaurantRewardProgram"> | number
+  rewardType?: Prisma.EnumRestaurantRewardTypeFilter<"RestaurantRewardProgram"> | $Enums.RestaurantRewardType
+  menuItemId?: Prisma.StringNullableFilter<"RestaurantRewardProgram"> | string | null
+  discountBps?: Prisma.IntNullableFilter<"RestaurantRewardProgram"> | number | null
+  maxDiscountAmount?: Prisma.IntNullableFilter<"RestaurantRewardProgram"> | number | null
   vipTier?: Prisma.StringNullableFilter<"RestaurantRewardProgram"> | string | null
   active?: Prisma.BoolFilter<"RestaurantRewardProgram"> | boolean
   startsAt?: Prisma.DateTimeNullableFilter<"RestaurantRewardProgram"> | Date | string | null
@@ -308,6 +358,7 @@ export type RestaurantRewardProgramWhereUniqueInput = Prisma.AtLeast<{
   createdAt?: Prisma.DateTimeFilter<"RestaurantRewardProgram"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"RestaurantRewardProgram"> | Date | string
   organization?: Prisma.XOR<Prisma.OrganizationNullableScalarRelationFilter, Prisma.OrganizationWhereInput> | null
+  menuItem?: Prisma.XOR<Prisma.RestaurantMenuItemNullableScalarRelationFilter, Prisma.RestaurantMenuItemWhereInput> | null
 }, "id">
 
 export type RestaurantRewardProgramOrderByWithAggregationInput = {
@@ -317,6 +368,10 @@ export type RestaurantRewardProgramOrderByWithAggregationInput = {
   name?: Prisma.SortOrder
   description?: Prisma.SortOrderInput | Prisma.SortOrder
   pointsRequired?: Prisma.SortOrder
+  rewardType?: Prisma.SortOrder
+  menuItemId?: Prisma.SortOrderInput | Prisma.SortOrder
+  discountBps?: Prisma.SortOrderInput | Prisma.SortOrder
+  maxDiscountAmount?: Prisma.SortOrderInput | Prisma.SortOrder
   vipTier?: Prisma.SortOrderInput | Prisma.SortOrder
   active?: Prisma.SortOrder
   startsAt?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -340,6 +395,10 @@ export type RestaurantRewardProgramScalarWhereWithAggregatesInput = {
   name?: Prisma.StringWithAggregatesFilter<"RestaurantRewardProgram"> | string
   description?: Prisma.StringNullableWithAggregatesFilter<"RestaurantRewardProgram"> | string | null
   pointsRequired?: Prisma.IntWithAggregatesFilter<"RestaurantRewardProgram"> | number
+  rewardType?: Prisma.EnumRestaurantRewardTypeWithAggregatesFilter<"RestaurantRewardProgram"> | $Enums.RestaurantRewardType
+  menuItemId?: Prisma.StringNullableWithAggregatesFilter<"RestaurantRewardProgram"> | string | null
+  discountBps?: Prisma.IntNullableWithAggregatesFilter<"RestaurantRewardProgram"> | number | null
+  maxDiscountAmount?: Prisma.IntNullableWithAggregatesFilter<"RestaurantRewardProgram"> | number | null
   vipTier?: Prisma.StringNullableWithAggregatesFilter<"RestaurantRewardProgram"> | string | null
   active?: Prisma.BoolWithAggregatesFilter<"RestaurantRewardProgram"> | boolean
   startsAt?: Prisma.DateTimeNullableWithAggregatesFilter<"RestaurantRewardProgram"> | Date | string | null
@@ -354,6 +413,9 @@ export type RestaurantRewardProgramCreateInput = {
   name: string
   description?: string | null
   pointsRequired: number
+  rewardType?: $Enums.RestaurantRewardType
+  discountBps?: number | null
+  maxDiscountAmount?: number | null
   vipTier?: string | null
   active?: boolean
   startsAt?: Date | string | null
@@ -361,6 +423,7 @@ export type RestaurantRewardProgramCreateInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   organization?: Prisma.OrganizationCreateNestedOneWithoutRestaurantRewardProgramsInput
+  menuItem?: Prisma.RestaurantMenuItemCreateNestedOneWithoutRewardProgramsInput
 }
 
 export type RestaurantRewardProgramUncheckedCreateInput = {
@@ -370,6 +433,10 @@ export type RestaurantRewardProgramUncheckedCreateInput = {
   name: string
   description?: string | null
   pointsRequired: number
+  rewardType?: $Enums.RestaurantRewardType
+  menuItemId?: string | null
+  discountBps?: number | null
+  maxDiscountAmount?: number | null
   vipTier?: string | null
   active?: boolean
   startsAt?: Date | string | null
@@ -384,6 +451,9 @@ export type RestaurantRewardProgramUpdateInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pointsRequired?: Prisma.IntFieldUpdateOperationsInput | number
+  rewardType?: Prisma.EnumRestaurantRewardTypeFieldUpdateOperationsInput | $Enums.RestaurantRewardType
+  discountBps?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  maxDiscountAmount?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   vipTier?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   startsAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -391,6 +461,7 @@ export type RestaurantRewardProgramUpdateInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   organization?: Prisma.OrganizationUpdateOneWithoutRestaurantRewardProgramsNestedInput
+  menuItem?: Prisma.RestaurantMenuItemUpdateOneWithoutRewardProgramsNestedInput
 }
 
 export type RestaurantRewardProgramUncheckedUpdateInput = {
@@ -400,6 +471,10 @@ export type RestaurantRewardProgramUncheckedUpdateInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pointsRequired?: Prisma.IntFieldUpdateOperationsInput | number
+  rewardType?: Prisma.EnumRestaurantRewardTypeFieldUpdateOperationsInput | $Enums.RestaurantRewardType
+  menuItemId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  discountBps?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  maxDiscountAmount?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   vipTier?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   startsAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -415,6 +490,10 @@ export type RestaurantRewardProgramCreateManyInput = {
   name: string
   description?: string | null
   pointsRequired: number
+  rewardType?: $Enums.RestaurantRewardType
+  menuItemId?: string | null
+  discountBps?: number | null
+  maxDiscountAmount?: number | null
   vipTier?: string | null
   active?: boolean
   startsAt?: Date | string | null
@@ -429,6 +508,9 @@ export type RestaurantRewardProgramUpdateManyMutationInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pointsRequired?: Prisma.IntFieldUpdateOperationsInput | number
+  rewardType?: Prisma.EnumRestaurantRewardTypeFieldUpdateOperationsInput | $Enums.RestaurantRewardType
+  discountBps?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  maxDiscountAmount?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   vipTier?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   startsAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -444,6 +526,10 @@ export type RestaurantRewardProgramUncheckedUpdateManyInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pointsRequired?: Prisma.IntFieldUpdateOperationsInput | number
+  rewardType?: Prisma.EnumRestaurantRewardTypeFieldUpdateOperationsInput | $Enums.RestaurantRewardType
+  menuItemId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  discountBps?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  maxDiscountAmount?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   vipTier?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   startsAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -469,6 +555,10 @@ export type RestaurantRewardProgramCountOrderByAggregateInput = {
   name?: Prisma.SortOrder
   description?: Prisma.SortOrder
   pointsRequired?: Prisma.SortOrder
+  rewardType?: Prisma.SortOrder
+  menuItemId?: Prisma.SortOrder
+  discountBps?: Prisma.SortOrder
+  maxDiscountAmount?: Prisma.SortOrder
   vipTier?: Prisma.SortOrder
   active?: Prisma.SortOrder
   startsAt?: Prisma.SortOrder
@@ -479,6 +569,8 @@ export type RestaurantRewardProgramCountOrderByAggregateInput = {
 
 export type RestaurantRewardProgramAvgOrderByAggregateInput = {
   pointsRequired?: Prisma.SortOrder
+  discountBps?: Prisma.SortOrder
+  maxDiscountAmount?: Prisma.SortOrder
 }
 
 export type RestaurantRewardProgramMaxOrderByAggregateInput = {
@@ -488,6 +580,10 @@ export type RestaurantRewardProgramMaxOrderByAggregateInput = {
   name?: Prisma.SortOrder
   description?: Prisma.SortOrder
   pointsRequired?: Prisma.SortOrder
+  rewardType?: Prisma.SortOrder
+  menuItemId?: Prisma.SortOrder
+  discountBps?: Prisma.SortOrder
+  maxDiscountAmount?: Prisma.SortOrder
   vipTier?: Prisma.SortOrder
   active?: Prisma.SortOrder
   startsAt?: Prisma.SortOrder
@@ -503,6 +599,10 @@ export type RestaurantRewardProgramMinOrderByAggregateInput = {
   name?: Prisma.SortOrder
   description?: Prisma.SortOrder
   pointsRequired?: Prisma.SortOrder
+  rewardType?: Prisma.SortOrder
+  menuItemId?: Prisma.SortOrder
+  discountBps?: Prisma.SortOrder
+  maxDiscountAmount?: Prisma.SortOrder
   vipTier?: Prisma.SortOrder
   active?: Prisma.SortOrder
   startsAt?: Prisma.SortOrder
@@ -513,6 +613,8 @@ export type RestaurantRewardProgramMinOrderByAggregateInput = {
 
 export type RestaurantRewardProgramSumOrderByAggregateInput = {
   pointsRequired?: Prisma.SortOrder
+  discountBps?: Prisma.SortOrder
+  maxDiscountAmount?: Prisma.SortOrder
 }
 
 export type RestaurantRewardProgramCreateNestedManyWithoutOrganizationInput = {
@@ -561,18 +663,76 @@ export type EnumRestaurantRewardSponsorFieldUpdateOperationsInput = {
   set?: $Enums.RestaurantRewardSponsor
 }
 
+export type EnumRestaurantRewardTypeFieldUpdateOperationsInput = {
+  set?: $Enums.RestaurantRewardType
+}
+
+export type NullableIntFieldUpdateOperationsInput = {
+  set?: number | null
+  increment?: number
+  decrement?: number
+  multiply?: number
+  divide?: number
+}
+
+export type RestaurantRewardProgramCreateNestedManyWithoutMenuItemInput = {
+  create?: Prisma.XOR<Prisma.RestaurantRewardProgramCreateWithoutMenuItemInput, Prisma.RestaurantRewardProgramUncheckedCreateWithoutMenuItemInput> | Prisma.RestaurantRewardProgramCreateWithoutMenuItemInput[] | Prisma.RestaurantRewardProgramUncheckedCreateWithoutMenuItemInput[]
+  connectOrCreate?: Prisma.RestaurantRewardProgramCreateOrConnectWithoutMenuItemInput | Prisma.RestaurantRewardProgramCreateOrConnectWithoutMenuItemInput[]
+  createMany?: Prisma.RestaurantRewardProgramCreateManyMenuItemInputEnvelope
+  connect?: Prisma.RestaurantRewardProgramWhereUniqueInput | Prisma.RestaurantRewardProgramWhereUniqueInput[]
+}
+
+export type RestaurantRewardProgramUncheckedCreateNestedManyWithoutMenuItemInput = {
+  create?: Prisma.XOR<Prisma.RestaurantRewardProgramCreateWithoutMenuItemInput, Prisma.RestaurantRewardProgramUncheckedCreateWithoutMenuItemInput> | Prisma.RestaurantRewardProgramCreateWithoutMenuItemInput[] | Prisma.RestaurantRewardProgramUncheckedCreateWithoutMenuItemInput[]
+  connectOrCreate?: Prisma.RestaurantRewardProgramCreateOrConnectWithoutMenuItemInput | Prisma.RestaurantRewardProgramCreateOrConnectWithoutMenuItemInput[]
+  createMany?: Prisma.RestaurantRewardProgramCreateManyMenuItemInputEnvelope
+  connect?: Prisma.RestaurantRewardProgramWhereUniqueInput | Prisma.RestaurantRewardProgramWhereUniqueInput[]
+}
+
+export type RestaurantRewardProgramUpdateManyWithoutMenuItemNestedInput = {
+  create?: Prisma.XOR<Prisma.RestaurantRewardProgramCreateWithoutMenuItemInput, Prisma.RestaurantRewardProgramUncheckedCreateWithoutMenuItemInput> | Prisma.RestaurantRewardProgramCreateWithoutMenuItemInput[] | Prisma.RestaurantRewardProgramUncheckedCreateWithoutMenuItemInput[]
+  connectOrCreate?: Prisma.RestaurantRewardProgramCreateOrConnectWithoutMenuItemInput | Prisma.RestaurantRewardProgramCreateOrConnectWithoutMenuItemInput[]
+  upsert?: Prisma.RestaurantRewardProgramUpsertWithWhereUniqueWithoutMenuItemInput | Prisma.RestaurantRewardProgramUpsertWithWhereUniqueWithoutMenuItemInput[]
+  createMany?: Prisma.RestaurantRewardProgramCreateManyMenuItemInputEnvelope
+  set?: Prisma.RestaurantRewardProgramWhereUniqueInput | Prisma.RestaurantRewardProgramWhereUniqueInput[]
+  disconnect?: Prisma.RestaurantRewardProgramWhereUniqueInput | Prisma.RestaurantRewardProgramWhereUniqueInput[]
+  delete?: Prisma.RestaurantRewardProgramWhereUniqueInput | Prisma.RestaurantRewardProgramWhereUniqueInput[]
+  connect?: Prisma.RestaurantRewardProgramWhereUniqueInput | Prisma.RestaurantRewardProgramWhereUniqueInput[]
+  update?: Prisma.RestaurantRewardProgramUpdateWithWhereUniqueWithoutMenuItemInput | Prisma.RestaurantRewardProgramUpdateWithWhereUniqueWithoutMenuItemInput[]
+  updateMany?: Prisma.RestaurantRewardProgramUpdateManyWithWhereWithoutMenuItemInput | Prisma.RestaurantRewardProgramUpdateManyWithWhereWithoutMenuItemInput[]
+  deleteMany?: Prisma.RestaurantRewardProgramScalarWhereInput | Prisma.RestaurantRewardProgramScalarWhereInput[]
+}
+
+export type RestaurantRewardProgramUncheckedUpdateManyWithoutMenuItemNestedInput = {
+  create?: Prisma.XOR<Prisma.RestaurantRewardProgramCreateWithoutMenuItemInput, Prisma.RestaurantRewardProgramUncheckedCreateWithoutMenuItemInput> | Prisma.RestaurantRewardProgramCreateWithoutMenuItemInput[] | Prisma.RestaurantRewardProgramUncheckedCreateWithoutMenuItemInput[]
+  connectOrCreate?: Prisma.RestaurantRewardProgramCreateOrConnectWithoutMenuItemInput | Prisma.RestaurantRewardProgramCreateOrConnectWithoutMenuItemInput[]
+  upsert?: Prisma.RestaurantRewardProgramUpsertWithWhereUniqueWithoutMenuItemInput | Prisma.RestaurantRewardProgramUpsertWithWhereUniqueWithoutMenuItemInput[]
+  createMany?: Prisma.RestaurantRewardProgramCreateManyMenuItemInputEnvelope
+  set?: Prisma.RestaurantRewardProgramWhereUniqueInput | Prisma.RestaurantRewardProgramWhereUniqueInput[]
+  disconnect?: Prisma.RestaurantRewardProgramWhereUniqueInput | Prisma.RestaurantRewardProgramWhereUniqueInput[]
+  delete?: Prisma.RestaurantRewardProgramWhereUniqueInput | Prisma.RestaurantRewardProgramWhereUniqueInput[]
+  connect?: Prisma.RestaurantRewardProgramWhereUniqueInput | Prisma.RestaurantRewardProgramWhereUniqueInput[]
+  update?: Prisma.RestaurantRewardProgramUpdateWithWhereUniqueWithoutMenuItemInput | Prisma.RestaurantRewardProgramUpdateWithWhereUniqueWithoutMenuItemInput[]
+  updateMany?: Prisma.RestaurantRewardProgramUpdateManyWithWhereWithoutMenuItemInput | Prisma.RestaurantRewardProgramUpdateManyWithWhereWithoutMenuItemInput[]
+  deleteMany?: Prisma.RestaurantRewardProgramScalarWhereInput | Prisma.RestaurantRewardProgramScalarWhereInput[]
+}
+
 export type RestaurantRewardProgramCreateWithoutOrganizationInput = {
   id?: string
   sponsor: $Enums.RestaurantRewardSponsor
   name: string
   description?: string | null
   pointsRequired: number
+  rewardType?: $Enums.RestaurantRewardType
+  discountBps?: number | null
+  maxDiscountAmount?: number | null
   vipTier?: string | null
   active?: boolean
   startsAt?: Date | string | null
   endsAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  menuItem?: Prisma.RestaurantMenuItemCreateNestedOneWithoutRewardProgramsInput
 }
 
 export type RestaurantRewardProgramUncheckedCreateWithoutOrganizationInput = {
@@ -581,6 +741,10 @@ export type RestaurantRewardProgramUncheckedCreateWithoutOrganizationInput = {
   name: string
   description?: string | null
   pointsRequired: number
+  rewardType?: $Enums.RestaurantRewardType
+  menuItemId?: string | null
+  discountBps?: number | null
+  maxDiscountAmount?: number | null
   vipTier?: string | null
   active?: boolean
   startsAt?: Date | string | null
@@ -625,6 +789,10 @@ export type RestaurantRewardProgramScalarWhereInput = {
   name?: Prisma.StringFilter<"RestaurantRewardProgram"> | string
   description?: Prisma.StringNullableFilter<"RestaurantRewardProgram"> | string | null
   pointsRequired?: Prisma.IntFilter<"RestaurantRewardProgram"> | number
+  rewardType?: Prisma.EnumRestaurantRewardTypeFilter<"RestaurantRewardProgram"> | $Enums.RestaurantRewardType
+  menuItemId?: Prisma.StringNullableFilter<"RestaurantRewardProgram"> | string | null
+  discountBps?: Prisma.IntNullableFilter<"RestaurantRewardProgram"> | number | null
+  maxDiscountAmount?: Prisma.IntNullableFilter<"RestaurantRewardProgram"> | number | null
   vipTier?: Prisma.StringNullableFilter<"RestaurantRewardProgram"> | string | null
   active?: Prisma.BoolFilter<"RestaurantRewardProgram"> | boolean
   startsAt?: Prisma.DateTimeNullableFilter<"RestaurantRewardProgram"> | Date | string | null
@@ -633,12 +801,78 @@ export type RestaurantRewardProgramScalarWhereInput = {
   updatedAt?: Prisma.DateTimeFilter<"RestaurantRewardProgram"> | Date | string
 }
 
+export type RestaurantRewardProgramCreateWithoutMenuItemInput = {
+  id?: string
+  sponsor: $Enums.RestaurantRewardSponsor
+  name: string
+  description?: string | null
+  pointsRequired: number
+  rewardType?: $Enums.RestaurantRewardType
+  discountBps?: number | null
+  maxDiscountAmount?: number | null
+  vipTier?: string | null
+  active?: boolean
+  startsAt?: Date | string | null
+  endsAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  organization?: Prisma.OrganizationCreateNestedOneWithoutRestaurantRewardProgramsInput
+}
+
+export type RestaurantRewardProgramUncheckedCreateWithoutMenuItemInput = {
+  id?: string
+  organizationId?: string | null
+  sponsor: $Enums.RestaurantRewardSponsor
+  name: string
+  description?: string | null
+  pointsRequired: number
+  rewardType?: $Enums.RestaurantRewardType
+  discountBps?: number | null
+  maxDiscountAmount?: number | null
+  vipTier?: string | null
+  active?: boolean
+  startsAt?: Date | string | null
+  endsAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+}
+
+export type RestaurantRewardProgramCreateOrConnectWithoutMenuItemInput = {
+  where: Prisma.RestaurantRewardProgramWhereUniqueInput
+  create: Prisma.XOR<Prisma.RestaurantRewardProgramCreateWithoutMenuItemInput, Prisma.RestaurantRewardProgramUncheckedCreateWithoutMenuItemInput>
+}
+
+export type RestaurantRewardProgramCreateManyMenuItemInputEnvelope = {
+  data: Prisma.RestaurantRewardProgramCreateManyMenuItemInput | Prisma.RestaurantRewardProgramCreateManyMenuItemInput[]
+  skipDuplicates?: boolean
+}
+
+export type RestaurantRewardProgramUpsertWithWhereUniqueWithoutMenuItemInput = {
+  where: Prisma.RestaurantRewardProgramWhereUniqueInput
+  update: Prisma.XOR<Prisma.RestaurantRewardProgramUpdateWithoutMenuItemInput, Prisma.RestaurantRewardProgramUncheckedUpdateWithoutMenuItemInput>
+  create: Prisma.XOR<Prisma.RestaurantRewardProgramCreateWithoutMenuItemInput, Prisma.RestaurantRewardProgramUncheckedCreateWithoutMenuItemInput>
+}
+
+export type RestaurantRewardProgramUpdateWithWhereUniqueWithoutMenuItemInput = {
+  where: Prisma.RestaurantRewardProgramWhereUniqueInput
+  data: Prisma.XOR<Prisma.RestaurantRewardProgramUpdateWithoutMenuItemInput, Prisma.RestaurantRewardProgramUncheckedUpdateWithoutMenuItemInput>
+}
+
+export type RestaurantRewardProgramUpdateManyWithWhereWithoutMenuItemInput = {
+  where: Prisma.RestaurantRewardProgramScalarWhereInput
+  data: Prisma.XOR<Prisma.RestaurantRewardProgramUpdateManyMutationInput, Prisma.RestaurantRewardProgramUncheckedUpdateManyWithoutMenuItemInput>
+}
+
 export type RestaurantRewardProgramCreateManyOrganizationInput = {
   id?: string
   sponsor: $Enums.RestaurantRewardSponsor
   name: string
   description?: string | null
   pointsRequired: number
+  rewardType?: $Enums.RestaurantRewardType
+  menuItemId?: string | null
+  discountBps?: number | null
+  maxDiscountAmount?: number | null
   vipTier?: string | null
   active?: boolean
   startsAt?: Date | string | null
@@ -653,12 +887,16 @@ export type RestaurantRewardProgramUpdateWithoutOrganizationInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pointsRequired?: Prisma.IntFieldUpdateOperationsInput | number
+  rewardType?: Prisma.EnumRestaurantRewardTypeFieldUpdateOperationsInput | $Enums.RestaurantRewardType
+  discountBps?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  maxDiscountAmount?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   vipTier?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   startsAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   endsAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  menuItem?: Prisma.RestaurantMenuItemUpdateOneWithoutRewardProgramsNestedInput
 }
 
 export type RestaurantRewardProgramUncheckedUpdateWithoutOrganizationInput = {
@@ -667,6 +905,10 @@ export type RestaurantRewardProgramUncheckedUpdateWithoutOrganizationInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pointsRequired?: Prisma.IntFieldUpdateOperationsInput | number
+  rewardType?: Prisma.EnumRestaurantRewardTypeFieldUpdateOperationsInput | $Enums.RestaurantRewardType
+  menuItemId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  discountBps?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  maxDiscountAmount?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   vipTier?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   startsAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -681,6 +923,82 @@ export type RestaurantRewardProgramUncheckedUpdateManyWithoutOrganizationInput =
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pointsRequired?: Prisma.IntFieldUpdateOperationsInput | number
+  rewardType?: Prisma.EnumRestaurantRewardTypeFieldUpdateOperationsInput | $Enums.RestaurantRewardType
+  menuItemId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  discountBps?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  maxDiscountAmount?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  vipTier?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  startsAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  endsAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type RestaurantRewardProgramCreateManyMenuItemInput = {
+  id?: string
+  organizationId?: string | null
+  sponsor: $Enums.RestaurantRewardSponsor
+  name: string
+  description?: string | null
+  pointsRequired: number
+  rewardType?: $Enums.RestaurantRewardType
+  discountBps?: number | null
+  maxDiscountAmount?: number | null
+  vipTier?: string | null
+  active?: boolean
+  startsAt?: Date | string | null
+  endsAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+}
+
+export type RestaurantRewardProgramUpdateWithoutMenuItemInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  sponsor?: Prisma.EnumRestaurantRewardSponsorFieldUpdateOperationsInput | $Enums.RestaurantRewardSponsor
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pointsRequired?: Prisma.IntFieldUpdateOperationsInput | number
+  rewardType?: Prisma.EnumRestaurantRewardTypeFieldUpdateOperationsInput | $Enums.RestaurantRewardType
+  discountBps?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  maxDiscountAmount?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  vipTier?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  startsAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  endsAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  organization?: Prisma.OrganizationUpdateOneWithoutRestaurantRewardProgramsNestedInput
+}
+
+export type RestaurantRewardProgramUncheckedUpdateWithoutMenuItemInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  organizationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sponsor?: Prisma.EnumRestaurantRewardSponsorFieldUpdateOperationsInput | $Enums.RestaurantRewardSponsor
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pointsRequired?: Prisma.IntFieldUpdateOperationsInput | number
+  rewardType?: Prisma.EnumRestaurantRewardTypeFieldUpdateOperationsInput | $Enums.RestaurantRewardType
+  discountBps?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  maxDiscountAmount?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  vipTier?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  startsAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  endsAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type RestaurantRewardProgramUncheckedUpdateManyWithoutMenuItemInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  organizationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sponsor?: Prisma.EnumRestaurantRewardSponsorFieldUpdateOperationsInput | $Enums.RestaurantRewardSponsor
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pointsRequired?: Prisma.IntFieldUpdateOperationsInput | number
+  rewardType?: Prisma.EnumRestaurantRewardTypeFieldUpdateOperationsInput | $Enums.RestaurantRewardType
+  discountBps?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  maxDiscountAmount?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   vipTier?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   startsAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -698,6 +1016,10 @@ export type RestaurantRewardProgramSelect<ExtArgs extends runtime.Types.Extensio
   name?: boolean
   description?: boolean
   pointsRequired?: boolean
+  rewardType?: boolean
+  menuItemId?: boolean
+  discountBps?: boolean
+  maxDiscountAmount?: boolean
   vipTier?: boolean
   active?: boolean
   startsAt?: boolean
@@ -705,6 +1027,7 @@ export type RestaurantRewardProgramSelect<ExtArgs extends runtime.Types.Extensio
   createdAt?: boolean
   updatedAt?: boolean
   organization?: boolean | Prisma.RestaurantRewardProgram$organizationArgs<ExtArgs>
+  menuItem?: boolean | Prisma.RestaurantRewardProgram$menuItemArgs<ExtArgs>
 }, ExtArgs["result"]["restaurantRewardProgram"]>
 
 export type RestaurantRewardProgramSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -714,6 +1037,10 @@ export type RestaurantRewardProgramSelectCreateManyAndReturn<ExtArgs extends run
   name?: boolean
   description?: boolean
   pointsRequired?: boolean
+  rewardType?: boolean
+  menuItemId?: boolean
+  discountBps?: boolean
+  maxDiscountAmount?: boolean
   vipTier?: boolean
   active?: boolean
   startsAt?: boolean
@@ -721,6 +1048,7 @@ export type RestaurantRewardProgramSelectCreateManyAndReturn<ExtArgs extends run
   createdAt?: boolean
   updatedAt?: boolean
   organization?: boolean | Prisma.RestaurantRewardProgram$organizationArgs<ExtArgs>
+  menuItem?: boolean | Prisma.RestaurantRewardProgram$menuItemArgs<ExtArgs>
 }, ExtArgs["result"]["restaurantRewardProgram"]>
 
 export type RestaurantRewardProgramSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -730,6 +1058,10 @@ export type RestaurantRewardProgramSelectUpdateManyAndReturn<ExtArgs extends run
   name?: boolean
   description?: boolean
   pointsRequired?: boolean
+  rewardType?: boolean
+  menuItemId?: boolean
+  discountBps?: boolean
+  maxDiscountAmount?: boolean
   vipTier?: boolean
   active?: boolean
   startsAt?: boolean
@@ -737,6 +1069,7 @@ export type RestaurantRewardProgramSelectUpdateManyAndReturn<ExtArgs extends run
   createdAt?: boolean
   updatedAt?: boolean
   organization?: boolean | Prisma.RestaurantRewardProgram$organizationArgs<ExtArgs>
+  menuItem?: boolean | Prisma.RestaurantRewardProgram$menuItemArgs<ExtArgs>
 }, ExtArgs["result"]["restaurantRewardProgram"]>
 
 export type RestaurantRewardProgramSelectScalar = {
@@ -746,6 +1079,10 @@ export type RestaurantRewardProgramSelectScalar = {
   name?: boolean
   description?: boolean
   pointsRequired?: boolean
+  rewardType?: boolean
+  menuItemId?: boolean
+  discountBps?: boolean
+  maxDiscountAmount?: boolean
   vipTier?: boolean
   active?: boolean
   startsAt?: boolean
@@ -754,21 +1091,25 @@ export type RestaurantRewardProgramSelectScalar = {
   updatedAt?: boolean
 }
 
-export type RestaurantRewardProgramOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "organizationId" | "sponsor" | "name" | "description" | "pointsRequired" | "vipTier" | "active" | "startsAt" | "endsAt" | "createdAt" | "updatedAt", ExtArgs["result"]["restaurantRewardProgram"]>
+export type RestaurantRewardProgramOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "organizationId" | "sponsor" | "name" | "description" | "pointsRequired" | "rewardType" | "menuItemId" | "discountBps" | "maxDiscountAmount" | "vipTier" | "active" | "startsAt" | "endsAt" | "createdAt" | "updatedAt", ExtArgs["result"]["restaurantRewardProgram"]>
 export type RestaurantRewardProgramInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   organization?: boolean | Prisma.RestaurantRewardProgram$organizationArgs<ExtArgs>
+  menuItem?: boolean | Prisma.RestaurantRewardProgram$menuItemArgs<ExtArgs>
 }
 export type RestaurantRewardProgramIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   organization?: boolean | Prisma.RestaurantRewardProgram$organizationArgs<ExtArgs>
+  menuItem?: boolean | Prisma.RestaurantRewardProgram$menuItemArgs<ExtArgs>
 }
 export type RestaurantRewardProgramIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   organization?: boolean | Prisma.RestaurantRewardProgram$organizationArgs<ExtArgs>
+  menuItem?: boolean | Prisma.RestaurantRewardProgram$menuItemArgs<ExtArgs>
 }
 
 export type $RestaurantRewardProgramPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "RestaurantRewardProgram"
   objects: {
     organization: Prisma.$OrganizationPayload<ExtArgs> | null
+    menuItem: Prisma.$RestaurantMenuItemPayload<ExtArgs> | null
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -777,6 +1118,10 @@ export type $RestaurantRewardProgramPayload<ExtArgs extends runtime.Types.Extens
     name: string
     description: string | null
     pointsRequired: number
+    rewardType: $Enums.RestaurantRewardType
+    menuItemId: string | null
+    discountBps: number | null
+    maxDiscountAmount: number | null
     vipTier: string | null
     active: boolean
     startsAt: Date | null
@@ -1178,6 +1523,7 @@ readonly fields: RestaurantRewardProgramFieldRefs;
 export interface Prisma__RestaurantRewardProgramClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
   organization<T extends Prisma.RestaurantRewardProgram$organizationArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.RestaurantRewardProgram$organizationArgs<ExtArgs>>): Prisma.Prisma__OrganizationClient<runtime.Types.Result.GetResult<Prisma.$OrganizationPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  menuItem<T extends Prisma.RestaurantRewardProgram$menuItemArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.RestaurantRewardProgram$menuItemArgs<ExtArgs>>): Prisma.Prisma__RestaurantMenuItemClient<runtime.Types.Result.GetResult<Prisma.$RestaurantMenuItemPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1213,6 +1559,10 @@ export interface RestaurantRewardProgramFieldRefs {
   readonly name: Prisma.FieldRef<"RestaurantRewardProgram", 'String'>
   readonly description: Prisma.FieldRef<"RestaurantRewardProgram", 'String'>
   readonly pointsRequired: Prisma.FieldRef<"RestaurantRewardProgram", 'Int'>
+  readonly rewardType: Prisma.FieldRef<"RestaurantRewardProgram", 'RestaurantRewardType'>
+  readonly menuItemId: Prisma.FieldRef<"RestaurantRewardProgram", 'String'>
+  readonly discountBps: Prisma.FieldRef<"RestaurantRewardProgram", 'Int'>
+  readonly maxDiscountAmount: Prisma.FieldRef<"RestaurantRewardProgram", 'Int'>
   readonly vipTier: Prisma.FieldRef<"RestaurantRewardProgram", 'String'>
   readonly active: Prisma.FieldRef<"RestaurantRewardProgram", 'Boolean'>
   readonly startsAt: Prisma.FieldRef<"RestaurantRewardProgram", 'DateTime'>
@@ -1636,6 +1986,25 @@ export type RestaurantRewardProgram$organizationArgs<ExtArgs extends runtime.Typ
    */
   include?: Prisma.OrganizationInclude<ExtArgs> | null
   where?: Prisma.OrganizationWhereInput
+}
+
+/**
+ * RestaurantRewardProgram.menuItem
+ */
+export type RestaurantRewardProgram$menuItemArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the RestaurantMenuItem
+   */
+  select?: Prisma.RestaurantMenuItemSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the RestaurantMenuItem
+   */
+  omit?: Prisma.RestaurantMenuItemOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.RestaurantMenuItemInclude<ExtArgs> | null
+  where?: Prisma.RestaurantMenuItemWhereInput
 }
 
 /**

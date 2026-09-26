@@ -51,6 +51,7 @@ function createService() {
         ]),
     },
     restaurantTable: {
+      findFirst: vi.fn(),
       findUnique: vi.fn().mockResolvedValue(table),
       findMany: vi.fn(),
       update: vi.fn(),
@@ -95,6 +96,7 @@ function createService() {
       findMany: vi.fn().mockResolvedValue([]),
       count: vi.fn().mockResolvedValue(0),
       create: vi.fn().mockResolvedValue(order),
+      updateMany: vi.fn(),
     },
     restaurantOrderItem: {
       findFirst: vi.fn(),
@@ -105,6 +107,7 @@ function createService() {
     },
     restaurantItemEvent: { create: vi.fn() },
     restaurantStaffEvent: { create: vi.fn() },
+    restaurantVisitTransfer: { create: vi.fn() },
     $transaction: vi.fn(async (callback: (tx: unknown) => Promise<unknown>) =>
       callback(prisma),
     ),
@@ -403,6 +406,53 @@ describe("RestaurantService", () => {
       }),
     );
     expect(result[0].canClose).toBe(true);
+  });
+
+  it("moves an active account to a bar seat and removes table service", async () => {
+    const { prisma, service } = createService();
+    const waiter = {
+      id: "waiter-a",
+      organizationId: "org-a",
+      role: UserRole.USER,
+      restaurantRole: RestaurantStaffRole.WAITER,
+      restaurantAvailability: RestaurantStaffAvailability.AVAILABLE,
+    };
+    prisma.restaurantVisit.findFirst.mockResolvedValue({
+      id: "visit-a",
+      organizationId: "org-a",
+      tableId: "table-a",
+      status: "OPEN",
+      table: { id: "table-a", waiterId: "waiter-a" },
+    });
+    prisma.restaurantTable.findFirst.mockResolvedValue({
+      id: "bar-1",
+      name: "Barra 1",
+      organizationId: "org-a",
+      kind: "BAR_SEAT",
+      serviceChargeEnabled: false,
+      active: true,
+    });
+    prisma.restaurantVisit.update.mockResolvedValue({ id: "visit-a" });
+
+    const result = await service.transferVisit(waiter, "visit-a", "bar-1");
+
+    expect(prisma.restaurantVisit.update).toHaveBeenCalledWith({
+      where: { id: "visit-a" },
+      data: { tableId: "bar-1", serviceChargeEnabled: false },
+    });
+    expect(prisma.restaurantOrder.updateMany).toHaveBeenCalledWith({
+      where: { visitId: "visit-a" },
+      data: { tableId: "bar-1" },
+    });
+    expect(prisma.restaurantVisitTransfer.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({
+        visitId: "visit-a",
+        fromTableId: "table-a",
+        toTableId: "bar-1",
+        actorId: "waiter-a",
+      }),
+    });
+    expect(result.destination.name).toBe("Barra 1");
   });
 
   it("returns the existing order when the same request is retried", async () => {

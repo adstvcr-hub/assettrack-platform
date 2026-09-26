@@ -26,6 +26,7 @@ import {
   RestaurantStaffRole,
   RestaurantStation,
   RestaurantTableKind,
+  RestaurantRewardType,
 } from "../../generated/prisma/enums";
 
 export class CreateTableDto {
@@ -190,7 +191,15 @@ export class CreateRewardProgramDto {
   @IsString() @MaxLength(100) name!: string;
   @IsOptional() @IsString() @MaxLength(500) description?: string;
   @IsInt() @Min(1) @Max(1000000) pointsRequired!: number;
+  @IsOptional() @IsEnum(RestaurantRewardType) rewardType?: RestaurantRewardType;
+  @IsOptional() @IsUUID() menuItemId?: string;
+  @IsOptional() @IsInt() @Min(1) @Max(10000) discountBps?: number;
+  @IsOptional() @IsInt() @Min(0) @Max(10000000) maxDiscountAmount?: number;
   @IsOptional() @IsString() @MaxLength(40) vipTier?: string;
   @IsOptional() @IsDateString() startsAt?: string;
   @IsOptional() @IsDateString() endsAt?: string;
+}
+
+export class TransferVisitDto {
+  @IsUUID() destinationTableId!: string;
 }

@@ -4,6 +4,7 @@ import { API_URL, authenticatedFetch } from "@/lib/api";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { RestaurantSessionActions } from "./restaurant-session-actions";
+import { useOperationalAlerts } from "./use-operational-alerts";
 
 type Station = "KITCHEN" | "BAR";
 type OrderItem = {
@@ -104,10 +105,18 @@ export function OperationalDashboard({ station }: { station: Station }) {
       .filter((item) => item.station === station)
       .map((item) => ({ order, item })),
   );
+  const alerts = useOperationalAlerts(
+    station.toLowerCase(),
+    items
+      .filter(({ item }) => item.status === "RECEIVED")
+      .map(({ item }) => item.id),
+  );
 
   return (
     <main className="min-h-screen bg-slate-100 text-slate-950">
-      <header className="bg-slate-950 px-5 py-5 text-white">
+      <header
+        className={`px-5 py-5 text-white transition-colors ${alerts.flash ? "bg-red-600" : "bg-slate-950"}`}
+      >
         <div className="mx-auto flex max-w-6xl items-center justify-between">
           <div>
             <p className="text-sm font-semibold tracking-[0.2em] text-emerald-400">
@@ -126,6 +135,35 @@ export function OperationalDashboard({ station }: { station: Station }) {
         </div>
       </header>
       <section className="mx-auto max-w-6xl space-y-4 p-5">
+        <div
+          className={`flex flex-wrap items-center justify-between gap-3 rounded-xl border p-4 ${alerts.flash ? "border-red-500 bg-yellow-200 ring-4 ring-red-300" : "bg-white"}`}
+        >
+          <p className="font-bold">
+            Alertas operativas: {alerts.enabled ? "activadas" : "desactivadas"}
+          </p>
+          <div className="flex flex-wrap gap-2">
+            <button
+              className="rounded bg-emerald-700 px-4 py-2 font-bold text-white"
+              onClick={alerts.enableAndTest}
+            >
+              {alerts.enabled
+                ? "Probar sonido y vibración"
+                : "Activar y probar alertas"}
+            </button>
+            {alerts.enabled && (
+              <button
+                className="rounded border px-4 py-2 font-semibold"
+                onClick={alerts.disable}
+              >
+                Desactivar
+              </button>
+            )}
+          </div>
+          <p className="w-full text-sm text-slate-600">
+            La vibración depende de la compatibilidad del dispositivo; el sonido
+            y la alerta visual permanecen disponibles.
+          </p>
+        </div>
         {error && (
           <p className="rounded-lg bg-red-100 p-4 text-red-800">{error}</p>
         )}

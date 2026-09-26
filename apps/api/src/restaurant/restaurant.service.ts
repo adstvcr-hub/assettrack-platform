@@ -13,6 +13,7 @@ import {
   RestaurantItemStatus,
   RestaurantLoyaltyActivityType,
   RestaurantRewardSponsor,
+  RestaurantRewardType,
   RestaurantStaffAvailability,
   RestaurantStaffRole,
   RestaurantStation,
@@ -511,6 +512,82 @@ export class RestaurantService {
     });
   }
 
+  async transferVisit(
+    actor: RestaurantActor,
+    visitId: string,
+    destinationTableId: string,
+  ) {
+    const role = this.effectiveRole(actor);
+    if (
+      role !== RestaurantStaffRole.RESTAURANT_ADMIN &&
+      role !== RestaurantStaffRole.WAITER
+    ) {
+      throw new ForbiddenException("Waiter access required");
+    }
+    return this.prisma.$transaction(async (tx) => {
+      const visit = await tx.restaurantVisit.findFirst({
+        where: { id: visitId, organizationId: actor.organizationId },
+        include: { table: true },
+      });
+      if (!visit) throw new NotFoundException("Restaurant account not found");
+      if (visit.status !== RestaurantVisitStatus.OPEN) {
+        throw new ConflictException("Only open accounts can be transferred");
+      }
+      if (
+        role === RestaurantStaffRole.WAITER &&
+        visit.table.waiterId !== actor.id
+      ) {
+        throw new ForbiddenException(
+          "Only the assigned waiter can move this account",
+        );
+      }
+      const destination = await tx.restaurantTable.findFirst({
+        where: {
+          id: destinationTableId,
+          organizationId: actor.organizationId,
+          active: true,
+        },
+      });
+      if (!destination) throw new NotFoundException("Destination not found");
+      if (destination.id === visit.tableId) {
+        throw new ConflictException("The account is already at this position");
+      }
+      const serviceChargeEnabled =
+        destination.kind === RestaurantTableKind.DINING &&
+        destination.serviceChargeEnabled;
+      const updated = await tx.restaurantVisit.update({
+        where: { id: visit.id },
+        data: {
+          tableId: destination.id,
+          serviceChargeEnabled,
+        },
+      });
+      await tx.restaurantOrder.updateMany({
+        where: { visitId: visit.id },
+        data: { tableId: destination.id },
+      });
+      await tx.restaurantVisitTransfer.create({
+        data: {
+          visitId: visit.id,
+          fromTableId: visit.tableId,
+          toTableId: destination.id,
+          actorId: actor.id,
+        },
+      });
+      const activeAccountsAtDestination = await tx.restaurantVisit.count({
+        where: {
+          tableId: destination.id,
+          status: RestaurantVisitStatus.OPEN,
+        },
+      });
+      return {
+        ...updated,
+        destination,
+        activeAccountsAtDestination,
+      };
+    });
+  }
+
   private async availableStations(organizationId: string) {
     const users = await this.prisma.user.findMany({
       where: {
@@ -870,7 +947,9 @@ export class RestaurantService {
     });
     if (!table?.active) throw new NotFoundException("Table not found");
     if (table.organization.restaurantAccessEnabled === false) {
-      throw new ForbiddenException("Restaurant ordering is temporarily unavailable");
+      throw new ForbiddenException(
+        "Restaurant ordering is temporarily unavailable",
+      );
     }
     const availableStations = await this.availableStations(
       table.organizationId,
@@ -974,7 +1053,9 @@ export class RestaurantService {
     });
     if (!table?.active) throw new NotFoundException("Table not found");
     if (table.organization?.restaurantAccessEnabled === false) {
-      throw new ForbiddenException("Restaurant ordering is temporarily unavailable");
+      throw new ForbiddenException(
+        "Restaurant ordering is temporarily unavailable",
+      );
     }
     const include = {
       items: true,
@@ -1323,7 +1404,9 @@ export class RestaurantService {
     });
     if (!visit) throw new NotFoundException("Account not found");
     if (visit.status !== RestaurantVisitStatus.CLOSED) {
-      throw new ConflictException("Loyalty enrollment is available after checkout");
+      throw new ConflictException(
+        "Loyalty enrollment is available after checkout",
+      );
     }
 
     return this.prisma.$transaction(async (tx) => {
@@ -1385,13 +1468,15 @@ export class RestaurantService {
           type: RestaurantLoyaltyActivityType.VISIT_COMPLETED,
         },
       });
-      const rewards = await tx.restaurantRewardProgram.findMany({
+      const rewardRows = await tx.restaurantRewardProgram.findMany({
         where: {
           active: true,
-          pointsRequired: { lte: points },
           OR: [
             { organizationId: visit.organizationId },
-            { sponsor: RestaurantRewardSponsor.ASSETTRACK, organizationId: null },
+            {
+              sponsor: RestaurantRewardSponsor.ASSETTRACK,
+              organizationId: null,
+            },
           ],
           AND: [
             { OR: [{ startsAt: null }, { startsAt: { lte: new Date() } }] },
@@ -1404,10 +1489,22 @@ export class RestaurantService {
           description: true,
           pointsRequired: true,
           sponsor: true,
+          rewardType: true,
+          discountBps: true,
+          maxDiscountAmount: true,
+          menuItem: { select: { id: true, name: true } },
         },
         orderBy: { pointsRequired: "asc" },
       });
-      return { ...updated, visits, localVisits, rewards };
+      const localPoints = localVisits * 10;
+      const rewards = rewardRows.filter(
+        (reward) =>
+          reward.pointsRequired <=
+          (reward.sponsor === RestaurantRewardSponsor.RESTAURANT
+            ? localPoints
+            : points),
+      );
+      return { ...updated, visits, localVisits, localPoints, rewards };
     });
   }
 
@@ -1425,7 +1522,10 @@ export class RestaurantService {
       },
       orderBy: { createdAt: "desc" },
     });
-    const counts = new Map<string, { nickname: string; vipTier: string; visits: number }>();
+    const counts = new Map<
+      string,
+      { nickname: string; vipTier: string; visits: number }
+    >();
     for (const activity of activities) {
       const current = counts.get(activity.memberId) ?? {
         nickname: activity.member.nickname,
@@ -1471,6 +1571,15 @@ export class RestaurantService {
     if (startsAt && endsAt && endsAt <= startsAt) {
       throw new BadRequestException("Reward end must follow its start");
     }
+    if (dto.rewardType === RestaurantRewardType.MENU_ITEM && !dto.menuItemId) {
+      throw new BadRequestException("Select a menu item for this reward");
+    }
+    if (
+      dto.rewardType === RestaurantRewardType.DISCOUNT_PERCENT &&
+      !dto.discountBps
+    ) {
+      throw new BadRequestException("Select a discount percentage");
+    }
     return this.prisma.restaurantRewardProgram.create({
       data: {
         organizationId: actor.organizationId,
@@ -1478,6 +1587,19 @@ export class RestaurantService {
         name: dto.name.trim(),
         description: dto.description?.trim() || null,
         pointsRequired: dto.pointsRequired,
+        rewardType: dto.rewardType ?? RestaurantRewardType.CUSTOM,
+        menuItemId:
+          dto.rewardType === RestaurantRewardType.MENU_ITEM
+            ? dto.menuItemId
+            : null,
+        discountBps:
+          dto.rewardType === RestaurantRewardType.DISCOUNT_PERCENT
+            ? dto.discountBps
+            : null,
+        maxDiscountAmount:
+          dto.rewardType === RestaurantRewardType.DISCOUNT_PERCENT
+            ? (dto.maxDiscountAmount ?? null)
+            : null,
         vipTier: dto.vipTier?.trim().toUpperCase() || null,
         startsAt,
         endsAt,
@@ -1585,6 +1707,22 @@ export class RestaurantService {
       },
       orderBy: { openedAt: "desc" },
     });
+    const destinations =
+      (await this.prisma.restaurantTable.findMany({
+        where: { organizationId: actor.organizationId, active: true },
+        select: {
+          id: true,
+          name: true,
+          kind: true,
+          serviceChargeEnabled: true,
+          _count: {
+            select: {
+              visits: { where: { status: RestaurantVisitStatus.OPEN } },
+            },
+          },
+        },
+        orderBy: { name: "asc" },
+      })) ?? [];
     return visits.map((visit) => {
       const items = visit.orders.flatMap((order) =>
         order.items.map((item) => ({
@@ -1612,6 +1750,13 @@ export class RestaurantService {
             item.status === RestaurantItemStatus.DELIVERED ||
             item.status === RestaurantItemStatus.CANCELLED,
         ),
+        transferDestinations: destinations
+          .filter((table) => table.id !== visit.tableId)
+          .map((table) => ({
+            ...table,
+            activeAccountCount: table._count.visits,
+            _count: undefined,
+          })),
       };
     });
   }

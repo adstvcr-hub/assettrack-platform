@@ -4,6 +4,7 @@ import { API_URL, authenticatedFetch } from "@/lib/api";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { RestaurantSessionActions } from "../_components/restaurant-session-actions";
+import { useOperationalAlerts } from "../_components/use-operational-alerts";
 
 type Item = {
   id: string;
@@ -24,6 +25,13 @@ type Visit = {
   id: string;
   table: { name: string };
   canClose: boolean;
+  transferDestinations: Array<{
+    id: string;
+    name: string;
+    kind: "DINING" | "BAR_SEAT" | "TAKEOUT_STATION";
+    serviceChargeEnabled: boolean;
+    activeAccountCount: number;
+  }>;
   billing: {
     grossSubtotal: number;
     promotionCredit: number;
@@ -180,6 +188,42 @@ export default function WaiterPage() {
     await load();
   }
 
+  async function transferVisit(visit: Visit, destinationId: string) {
+    const destination = visit.transferDestinations.find(
+      (item) => item.id === destinationId,
+    );
+    if (!destination) return;
+    const occupied = destination.activeAccountCount
+      ? ` Esta posición ya tiene ${destination.activeAccountCount} cuenta(s) independiente(s); no se mezclarán.`
+      : "";
+    const service =
+      destination.kind === "BAR_SEAT"
+        ? " Se eliminará el cargo por servicio."
+        : destination.serviceChargeEnabled
+          ? " Se aplicará el servicio de la mesa destino."
+          : " La posición destino no cobra servicio.";
+    if (
+      !window.confirm(
+        `¿Trasladar la cuenta a ${destination.name}?${occupied}${service}`,
+      )
+    )
+      return;
+    const response = await authenticatedFetch(
+      `${API_URL}/api/v1/restaurant/visits/${visit.id}/transfer`,
+      {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ destinationTableId: destination.id }),
+      },
+    );
+    const body = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      setError(body.message ?? "No se pudo trasladar la cuenta");
+      return;
+    }
+    await load();
+  }
+
   async function updateAvailability() {
     const labels: Record<string, string> = {
       BREAK: "Descanso programado",
@@ -247,10 +291,20 @@ export default function WaiterPage() {
   const readyCount = orders
     .flatMap((order) => order.items)
     .filter((item) => item.status === "READY").length;
+  const alerts = useOperationalAlerts(
+    "waiter",
+    orders.flatMap((order) =>
+      order.items
+        .filter((item) => item.status === "READY")
+        .map((item) => item.id),
+    ),
+  );
 
   return (
     <main className="min-h-screen bg-slate-100 text-slate-950">
-      <header className="bg-slate-950 px-5 py-5 text-white">
+      <header
+        className={`px-5 py-5 text-white transition-colors ${alerts.flash ? "bg-red-600" : "bg-slate-950"}`}
+      >
         <div className="mx-auto flex max-w-6xl items-center justify-between">
           <div>
             <p className="text-sm font-semibold tracking-[0.2em] text-sky-400">
@@ -269,6 +323,29 @@ export default function WaiterPage() {
         </div>
       </header>
       <section className="mx-auto max-w-6xl space-y-5 p-5">
+        <div
+          className={`flex flex-wrap items-center justify-between gap-3 rounded-xl border p-4 ${alerts.flash ? "border-red-500 bg-yellow-200 ring-4 ring-red-300" : "bg-white"}`}
+        >
+          <p className="font-bold">
+            Alertas de entregas: {alerts.enabled ? "activadas" : "desactivadas"}
+          </p>
+          <div className="flex gap-2">
+            <button
+              className="rounded bg-sky-700 px-4 py-2 font-bold text-white"
+              onClick={alerts.enableAndTest}
+            >
+              {alerts.enabled ? "Probar alerta" : "Activar y probar"}
+            </button>
+            {alerts.enabled && (
+              <button
+                className="rounded border px-4 py-2"
+                onClick={alerts.disable}
+              >
+                Desactivar
+              </button>
+            )}
+          </div>
+        </div>
         <div className="rounded-xl border bg-white p-5 shadow-sm">
           <div className="flex flex-wrap items-end gap-3">
             <label className="min-w-64 flex-1 font-semibold">
@@ -336,6 +413,35 @@ export default function WaiterPage() {
                     >
                       {visit.canClose ? "Cerrar cuenta" : "Pedidos pendientes"}
                     </button>
+                  </div>
+                  <div className="mt-3 rounded-lg bg-slate-50 p-3">
+                    <label className="text-sm font-semibold">
+                      Trasladar cliente y cuenta
+                      <select
+                        className="mt-1 w-full rounded border bg-white p-2"
+                        defaultValue=""
+                        onChange={(event) => {
+                          const value = event.target.value;
+                          event.target.value = "";
+                          if (value) void transferVisit(visit, value);
+                        }}
+                      >
+                        <option value="">Seleccione la nueva posición</option>
+                        {visit.transferDestinations.map((destination) => (
+                          <option key={destination.id} value={destination.id}>
+                            {destination.name} ·{" "}
+                            {destination.kind === "BAR_SEAT"
+                              ? "Bar, sin servicio"
+                              : destination.kind === "DINING"
+                                ? "Mesa"
+                                : "Para llevar"}
+                            {destination.activeAccountCount
+                              ? ` · ${destination.activeAccountCount} cuenta(s)`
+                              : ""}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
                   </div>
                   <div className="mt-4 overflow-x-auto">
                     <table className="w-full min-w-[560px] text-left text-sm">
