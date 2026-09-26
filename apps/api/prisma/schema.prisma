@@ -139,10 +139,17 @@ model Organization {
   restaurantLoyaltyActivities RestaurantLoyaltyActivity[]
   restaurantRewardPrograms    RestaurantRewardProgram[]
 
-  restaurantTaxRateBps     Int     @default(1300)
-  restaurantTaxIncluded    Boolean @default(false)
-  restaurantServiceRateBps Int     @default(1000)
-  restaurantAccessEnabled  Boolean @default(true)
+  restaurantTaxRateBps              Int     @default(1300)
+  restaurantTaxIncluded             Boolean @default(false)
+  restaurantServiceRateBps          Int     @default(1000)
+  restaurantAccessEnabled           Boolean @default(true)
+  restaurantDisplayName             String?
+  restaurantHeaderImageData         String?
+  restaurantUseHeaderImage          Boolean @default(false)
+  restaurantMenuBackgroundImageData String?
+  restaurantMenuBackgroundEnabled   Boolean @default(false)
+  restaurantMenuBackgroundPosition  String  @default("center")
+  restaurantMenuBackgroundSize      String  @default("cover")
 
   @@map("organizations")
 }

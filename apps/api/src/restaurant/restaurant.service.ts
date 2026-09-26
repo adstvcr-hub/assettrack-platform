@@ -34,6 +34,7 @@ import {
   UpdateInvoiceRequestDto,
   UpdateMenuItemDto,
   UpdateRestaurantBillingDto,
+  UpdateRestaurantBrandingDto,
   UpdateStaffAvailabilityDto,
   UpdateTableBillingDto,
   UpdatePromotionDto,
@@ -368,6 +369,54 @@ export class RestaurantService {
         restaurantTaxRateBps: true,
         restaurantTaxIncluded: true,
         restaurantServiceRateBps: true,
+      },
+    });
+  }
+
+  brandingSettings(actor: RestaurantActor) {
+    this.requireRestaurantAdmin(actor);
+    return this.prisma.organization.findUnique({
+      where: { id: actor.organizationId },
+      select: {
+        name: true,
+        restaurantDisplayName: true,
+        restaurantHeaderImageData: true,
+        restaurantUseHeaderImage: true,
+        restaurantMenuBackgroundImageData: true,
+        restaurantMenuBackgroundEnabled: true,
+        restaurantMenuBackgroundPosition: true,
+        restaurantMenuBackgroundSize: true,
+      },
+    });
+  }
+
+  updateBrandingSettings(
+    actor: RestaurantActor,
+    dto: UpdateRestaurantBrandingDto,
+  ) {
+    this.requireRestaurantAdmin(actor);
+    return this.prisma.organization.update({
+      where: { id: actor.organizationId },
+      data: {
+        restaurantDisplayName: dto.displayName?.trim() || null,
+        restaurantHeaderImageData: dto.headerImageData ?? null,
+        restaurantUseHeaderImage:
+          dto.useHeaderImage && Boolean(dto.headerImageData),
+        restaurantMenuBackgroundImageData: dto.menuBackgroundImageData ?? null,
+        restaurantMenuBackgroundEnabled:
+          dto.menuBackgroundEnabled && Boolean(dto.menuBackgroundImageData),
+        restaurantMenuBackgroundPosition: dto.menuBackgroundPosition,
+        restaurantMenuBackgroundSize: dto.menuBackgroundSize,
+      },
+      select: {
+        name: true,
+        restaurantDisplayName: true,
+        restaurantHeaderImageData: true,
+        restaurantUseHeaderImage: true,
+        restaurantMenuBackgroundImageData: true,
+        restaurantMenuBackgroundEnabled: true,
+        restaurantMenuBackgroundPosition: true,
+        restaurantMenuBackgroundSize: true,
       },
     });
   }
@@ -1153,6 +1202,13 @@ export class RestaurantService {
             restaurantTaxIncluded: true,
             restaurantServiceRateBps: true,
             restaurantAccessEnabled: true,
+            restaurantDisplayName: true,
+            restaurantHeaderImageData: true,
+            restaurantUseHeaderImage: true,
+            restaurantMenuBackgroundImageData: true,
+            restaurantMenuBackgroundEnabled: true,
+            restaurantMenuBackgroundPosition: true,
+            restaurantMenuBackgroundSize: true,
           },
         },
         waiter: { select: { id: true, name: true } },
@@ -1221,6 +1277,19 @@ export class RestaurantService {
     );
     return {
       restaurant: table.organization.name,
+      branding: {
+        displayName:
+          table.organization.restaurantDisplayName || table.organization.name,
+        headerImageData: table.organization.restaurantHeaderImageData,
+        useHeaderImage: table.organization.restaurantUseHeaderImage,
+        menuBackgroundImageData:
+          table.organization.restaurantMenuBackgroundImageData,
+        menuBackgroundEnabled:
+          table.organization.restaurantMenuBackgroundEnabled,
+        menuBackgroundPosition:
+          table.organization.restaurantMenuBackgroundPosition,
+        menuBackgroundSize: table.organization.restaurantMenuBackgroundSize,
+      },
       table: table.name,
       tableKind: table.kind,
       activeAccountCount,

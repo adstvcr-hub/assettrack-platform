@@ -46,6 +46,13 @@ export type OrganizationMinAggregateOutputType = {
   restaurantTaxIncluded: boolean | null
   restaurantServiceRateBps: number | null
   restaurantAccessEnabled: boolean | null
+  restaurantDisplayName: string | null
+  restaurantHeaderImageData: string | null
+  restaurantUseHeaderImage: boolean | null
+  restaurantMenuBackgroundImageData: string | null
+  restaurantMenuBackgroundEnabled: boolean | null
+  restaurantMenuBackgroundPosition: string | null
+  restaurantMenuBackgroundSize: string | null
 }
 
 export type OrganizationMaxAggregateOutputType = {
@@ -58,6 +65,13 @@ export type OrganizationMaxAggregateOutputType = {
   restaurantTaxIncluded: boolean | null
   restaurantServiceRateBps: number | null
   restaurantAccessEnabled: boolean | null
+  restaurantDisplayName: string | null
+  restaurantHeaderImageData: string | null
+  restaurantUseHeaderImage: boolean | null
+  restaurantMenuBackgroundImageData: string | null
+  restaurantMenuBackgroundEnabled: boolean | null
+  restaurantMenuBackgroundPosition: string | null
+  restaurantMenuBackgroundSize: string | null
 }
 
 export type OrganizationCountAggregateOutputType = {
@@ -70,6 +84,13 @@ export type OrganizationCountAggregateOutputType = {
   restaurantTaxIncluded: number
   restaurantServiceRateBps: number
   restaurantAccessEnabled: number
+  restaurantDisplayName: number
+  restaurantHeaderImageData: number
+  restaurantUseHeaderImage: number
+  restaurantMenuBackgroundImageData: number
+  restaurantMenuBackgroundEnabled: number
+  restaurantMenuBackgroundPosition: number
+  restaurantMenuBackgroundSize: number
   _all: number
 }
 
@@ -94,6 +115,13 @@ export type OrganizationMinAggregateInputType = {
   restaurantTaxIncluded?: true
   restaurantServiceRateBps?: true
   restaurantAccessEnabled?: true
+  restaurantDisplayName?: true
+  restaurantHeaderImageData?: true
+  restaurantUseHeaderImage?: true
+  restaurantMenuBackgroundImageData?: true
+  restaurantMenuBackgroundEnabled?: true
+  restaurantMenuBackgroundPosition?: true
+  restaurantMenuBackgroundSize?: true
 }
 
 export type OrganizationMaxAggregateInputType = {
@@ -106,6 +134,13 @@ export type OrganizationMaxAggregateInputType = {
   restaurantTaxIncluded?: true
   restaurantServiceRateBps?: true
   restaurantAccessEnabled?: true
+  restaurantDisplayName?: true
+  restaurantHeaderImageData?: true
+  restaurantUseHeaderImage?: true
+  restaurantMenuBackgroundImageData?: true
+  restaurantMenuBackgroundEnabled?: true
+  restaurantMenuBackgroundPosition?: true
+  restaurantMenuBackgroundSize?: true
 }
 
 export type OrganizationCountAggregateInputType = {
@@ -118,6 +153,13 @@ export type OrganizationCountAggregateInputType = {
   restaurantTaxIncluded?: true
   restaurantServiceRateBps?: true
   restaurantAccessEnabled?: true
+  restaurantDisplayName?: true
+  restaurantHeaderImageData?: true
+  restaurantUseHeaderImage?: true
+  restaurantMenuBackgroundImageData?: true
+  restaurantMenuBackgroundEnabled?: true
+  restaurantMenuBackgroundPosition?: true
+  restaurantMenuBackgroundSize?: true
   _all?: true
 }
 
@@ -217,6 +259,13 @@ export type OrganizationGroupByOutputType = {
   restaurantTaxIncluded: boolean
   restaurantServiceRateBps: number
   restaurantAccessEnabled: boolean
+  restaurantDisplayName: string | null
+  restaurantHeaderImageData: string | null
+  restaurantUseHeaderImage: boolean
+  restaurantMenuBackgroundImageData: string | null
+  restaurantMenuBackgroundEnabled: boolean
+  restaurantMenuBackgroundPosition: string
+  restaurantMenuBackgroundSize: string
   _count: OrganizationCountAggregateOutputType | null
   _avg: OrganizationAvgAggregateOutputType | null
   _sum: OrganizationSumAggregateOutputType | null
@@ -252,6 +301,13 @@ export type OrganizationWhereInput = {
   restaurantTaxIncluded?: Prisma.BoolFilter<"Organization"> | boolean
   restaurantServiceRateBps?: Prisma.IntFilter<"Organization"> | number
   restaurantAccessEnabled?: Prisma.BoolFilter<"Organization"> | boolean
+  restaurantDisplayName?: Prisma.StringNullableFilter<"Organization"> | string | null
+  restaurantHeaderImageData?: Prisma.StringNullableFilter<"Organization"> | string | null
+  restaurantUseHeaderImage?: Prisma.BoolFilter<"Organization"> | boolean
+  restaurantMenuBackgroundImageData?: Prisma.StringNullableFilter<"Organization"> | string | null
+  restaurantMenuBackgroundEnabled?: Prisma.BoolFilter<"Organization"> | boolean
+  restaurantMenuBackgroundPosition?: Prisma.StringFilter<"Organization"> | string
+  restaurantMenuBackgroundSize?: Prisma.StringFilter<"Organization"> | string
   users?: Prisma.UserListRelationFilter
   assets?: Prisma.AssetListRelationFilter
   locations?: Prisma.OrganizationLocationListRelationFilter
@@ -274,6 +330,13 @@ export type OrganizationOrderByWithRelationInput = {
   restaurantTaxIncluded?: Prisma.SortOrder
   restaurantServiceRateBps?: Prisma.SortOrder
   restaurantAccessEnabled?: Prisma.SortOrder
+  restaurantDisplayName?: Prisma.SortOrderInput | Prisma.SortOrder
+  restaurantHeaderImageData?: Prisma.SortOrderInput | Prisma.SortOrder
+  restaurantUseHeaderImage?: Prisma.SortOrder
+  restaurantMenuBackgroundImageData?: Prisma.SortOrderInput | Prisma.SortOrder
+  restaurantMenuBackgroundEnabled?: Prisma.SortOrder
+  restaurantMenuBackgroundPosition?: Prisma.SortOrder
+  restaurantMenuBackgroundSize?: Prisma.SortOrder
   users?: Prisma.UserOrderByRelationAggregateInput
   assets?: Prisma.AssetOrderByRelationAggregateInput
   locations?: Prisma.OrganizationLocationOrderByRelationAggregateInput
@@ -299,6 +362,13 @@ export type OrganizationWhereUniqueInput = Prisma.AtLeast<{
   restaurantTaxIncluded?: Prisma.BoolFilter<"Organization"> | boolean
   restaurantServiceRateBps?: Prisma.IntFilter<"Organization"> | number
   restaurantAccessEnabled?: Prisma.BoolFilter<"Organization"> | boolean
+  restaurantDisplayName?: Prisma.StringNullableFilter<"Organization"> | string | null
+  restaurantHeaderImageData?: Prisma.StringNullableFilter<"Organization"> | string | null
+  restaurantUseHeaderImage?: Prisma.BoolFilter<"Organization"> | boolean
+  restaurantMenuBackgroundImageData?: Prisma.StringNullableFilter<"Organization"> | string | null
+  restaurantMenuBackgroundEnabled?: Prisma.BoolFilter<"Organization"> | boolean
+  restaurantMenuBackgroundPosition?: Prisma.StringFilter<"Organization"> | string
+  restaurantMenuBackgroundSize?: Prisma.StringFilter<"Organization"> | string
   users?: Prisma.UserListRelationFilter
   assets?: Prisma.AssetListRelationFilter
   locations?: Prisma.OrganizationLocationListRelationFilter
@@ -321,6 +391,13 @@ export type OrganizationOrderByWithAggregationInput = {
   restaurantTaxIncluded?: Prisma.SortOrder
   restaurantServiceRateBps?: Prisma.SortOrder
   restaurantAccessEnabled?: Prisma.SortOrder
+  restaurantDisplayName?: Prisma.SortOrderInput | Prisma.SortOrder
+  restaurantHeaderImageData?: Prisma.SortOrderInput | Prisma.SortOrder
+  restaurantUseHeaderImage?: Prisma.SortOrder
+  restaurantMenuBackgroundImageData?: Prisma.SortOrderInput | Prisma.SortOrder
+  restaurantMenuBackgroundEnabled?: Prisma.SortOrder
+  restaurantMenuBackgroundPosition?: Prisma.SortOrder
+  restaurantMenuBackgroundSize?: Prisma.SortOrder
   _count?: Prisma.OrganizationCountOrderByAggregateInput
   _avg?: Prisma.OrganizationAvgOrderByAggregateInput
   _max?: Prisma.OrganizationMaxOrderByAggregateInput
@@ -341,6 +418,13 @@ export type OrganizationScalarWhereWithAggregatesInput = {
   restaurantTaxIncluded?: Prisma.BoolWithAggregatesFilter<"Organization"> | boolean
   restaurantServiceRateBps?: Prisma.IntWithAggregatesFilter<"Organization"> | number
   restaurantAccessEnabled?: Prisma.BoolWithAggregatesFilter<"Organization"> | boolean
+  restaurantDisplayName?: Prisma.StringNullableWithAggregatesFilter<"Organization"> | string | null
+  restaurantHeaderImageData?: Prisma.StringNullableWithAggregatesFilter<"Organization"> | string | null
+  restaurantUseHeaderImage?: Prisma.BoolWithAggregatesFilter<"Organization"> | boolean
+  restaurantMenuBackgroundImageData?: Prisma.StringNullableWithAggregatesFilter<"Organization"> | string | null
+  restaurantMenuBackgroundEnabled?: Prisma.BoolWithAggregatesFilter<"Organization"> | boolean
+  restaurantMenuBackgroundPosition?: Prisma.StringWithAggregatesFilter<"Organization"> | string
+  restaurantMenuBackgroundSize?: Prisma.StringWithAggregatesFilter<"Organization"> | string
 }
 
 export type OrganizationCreateInput = {
@@ -353,6 +437,13 @@ export type OrganizationCreateInput = {
   restaurantTaxIncluded?: boolean
   restaurantServiceRateBps?: number
   restaurantAccessEnabled?: boolean
+  restaurantDisplayName?: string | null
+  restaurantHeaderImageData?: string | null
+  restaurantUseHeaderImage?: boolean
+  restaurantMenuBackgroundImageData?: string | null
+  restaurantMenuBackgroundEnabled?: boolean
+  restaurantMenuBackgroundPosition?: string
+  restaurantMenuBackgroundSize?: string
   users?: Prisma.UserCreateNestedManyWithoutOrganizationInput
   assets?: Prisma.AssetCreateNestedManyWithoutOrganizationInput
   locations?: Prisma.OrganizationLocationCreateNestedManyWithoutOrganizationInput
@@ -375,6 +466,13 @@ export type OrganizationUncheckedCreateInput = {
   restaurantTaxIncluded?: boolean
   restaurantServiceRateBps?: number
   restaurantAccessEnabled?: boolean
+  restaurantDisplayName?: string | null
+  restaurantHeaderImageData?: string | null
+  restaurantUseHeaderImage?: boolean
+  restaurantMenuBackgroundImageData?: string | null
+  restaurantMenuBackgroundEnabled?: boolean
+  restaurantMenuBackgroundPosition?: string
+  restaurantMenuBackgroundSize?: string
   users?: Prisma.UserUncheckedCreateNestedManyWithoutOrganizationInput
   assets?: Prisma.AssetUncheckedCreateNestedManyWithoutOrganizationInput
   locations?: Prisma.OrganizationLocationUncheckedCreateNestedManyWithoutOrganizationInput
@@ -397,6 +495,13 @@ export type OrganizationUpdateInput = {
   restaurantTaxIncluded?: Prisma.BoolFieldUpdateOperationsInput | boolean
   restaurantServiceRateBps?: Prisma.IntFieldUpdateOperationsInput | number
   restaurantAccessEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  restaurantDisplayName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  restaurantHeaderImageData?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  restaurantUseHeaderImage?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  restaurantMenuBackgroundImageData?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  restaurantMenuBackgroundEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  restaurantMenuBackgroundPosition?: Prisma.StringFieldUpdateOperationsInput | string
+  restaurantMenuBackgroundSize?: Prisma.StringFieldUpdateOperationsInput | string
   users?: Prisma.UserUpdateManyWithoutOrganizationNestedInput
   assets?: Prisma.AssetUpdateManyWithoutOrganizationNestedInput
   locations?: Prisma.OrganizationLocationUpdateManyWithoutOrganizationNestedInput
@@ -419,6 +524,13 @@ export type OrganizationUncheckedUpdateInput = {
   restaurantTaxIncluded?: Prisma.BoolFieldUpdateOperationsInput | boolean
   restaurantServiceRateBps?: Prisma.IntFieldUpdateOperationsInput | number
   restaurantAccessEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  restaurantDisplayName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  restaurantHeaderImageData?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  restaurantUseHeaderImage?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  restaurantMenuBackgroundImageData?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  restaurantMenuBackgroundEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  restaurantMenuBackgroundPosition?: Prisma.StringFieldUpdateOperationsInput | string
+  restaurantMenuBackgroundSize?: Prisma.StringFieldUpdateOperationsInput | string
   users?: Prisma.UserUncheckedUpdateManyWithoutOrganizationNestedInput
   assets?: Prisma.AssetUncheckedUpdateManyWithoutOrganizationNestedInput
   locations?: Prisma.OrganizationLocationUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -441,6 +553,13 @@ export type OrganizationCreateManyInput = {
   restaurantTaxIncluded?: boolean
   restaurantServiceRateBps?: number
   restaurantAccessEnabled?: boolean
+  restaurantDisplayName?: string | null
+  restaurantHeaderImageData?: string | null
+  restaurantUseHeaderImage?: boolean
+  restaurantMenuBackgroundImageData?: string | null
+  restaurantMenuBackgroundEnabled?: boolean
+  restaurantMenuBackgroundPosition?: string
+  restaurantMenuBackgroundSize?: string
 }
 
 export type OrganizationUpdateManyMutationInput = {
@@ -453,6 +572,13 @@ export type OrganizationUpdateManyMutationInput = {
   restaurantTaxIncluded?: Prisma.BoolFieldUpdateOperationsInput | boolean
   restaurantServiceRateBps?: Prisma.IntFieldUpdateOperationsInput | number
   restaurantAccessEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  restaurantDisplayName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  restaurantHeaderImageData?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  restaurantUseHeaderImage?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  restaurantMenuBackgroundImageData?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  restaurantMenuBackgroundEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  restaurantMenuBackgroundPosition?: Prisma.StringFieldUpdateOperationsInput | string
+  restaurantMenuBackgroundSize?: Prisma.StringFieldUpdateOperationsInput | string
 }
 
 export type OrganizationUncheckedUpdateManyInput = {
@@ -465,6 +591,13 @@ export type OrganizationUncheckedUpdateManyInput = {
   restaurantTaxIncluded?: Prisma.BoolFieldUpdateOperationsInput | boolean
   restaurantServiceRateBps?: Prisma.IntFieldUpdateOperationsInput | number
   restaurantAccessEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  restaurantDisplayName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  restaurantHeaderImageData?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  restaurantUseHeaderImage?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  restaurantMenuBackgroundImageData?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  restaurantMenuBackgroundEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  restaurantMenuBackgroundPosition?: Prisma.StringFieldUpdateOperationsInput | string
+  restaurantMenuBackgroundSize?: Prisma.StringFieldUpdateOperationsInput | string
 }
 
 export type OrganizationCountOrderByAggregateInput = {
@@ -477,6 +610,13 @@ export type OrganizationCountOrderByAggregateInput = {
   restaurantTaxIncluded?: Prisma.SortOrder
   restaurantServiceRateBps?: Prisma.SortOrder
   restaurantAccessEnabled?: Prisma.SortOrder
+  restaurantDisplayName?: Prisma.SortOrder
+  restaurantHeaderImageData?: Prisma.SortOrder
+  restaurantUseHeaderImage?: Prisma.SortOrder
+  restaurantMenuBackgroundImageData?: Prisma.SortOrder
+  restaurantMenuBackgroundEnabled?: Prisma.SortOrder
+  restaurantMenuBackgroundPosition?: Prisma.SortOrder
+  restaurantMenuBackgroundSize?: Prisma.SortOrder
 }
 
 export type OrganizationAvgOrderByAggregateInput = {
@@ -494,6 +634,13 @@ export type OrganizationMaxOrderByAggregateInput = {
   restaurantTaxIncluded?: Prisma.SortOrder
   restaurantServiceRateBps?: Prisma.SortOrder
   restaurantAccessEnabled?: Prisma.SortOrder
+  restaurantDisplayName?: Prisma.SortOrder
+  restaurantHeaderImageData?: Prisma.SortOrder
+  restaurantUseHeaderImage?: Prisma.SortOrder
+  restaurantMenuBackgroundImageData?: Prisma.SortOrder
+  restaurantMenuBackgroundEnabled?: Prisma.SortOrder
+  restaurantMenuBackgroundPosition?: Prisma.SortOrder
+  restaurantMenuBackgroundSize?: Prisma.SortOrder
 }
 
 export type OrganizationMinOrderByAggregateInput = {
@@ -506,6 +653,13 @@ export type OrganizationMinOrderByAggregateInput = {
   restaurantTaxIncluded?: Prisma.SortOrder
   restaurantServiceRateBps?: Prisma.SortOrder
   restaurantAccessEnabled?: Prisma.SortOrder
+  restaurantDisplayName?: Prisma.SortOrder
+  restaurantHeaderImageData?: Prisma.SortOrder
+  restaurantUseHeaderImage?: Prisma.SortOrder
+  restaurantMenuBackgroundImageData?: Prisma.SortOrder
+  restaurantMenuBackgroundEnabled?: Prisma.SortOrder
+  restaurantMenuBackgroundPosition?: Prisma.SortOrder
+  restaurantMenuBackgroundSize?: Prisma.SortOrder
 }
 
 export type OrganizationSumOrderByAggregateInput = {
@@ -541,6 +695,10 @@ export type IntFieldUpdateOperationsInput = {
 
 export type BoolFieldUpdateOperationsInput = {
   set?: boolean
+}
+
+export type NullableStringFieldUpdateOperationsInput = {
+  set?: string | null
 }
 
 export type OrganizationCreateNestedOneWithoutRestaurantTablesInput = {
@@ -695,6 +853,13 @@ export type OrganizationCreateWithoutRestaurantTablesInput = {
   restaurantTaxIncluded?: boolean
   restaurantServiceRateBps?: number
   restaurantAccessEnabled?: boolean
+  restaurantDisplayName?: string | null
+  restaurantHeaderImageData?: string | null
+  restaurantUseHeaderImage?: boolean
+  restaurantMenuBackgroundImageData?: string | null
+  restaurantMenuBackgroundEnabled?: boolean
+  restaurantMenuBackgroundPosition?: string
+  restaurantMenuBackgroundSize?: string
   users?: Prisma.UserCreateNestedManyWithoutOrganizationInput
   assets?: Prisma.AssetCreateNestedManyWithoutOrganizationInput
   locations?: Prisma.OrganizationLocationCreateNestedManyWithoutOrganizationInput
@@ -716,6 +881,13 @@ export type OrganizationUncheckedCreateWithoutRestaurantTablesInput = {
   restaurantTaxIncluded?: boolean
   restaurantServiceRateBps?: number
   restaurantAccessEnabled?: boolean
+  restaurantDisplayName?: string | null
+  restaurantHeaderImageData?: string | null
+  restaurantUseHeaderImage?: boolean
+  restaurantMenuBackgroundImageData?: string | null
+  restaurantMenuBackgroundEnabled?: boolean
+  restaurantMenuBackgroundPosition?: string
+  restaurantMenuBackgroundSize?: string
   users?: Prisma.UserUncheckedCreateNestedManyWithoutOrganizationInput
   assets?: Prisma.AssetUncheckedCreateNestedManyWithoutOrganizationInput
   locations?: Prisma.OrganizationLocationUncheckedCreateNestedManyWithoutOrganizationInput
@@ -753,6 +925,13 @@ export type OrganizationUpdateWithoutRestaurantTablesInput = {
   restaurantTaxIncluded?: Prisma.BoolFieldUpdateOperationsInput | boolean
   restaurantServiceRateBps?: Prisma.IntFieldUpdateOperationsInput | number
   restaurantAccessEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  restaurantDisplayName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  restaurantHeaderImageData?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  restaurantUseHeaderImage?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  restaurantMenuBackgroundImageData?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  restaurantMenuBackgroundEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  restaurantMenuBackgroundPosition?: Prisma.StringFieldUpdateOperationsInput | string
+  restaurantMenuBackgroundSize?: Prisma.StringFieldUpdateOperationsInput | string
   users?: Prisma.UserUpdateManyWithoutOrganizationNestedInput
   assets?: Prisma.AssetUpdateManyWithoutOrganizationNestedInput
   locations?: Prisma.OrganizationLocationUpdateManyWithoutOrganizationNestedInput
@@ -774,6 +953,13 @@ export type OrganizationUncheckedUpdateWithoutRestaurantTablesInput = {
   restaurantTaxIncluded?: Prisma.BoolFieldUpdateOperationsInput | boolean
   restaurantServiceRateBps?: Prisma.IntFieldUpdateOperationsInput | number
   restaurantAccessEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  restaurantDisplayName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  restaurantHeaderImageData?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  restaurantUseHeaderImage?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  restaurantMenuBackgroundImageData?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  restaurantMenuBackgroundEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  restaurantMenuBackgroundPosition?: Prisma.StringFieldUpdateOperationsInput | string
+  restaurantMenuBackgroundSize?: Prisma.StringFieldUpdateOperationsInput | string
   users?: Prisma.UserUncheckedUpdateManyWithoutOrganizationNestedInput
   assets?: Prisma.AssetUncheckedUpdateManyWithoutOrganizationNestedInput
   locations?: Prisma.OrganizationLocationUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -795,6 +981,13 @@ export type OrganizationCreateWithoutRestaurantVisitsInput = {
   restaurantTaxIncluded?: boolean
   restaurantServiceRateBps?: number
   restaurantAccessEnabled?: boolean
+  restaurantDisplayName?: string | null
+  restaurantHeaderImageData?: string | null
+  restaurantUseHeaderImage?: boolean
+  restaurantMenuBackgroundImageData?: string | null
+  restaurantMenuBackgroundEnabled?: boolean
+  restaurantMenuBackgroundPosition?: string
+  restaurantMenuBackgroundSize?: string
   users?: Prisma.UserCreateNestedManyWithoutOrganizationInput
   assets?: Prisma.AssetCreateNestedManyWithoutOrganizationInput
   locations?: Prisma.OrganizationLocationCreateNestedManyWithoutOrganizationInput
@@ -816,6 +1009,13 @@ export type OrganizationUncheckedCreateWithoutRestaurantVisitsInput = {
   restaurantTaxIncluded?: boolean
   restaurantServiceRateBps?: number
   restaurantAccessEnabled?: boolean
+  restaurantDisplayName?: string | null
+  restaurantHeaderImageData?: string | null
+  restaurantUseHeaderImage?: boolean
+  restaurantMenuBackgroundImageData?: string | null
+  restaurantMenuBackgroundEnabled?: boolean
+  restaurantMenuBackgroundPosition?: string
+  restaurantMenuBackgroundSize?: string
   users?: Prisma.UserUncheckedCreateNestedManyWithoutOrganizationInput
   assets?: Prisma.AssetUncheckedCreateNestedManyWithoutOrganizationInput
   locations?: Prisma.OrganizationLocationUncheckedCreateNestedManyWithoutOrganizationInput
@@ -853,6 +1053,13 @@ export type OrganizationUpdateWithoutRestaurantVisitsInput = {
   restaurantTaxIncluded?: Prisma.BoolFieldUpdateOperationsInput | boolean
   restaurantServiceRateBps?: Prisma.IntFieldUpdateOperationsInput | number
   restaurantAccessEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  restaurantDisplayName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  restaurantHeaderImageData?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  restaurantUseHeaderImage?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  restaurantMenuBackgroundImageData?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  restaurantMenuBackgroundEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  restaurantMenuBackgroundPosition?: Prisma.StringFieldUpdateOperationsInput | string
+  restaurantMenuBackgroundSize?: Prisma.StringFieldUpdateOperationsInput | string
   users?: Prisma.UserUpdateManyWithoutOrganizationNestedInput
   assets?: Prisma.AssetUpdateManyWithoutOrganizationNestedInput
   locations?: Prisma.OrganizationLocationUpdateManyWithoutOrganizationNestedInput
@@ -874,6 +1081,13 @@ export type OrganizationUncheckedUpdateWithoutRestaurantVisitsInput = {
   restaurantTaxIncluded?: Prisma.BoolFieldUpdateOperationsInput | boolean
   restaurantServiceRateBps?: Prisma.IntFieldUpdateOperationsInput | number
   restaurantAccessEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  restaurantDisplayName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  restaurantHeaderImageData?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  restaurantUseHeaderImage?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  restaurantMenuBackgroundImageData?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  restaurantMenuBackgroundEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  restaurantMenuBackgroundPosition?: Prisma.StringFieldUpdateOperationsInput | string
+  restaurantMenuBackgroundSize?: Prisma.StringFieldUpdateOperationsInput | string
   users?: Prisma.UserUncheckedUpdateManyWithoutOrganizationNestedInput
   assets?: Prisma.AssetUncheckedUpdateManyWithoutOrganizationNestedInput
   locations?: Prisma.OrganizationLocationUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -895,6 +1109,13 @@ export type OrganizationCreateWithoutRestaurantLoyaltyActivitiesInput = {
   restaurantTaxIncluded?: boolean
   restaurantServiceRateBps?: number
   restaurantAccessEnabled?: boolean
+  restaurantDisplayName?: string | null
+  restaurantHeaderImageData?: string | null
+  restaurantUseHeaderImage?: boolean
+  restaurantMenuBackgroundImageData?: string | null
+  restaurantMenuBackgroundEnabled?: boolean
+  restaurantMenuBackgroundPosition?: string
+  restaurantMenuBackgroundSize?: string
   users?: Prisma.UserCreateNestedManyWithoutOrganizationInput
   assets?: Prisma.AssetCreateNestedManyWithoutOrganizationInput
   locations?: Prisma.OrganizationLocationCreateNestedManyWithoutOrganizationInput
@@ -916,6 +1137,13 @@ export type OrganizationUncheckedCreateWithoutRestaurantLoyaltyActivitiesInput =
   restaurantTaxIncluded?: boolean
   restaurantServiceRateBps?: number
   restaurantAccessEnabled?: boolean
+  restaurantDisplayName?: string | null
+  restaurantHeaderImageData?: string | null
+  restaurantUseHeaderImage?: boolean
+  restaurantMenuBackgroundImageData?: string | null
+  restaurantMenuBackgroundEnabled?: boolean
+  restaurantMenuBackgroundPosition?: string
+  restaurantMenuBackgroundSize?: string
   users?: Prisma.UserUncheckedCreateNestedManyWithoutOrganizationInput
   assets?: Prisma.AssetUncheckedCreateNestedManyWithoutOrganizationInput
   locations?: Prisma.OrganizationLocationUncheckedCreateNestedManyWithoutOrganizationInput
@@ -953,6 +1181,13 @@ export type OrganizationUpdateWithoutRestaurantLoyaltyActivitiesInput = {
   restaurantTaxIncluded?: Prisma.BoolFieldUpdateOperationsInput | boolean
   restaurantServiceRateBps?: Prisma.IntFieldUpdateOperationsInput | number
   restaurantAccessEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  restaurantDisplayName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  restaurantHeaderImageData?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  restaurantUseHeaderImage?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  restaurantMenuBackgroundImageData?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  restaurantMenuBackgroundEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  restaurantMenuBackgroundPosition?: Prisma.StringFieldUpdateOperationsInput | string
+  restaurantMenuBackgroundSize?: Prisma.StringFieldUpdateOperationsInput | string
   users?: Prisma.UserUpdateManyWithoutOrganizationNestedInput
   assets?: Prisma.AssetUpdateManyWithoutOrganizationNestedInput
   locations?: Prisma.OrganizationLocationUpdateManyWithoutOrganizationNestedInput
@@ -974,6 +1209,13 @@ export type OrganizationUncheckedUpdateWithoutRestaurantLoyaltyActivitiesInput =
   restaurantTaxIncluded?: Prisma.BoolFieldUpdateOperationsInput | boolean
   restaurantServiceRateBps?: Prisma.IntFieldUpdateOperationsInput | number
   restaurantAccessEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  restaurantDisplayName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  restaurantHeaderImageData?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  restaurantUseHeaderImage?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  restaurantMenuBackgroundImageData?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  restaurantMenuBackgroundEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  restaurantMenuBackgroundPosition?: Prisma.StringFieldUpdateOperationsInput | string
+  restaurantMenuBackgroundSize?: Prisma.StringFieldUpdateOperationsInput | string
   users?: Prisma.UserUncheckedUpdateManyWithoutOrganizationNestedInput
   assets?: Prisma.AssetUncheckedUpdateManyWithoutOrganizationNestedInput
   locations?: Prisma.OrganizationLocationUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -995,6 +1237,13 @@ export type OrganizationCreateWithoutRestaurantRewardProgramsInput = {
   restaurantTaxIncluded?: boolean
   restaurantServiceRateBps?: number
   restaurantAccessEnabled?: boolean
+  restaurantDisplayName?: string | null
+  restaurantHeaderImageData?: string | null
+  restaurantUseHeaderImage?: boolean
+  restaurantMenuBackgroundImageData?: string | null
+  restaurantMenuBackgroundEnabled?: boolean
+  restaurantMenuBackgroundPosition?: string
+  restaurantMenuBackgroundSize?: string
   users?: Prisma.UserCreateNestedManyWithoutOrganizationInput
   assets?: Prisma.AssetCreateNestedManyWithoutOrganizationInput
   locations?: Prisma.OrganizationLocationCreateNestedManyWithoutOrganizationInput
@@ -1016,6 +1265,13 @@ export type OrganizationUncheckedCreateWithoutRestaurantRewardProgramsInput = {
   restaurantTaxIncluded?: boolean
   restaurantServiceRateBps?: number
   restaurantAccessEnabled?: boolean
+  restaurantDisplayName?: string | null
+  restaurantHeaderImageData?: string | null
+  restaurantUseHeaderImage?: boolean
+  restaurantMenuBackgroundImageData?: string | null
+  restaurantMenuBackgroundEnabled?: boolean
+  restaurantMenuBackgroundPosition?: string
+  restaurantMenuBackgroundSize?: string
   users?: Prisma.UserUncheckedCreateNestedManyWithoutOrganizationInput
   assets?: Prisma.AssetUncheckedCreateNestedManyWithoutOrganizationInput
   locations?: Prisma.OrganizationLocationUncheckedCreateNestedManyWithoutOrganizationInput
@@ -1053,6 +1309,13 @@ export type OrganizationUpdateWithoutRestaurantRewardProgramsInput = {
   restaurantTaxIncluded?: Prisma.BoolFieldUpdateOperationsInput | boolean
   restaurantServiceRateBps?: Prisma.IntFieldUpdateOperationsInput | number
   restaurantAccessEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  restaurantDisplayName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  restaurantHeaderImageData?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  restaurantUseHeaderImage?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  restaurantMenuBackgroundImageData?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  restaurantMenuBackgroundEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  restaurantMenuBackgroundPosition?: Prisma.StringFieldUpdateOperationsInput | string
+  restaurantMenuBackgroundSize?: Prisma.StringFieldUpdateOperationsInput | string
   users?: Prisma.UserUpdateManyWithoutOrganizationNestedInput
   assets?: Prisma.AssetUpdateManyWithoutOrganizationNestedInput
   locations?: Prisma.OrganizationLocationUpdateManyWithoutOrganizationNestedInput
@@ -1074,6 +1337,13 @@ export type OrganizationUncheckedUpdateWithoutRestaurantRewardProgramsInput = {
   restaurantTaxIncluded?: Prisma.BoolFieldUpdateOperationsInput | boolean
   restaurantServiceRateBps?: Prisma.IntFieldUpdateOperationsInput | number
   restaurantAccessEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  restaurantDisplayName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  restaurantHeaderImageData?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  restaurantUseHeaderImage?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  restaurantMenuBackgroundImageData?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  restaurantMenuBackgroundEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  restaurantMenuBackgroundPosition?: Prisma.StringFieldUpdateOperationsInput | string
+  restaurantMenuBackgroundSize?: Prisma.StringFieldUpdateOperationsInput | string
   users?: Prisma.UserUncheckedUpdateManyWithoutOrganizationNestedInput
   assets?: Prisma.AssetUncheckedUpdateManyWithoutOrganizationNestedInput
   locations?: Prisma.OrganizationLocationUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -1095,6 +1365,13 @@ export type OrganizationCreateWithoutRestaurantMenuItemsInput = {
   restaurantTaxIncluded?: boolean
   restaurantServiceRateBps?: number
   restaurantAccessEnabled?: boolean
+  restaurantDisplayName?: string | null
+  restaurantHeaderImageData?: string | null
+  restaurantUseHeaderImage?: boolean
+  restaurantMenuBackgroundImageData?: string | null
+  restaurantMenuBackgroundEnabled?: boolean
+  restaurantMenuBackgroundPosition?: string
+  restaurantMenuBackgroundSize?: string
   users?: Prisma.UserCreateNestedManyWithoutOrganizationInput
   assets?: Prisma.AssetCreateNestedManyWithoutOrganizationInput
   locations?: Prisma.OrganizationLocationCreateNestedManyWithoutOrganizationInput
@@ -1116,6 +1393,13 @@ export type OrganizationUncheckedCreateWithoutRestaurantMenuItemsInput = {
   restaurantTaxIncluded?: boolean
   restaurantServiceRateBps?: number
   restaurantAccessEnabled?: boolean
+  restaurantDisplayName?: string | null
+  restaurantHeaderImageData?: string | null
+  restaurantUseHeaderImage?: boolean
+  restaurantMenuBackgroundImageData?: string | null
+  restaurantMenuBackgroundEnabled?: boolean
+  restaurantMenuBackgroundPosition?: string
+  restaurantMenuBackgroundSize?: string
   users?: Prisma.UserUncheckedCreateNestedManyWithoutOrganizationInput
   assets?: Prisma.AssetUncheckedCreateNestedManyWithoutOrganizationInput
   locations?: Prisma.OrganizationLocationUncheckedCreateNestedManyWithoutOrganizationInput
@@ -1153,6 +1437,13 @@ export type OrganizationUpdateWithoutRestaurantMenuItemsInput = {
   restaurantTaxIncluded?: Prisma.BoolFieldUpdateOperationsInput | boolean
   restaurantServiceRateBps?: Prisma.IntFieldUpdateOperationsInput | number
   restaurantAccessEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  restaurantDisplayName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  restaurantHeaderImageData?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  restaurantUseHeaderImage?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  restaurantMenuBackgroundImageData?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  restaurantMenuBackgroundEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  restaurantMenuBackgroundPosition?: Prisma.StringFieldUpdateOperationsInput | string
+  restaurantMenuBackgroundSize?: Prisma.StringFieldUpdateOperationsInput | string
   users?: Prisma.UserUpdateManyWithoutOrganizationNestedInput
   assets?: Prisma.AssetUpdateManyWithoutOrganizationNestedInput
   locations?: Prisma.OrganizationLocationUpdateManyWithoutOrganizationNestedInput
@@ -1174,6 +1465,13 @@ export type OrganizationUncheckedUpdateWithoutRestaurantMenuItemsInput = {
   restaurantTaxIncluded?: Prisma.BoolFieldUpdateOperationsInput | boolean
   restaurantServiceRateBps?: Prisma.IntFieldUpdateOperationsInput | number
   restaurantAccessEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  restaurantDisplayName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  restaurantHeaderImageData?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  restaurantUseHeaderImage?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  restaurantMenuBackgroundImageData?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  restaurantMenuBackgroundEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  restaurantMenuBackgroundPosition?: Prisma.StringFieldUpdateOperationsInput | string
+  restaurantMenuBackgroundSize?: Prisma.StringFieldUpdateOperationsInput | string
   users?: Prisma.UserUncheckedUpdateManyWithoutOrganizationNestedInput
   assets?: Prisma.AssetUncheckedUpdateManyWithoutOrganizationNestedInput
   locations?: Prisma.OrganizationLocationUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -1195,6 +1493,13 @@ export type OrganizationCreateWithoutRestaurantOrdersInput = {
   restaurantTaxIncluded?: boolean
   restaurantServiceRateBps?: number
   restaurantAccessEnabled?: boolean
+  restaurantDisplayName?: string | null
+  restaurantHeaderImageData?: string | null
+  restaurantUseHeaderImage?: boolean
+  restaurantMenuBackgroundImageData?: string | null
+  restaurantMenuBackgroundEnabled?: boolean
+  restaurantMenuBackgroundPosition?: string
+  restaurantMenuBackgroundSize?: string
   users?: Prisma.UserCreateNestedManyWithoutOrganizationInput
   assets?: Prisma.AssetCreateNestedManyWithoutOrganizationInput
   locations?: Prisma.OrganizationLocationCreateNestedManyWithoutOrganizationInput
@@ -1216,6 +1521,13 @@ export type OrganizationUncheckedCreateWithoutRestaurantOrdersInput = {
   restaurantTaxIncluded?: boolean
   restaurantServiceRateBps?: number
   restaurantAccessEnabled?: boolean
+  restaurantDisplayName?: string | null
+  restaurantHeaderImageData?: string | null
+  restaurantUseHeaderImage?: boolean
+  restaurantMenuBackgroundImageData?: string | null
+  restaurantMenuBackgroundEnabled?: boolean
+  restaurantMenuBackgroundPosition?: string
+  restaurantMenuBackgroundSize?: string
   users?: Prisma.UserUncheckedCreateNestedManyWithoutOrganizationInput
   assets?: Prisma.AssetUncheckedCreateNestedManyWithoutOrganizationInput
   locations?: Prisma.OrganizationLocationUncheckedCreateNestedManyWithoutOrganizationInput
@@ -1253,6 +1565,13 @@ export type OrganizationUpdateWithoutRestaurantOrdersInput = {
   restaurantTaxIncluded?: Prisma.BoolFieldUpdateOperationsInput | boolean
   restaurantServiceRateBps?: Prisma.IntFieldUpdateOperationsInput | number
   restaurantAccessEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  restaurantDisplayName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  restaurantHeaderImageData?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  restaurantUseHeaderImage?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  restaurantMenuBackgroundImageData?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  restaurantMenuBackgroundEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  restaurantMenuBackgroundPosition?: Prisma.StringFieldUpdateOperationsInput | string
+  restaurantMenuBackgroundSize?: Prisma.StringFieldUpdateOperationsInput | string
   users?: Prisma.UserUpdateManyWithoutOrganizationNestedInput
   assets?: Prisma.AssetUpdateManyWithoutOrganizationNestedInput
   locations?: Prisma.OrganizationLocationUpdateManyWithoutOrganizationNestedInput
@@ -1274,6 +1593,13 @@ export type OrganizationUncheckedUpdateWithoutRestaurantOrdersInput = {
   restaurantTaxIncluded?: Prisma.BoolFieldUpdateOperationsInput | boolean
   restaurantServiceRateBps?: Prisma.IntFieldUpdateOperationsInput | number
   restaurantAccessEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  restaurantDisplayName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  restaurantHeaderImageData?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  restaurantUseHeaderImage?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  restaurantMenuBackgroundImageData?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  restaurantMenuBackgroundEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  restaurantMenuBackgroundPosition?: Prisma.StringFieldUpdateOperationsInput | string
+  restaurantMenuBackgroundSize?: Prisma.StringFieldUpdateOperationsInput | string
   users?: Prisma.UserUncheckedUpdateManyWithoutOrganizationNestedInput
   assets?: Prisma.AssetUncheckedUpdateManyWithoutOrganizationNestedInput
   locations?: Prisma.OrganizationLocationUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -1295,6 +1621,13 @@ export type OrganizationCreateWithoutRestaurantPromotionsInput = {
   restaurantTaxIncluded?: boolean
   restaurantServiceRateBps?: number
   restaurantAccessEnabled?: boolean
+  restaurantDisplayName?: string | null
+  restaurantHeaderImageData?: string | null
+  restaurantUseHeaderImage?: boolean
+  restaurantMenuBackgroundImageData?: string | null
+  restaurantMenuBackgroundEnabled?: boolean
+  restaurantMenuBackgroundPosition?: string
+  restaurantMenuBackgroundSize?: string
   users?: Prisma.UserCreateNestedManyWithoutOrganizationInput
   assets?: Prisma.AssetCreateNestedManyWithoutOrganizationInput
   locations?: Prisma.OrganizationLocationCreateNestedManyWithoutOrganizationInput
@@ -1316,6 +1649,13 @@ export type OrganizationUncheckedCreateWithoutRestaurantPromotionsInput = {
   restaurantTaxIncluded?: boolean
   restaurantServiceRateBps?: number
   restaurantAccessEnabled?: boolean
+  restaurantDisplayName?: string | null
+  restaurantHeaderImageData?: string | null
+  restaurantUseHeaderImage?: boolean
+  restaurantMenuBackgroundImageData?: string | null
+  restaurantMenuBackgroundEnabled?: boolean
+  restaurantMenuBackgroundPosition?: string
+  restaurantMenuBackgroundSize?: string
   users?: Prisma.UserUncheckedCreateNestedManyWithoutOrganizationInput
   assets?: Prisma.AssetUncheckedCreateNestedManyWithoutOrganizationInput
   locations?: Prisma.OrganizationLocationUncheckedCreateNestedManyWithoutOrganizationInput
@@ -1353,6 +1693,13 @@ export type OrganizationUpdateWithoutRestaurantPromotionsInput = {
   restaurantTaxIncluded?: Prisma.BoolFieldUpdateOperationsInput | boolean
   restaurantServiceRateBps?: Prisma.IntFieldUpdateOperationsInput | number
   restaurantAccessEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  restaurantDisplayName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  restaurantHeaderImageData?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  restaurantUseHeaderImage?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  restaurantMenuBackgroundImageData?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  restaurantMenuBackgroundEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  restaurantMenuBackgroundPosition?: Prisma.StringFieldUpdateOperationsInput | string
+  restaurantMenuBackgroundSize?: Prisma.StringFieldUpdateOperationsInput | string
   users?: Prisma.UserUpdateManyWithoutOrganizationNestedInput
   assets?: Prisma.AssetUpdateManyWithoutOrganizationNestedInput
   locations?: Prisma.OrganizationLocationUpdateManyWithoutOrganizationNestedInput
@@ -1374,6 +1721,13 @@ export type OrganizationUncheckedUpdateWithoutRestaurantPromotionsInput = {
   restaurantTaxIncluded?: Prisma.BoolFieldUpdateOperationsInput | boolean
   restaurantServiceRateBps?: Prisma.IntFieldUpdateOperationsInput | number
   restaurantAccessEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  restaurantDisplayName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  restaurantHeaderImageData?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  restaurantUseHeaderImage?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  restaurantMenuBackgroundImageData?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  restaurantMenuBackgroundEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  restaurantMenuBackgroundPosition?: Prisma.StringFieldUpdateOperationsInput | string
+  restaurantMenuBackgroundSize?: Prisma.StringFieldUpdateOperationsInput | string
   users?: Prisma.UserUncheckedUpdateManyWithoutOrganizationNestedInput
   assets?: Prisma.AssetUncheckedUpdateManyWithoutOrganizationNestedInput
   locations?: Prisma.OrganizationLocationUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -1395,6 +1749,13 @@ export type OrganizationCreateWithoutLocationsInput = {
   restaurantTaxIncluded?: boolean
   restaurantServiceRateBps?: number
   restaurantAccessEnabled?: boolean
+  restaurantDisplayName?: string | null
+  restaurantHeaderImageData?: string | null
+  restaurantUseHeaderImage?: boolean
+  restaurantMenuBackgroundImageData?: string | null
+  restaurantMenuBackgroundEnabled?: boolean
+  restaurantMenuBackgroundPosition?: string
+  restaurantMenuBackgroundSize?: string
   users?: Prisma.UserCreateNestedManyWithoutOrganizationInput
   assets?: Prisma.AssetCreateNestedManyWithoutOrganizationInput
   restaurantTables?: Prisma.RestaurantTableCreateNestedManyWithoutOrganizationInput
@@ -1416,6 +1777,13 @@ export type OrganizationUncheckedCreateWithoutLocationsInput = {
   restaurantTaxIncluded?: boolean
   restaurantServiceRateBps?: number
   restaurantAccessEnabled?: boolean
+  restaurantDisplayName?: string | null
+  restaurantHeaderImageData?: string | null
+  restaurantUseHeaderImage?: boolean
+  restaurantMenuBackgroundImageData?: string | null
+  restaurantMenuBackgroundEnabled?: boolean
+  restaurantMenuBackgroundPosition?: string
+  restaurantMenuBackgroundSize?: string
   users?: Prisma.UserUncheckedCreateNestedManyWithoutOrganizationInput
   assets?: Prisma.AssetUncheckedCreateNestedManyWithoutOrganizationInput
   restaurantTables?: Prisma.RestaurantTableUncheckedCreateNestedManyWithoutOrganizationInput
@@ -1453,6 +1821,13 @@ export type OrganizationUpdateWithoutLocationsInput = {
   restaurantTaxIncluded?: Prisma.BoolFieldUpdateOperationsInput | boolean
   restaurantServiceRateBps?: Prisma.IntFieldUpdateOperationsInput | number
   restaurantAccessEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  restaurantDisplayName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  restaurantHeaderImageData?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  restaurantUseHeaderImage?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  restaurantMenuBackgroundImageData?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  restaurantMenuBackgroundEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  restaurantMenuBackgroundPosition?: Prisma.StringFieldUpdateOperationsInput | string
+  restaurantMenuBackgroundSize?: Prisma.StringFieldUpdateOperationsInput | string
   users?: Prisma.UserUpdateManyWithoutOrganizationNestedInput
   assets?: Prisma.AssetUpdateManyWithoutOrganizationNestedInput
   restaurantTables?: Prisma.RestaurantTableUpdateManyWithoutOrganizationNestedInput
@@ -1474,6 +1849,13 @@ export type OrganizationUncheckedUpdateWithoutLocationsInput = {
   restaurantTaxIncluded?: Prisma.BoolFieldUpdateOperationsInput | boolean
   restaurantServiceRateBps?: Prisma.IntFieldUpdateOperationsInput | number
   restaurantAccessEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  restaurantDisplayName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  restaurantHeaderImageData?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  restaurantUseHeaderImage?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  restaurantMenuBackgroundImageData?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  restaurantMenuBackgroundEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  restaurantMenuBackgroundPosition?: Prisma.StringFieldUpdateOperationsInput | string
+  restaurantMenuBackgroundSize?: Prisma.StringFieldUpdateOperationsInput | string
   users?: Prisma.UserUncheckedUpdateManyWithoutOrganizationNestedInput
   assets?: Prisma.AssetUncheckedUpdateManyWithoutOrganizationNestedInput
   restaurantTables?: Prisma.RestaurantTableUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -1495,6 +1877,13 @@ export type OrganizationCreateWithoutUsersInput = {
   restaurantTaxIncluded?: boolean
   restaurantServiceRateBps?: number
   restaurantAccessEnabled?: boolean
+  restaurantDisplayName?: string | null
+  restaurantHeaderImageData?: string | null
+  restaurantUseHeaderImage?: boolean
+  restaurantMenuBackgroundImageData?: string | null
+  restaurantMenuBackgroundEnabled?: boolean
+  restaurantMenuBackgroundPosition?: string
+  restaurantMenuBackgroundSize?: string
   assets?: Prisma.AssetCreateNestedManyWithoutOrganizationInput
   locations?: Prisma.OrganizationLocationCreateNestedManyWithoutOrganizationInput
   restaurantTables?: Prisma.RestaurantTableCreateNestedManyWithoutOrganizationInput
@@ -1516,6 +1905,13 @@ export type OrganizationUncheckedCreateWithoutUsersInput = {
   restaurantTaxIncluded?: boolean
   restaurantServiceRateBps?: number
   restaurantAccessEnabled?: boolean
+  restaurantDisplayName?: string | null
+  restaurantHeaderImageData?: string | null
+  restaurantUseHeaderImage?: boolean
+  restaurantMenuBackgroundImageData?: string | null
+  restaurantMenuBackgroundEnabled?: boolean
+  restaurantMenuBackgroundPosition?: string
+  restaurantMenuBackgroundSize?: string
   assets?: Prisma.AssetUncheckedCreateNestedManyWithoutOrganizationInput
   locations?: Prisma.OrganizationLocationUncheckedCreateNestedManyWithoutOrganizationInput
   restaurantTables?: Prisma.RestaurantTableUncheckedCreateNestedManyWithoutOrganizationInput
@@ -1553,6 +1949,13 @@ export type OrganizationUpdateWithoutUsersInput = {
   restaurantTaxIncluded?: Prisma.BoolFieldUpdateOperationsInput | boolean
   restaurantServiceRateBps?: Prisma.IntFieldUpdateOperationsInput | number
   restaurantAccessEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  restaurantDisplayName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  restaurantHeaderImageData?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  restaurantUseHeaderImage?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  restaurantMenuBackgroundImageData?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  restaurantMenuBackgroundEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  restaurantMenuBackgroundPosition?: Prisma.StringFieldUpdateOperationsInput | string
+  restaurantMenuBackgroundSize?: Prisma.StringFieldUpdateOperationsInput | string
   assets?: Prisma.AssetUpdateManyWithoutOrganizationNestedInput
   locations?: Prisma.OrganizationLocationUpdateManyWithoutOrganizationNestedInput
   restaurantTables?: Prisma.RestaurantTableUpdateManyWithoutOrganizationNestedInput
@@ -1574,6 +1977,13 @@ export type OrganizationUncheckedUpdateWithoutUsersInput = {
   restaurantTaxIncluded?: Prisma.BoolFieldUpdateOperationsInput | boolean
   restaurantServiceRateBps?: Prisma.IntFieldUpdateOperationsInput | number
   restaurantAccessEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  restaurantDisplayName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  restaurantHeaderImageData?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  restaurantUseHeaderImage?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  restaurantMenuBackgroundImageData?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  restaurantMenuBackgroundEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  restaurantMenuBackgroundPosition?: Prisma.StringFieldUpdateOperationsInput | string
+  restaurantMenuBackgroundSize?: Prisma.StringFieldUpdateOperationsInput | string
   assets?: Prisma.AssetUncheckedUpdateManyWithoutOrganizationNestedInput
   locations?: Prisma.OrganizationLocationUncheckedUpdateManyWithoutOrganizationNestedInput
   restaurantTables?: Prisma.RestaurantTableUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -1595,6 +2005,13 @@ export type OrganizationCreateWithoutAssetsInput = {
   restaurantTaxIncluded?: boolean
   restaurantServiceRateBps?: number
   restaurantAccessEnabled?: boolean
+  restaurantDisplayName?: string | null
+  restaurantHeaderImageData?: string | null
+  restaurantUseHeaderImage?: boolean
+  restaurantMenuBackgroundImageData?: string | null
+  restaurantMenuBackgroundEnabled?: boolean
+  restaurantMenuBackgroundPosition?: string
+  restaurantMenuBackgroundSize?: string
   users?: Prisma.UserCreateNestedManyWithoutOrganizationInput
   locations?: Prisma.OrganizationLocationCreateNestedManyWithoutOrganizationInput
   restaurantTables?: Prisma.RestaurantTableCreateNestedManyWithoutOrganizationInput
@@ -1616,6 +2033,13 @@ export type OrganizationUncheckedCreateWithoutAssetsInput = {
   restaurantTaxIncluded?: boolean
   restaurantServiceRateBps?: number
   restaurantAccessEnabled?: boolean
+  restaurantDisplayName?: string | null
+  restaurantHeaderImageData?: string | null
+  restaurantUseHeaderImage?: boolean
+  restaurantMenuBackgroundImageData?: string | null
+  restaurantMenuBackgroundEnabled?: boolean
+  restaurantMenuBackgroundPosition?: string
+  restaurantMenuBackgroundSize?: string
   users?: Prisma.UserUncheckedCreateNestedManyWithoutOrganizationInput
   locations?: Prisma.OrganizationLocationUncheckedCreateNestedManyWithoutOrganizationInput
   restaurantTables?: Prisma.RestaurantTableUncheckedCreateNestedManyWithoutOrganizationInput
@@ -1653,6 +2077,13 @@ export type OrganizationUpdateWithoutAssetsInput = {
   restaurantTaxIncluded?: Prisma.BoolFieldUpdateOperationsInput | boolean
   restaurantServiceRateBps?: Prisma.IntFieldUpdateOperationsInput | number
   restaurantAccessEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  restaurantDisplayName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  restaurantHeaderImageData?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  restaurantUseHeaderImage?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  restaurantMenuBackgroundImageData?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  restaurantMenuBackgroundEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  restaurantMenuBackgroundPosition?: Prisma.StringFieldUpdateOperationsInput | string
+  restaurantMenuBackgroundSize?: Prisma.StringFieldUpdateOperationsInput | string
   users?: Prisma.UserUpdateManyWithoutOrganizationNestedInput
   locations?: Prisma.OrganizationLocationUpdateManyWithoutOrganizationNestedInput
   restaurantTables?: Prisma.RestaurantTableUpdateManyWithoutOrganizationNestedInput
@@ -1674,6 +2105,13 @@ export type OrganizationUncheckedUpdateWithoutAssetsInput = {
   restaurantTaxIncluded?: Prisma.BoolFieldUpdateOperationsInput | boolean
   restaurantServiceRateBps?: Prisma.IntFieldUpdateOperationsInput | number
   restaurantAccessEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  restaurantDisplayName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  restaurantHeaderImageData?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  restaurantUseHeaderImage?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  restaurantMenuBackgroundImageData?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  restaurantMenuBackgroundEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  restaurantMenuBackgroundPosition?: Prisma.StringFieldUpdateOperationsInput | string
+  restaurantMenuBackgroundSize?: Prisma.StringFieldUpdateOperationsInput | string
   users?: Prisma.UserUncheckedUpdateManyWithoutOrganizationNestedInput
   locations?: Prisma.OrganizationLocationUncheckedUpdateManyWithoutOrganizationNestedInput
   restaurantTables?: Prisma.RestaurantTableUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -1807,6 +2245,13 @@ export type OrganizationSelect<ExtArgs extends runtime.Types.Extensions.Internal
   restaurantTaxIncluded?: boolean
   restaurantServiceRateBps?: boolean
   restaurantAccessEnabled?: boolean
+  restaurantDisplayName?: boolean
+  restaurantHeaderImageData?: boolean
+  restaurantUseHeaderImage?: boolean
+  restaurantMenuBackgroundImageData?: boolean
+  restaurantMenuBackgroundEnabled?: boolean
+  restaurantMenuBackgroundPosition?: boolean
+  restaurantMenuBackgroundSize?: boolean
   users?: boolean | Prisma.Organization$usersArgs<ExtArgs>
   assets?: boolean | Prisma.Organization$assetsArgs<ExtArgs>
   locations?: boolean | Prisma.Organization$locationsArgs<ExtArgs>
@@ -1830,6 +2275,13 @@ export type OrganizationSelectCreateManyAndReturn<ExtArgs extends runtime.Types.
   restaurantTaxIncluded?: boolean
   restaurantServiceRateBps?: boolean
   restaurantAccessEnabled?: boolean
+  restaurantDisplayName?: boolean
+  restaurantHeaderImageData?: boolean
+  restaurantUseHeaderImage?: boolean
+  restaurantMenuBackgroundImageData?: boolean
+  restaurantMenuBackgroundEnabled?: boolean
+  restaurantMenuBackgroundPosition?: boolean
+  restaurantMenuBackgroundSize?: boolean
 }, ExtArgs["result"]["organization"]>
 
 export type OrganizationSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -1842,6 +2294,13 @@ export type OrganizationSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.
   restaurantTaxIncluded?: boolean
   restaurantServiceRateBps?: boolean
   restaurantAccessEnabled?: boolean
+  restaurantDisplayName?: boolean
+  restaurantHeaderImageData?: boolean
+  restaurantUseHeaderImage?: boolean
+  restaurantMenuBackgroundImageData?: boolean
+  restaurantMenuBackgroundEnabled?: boolean
+  restaurantMenuBackgroundPosition?: boolean
+  restaurantMenuBackgroundSize?: boolean
 }, ExtArgs["result"]["organization"]>
 
 export type OrganizationSelectScalar = {
@@ -1854,9 +2313,16 @@ export type OrganizationSelectScalar = {
   restaurantTaxIncluded?: boolean
   restaurantServiceRateBps?: boolean
   restaurantAccessEnabled?: boolean
+  restaurantDisplayName?: boolean
+  restaurantHeaderImageData?: boolean
+  restaurantUseHeaderImage?: boolean
+  restaurantMenuBackgroundImageData?: boolean
+  restaurantMenuBackgroundEnabled?: boolean
+  restaurantMenuBackgroundPosition?: boolean
+  restaurantMenuBackgroundSize?: boolean
 }
 
-export type OrganizationOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "slug" | "createdAt" | "updatedAt" | "restaurantTaxRateBps" | "restaurantTaxIncluded" | "restaurantServiceRateBps" | "restaurantAccessEnabled", ExtArgs["result"]["organization"]>
+export type OrganizationOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "slug" | "createdAt" | "updatedAt" | "restaurantTaxRateBps" | "restaurantTaxIncluded" | "restaurantServiceRateBps" | "restaurantAccessEnabled" | "restaurantDisplayName" | "restaurantHeaderImageData" | "restaurantUseHeaderImage" | "restaurantMenuBackgroundImageData" | "restaurantMenuBackgroundEnabled" | "restaurantMenuBackgroundPosition" | "restaurantMenuBackgroundSize", ExtArgs["result"]["organization"]>
 export type OrganizationInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   users?: boolean | Prisma.Organization$usersArgs<ExtArgs>
   assets?: boolean | Prisma.Organization$assetsArgs<ExtArgs>
@@ -1897,6 +2363,13 @@ export type $OrganizationPayload<ExtArgs extends runtime.Types.Extensions.Intern
     restaurantTaxIncluded: boolean
     restaurantServiceRateBps: number
     restaurantAccessEnabled: boolean
+    restaurantDisplayName: string | null
+    restaurantHeaderImageData: string | null
+    restaurantUseHeaderImage: boolean
+    restaurantMenuBackgroundImageData: string | null
+    restaurantMenuBackgroundEnabled: boolean
+    restaurantMenuBackgroundPosition: string
+    restaurantMenuBackgroundSize: string
   }, ExtArgs["result"]["organization"]>
   composites: {}
 }
@@ -2339,6 +2812,13 @@ export interface OrganizationFieldRefs {
   readonly restaurantTaxIncluded: Prisma.FieldRef<"Organization", 'Boolean'>
   readonly restaurantServiceRateBps: Prisma.FieldRef<"Organization", 'Int'>
   readonly restaurantAccessEnabled: Prisma.FieldRef<"Organization", 'Boolean'>
+  readonly restaurantDisplayName: Prisma.FieldRef<"Organization", 'String'>
+  readonly restaurantHeaderImageData: Prisma.FieldRef<"Organization", 'String'>
+  readonly restaurantUseHeaderImage: Prisma.FieldRef<"Organization", 'Boolean'>
+  readonly restaurantMenuBackgroundImageData: Prisma.FieldRef<"Organization", 'String'>
+  readonly restaurantMenuBackgroundEnabled: Prisma.FieldRef<"Organization", 'Boolean'>
+  readonly restaurantMenuBackgroundPosition: Prisma.FieldRef<"Organization", 'String'>
+  readonly restaurantMenuBackgroundSize: Prisma.FieldRef<"Organization", 'String'>
 }
     
 

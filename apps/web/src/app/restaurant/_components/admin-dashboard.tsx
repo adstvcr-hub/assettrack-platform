@@ -82,6 +82,16 @@ type BillingSettings = {
   restaurantTaxIncluded: boolean;
   restaurantServiceRateBps: number;
 };
+type BrandingSettings = {
+  name: string;
+  restaurantDisplayName?: string | null;
+  restaurantHeaderImageData?: string | null;
+  restaurantUseHeaderImage: boolean;
+  restaurantMenuBackgroundImageData?: string | null;
+  restaurantMenuBackgroundEnabled: boolean;
+  restaurantMenuBackgroundPosition: "center" | "top" | "bottom";
+  restaurantMenuBackgroundSize: "cover" | "contain";
+};
 type LoyaltySummary = {
   enrolledCustomers: number;
   completedVisits: number;
@@ -151,6 +161,20 @@ export default function RestaurantAdminDashboard() {
   const [taxRate, setTaxRate] = useState("13");
   const [serviceRate, setServiceRate] = useState("10");
   const [taxIncluded, setTaxIncluded] = useState(false);
+  const [branding, setBranding] = useState<BrandingSettings | null>(null);
+  const [displayName, setDisplayName] = useState("");
+  const [useHeaderImage, setUseHeaderImage] = useState(false);
+  const [headerImageData, setHeaderImageData] = useState<string | null>(null);
+  const [menuBackgroundImageData, setMenuBackgroundImageData] = useState<
+    string | null
+  >(null);
+  const [menuBackgroundEnabled, setMenuBackgroundEnabled] = useState(false);
+  const [menuBackgroundPosition, setMenuBackgroundPosition] = useState<
+    "center" | "top" | "bottom"
+  >("center");
+  const [menuBackgroundSize, setMenuBackgroundSize] = useState<
+    "cover" | "contain"
+  >("cover");
   const [loyalty, setLoyalty] = useState<LoyaltySummary | null>(null);
   const [rewards, setRewards] = useState<RewardProgram[]>([]);
   const [rewardName, setRewardName] = useState("");
@@ -162,6 +186,7 @@ export default function RestaurantAdminDashboard() {
   const [rewardDiscount, setRewardDiscount] = useState("10");
   const [rewardDiscountCap, setRewardDiscountCap] = useState("");
   const billingInitialized = useRef(false);
+  const brandingInitialized = useRef(false);
 
   const load = useCallback(async () => {
     try {
@@ -171,6 +196,7 @@ export default function RestaurantAdminDashboard() {
         "orders",
         "staff-users",
         "billing-settings",
+        "branding-settings",
         "promotions",
         "invoice-requests",
         "loyalty/summary",
@@ -204,6 +230,7 @@ export default function RestaurantAdminDashboard() {
         orderData,
         staffData,
         billingData,
+        brandingData,
         promotionData,
         invoiceData,
         loyaltyData,
@@ -214,6 +241,7 @@ export default function RestaurantAdminDashboard() {
       setOrders(orderData);
       setStaffUsers(staffData);
       setBilling(billingData);
+      setBranding(brandingData);
       setPromotions(promotionData);
       setInvoiceRequests(invoiceData);
       setLoyalty(loyaltyData);
@@ -223,6 +251,20 @@ export default function RestaurantAdminDashboard() {
         setServiceRate(String(billingData.restaurantServiceRateBps / 100));
         setTaxIncluded(billingData.restaurantTaxIncluded);
         billingInitialized.current = true;
+      }
+      if (!brandingInitialized.current) {
+        setDisplayName(brandingData.restaurantDisplayName ?? brandingData.name);
+        setUseHeaderImage(brandingData.restaurantUseHeaderImage);
+        setHeaderImageData(brandingData.restaurantHeaderImageData ?? null);
+        setMenuBackgroundImageData(
+          brandingData.restaurantMenuBackgroundImageData ?? null,
+        );
+        setMenuBackgroundEnabled(brandingData.restaurantMenuBackgroundEnabled);
+        setMenuBackgroundPosition(
+          brandingData.restaurantMenuBackgroundPosition,
+        );
+        setMenuBackgroundSize(brandingData.restaurantMenuBackgroundSize);
+        brandingInitialized.current = true;
       }
       setError("");
     } catch (err) {
@@ -360,6 +402,54 @@ export default function RestaurantAdminDashboard() {
     }
     setImageData(dataUrl);
     setError("");
+  }
+
+  async function selectBrandImage(
+    file: File | undefined,
+    target: "header" | "background",
+  ) {
+    if (!file) return;
+    if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
+      setError("La imagen debe ser JPEG, PNG o WebP");
+      return;
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      setError("La imagen supera el límite de 2 MB de la prueba gratuita");
+      return;
+    }
+    try {
+      const dataUrl = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onerror = () => reject(new Error("No se pudo leer la imagen"));
+        reader.onload = () => resolve(String(reader.result));
+        reader.readAsDataURL(file);
+      });
+      const dimensions = await new Promise<{ width: number; height: number }>(
+        (resolve, reject) => {
+          const image = new window.Image();
+          image.onerror = () => reject(new Error("La imagen no es válida"));
+          image.onload = () =>
+            resolve({ width: image.width, height: image.height });
+          image.src = dataUrl;
+        },
+      );
+      if (dimensions.width > 1600 || dimensions.height > 1600) {
+        setError("La resolución máxima es 1600 × 1600 píxeles");
+        return;
+      }
+      if (target === "header") {
+        setHeaderImageData(dataUrl);
+        setUseHeaderImage(true);
+      } else {
+        setMenuBackgroundImageData(dataUrl);
+        setMenuBackgroundEnabled(true);
+      }
+      setError("");
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "No se pudo leer la imagen",
+      );
+    }
   }
 
   const visible = orders.flatMap((order) =>
@@ -554,6 +644,223 @@ export default function RestaurantAdminDashboard() {
                 servicio {billing.restaurantServiceRateBps / 100}%.
               </p>
             )}
+          </section>
+          <section className="mt-8 rounded-xl border bg-slate-50 p-5">
+            <h2 className="text-xl font-bold">
+              Identidad visual del menú del cliente
+            </h2>
+            <p className="mt-1 text-sm text-slate-600">
+              Personaliza el título y el fondo de la zona desplazable del menú.
+              La cuenta y el botón para confirmar conservan su fondo sólido.
+            </p>
+            <form
+              className="mt-5 space-y-6"
+              onSubmit={(event) => {
+                event.preventDefault();
+                if (!displayName.trim()) {
+                  setError("Ingrese el nombre visible del establecimiento");
+                  return;
+                }
+                void post(
+                  "branding-settings",
+                  {
+                    displayName: displayName.trim(),
+                    useHeaderImage,
+                    headerImageData,
+                    menuBackgroundEnabled,
+                    menuBackgroundImageData,
+                    menuBackgroundPosition,
+                    menuBackgroundSize,
+                  },
+                  "PATCH",
+                );
+              }}
+            >
+              <fieldset className="rounded-xl border bg-white p-4">
+                <legend className="px-2 font-bold">
+                  Encabezado del establecimiento
+                </legend>
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div className="space-y-3">
+                    <label className="block font-semibold">
+                      Nombre visible
+                      <input
+                        required
+                        maxLength={120}
+                        className="mt-1 w-full rounded border p-2"
+                        value={displayName}
+                        onChange={(event) => setDisplayName(event.target.value)}
+                      />
+                    </label>
+                    <div className="flex flex-wrap gap-4">
+                      <label className="flex items-center gap-2">
+                        <input
+                          type="radio"
+                          checked={!useHeaderImage}
+                          onChange={() => setUseHeaderImage(false)}
+                        />
+                        Mostrar texto
+                      </label>
+                      <label className="flex items-center gap-2">
+                        <input
+                          type="radio"
+                          checked={useHeaderImage}
+                          disabled={!headerImageData}
+                          onChange={() => setUseHeaderImage(true)}
+                        />
+                        Mostrar imagen
+                      </label>
+                    </div>
+                    <label className="block text-sm">
+                      Imagen del encabezado (JPEG, PNG o WebP; máximo 2 MB y
+                      1600 × 1600)
+                      <input
+                        className="mt-2 block w-full"
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp"
+                        onChange={(event) =>
+                          void selectBrandImage(
+                            event.target.files?.[0],
+                            "header",
+                          )
+                        }
+                      />
+                    </label>
+                    {headerImageData && (
+                      <button
+                        type="button"
+                        className="text-red-700 underline"
+                        onClick={() => {
+                          setHeaderImageData(null);
+                          setUseHeaderImage(false);
+                        }}
+                      >
+                        Quitar imagen del encabezado
+                      </button>
+                    )}
+                  </div>
+                  <div className="flex min-h-32 items-center rounded-xl border bg-slate-100 p-4">
+                    {useHeaderImage && headerImageData ? (
+                      <Image
+                        src={headerImageData}
+                        alt={displayName || "Vista previa del encabezado"}
+                        width={600}
+                        height={200}
+                        unoptimized
+                        className="h-auto max-h-24 w-auto max-w-full object-contain object-left"
+                      />
+                    ) : (
+                      <strong className="text-3xl">
+                        {displayName || branding?.name || "Restaurante"}
+                      </strong>
+                    )}
+                  </div>
+                </div>
+              </fieldset>
+
+              <fieldset className="rounded-xl border bg-white p-4">
+                <legend className="px-2 font-bold">Fondo fijo del menú</legend>
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div className="space-y-3">
+                    <label className="flex items-center gap-2 font-semibold">
+                      <input
+                        type="checkbox"
+                        checked={menuBackgroundEnabled}
+                        disabled={!menuBackgroundImageData}
+                        onChange={(event) =>
+                          setMenuBackgroundEnabled(event.target.checked)
+                        }
+                      />
+                      Mostrar la imagen como fondo
+                    </label>
+                    <label className="block text-sm">
+                      Logotipo o imagen de fondo (JPEG, PNG o WebP; máximo 2 MB
+                      y 1600 × 1600)
+                      <input
+                        className="mt-2 block w-full"
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp"
+                        onChange={(event) =>
+                          void selectBrandImage(
+                            event.target.files?.[0],
+                            "background",
+                          )
+                        }
+                      />
+                    </label>
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      <label className="font-semibold">
+                        Posición
+                        <select
+                          className="mt-1 w-full rounded border bg-white p-2"
+                          value={menuBackgroundPosition}
+                          onChange={(event) =>
+                            setMenuBackgroundPosition(
+                              event.target.value as "center" | "top" | "bottom",
+                            )
+                          }
+                        >
+                          <option value="top">Superior</option>
+                          <option value="center">Centro</option>
+                          <option value="bottom">Inferior</option>
+                        </select>
+                      </label>
+                      <label className="font-semibold">
+                        Ajuste
+                        <select
+                          className="mt-1 w-full rounded border bg-white p-2"
+                          value={menuBackgroundSize}
+                          onChange={(event) =>
+                            setMenuBackgroundSize(
+                              event.target.value as "cover" | "contain",
+                            )
+                          }
+                        >
+                          <option value="cover">Cubrir el área</option>
+                          <option value="contain">Mostrar completa</option>
+                        </select>
+                      </label>
+                    </div>
+                    {menuBackgroundImageData && (
+                      <button
+                        type="button"
+                        className="text-red-700 underline"
+                        onClick={() => {
+                          setMenuBackgroundImageData(null);
+                          setMenuBackgroundEnabled(false);
+                        }}
+                      >
+                        Quitar imagen de fondo
+                      </button>
+                    )}
+                  </div>
+                  <div
+                    className="min-h-52 rounded-xl border bg-slate-100 bg-no-repeat p-5"
+                    style={
+                      menuBackgroundImageData
+                        ? {
+                            backgroundImage: `linear-gradient(rgba(248, 250, 252, 0.82), rgba(248, 250, 252, 0.82)), url("${menuBackgroundImageData}")`,
+                            backgroundPosition: `center ${menuBackgroundPosition}`,
+                            backgroundSize: menuBackgroundSize,
+                          }
+                        : undefined
+                    }
+                  >
+                    <div className="grid gap-2 sm:grid-cols-2">
+                      <span className="rounded-lg border bg-white/90 p-3 font-semibold">
+                        Producto de muestra
+                      </span>
+                      <span className="rounded-lg border bg-white/90 p-3 font-semibold">
+                        ₡0
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </fieldset>
+              <button className="w-full rounded bg-slate-900 px-5 py-3 font-semibold text-white sm:w-auto">
+                Guardar identidad visual
+              </button>
+            </form>
           </section>
           <section className="mt-12 grid gap-8 md:grid-cols-2">
             <div>

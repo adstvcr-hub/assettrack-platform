@@ -29,6 +29,7 @@ import {
   UpdateMenuItemDto,
   UpdateRestaurantRoleDto,
   UpdateRestaurantBillingDto,
+  UpdateRestaurantBrandingDto,
   UpdateStaffAvailabilityDto,
   UpdateTableBillingDto,
   UpdatePromotionDto,
@@ -133,6 +134,19 @@ export class RestaurantStaffController {
     @Body() dto: UpdateRestaurantBillingDto,
   ) {
     return this.restaurant.updateBillingSettings(req.user, dto);
+  }
+
+  @Get("branding-settings")
+  brandingSettings(@Req() req: StaffRequest) {
+    return this.restaurant.brandingSettings(req.user);
+  }
+
+  @Patch("branding-settings")
+  updateBrandingSettings(
+    @Req() req: StaffRequest,
+    @Body() dto: UpdateRestaurantBrandingDto,
+  ) {
+    return this.restaurant.updateBrandingSettings(req.user, dto);
   }
 
   @Get("tables/:id/qr")

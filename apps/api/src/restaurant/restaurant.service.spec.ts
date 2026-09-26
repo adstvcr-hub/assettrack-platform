@@ -214,6 +214,73 @@ describe("RestaurantService", () => {
     });
   });
 
+  it("returns the restaurant visual identity with the guest menu", async () => {
+    const { prisma, service } = createService();
+    prisma.restaurantTable.findUnique.mockResolvedValue({
+      ...table,
+      organization: {
+        name: "AssetTrack Demo",
+        restaurantDisplayName: "Café del Parque",
+        restaurantHeaderImageData: "data:image/png;base64,header",
+        restaurantUseHeaderImage: true,
+        restaurantMenuBackgroundImageData: "data:image/webp;base64,background",
+        restaurantMenuBackgroundEnabled: true,
+        restaurantMenuBackgroundPosition: "top",
+        restaurantMenuBackgroundSize: "contain",
+        restaurantTaxRateBps: 1300,
+        restaurantTaxIncluded: false,
+        restaurantServiceRateBps: 1000,
+      },
+      waiter: null,
+    });
+
+    const result = await service.guestMenu("table-code");
+
+    expect(result.branding).toEqual({
+      displayName: "Café del Parque",
+      headerImageData: "data:image/png;base64,header",
+      useHeaderImage: true,
+      menuBackgroundImageData: "data:image/webp;base64,background",
+      menuBackgroundEnabled: true,
+      menuBackgroundPosition: "top",
+      menuBackgroundSize: "contain",
+    });
+  });
+
+  it("stores restaurant visual identity settings for administrators", async () => {
+    const { prisma, service } = createService();
+    const admin = {
+      id: "admin-a",
+      organizationId: "org-a",
+      role: UserRole.ADMIN,
+      restaurantRole: null,
+      restaurantAvailability: RestaurantStaffAvailability.AVAILABLE,
+    };
+
+    await service.updateBrandingSettings(admin, {
+      displayName: "  Café del Parque  ",
+      useHeaderImage: true,
+      headerImageData: "data:image/png;base64,header",
+      menuBackgroundEnabled: true,
+      menuBackgroundImageData: "data:image/webp;base64,background",
+      menuBackgroundPosition: "center",
+      menuBackgroundSize: "cover",
+    });
+
+    expect(prisma.organization.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { id: "org-a" },
+        data: expect.objectContaining({
+          restaurantDisplayName: "Café del Parque",
+          restaurantUseHeaderImage: true,
+          restaurantMenuBackgroundEnabled: true,
+          restaurantMenuBackgroundPosition: "center",
+          restaurantMenuBackgroundSize: "cover",
+        }),
+      }),
+    );
+  });
+
   it("shows only the assigned waiter's identity to a guest", async () => {
     const { prisma, service } = createService();
     prisma.restaurantVisit.findUnique.mockResolvedValue({

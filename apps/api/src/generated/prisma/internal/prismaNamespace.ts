@@ -1964,7 +1964,14 @@ export const OrganizationScalarFieldEnum = {
   restaurantTaxRateBps: 'restaurantTaxRateBps',
   restaurantTaxIncluded: 'restaurantTaxIncluded',
   restaurantServiceRateBps: 'restaurantServiceRateBps',
-  restaurantAccessEnabled: 'restaurantAccessEnabled'
+  restaurantAccessEnabled: 'restaurantAccessEnabled',
+  restaurantDisplayName: 'restaurantDisplayName',
+  restaurantHeaderImageData: 'restaurantHeaderImageData',
+  restaurantUseHeaderImage: 'restaurantUseHeaderImage',
+  restaurantMenuBackgroundImageData: 'restaurantMenuBackgroundImageData',
+  restaurantMenuBackgroundEnabled: 'restaurantMenuBackgroundEnabled',
+  restaurantMenuBackgroundPosition: 'restaurantMenuBackgroundPosition',
+  restaurantMenuBackgroundSize: 'restaurantMenuBackgroundSize'
 } as const
 
 export type OrganizationScalarFieldEnum = (typeof OrganizationScalarFieldEnum)[keyof typeof OrganizationScalarFieldEnum]

@@ -492,10 +492,6 @@ export type EnumRestaurantTableKindFieldUpdateOperationsInput = {
   set?: $Enums.RestaurantTableKind
 }
 
-export type NullableStringFieldUpdateOperationsInput = {
-  set?: string | null
-}
-
 export type RestaurantTableCreateNestedOneWithoutVisitsInput = {
   create?: Prisma.XOR<Prisma.RestaurantTableCreateWithoutVisitsInput, Prisma.RestaurantTableUncheckedCreateWithoutVisitsInput>
   connectOrCreate?: Prisma.RestaurantTableCreateOrConnectWithoutVisitsInput

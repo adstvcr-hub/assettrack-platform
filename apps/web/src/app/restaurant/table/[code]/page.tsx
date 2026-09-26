@@ -3,7 +3,14 @@
 import { API_URL } from "@/lib/api";
 import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  type CSSProperties,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 
 type Fulfillment = "DINE_IN" | "TAKEOUT";
 type MenuItem = {
@@ -29,6 +36,15 @@ type Promotion = {
 };
 type Menu = {
   restaurant: string;
+  branding: {
+    displayName: string;
+    headerImageData?: string | null;
+    useHeaderImage: boolean;
+    menuBackgroundImageData?: string | null;
+    menuBackgroundEnabled: boolean;
+    menuBackgroundPosition: "center" | "top" | "bottom";
+    menuBackgroundSize: "cover" | "contain";
+  };
   table: string;
   tableKind: "DINING" | "TAKEOUT_STATION";
   activeAccountCount: number;
@@ -43,6 +59,15 @@ type Menu = {
   };
   menu: MenuItem[];
 };
+
+const categoryStyles = [
+  "border-rose-300 bg-rose-100 text-rose-950",
+  "border-amber-300 bg-amber-100 text-amber-950",
+  "border-emerald-300 bg-emerald-100 text-emerald-950",
+  "border-sky-300 bg-sky-100 text-sky-950",
+  "border-violet-300 bg-violet-100 text-violet-950",
+  "border-pink-300 bg-pink-100 text-pink-950",
+];
 
 export default function RestaurantTablePage() {
   const { code } = useParams<{ code: string }>();
@@ -291,6 +316,17 @@ export default function RestaurantTablePage() {
     ? Math.round((subtotal * data.billing.serviceRateBps) / 10000)
     : 0;
   const total = subtotal + service + (data?.billing.taxIncluded ? 0 : tax);
+  const menuBackgroundStyle: CSSProperties | undefined =
+    data?.branding.menuBackgroundEnabled &&
+    data.branding.menuBackgroundImageData
+      ? {
+          backgroundAttachment: "fixed",
+          backgroundImage: `linear-gradient(rgba(248, 250, 252, 0.88), rgba(248, 250, 252, 0.88)), url("${data.branding.menuBackgroundImageData}")`,
+          backgroundPosition: `center ${data.branding.menuBackgroundPosition}`,
+          backgroundRepeat: "no-repeat",
+          backgroundSize: data.branding.menuBackgroundSize,
+        }
+      : undefined;
 
   return (
     <main className="mx-auto max-w-4xl px-4 py-8 text-slate-900">
@@ -307,7 +343,20 @@ export default function RestaurantTablePage() {
         <p className="font-semibold tracking-widest text-emerald-700">
           ASSETTRACK · RESTAURANTE
         </p>
-        <h1 className="text-3xl font-bold">{data?.restaurant ?? "Menú"}</h1>
+        {data?.branding.useHeaderImage && data.branding.headerImageData ? (
+          <Image
+            src={data.branding.headerImageData}
+            alt={data.branding.displayName}
+            width={600}
+            height={200}
+            unoptimized
+            className="mt-2 h-auto max-h-24 w-auto max-w-full object-contain object-left"
+          />
+        ) : (
+          <h1 className="text-3xl font-bold">
+            {data?.branding.displayName ?? data?.restaurant ?? "Menú"}
+          </h1>
+        )}
         <p>{data?.table ?? "Cargando..."}</p>
         {data && data.tableKind === "DINING" && (
           <p className="mt-2 rounded-lg bg-sky-50 px-3 py-2 text-sky-900">
@@ -383,126 +432,148 @@ export default function RestaurantTablePage() {
       )}
 
       {data?.tableKind === "DINING" && (
-        <fieldset className="mb-5 rounded-xl border bg-white p-4">
-          <legend className="px-2 font-bold">¿Cómo desea su pedido?</legend>
-          <label className="mr-5">
-            <input
-              type="radio"
-              checked={fulfillment === "DINE_IN"}
-              onChange={() => setFulfillment("DINE_IN")}
-            />{" "}
-            Consumir en el local
-          </label>
-          <label>
-            <input
-              type="radio"
-              checked={fulfillment === "TAKEOUT"}
-              onChange={() => setFulfillment("TAKEOUT")}
-            />{" "}
-            Todo para llevar
-          </label>
+        <fieldset className="mb-5 min-h-36 rounded-xl border bg-white px-4 pb-5 pt-3">
+          <legend className="max-w-full px-2 text-lg font-bold leading-snug">
+            ¿Cómo desea su pedido?
+          </legend>
+          <div className="mt-2 grid gap-3 sm:grid-cols-2">
+            <label className="flex min-h-12 items-center gap-2 rounded-lg bg-slate-50 p-3">
+              <input
+                type="radio"
+                checked={fulfillment === "DINE_IN"}
+                onChange={() => setFulfillment("DINE_IN")}
+              />
+              <span>Consumir en el local</span>
+            </label>
+            <label className="flex min-h-12 items-center gap-2 rounded-lg bg-slate-50 p-3">
+              <input
+                type="radio"
+                checked={fulfillment === "TAKEOUT"}
+                onChange={() => setFulfillment("TAKEOUT")}
+              />
+              <span>Todo para llevar</span>
+            </label>
+          </div>
         </fieldset>
       )}
 
-      <nav className="mb-5 flex flex-wrap gap-2">
-        <button
-          className="rounded bg-slate-900 px-4 py-2 font-semibold text-white"
-          onClick={() => setShowMainMenu(true)}
-        >
-          Menú principal
-        </button>
-        <button
-          className="rounded bg-emerald-600 px-4 py-2 font-semibold text-white"
-          onClick={() => setShowMainMenu(false)}
-        >
-          Menú rápido
-        </button>
-      </nav>
-      <div className="mb-6 flex flex-wrap gap-2">
-        {(showMainMenu ? (data?.productTypes ?? []) : menuTypes).map((type) => (
+      <section
+        className="rounded-2xl px-3 py-4 sm:px-4"
+        style={menuBackgroundStyle}
+      >
+        <nav className="mb-5 flex flex-wrap gap-2">
           <button
-            key={type}
-            onClick={() => setActiveType(type)}
-            className={`rounded-full px-4 py-2 ${
-              activeType === type ? "bg-slate-900 text-white" : "bg-slate-100"
+            aria-pressed={showMainMenu}
+            className={`rounded-lg border border-sky-300 bg-sky-100 px-4 py-2 font-semibold text-sky-950 ${
+              showMainMenu ? "ring-2 ring-sky-700 ring-offset-2" : ""
             }`}
+            onClick={() => setShowMainMenu(true)}
           >
-            {type}
+            Menú principal
           </button>
-        ))}
-      </div>
-
-      <div className="grid gap-4 sm:grid-cols-2">
-        {visibleItems.map((item) => (
-          <section
-            key={item.id}
-            id={`menu-item-${item.id}`}
-            className={`overflow-hidden rounded-xl border shadow-sm ${
-              item.available ? "bg-white" : "bg-amber-50"
+          <button
+            aria-pressed={!showMainMenu}
+            className={`rounded-lg border border-emerald-300 bg-emerald-100 px-4 py-2 font-semibold text-emerald-950 ${
+              !showMainMenu ? "ring-2 ring-emerald-700 ring-offset-2" : ""
             }`}
+            onClick={() => setShowMainMenu(false)}
           >
-            {item.imageData && (
-              <Image
-                src={item.imageData}
-                alt={item.name}
-                width={520}
-                height={600}
-                unoptimized
-                className="mx-auto block h-[60mm] max-h-[60mm] w-[52mm] max-w-full object-cover object-center"
-              />
-            )}
-            <div className="p-4">
-              <div className="flex justify-between gap-3">
-                <h2 className="text-lg font-bold">{item.name}</h2>
-                <strong>₡{item.price.toLocaleString()}</strong>
-              </div>
-              <p className="text-slate-600">{item.description}</p>
-              {!item.available && (
-                <p className="mt-2 font-semibold text-amber-800">
-                  Temporalmente no disponible. Consulte al personal.
-                </p>
+            Menú rápido
+          </button>
+        </nav>
+        <div className="mb-6 flex flex-wrap gap-2">
+          {(showMainMenu ? (data?.productTypes ?? []) : menuTypes).map(
+            (type, index) => (
+              <button
+                key={type}
+                aria-pressed={activeType === type}
+                onClick={() => setActiveType(type)}
+                className={`rounded-full border px-4 py-2 font-semibold transition ${
+                  categoryStyles[index % categoryStyles.length]
+                } ${
+                  activeType === type
+                    ? "ring-2 ring-slate-800 ring-offset-2"
+                    : "hover:brightness-95"
+                }`}
+              >
+                {type}
+              </button>
+            ),
+          )}
+        </div>
+
+        <div className="grid gap-4 sm:grid-cols-2">
+          {visibleItems.map((item) => (
+            <section
+              key={item.id}
+              id={`menu-item-${item.id}`}
+              className={`overflow-hidden rounded-xl border shadow-sm ${
+                item.available ? "bg-white" : "bg-amber-50"
+              }`}
+            >
+              {item.imageData && (
+                <Image
+                  src={item.imageData}
+                  alt={item.name}
+                  width={520}
+                  height={600}
+                  unoptimized
+                  className="mx-auto block h-[60mm] max-h-[60mm] w-[52mm] max-w-full object-cover object-center"
+                />
               )}
-              <label className="mt-3 block">
-                Cantidad{" "}
-                <select
-                  className="ml-2 rounded border p-2"
-                  disabled={!item.available}
-                  value={quantities[item.id] ?? 0}
-                  onChange={(event) =>
-                    setQuantities((current) => ({
-                      ...current,
-                      [item.id]: Number(event.target.value),
-                    }))
-                  }
-                >
-                  {Array.from({ length: 11 }, (_, index) => (
-                    <option key={index} value={index}>
-                      {index}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              {data?.tableKind === "DINING" &&
-                fulfillment === "DINE_IN" &&
-                (quantities[item.id] ?? 0) > 0 && (
-                  <label className="mt-3 flex items-center gap-2 text-sm">
-                    <input
-                      type="checkbox"
-                      checked={Boolean(takeoutItems[item.id])}
-                      onChange={(event) =>
-                        setTakeoutItems((current) => ({
-                          ...current,
-                          [item.id]: event.target.checked,
-                        }))
-                      }
-                    />{" "}
-                    Este producto es para llevar
-                  </label>
+              <div className="p-4">
+                <div className="flex justify-between gap-3">
+                  <h2 className="text-lg font-bold">{item.name}</h2>
+                  <strong>₡{item.price.toLocaleString()}</strong>
+                </div>
+                <p className="text-slate-600">{item.description}</p>
+                {!item.available && (
+                  <p className="mt-2 font-semibold text-amber-800">
+                    Temporalmente no disponible. Consulte al personal.
+                  </p>
                 )}
-            </div>
-          </section>
-        ))}
-      </div>
+                <label className="mt-3 block">
+                  Cantidad{" "}
+                  <select
+                    className="ml-2 rounded border p-2"
+                    disabled={!item.available}
+                    value={quantities[item.id] ?? 0}
+                    onChange={(event) =>
+                      setQuantities((current) => ({
+                        ...current,
+                        [item.id]: Number(event.target.value),
+                      }))
+                    }
+                  >
+                    {Array.from({ length: 11 }, (_, index) => (
+                      <option key={index} value={index}>
+                        {index}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                {data?.tableKind === "DINING" &&
+                  fulfillment === "DINE_IN" &&
+                  (quantities[item.id] ?? 0) > 0 && (
+                    <label className="mt-3 flex items-center gap-2 text-sm">
+                      <input
+                        type="checkbox"
+                        checked={Boolean(takeoutItems[item.id])}
+                        onChange={(event) =>
+                          setTakeoutItems((current) => ({
+                            ...current,
+                            [item.id]: event.target.checked,
+                          }))
+                        }
+                      />{" "}
+                      Este producto es para llevar
+                    </label>
+                  )}
+              </div>
+            </section>
+          ))}
+        </div>
+      </section>
 
       {data && (
         <footer className="sticky bottom-0 mt-6 rounded-xl bg-slate-900 p-4 text-white">

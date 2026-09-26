@@ -8,6 +8,7 @@ import {
   IsEmail,
   IsEnum,
   IsInt,
+  IsIn,
   IsOptional,
   IsString,
   IsUUID,
@@ -127,6 +128,24 @@ export class UpdateRestaurantBillingDto {
   @IsInt() @Min(0) @Max(10000) taxRateBps!: number;
   @IsBoolean() taxIncluded!: boolean;
   @IsInt() @Min(0) @Max(10000) serviceRateBps!: number;
+}
+
+export class UpdateRestaurantBrandingDto {
+  @IsOptional() @IsString() @MaxLength(120) displayName?: string | null;
+  @IsBoolean() useHeaderImage!: boolean;
+  @IsOptional()
+  @IsString()
+  @MaxLength(2800000)
+  headerImageData?: string | null;
+  @IsBoolean() menuBackgroundEnabled!: boolean;
+  @IsOptional()
+  @IsString()
+  @MaxLength(2800000)
+  menuBackgroundImageData?: string | null;
+  @IsIn(["center", "top", "bottom"])
+  menuBackgroundPosition!: "center" | "top" | "bottom";
+  @IsIn(["cover", "contain"])
+  menuBackgroundSize!: "cover" | "contain";
 }
 
 export class UpdateStaffAvailabilityDto {
