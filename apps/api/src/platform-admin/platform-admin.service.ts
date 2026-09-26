@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ConflictException,
   ForbiddenException,
   Injectable,
   NotFoundException,
@@ -7,9 +8,17 @@ import {
 import { randomBytes } from "crypto";
 import * as bcrypt from "bcrypt";
 import { PrismaService } from "../prisma/prisma.service";
-import { RestaurantItemStatus } from "../generated/prisma/enums";
-import { RestaurantRewardSponsor } from "../generated/prisma/enums";
+import {
+  OrganizationLocationType,
+  RestaurantItemStatus,
+  RestaurantRewardSponsor,
+  RestaurantStaffAvailability,
+  RestaurantStaffRole,
+  UserRole,
+} from "../generated/prisma/enums";
 import { CreateRewardProgramDto } from "../restaurant/dto/restaurant.dto";
+import { normalizeLocationName } from "../common/normalize-location-name";
+import { CreateRestaurantOrganizationDto } from "./dto/platform-admin.dto";
 
 export type PlatformActor = { id: string; email: string };
 
@@ -52,6 +61,91 @@ export class PlatformAdminService {
       },
       orderBy: { name: "asc" },
     });
+  }
+
+  async createRestaurantOrganization(
+    actor: PlatformActor,
+    dto: CreateRestaurantOrganizationDto,
+  ) {
+    this.requirePlatformAdmin(actor);
+    const slug = dto.slug.trim().toLowerCase();
+    const existing = await this.prisma.organization.findUnique({
+      where: { slug },
+      select: { id: true },
+    });
+    if (existing) {
+      throw new ConflictException("Organization slug already exists");
+    }
+
+    const temporaryPassword = `At-${randomBytes(9).toString("base64url")}!`;
+    const passwordHash = await bcrypt.hash(temporaryPassword, 12);
+    try {
+      const created = await this.prisma.$transaction(async (tx) => {
+        const organization = await tx.organization.create({
+          data: {
+            name: dto.name.trim(),
+            slug,
+            restaurantAccessEnabled: dto.enabled,
+            restaurantDisplayName: dto.name.trim(),
+          },
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+            restaurantAccessEnabled: true,
+          },
+        });
+        const administrator = await tx.user.create({
+          data: {
+            organizationId: organization.id,
+            name: dto.adminName.trim(),
+            email: dto.adminEmail.trim().toLowerCase(),
+            passwordHash,
+            role: UserRole.OWNER,
+            restaurantRole: RestaurantStaffRole.RESTAURANT_ADMIN,
+            restaurantAvailability: RestaurantStaffAvailability.AVAILABLE,
+          },
+          select: { id: true, name: true, email: true },
+        });
+        await tx.organizationLocation.create({
+          data: {
+            organizationId: organization.id,
+            name: dto.name.trim(),
+            nameKey: normalizeLocationName(dto.name),
+            type: OrganizationLocationType.BRANCH,
+            country: dto.country.trim(),
+            region: dto.region?.trim() || null,
+            city: dto.city?.trim() || null,
+            timezone: dto.timezone?.trim() || null,
+            active: true,
+          },
+        });
+        await tx.platformAdminEvent.create({
+          data: {
+            actorId: actor.id,
+            action: "RESTAURANT_ORGANIZATION_CREATED",
+            organizationId: organization.id,
+            targetUserId: administrator.id,
+            metadata: {
+              slug: organization.slug,
+              enabled: organization.restaurantAccessEnabled,
+            },
+          },
+        });
+        return { organization, administrator };
+      });
+      return { ...created, temporaryPassword };
+    } catch (error) {
+      if (
+        typeof error === "object" &&
+        error !== null &&
+        "code" in error &&
+        error.code === "P2002"
+      ) {
+        throw new ConflictException("Organization slug already exists");
+      }
+      throw error;
+    }
   }
 
   async organizationUsers(actor: PlatformActor, organizationId: string) {

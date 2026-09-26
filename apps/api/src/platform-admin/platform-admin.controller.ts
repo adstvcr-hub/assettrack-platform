@@ -2,7 +2,11 @@ import { Body, Controller, Get, Param, Patch, Post, Query, Req, UseGuards } from
 import type { Request } from "express";
 import { JwtAuthGuard } from "../auth/jwt-auth.guard";
 import { PlatformAdminService, PlatformActor } from "./platform-admin.service";
-import { ResetUserCredentialDto, UpdateRestaurantAccessDto } from "./dto/platform-admin.dto";
+import {
+  CreateRestaurantOrganizationDto,
+  ResetUserCredentialDto,
+  UpdateRestaurantAccessDto,
+} from "./dto/platform-admin.dto";
 import { CreateRewardProgramDto } from "../restaurant/dto/restaurant.dto";
 
 type PlatformRequest = Request & { user: PlatformActor };
@@ -29,6 +33,14 @@ export class PlatformAdminController {
   @Get("organizations")
   organizations(@Req() req: PlatformRequest) {
     return this.platform.organizations(req.user);
+  }
+
+  @Post("organizations")
+  createOrganization(
+    @Req() req: PlatformRequest,
+    @Body() dto: CreateRestaurantOrganizationDto,
+  ) {
+    return this.platform.createRestaurantOrganization(req.user, dto);
   }
 
   @Get("organizations/:id/users")
