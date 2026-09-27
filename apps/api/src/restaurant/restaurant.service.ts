@@ -651,6 +651,9 @@ export class RestaurantService {
         restaurantRole: true,
         restaurantAvailability: true,
         active: true,
+        staffAccessCode: {
+          select: { active: true, updatedAt: true, lastUsedAt: true },
+        },
       },
       orderBy: { name: "asc" },
     });
@@ -1207,6 +1210,8 @@ export class RestaurantService {
     }
     const url = `${base}/restaurant/table/${table.code}`;
     return {
+      tableName: table.name,
+      tableKind: table.kind,
       url,
       image: await QRCode.toDataURL(url, { width: 400, margin: 2 }),
     };

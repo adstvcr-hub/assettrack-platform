@@ -32,6 +32,7 @@ type StaffQr = {
   accessUrl: string;
   image: string;
 };
+type RestaurantRole = NonNullable<User["restaurantRole"]>;
 
 export default function UsersPage() {
   const router = useRouter();
@@ -41,6 +42,8 @@ export default function UsersPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [role, setRole] = useState<User["role"]>("USER");
+  const [restaurantRole, setRestaurantRole] = useState<RestaurantRole | "">("");
+  const [createStaffAccessQr, setCreateStaffAccessQr] = useState(false);
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -135,6 +138,10 @@ export default function UsersPage() {
           email,
           password,
           role,
+          restaurantRole: restaurantRole || undefined,
+          createStaffAccessQr:
+            createStaffAccessQr &&
+            Boolean(restaurantRole || role === "OWNER" || role === "ADMIN"),
         }),
       });
 
@@ -151,6 +158,17 @@ export default function UsersPage() {
       setEmail("");
       setPassword("");
       setRole("USER");
+      setRestaurantRole("");
+      setCreateStaffAccessQr(false);
+
+      if (data.generatedStaffAccessQr) {
+        setStaffQr(data.generatedStaffAccessQr as StaffQr);
+        setNotice(
+          "Usuario y QR creados. Descargue o imprima el código antes de cerrar.",
+        );
+      } else {
+        setNotice("Usuario creado correctamente.");
+      }
 
       await loadUsers();
     } catch (err) {
@@ -415,9 +433,15 @@ export default function UsersPage() {
 
                 <select
                   value={role}
-                  onChange={(event) =>
-                    setRole(event.target.value as User["role"])
-                  }
+                  onChange={(event) => {
+                    const nextRole = event.target.value as User["role"];
+                    setRole(nextRole);
+                    if (nextRole === "OWNER" || nextRole === "ADMIN") {
+                      setCreateStaffAccessQr(true);
+                    } else if (!restaurantRole) {
+                      setCreateStaffAccessQr(false);
+                    }
+                  }}
                   className="w-full rounded-lg border border-slate-300 bg-white px-4 py-3 text-slate-900 placeholder:text-slate-400"
                 >
                   <option value="USER">User</option>
@@ -425,6 +449,44 @@ export default function UsersPage() {
                   <option value="ADMIN">Admin</option>
                   <option value="OWNER">Owner</option>
                 </select>
+
+                <select
+                  value={restaurantRole}
+                  onChange={(event) => {
+                    const nextRole = event.target.value as RestaurantRole | "";
+                    setRestaurantRole(nextRole);
+                    setCreateStaffAccessQr(
+                      Boolean(nextRole) || role === "OWNER" || role === "ADMIN",
+                    );
+                  }}
+                  className="w-full rounded-lg border border-slate-300 bg-white px-4 py-3 text-slate-900"
+                >
+                  <option value="">Sin puesto de restaurante</option>
+                  <option value="RESTAURANT_ADMIN">Administración</option>
+                  <option value="KITCHEN">Cocina</option>
+                  <option value="BAR">Bar</option>
+                  <option value="WAITER">Mesero</option>
+                </select>
+
+                <label className="flex items-start gap-3 rounded-lg border border-slate-200 p-3 text-sm text-slate-700">
+                  <input
+                    type="checkbox"
+                    className="mt-0.5"
+                    checked={createStaffAccessQr}
+                    disabled={
+                      !restaurantRole && role !== "OWNER" && role !== "ADMIN"
+                    }
+                    onChange={(event) =>
+                      setCreateStaffAccessQr(event.target.checked)
+                    }
+                  />
+                  <span>
+                    <strong className="block text-slate-900">
+                      Crear QR de acceso al guardar
+                    </strong>
+                    El QR solicitará únicamente la contraseña.
+                  </span>
+                </label>
 
                 <button
                   type="submit"

@@ -1,5 +1,6 @@
 ﻿import {
   IsEmail,
+  IsBoolean,
   IsEnum,
   IsNotEmpty,
   IsOptional,
@@ -30,4 +31,8 @@ export class CreateUserDto {
   @IsOptional()
   @IsEnum(RestaurantStaffRole)
   restaurantRole?: RestaurantStaffRole;
+
+  @IsOptional()
+  @IsBoolean()
+  createStaffAccessQr?: boolean;
 }

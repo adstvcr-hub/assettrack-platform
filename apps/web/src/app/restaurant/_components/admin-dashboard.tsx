@@ -25,6 +25,16 @@ type StaffUser = {
   restaurantAvailability:
     "AVAILABLE" | "BREAK" | "TEMPORARILY_UNAVAILABLE" | "OFF_SHIFT";
   active: boolean;
+  staffAccessCode?: {
+    active: boolean;
+    updatedAt: string;
+    lastUsedAt?: string | null;
+  } | null;
+};
+type StaffAccessQr = {
+  staffName: string;
+  accessUrl: string;
+  image: string;
 };
 type MenuItem = {
   id: string;
@@ -211,7 +221,14 @@ export default function RestaurantAdminDashboard() {
   const [promotionCredit, setPromotionCredit] = useState("0");
   const [promotionStart, setPromotionStart] = useState("");
   const [promotionEnd, setPromotionEnd] = useState("");
-  const [qr, setQr] = useState<{ url: string; image: string } | null>(null);
+  const [qr, setQr] = useState<{
+    tableName: string;
+    tableKind: Table["kind"];
+    url: string;
+    image: string;
+  } | null>(null);
+  const [qrNotice, setQrNotice] = useState("");
+  const [staffQr, setStaffQr] = useState<StaffAccessQr | null>(null);
   const [error, setError] = useState("");
   const [billing, setBilling] = useState<BillingSettings | null>(null);
   const [taxRate, setTaxRate] = useState("13");
@@ -517,9 +534,125 @@ export default function RestaurantAdminDashboard() {
       );
       if (!response.ok) throw new Error("QR unavailable");
       setQr(await response.json());
+      setQrNotice("");
     } catch (err) {
       setError(err instanceof Error ? err.message : "QR unavailable");
     }
+  }
+
+  async function copyQrUrl() {
+    if (!qr) return;
+    try {
+      await navigator.clipboard.writeText(qr.url);
+      setQrNotice("Enlace copiado.");
+    } catch {
+      setError("No fue posible copiar el enlace. Selecciónelo manualmente.");
+    }
+  }
+
+  function printTableQr() {
+    if (!qr) return;
+    const printWindow = window.open("", "_blank", "width=650,height=800");
+    if (!printWindow) {
+      setError("El navegador bloqueó la ventana de impresión.");
+      return;
+    }
+    const kindLabels: Record<Table["kind"], string> = {
+      DINING: "Mesa de salón",
+      BAR_SEAT: "Posición de barra",
+      TAKEOUT_STATION: "Estación para llevar",
+    };
+    printWindow.document.title = `QR - ${qr.tableName}`;
+    const container = printWindow.document.createElement("main");
+    container.style.cssText =
+      "font-family:Arial,sans-serif;text-align:center;padding:32px;color:#0f172a";
+    const restaurant = printWindow.document.createElement("p");
+    restaurant.textContent =
+      branding?.restaurantDisplayName ?? branding?.name ?? "Restaurante";
+    restaurant.style.cssText =
+      "font-size:18px;font-weight:700;text-transform:uppercase;letter-spacing:1px";
+    const heading = printWindow.document.createElement("h1");
+    heading.textContent = qr.tableName;
+    const kind = printWindow.document.createElement("p");
+    kind.textContent = kindLabels[qr.tableKind];
+    const image = printWindow.document.createElement("img");
+    image.src = qr.image;
+    image.alt = `QR de ${qr.tableName}`;
+    image.style.cssText = "width:430px;max-width:100%;margin:24px auto";
+    const note = printWindow.document.createElement("p");
+    note.textContent = "Escanee para consultar el menú y realizar su pedido.";
+    container.append(restaurant, heading, kind, image, note);
+    printWindow.document.body.append(container);
+    image.onload = () => {
+      printWindow.focus();
+      printWindow.print();
+    };
+  }
+
+  async function generateStaffQr(user: StaffUser) {
+    if (
+      user.staffAccessCode?.active &&
+      !window.confirm(
+        `¿Renovar el QR de ${user.name}? El código anterior dejará de funcionar.`,
+      )
+    ) {
+      return;
+    }
+    const response = await authenticatedFetch(
+      `${API_URL}/api/v1/restaurant/staff-users/${user.id}/access-qr`,
+      { method: "POST" },
+    );
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      setError(data.message ?? "No fue posible crear el QR del usuario");
+      return;
+    }
+    setStaffQr(data as StaffAccessQr);
+    await load();
+  }
+
+  async function revokeStaffQr(user: StaffUser) {
+    if (!window.confirm(`¿Desactivar el QR de ${user.name}?`)) return;
+    const response = await authenticatedFetch(
+      `${API_URL}/api/v1/restaurant/staff-users/${user.id}/access-qr`,
+      { method: "DELETE" },
+    );
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      setError(data.message ?? "No fue posible desactivar el QR del usuario");
+      return;
+    }
+    setStaffQr(null);
+    await load();
+  }
+
+  function printStaffQr() {
+    if (!staffQr) return;
+    const printWindow = window.open("", "_blank", "width=650,height=760");
+    if (!printWindow) {
+      setError("El navegador bloqueó la ventana de impresión.");
+      return;
+    }
+    printWindow.document.title = `QR de acceso - ${staffQr.staffName}`;
+    const container = printWindow.document.createElement("main");
+    container.style.cssText =
+      "font-family:Arial,sans-serif;text-align:center;padding:32px;color:#0f172a";
+    const heading = printWindow.document.createElement("h1");
+    heading.textContent = "Acceso de personal";
+    const name = printWindow.document.createElement("h2");
+    name.textContent = staffQr.staffName;
+    const image = printWindow.document.createElement("img");
+    image.src = staffQr.image;
+    image.alt = `QR de ${staffQr.staffName}`;
+    image.style.cssText = "width:420px;max-width:100%;margin:24px auto";
+    const note = printWindow.document.createElement("p");
+    note.textContent = "Escanee el código e ingrese únicamente su contraseña.";
+    container.append(heading, name, image, note);
+    printWindow.document.body.append(container);
+    image.onload = () => {
+      printWindow.focus();
+      printWindow.print();
+    };
   }
 
   async function selectProductImage(file?: File) {
@@ -1502,12 +1635,33 @@ export default function RestaurantAdminDashboard() {
               ))}
               {qr && (
                 <div className="my-3 rounded border p-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <h3 className="font-bold">{qr.tableName}</h3>
+                      <p className="text-sm text-slate-600">
+                        {qr.tableKind === "DINING"
+                          ? "Mesa de salón"
+                          : qr.tableKind === "BAR_SEAT"
+                            ? "Posición de barra"
+                            : "Estación para llevar"}
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setQr(null)}
+                      className="rounded border px-3 py-1 font-bold"
+                      aria-label="Cerrar código QR"
+                    >
+                      ×
+                    </button>
+                  </div>
                   <Image
                     src={qr.image}
-                    alt="QR code for this table"
+                    alt={`Código QR de ${qr.tableName}`}
                     width={260}
                     height={260}
                     unoptimized
+                    className="mt-3"
                   />
                   <a
                     className="break-all text-emerald-700 underline"
@@ -1518,8 +1672,37 @@ export default function RestaurantAdminDashboard() {
                     {qr.url}
                   </a>
                   <p className="mt-2 text-sm">
-                    Print this QR and place it on the selected table.
+                    Este código es permanente: descargarlo o imprimirlo no
+                    cambia el acceso de la posición.
                   </p>
+                  {qrNotice && (
+                    <p className="mt-2 text-sm font-semibold text-emerald-700">
+                      {qrNotice}
+                    </p>
+                  )}
+                  <div className="mt-4 flex flex-wrap gap-2">
+                    <a
+                      href={qr.image}
+                      download={`qr-${qr.tableName.replaceAll(" ", "-")}.png`}
+                      className="rounded bg-emerald-700 px-4 py-2 font-semibold text-white"
+                    >
+                      Descargar PNG
+                    </a>
+                    <button
+                      type="button"
+                      onClick={printTableQr}
+                      className="rounded bg-slate-950 px-4 py-2 font-semibold text-white"
+                    >
+                      Imprimir
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => void copyQrUrl()}
+                      className="rounded border border-slate-300 px-4 py-2 font-semibold text-slate-700"
+                    >
+                      Copiar enlace
+                    </button>
+                  </div>
                 </div>
               )}
             </div>
@@ -2097,6 +2280,7 @@ export default function RestaurantAdminDashboard() {
                 <th className="p-3">Dashboard</th>
                 <th className="p-3">Disponibilidad</th>
                 <th className="p-3">Cuenta</th>
+                <th className="p-3">QR de acceso</th>
               </tr>
             </thead>
             <tbody>
@@ -2170,11 +2354,88 @@ export default function RestaurantAdminDashboard() {
                       {user.active ? "Activa" : "Inactiva"}
                     </span>
                   </td>
+                  <td className="p-3">
+                    {user.restaurantRole ||
+                    user.role === "OWNER" ||
+                    user.role === "ADMIN" ? (
+                      <div className="flex flex-wrap gap-2">
+                        <button
+                          type="button"
+                          disabled={!user.active}
+                          onClick={() => void generateStaffQr(user)}
+                          className="rounded border border-emerald-400 px-3 py-2 text-sm font-semibold text-emerald-800 disabled:opacity-50"
+                        >
+                          {user.staffAccessCode?.active
+                            ? "Renovar QR"
+                            : "Crear QR"}
+                        </button>
+                        {user.staffAccessCode?.active && (
+                          <button
+                            type="button"
+                            onClick={() => void revokeStaffQr(user)}
+                            className="rounded border border-slate-300 px-3 py-2 text-sm font-semibold"
+                          >
+                            Desactivar
+                          </button>
+                        )}
+                      </div>
+                    ) : (
+                      <span className="text-sm text-slate-500">
+                        Asigne un puesto
+                      </span>
+                    )}
+                  </td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
+        {staffQr && (
+          <div className="mt-5 rounded-xl border bg-white p-5">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <p className="text-sm font-bold uppercase tracking-wider text-emerald-700">
+                  Acceso rápido
+                </p>
+                <h3 className="text-xl font-black">{staffQr.staffName}</h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setStaffQr(null)}
+                className="rounded border px-3 py-1 font-bold"
+              >
+                ×
+              </button>
+            </div>
+            <Image
+              src={staffQr.image}
+              alt={`QR de acceso de ${staffQr.staffName}`}
+              width={320}
+              height={320}
+              unoptimized
+              className="mt-4 rounded border"
+            />
+            <p className="mt-3 break-all text-xs text-slate-600">
+              {staffQr.accessUrl}
+            </p>
+            <div className="mt-4 flex flex-wrap gap-2">
+              <a
+                href={staffQr.image}
+                download={`acceso-${staffQr.staffName.replaceAll(" ", "-")}.png`}
+                className="rounded bg-emerald-700 px-4 py-2 font-semibold text-white"
+              >
+                Descargar
+              </a>
+              <button
+                type="button"
+                onClick={printStaffQr}
+                className="rounded bg-slate-950 px-4 py-2 font-semibold text-white"
+              >
+                Imprimir
+              </button>
+            </div>
+          </div>
+        )}
       </section>
     </main>
   );

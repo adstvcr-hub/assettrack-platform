@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Delete,
+  ForbiddenException,
   Get,
   Param,
   Patch,
@@ -41,6 +42,8 @@ import {
 } from "./dto/restaurant.dto";
 import { RestaurantActor, RestaurantService } from "./restaurant.service";
 import { RestaurantAccessGuard } from "./restaurant-access.guard";
+import { UsersService } from "../users/users.service";
+import { RestaurantStaffRole, UserRole } from "../generated/prisma/enums";
 
 type StaffRequest = Request & { user: RestaurantActor };
 
@@ -98,7 +101,20 @@ export class RestaurantGuestController {
 @UseGuards(JwtAuthGuard, RolesGuard, RestaurantAccessGuard)
 @Controller("restaurant")
 export class RestaurantStaffController {
-  constructor(private readonly restaurant: RestaurantService) {}
+  constructor(
+    private readonly restaurant: RestaurantService,
+    private readonly users: UsersService,
+  ) {}
+
+  private requireRestaurantAdministrator(actor: RestaurantActor) {
+    if (
+      actor.role !== UserRole.OWNER &&
+      actor.role !== UserRole.ADMIN &&
+      actor.restaurantRole !== RestaurantStaffRole.RESTAURANT_ADMIN
+    ) {
+      throw new ForbiddenException("Restaurant administrator role required");
+    }
+  }
 
   @Get("profile")
   profile(@Req() req: StaffRequest) {
@@ -315,6 +331,26 @@ export class RestaurantStaffController {
     @Body() dto: UpdateStaffAvailabilityDto,
   ) {
     return this.restaurant.updateStaffAvailability(req.user, id, dto);
+  }
+
+  @Post("staff-users/:id/access-qr")
+  generateStaffAccessQr(@Req() req: StaffRequest, @Param("id") id: string) {
+    this.requireRestaurantAdministrator(req.user);
+    return this.users.generateStaffAccessQr(
+      req.user.organizationId,
+      req.user.id,
+      id,
+    );
+  }
+
+  @Delete("staff-users/:id/access-qr")
+  revokeStaffAccessQr(@Req() req: StaffRequest, @Param("id") id: string) {
+    this.requireRestaurantAdministrator(req.user);
+    return this.users.revokeStaffAccessQr(
+      req.user.organizationId,
+      req.user.id,
+      id,
+    );
   }
 
   @Patch("staff/availability")

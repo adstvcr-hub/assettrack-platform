@@ -149,4 +149,39 @@ describe("UsersService", () => {
     expect(result.accessUrl).toContain("/restaurant/staff-login/");
     expect(result.image).toMatch(/^data:image\/png;base64,/);
   });
+
+  it("creates a new restaurant user and QR in one workflow", async () => {
+    const { prisma, service } = createService();
+    prisma.user.findFirst.mockResolvedValue(null);
+    prisma.user.create.mockResolvedValue({
+      ...target,
+      restaurantRole: RestaurantStaffRole.KITCHEN,
+      staffAccessCode: {
+        active: true,
+        updatedAt: new Date(),
+        lastUsedAt: null,
+      },
+    });
+
+    const result = await service.create("org-a", "admin-a", {
+      name: "Katherine",
+      email: "katherine@example.com",
+      password: "password-123",
+      role: UserRole.USER,
+      restaurantRole: RestaurantStaffRole.KITCHEN,
+      createStaffAccessQr: true,
+    });
+
+    expect(prisma.user.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          restaurantRole: RestaurantStaffRole.KITCHEN,
+          staffAccessCode: { create: { code: expect.any(String) } },
+        }),
+      }),
+    );
+    expect(result.generatedStaffAccessQr?.image).toMatch(
+      /^data:image\/png;base64,/,
+    );
+  });
 });

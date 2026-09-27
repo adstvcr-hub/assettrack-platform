@@ -45,6 +45,25 @@ export class UsersService {
     return email.trim().toLowerCase();
   }
 
+  private async staffAccessQrPayload(
+    userId: string,
+    staffName: string,
+    code: string,
+  ) {
+    const webUrl = (
+      process.env.PUBLIC_WEB_URL ?? "http://localhost:3001"
+    ).replace(/\/$/, "");
+    const accessUrl = `${webUrl}/restaurant/staff-login/${encodeURIComponent(code)}`;
+    return {
+      userId,
+      staffName,
+      accessUrl,
+      image: await QRCode.toDataURL(accessUrl, { width: 500, margin: 2 }),
+      warning:
+        "This image is shown after creation or renewal. Keep it under administrative control.",
+    };
+  }
+
   private async requireUser(
     tx: Prisma.TransactionClient,
     organizationId: string,
@@ -196,7 +215,21 @@ export class UsersService {
   async create(organizationId: string, actorId: string, dto: CreateUserDto) {
     const email = this.normalizeEmail(dto.email);
     const passwordHash = await bcrypt.hash(dto.password, 12);
-    return this.prisma.$transaction(async (tx) => {
+    const createAccessQr = dto.createStaffAccessQr === true;
+    if (
+      createAccessQr &&
+      !dto.restaurantRole &&
+      dto.role !== UserRole.OWNER &&
+      dto.role !== UserRole.ADMIN
+    ) {
+      throw new BadRequestException(
+        "Assign restaurant access before creating this QR",
+      );
+    }
+    const accessCode = createAccessQr
+      ? randomBytes(32).toString("base64url")
+      : null;
+    const user = await this.prisma.$transaction(async (tx) => {
       await this.assertUniqueEmail(tx, organizationId, email);
       const user = await tx.user.create({
         data: {
@@ -206,6 +239,9 @@ export class UsersService {
           passwordHash,
           role: dto.role,
           restaurantRole: dto.restaurantRole,
+          ...(accessCode
+            ? { staffAccessCode: { create: { code: accessCode } } }
+            : {}),
         },
         select: userSelection,
       });
@@ -218,8 +254,24 @@ export class UsersService {
           metadata: { email: user.email, role: user.role },
         },
       });
+      if (accessCode) {
+        await tx.userManagementEvent.create({
+          data: {
+            organizationId,
+            actorId,
+            targetUserId: user.id,
+            action: "STAFF_ACCESS_QR_GENERATED",
+          },
+        });
+      }
       return user;
     });
+    return {
+      ...user,
+      generatedStaffAccessQr: accessCode
+        ? await this.staffAccessQrPayload(user.id, user.name, accessCode)
+        : null,
+    };
   }
 
   async findAll(organizationId: string, page = 1, limit = 25) {
@@ -350,18 +402,7 @@ export class UsersService {
       });
       return user;
     });
-    const webUrl = (
-      process.env.PUBLIC_WEB_URL ?? "http://localhost:3001"
-    ).replace(/\/$/, "");
-    const accessUrl = `${webUrl}/restaurant/staff-login/${encodeURIComponent(code)}`;
-    return {
-      userId: id,
-      staffName: target.name,
-      accessUrl,
-      image: await QRCode.toDataURL(accessUrl, { width: 500, margin: 2 }),
-      warning:
-        "This image is shown after creation or renewal. Keep it under administrative control.",
-    };
+    return this.staffAccessQrPayload(id, target.name, code);
   }
 
   async revokeStaffAccessQr(
