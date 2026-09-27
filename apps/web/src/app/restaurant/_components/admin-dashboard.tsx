@@ -76,6 +76,31 @@ type Order = {
   table: { name: string };
   items: OrderItem[];
 };
+type ActiveVisit = {
+  id: string;
+  occupiesTable: boolean;
+  table: { name: string };
+  responsibleStaff?: { name: string; restaurantRole: string } | null;
+  deliveryPhone?: string | null;
+  deliveryAddress?: string | null;
+  paymentStatus: "NOT_REQUIRED" | "PENDING" | "CONFIRMED" | "REJECTED";
+  canHandoffDelivery: boolean;
+  items: Array<{
+    id: string;
+    name: string;
+    quantity: number;
+    price: number;
+    status: string;
+  }>;
+  billing: {
+    grossSubtotal: number;
+    promotionCredit: number;
+    subtotal: number;
+    tax: number;
+    service: number;
+    total: number;
+  };
+};
 type Station = "KITCHEN" | "BAR";
 type BillingSettings = {
   restaurantTaxRateBps: number;
@@ -156,6 +181,7 @@ export default function RestaurantAdminDashboard() {
   const [tables, setTables] = useState<Table[]>([]);
   const [menu, setMenu] = useState<MenuItem[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
+  const [visits, setVisits] = useState<ActiveVisit[]>([]);
   const [staffUsers, setStaffUsers] = useState<StaffUser[]>([]);
   const [station, setStation] = useState<Station>("KITCHEN");
   const [tableName, setTableName] = useState("");
@@ -239,6 +265,7 @@ export default function RestaurantAdminDashboard() {
         "tables",
         "menu",
         "orders",
+        "visits",
         "staff-users",
         "billing-settings",
         "branding-settings",
@@ -274,6 +301,7 @@ export default function RestaurantAdminDashboard() {
         tableData,
         menuData,
         orderData,
+        visitData,
         staffData,
         billingData,
         brandingData,
@@ -286,6 +314,7 @@ export default function RestaurantAdminDashboard() {
       setTables(tableData);
       setMenu(menuData);
       setOrders(orderData);
+      setVisits(visitData);
       setStaffUsers(staffData);
       setBilling(billingData);
       setBranding(brandingData);
@@ -585,6 +614,10 @@ export default function RestaurantAdminDashboard() {
       )
       .map((item) => ({ order, item })),
   );
+  const externalVisits = visits.filter((visit) => !visit.occupiesTable);
+  const pendingExternalVisits = externalVisits.filter(
+    (visit) => visit.paymentStatus === "PENDING",
+  );
   const isAdmin = true;
   const waiters = staffUsers.filter((user) => user.restaurantRole === "WAITER");
   const availableWaiters = waiters.filter(
@@ -608,6 +641,148 @@ export default function RestaurantAdminDashboard() {
           {error}
         </p>
       )}
+      {externalVisits.length > 0 && (
+        <section
+          className={`mb-8 rounded-xl border-4 p-5 shadow-lg ${pendingExternalVisits.length ? "border-red-500 bg-amber-50" : "border-violet-300 bg-violet-50"}`}
+        >
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <h2 className="text-2xl font-black">
+                Pedidos a domicilio pendientes de gestión
+              </h2>
+              <p className="mt-1 text-sm text-slate-700">
+                Los productos no ingresan a cocina o bar hasta validar el
+                contacto y confirmar el pago.
+              </p>
+            </div>
+            {pendingExternalVisits.length > 0 && (
+              <span className="animate-pulse rounded-full bg-red-600 px-4 py-2 font-black text-white">
+                {pendingExternalVisits.length} requieren acción
+              </span>
+            )}
+          </div>
+          <div className="mt-5 grid gap-4 lg:grid-cols-2">
+            {externalVisits.map((visit) => (
+              <article
+                key={visit.id}
+                className="rounded-xl bg-white p-5 shadow"
+              >
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div>
+                    <p className="text-sm font-bold text-violet-800">
+                      Código originado en {visit.table.name}
+                    </p>
+                    <p className="text-sm text-slate-600">
+                      Responsable:{" "}
+                      {visit.responsibleStaff?.name ?? "Sin asignar"}
+                    </p>
+                  </div>
+                  <span
+                    className={`rounded-full px-3 py-1 text-xs font-black ${
+                      visit.paymentStatus === "CONFIRMED"
+                        ? "bg-emerald-100 text-emerald-900"
+                        : visit.paymentStatus === "REJECTED"
+                          ? "bg-red-100 text-red-900"
+                          : "bg-amber-200 text-amber-950"
+                    }`}
+                  >
+                    {visit.paymentStatus === "CONFIRMED"
+                      ? "PAGO CONFIRMADO"
+                      : visit.paymentStatus === "REJECTED"
+                        ? "PAGO RECHAZADO"
+                        : "PAGO PENDIENTE"}
+                  </span>
+                </div>
+                <dl className="mt-4 grid grid-cols-[auto_1fr] gap-x-3 gap-y-2 text-sm">
+                  <dt className="font-bold">Teléfono</dt>
+                  <dd>{visit.deliveryPhone || "No informado"}</dd>
+                  <dt className="font-bold">Dirección</dt>
+                  <dd>{visit.deliveryAddress || "No informada"}</dd>
+                </dl>
+                <div className="mt-4 rounded-lg bg-slate-50 p-3">
+                  <p className="font-bold">Orden recibida</p>
+                  <ul className="mt-2 space-y-1 text-sm">
+                    {visit.items.map((item) => (
+                      <li key={item.id} className="flex justify-between gap-3">
+                        <span>
+                          {item.quantity} × {item.name}
+                        </span>
+                        <span>
+                          ₡{(item.price * item.quantity).toLocaleString()}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                  <p className="mt-3 flex justify-between border-t pt-2 text-lg font-black">
+                    <span>Total</span>
+                    <span>₡{visit.billing.total.toLocaleString()}</span>
+                  </p>
+                </div>
+                <div className="mt-4 flex flex-wrap gap-2">
+                  {visit.paymentStatus !== "CONFIRMED" && (
+                    <button
+                      className="rounded bg-emerald-700 px-4 py-3 font-black text-white"
+                      onClick={() => {
+                        if (
+                          window.confirm(
+                            `¿Confirma que se contactó al cliente ${visit.deliveryPhone ?? ""} y que el pago fue verificado?`,
+                          )
+                        ) {
+                          void post(
+                            `visits/${visit.id}/payment`,
+                            { status: "CONFIRMED" },
+                            "PATCH",
+                          );
+                        }
+                      }}
+                    >
+                      Contacto validado y pago confirmado
+                    </button>
+                  )}
+                  {visit.paymentStatus === "PENDING" && (
+                    <button
+                      className="rounded border-2 border-red-600 px-4 py-3 font-bold text-red-700"
+                      onClick={() =>
+                        void post(
+                          `visits/${visit.id}/payment`,
+                          { status: "REJECTED" },
+                          "PATCH",
+                        )
+                      }
+                    >
+                      Rechazar pago
+                    </button>
+                  )}
+                  {visit.paymentStatus === "CONFIRMED" && (
+                    <button
+                      disabled={!visit.canHandoffDelivery}
+                      className="rounded bg-violet-800 px-4 py-3 font-bold text-white disabled:cursor-not-allowed disabled:opacity-40"
+                      onClick={() => {
+                        if (
+                          visit.canHandoffDelivery &&
+                          window.confirm(
+                            "¿Confirma la entrega completa a la persona repartidora?",
+                          )
+                        ) {
+                          void post(
+                            `visits/${visit.id}/delivery-handoff`,
+                            {},
+                            "PATCH",
+                          );
+                        }
+                      }}
+                    >
+                      {visit.canHandoffDelivery
+                        ? "Entregar a repartidor y cerrar"
+                        : "Preparación o entrega pendiente"}
+                    </button>
+                  )}
+                </div>
+              </article>
+            ))}
+          </div>
+        </section>
+      )}
       <div className="mb-5 flex gap-2">
         {(["KITCHEN", "BAR"] as const).map((value) => (
           <button
@@ -625,7 +800,11 @@ export default function RestaurantAdminDashboard() {
           items
         </h2>
         {visible.length === 0 && (
-          <p className="rounded border p-4">No open items for this station.</p>
+          <p className="rounded border p-4">
+            {pendingExternalVisits.length
+              ? "No hay productos liberados para esta estación. Los pedidos externos permanecen bloqueados hasta confirmar el pago."
+              : "No hay productos pendientes para esta estación."}
+          </p>
         )}
         {visible.map(({ order, item }) => (
           <article

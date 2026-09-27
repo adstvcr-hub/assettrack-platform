@@ -1843,17 +1843,29 @@ export class RestaurantService {
           });
           let responsibleStaffId = table.waiterId;
           if (isDelivery) {
-            const waiters = await tx.user.findMany({
+            const availableStaff = await tx.user.findMany({
               where: {
                 organizationId: table.organizationId,
                 restaurantAvailability: RestaurantStaffAvailability.AVAILABLE,
-                restaurantRole: RestaurantStaffRole.WAITER,
+                restaurantRole: {
+                  in: [RestaurantStaffRole.WAITER, RestaurantStaffRole.BAR],
+                },
               },
-              select: { id: true },
+              select: { id: true, restaurantRole: true },
               orderBy: [{ updatedAt: "asc" }, { id: "asc" }],
             });
+            const waiters = availableStaff.filter(
+              (candidate) =>
+                candidate.restaurantRole === RestaurantStaffRole.WAITER,
+            );
+            const candidates = waiters.length
+              ? waiters
+              : availableStaff.filter(
+                  (candidate) =>
+                    candidate.restaurantRole === RestaurantStaffRole.BAR,
+                );
             const loads = await Promise.all(
-              waiters.map(async (candidate) => ({
+              candidates.map(async (candidate) => ({
                 id: candidate.id,
                 load: await tx.restaurantVisit.count({
                   where: {
@@ -1865,11 +1877,6 @@ export class RestaurantService {
             );
             loads.sort((left, right) => left.load - right.load);
             responsibleStaffId = loads[0]?.id ?? null;
-            if (!responsibleStaffId) {
-              throw new ConflictException(
-                "No hay un mesero disponible para confirmar el pedido a domicilio",
-              );
-            }
           } else if (
             table.kind === RestaurantTableKind.BAR_SEAT ||
             table.kind === RestaurantTableKind.TAKEOUT_STATION

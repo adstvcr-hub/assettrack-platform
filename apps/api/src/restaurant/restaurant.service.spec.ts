@@ -193,6 +193,48 @@ describe("RestaurantService", () => {
     );
   });
 
+  it("falls back to available bar staff for delivery payment validation", async () => {
+    const { prisma, service } = createService();
+    prisma.user.findMany.mockResolvedValue([
+      { id: "bar-a", restaurantRole: RestaurantStaffRole.BAR },
+    ]);
+
+    await service.placeOrder("table-code", {
+      ...payload,
+      fulfillment: "DELIVERY",
+      deliveryPhone: "8888-8888",
+      deliveryAddress: "San José",
+    });
+
+    expect(prisma.restaurantVisit.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({ responsibleStaffId: "bar-a" }),
+      }),
+    );
+  });
+
+  it("keeps an unassigned delivery visible for administrative intervention", async () => {
+    const { prisma, service } = createService();
+    prisma.user.findMany
+      .mockResolvedValueOnce([
+        { id: "bar-station", restaurantRole: RestaurantStaffRole.BAR },
+      ])
+      .mockResolvedValueOnce([]);
+
+    await service.placeOrder("table-code", {
+      ...payload,
+      fulfillment: "DELIVERY",
+      deliveryPhone: "8888-8888",
+      deliveryAddress: "San José",
+    });
+
+    expect(prisma.restaurantVisit.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({ responsibleStaffId: null }),
+      }),
+    );
+  });
+
   it("records anonymous QR reach data without storing guest coordinates", async () => {
     const { prisma, service } = createService();
     prisma.restaurantTable.findUnique.mockResolvedValue({

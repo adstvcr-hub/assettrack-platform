@@ -220,7 +220,14 @@ export default function WaiterPage() {
     status: "CONFIRMED" | "REJECTED",
   ) {
     const action = status === "CONFIRMED" ? "confirmar" : "rechazar";
-    if (!window.confirm(`¿Desea ${action} el pago de este pedido?`)) return;
+    if (
+      !window.confirm(
+        status === "CONFIRMED"
+          ? "¿Confirma que contactó al cliente y verificó el pago? La orden será liberada a cocina y bar."
+          : `¿Desea ${action} el pago de este pedido?`,
+      )
+    )
+      return;
     const response = await authenticatedFetch(
       `${API_URL}/api/v1/restaurant/visits/${visitId}/payment`,
       {
@@ -521,7 +528,7 @@ export default function WaiterPage() {
                               void updatePayment(visit.id, "CONFIRMED")
                             }
                           >
-                            Confirmar pago
+                            Contacto validado y pago confirmado
                           </button>
                         )}
                         {visit.paymentStatus !== "REJECTED" &&
