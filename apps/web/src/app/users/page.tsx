@@ -9,10 +9,16 @@ type User = {
   email: string;
   name: string;
   role: "OWNER" | "ADMIN" | "USER" | "VIEWER";
+  restaurantRole: "RESTAURANT_ADMIN" | "KITCHEN" | "BAR" | "WAITER" | null;
+  restaurantAvailability:
+    "AVAILABLE" | "BREAK" | "TEMPORARILY_UNAVAILABLE" | "OFF_SHIFT";
+  active: boolean;
+  deactivatedAt: string | null;
   createdAt: string;
   updatedAt: string;
 };
 type CurrentUser = {
+  id: string;
   role: "OWNER" | "ADMIN" | "USER" | "VIEWER";
 };
 
@@ -28,6 +34,8 @@ export default function UsersPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [notice, setNotice] = useState("");
+  const [actionUserId, setActionUserId] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
@@ -139,6 +147,102 @@ export default function UsersPage() {
       setSaving(false);
     }
   }
+
+  async function userAction(
+    user: User,
+    action: "edit" | "password" | "status" | "delete",
+  ) {
+    const token = getToken();
+    if (!token) return;
+
+    let path = user.id;
+    let method: "PATCH" | "DELETE" = "PATCH";
+    let body: Record<string, unknown> | undefined;
+
+    if (action === "edit") {
+      const nextName = window.prompt("Nombre del usuario", user.name)?.trim();
+      if (!nextName) return;
+      const nextEmail = window.prompt("Correo del usuario", user.email)?.trim();
+      if (!nextEmail) return;
+      body = { name: nextName, email: nextEmail };
+    } else if (action === "password") {
+      const nextPassword = window.prompt(
+        "Nueva contraseña temporal (mínimo 8 caracteres)",
+      );
+      if (!nextPassword) return;
+      if (nextPassword.length < 8) {
+        setError("La contraseña debe tener al menos 8 caracteres.");
+        return;
+      }
+      const confirmation = window.prompt("Repita la nueva contraseña");
+      if (confirmation !== nextPassword) {
+        setError("Las contraseñas no coinciden.");
+        return;
+      }
+      path = `${user.id}/password`;
+      body = { password: nextPassword };
+    } else if (action === "status") {
+      const label = user.active ? "desactivar" : "reactivar";
+      if (!window.confirm(`¿Desea ${label} a ${user.name}?`)) return;
+      path = `${user.id}/status`;
+      body = { active: !user.active };
+    } else {
+      if (
+        !window.confirm(
+          `¿Eliminar a ${user.name}? Si tiene historial operativo se conservará como usuario inactivo.`,
+        )
+      ) {
+        return;
+      }
+      method = "DELETE";
+    }
+
+    setActionUserId(user.id);
+    setError("");
+    setNotice("");
+    try {
+      const response = await authenticatedFetch(
+        `${API_URL}/api/v1/users/${path}`,
+        {
+          method,
+          headers: {
+            Authorization: `Bearer ${token}`,
+            ...(body ? { "Content-Type": "application/json" } : {}),
+          },
+          ...(body ? { body: JSON.stringify(body) } : {}),
+        },
+      );
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(
+          Array.isArray(data.message)
+            ? data.message.join(", ")
+            : (data.message ?? "No fue posible actualizar el usuario"),
+        );
+      }
+      const messages = {
+        edit: "Nombre y correo actualizados.",
+        password: "Contraseña restablecida y sesiones anteriores cerradas.",
+        status: user.active
+          ? "Usuario desactivado y trabajo reasignado."
+          : "Usuario reactivado.",
+        delete:
+          data.mode === "ARCHIVED"
+            ? "El usuario conserva historial y quedó archivado como inactivo."
+            : "Usuario eliminado definitivamente.",
+      };
+      setNotice(messages[action]);
+      await loadUsers();
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : "No fue posible actualizar el usuario",
+      );
+    } finally {
+      setActionUserId(null);
+    }
+  }
   const canManageUsers =
     currentUser?.role === "OWNER" || currentUser?.role === "ADMIN";
   return (
@@ -236,6 +340,12 @@ export default function UsersPage() {
               </p>
             )}
 
+            {notice && (
+              <p className="mt-6 rounded-lg bg-emerald-50 p-4 text-emerald-800">
+                {notice}
+              </p>
+            )}
+
             {!loading && (
               <div className="mt-6 overflow-x-auto">
                 <table className="w-full text-left text-sm">
@@ -244,7 +354,9 @@ export default function UsersPage() {
                       <th className="py-3 pr-4">Name</th>
                       <th className="py-3 pr-4">Email</th>
                       <th className="py-3 pr-4">Role</th>
+                      <th className="py-3 pr-4">Status</th>
                       <th className="py-3">Created</th>
+                      {canManageUsers && <th className="py-3">Actions</th>}
                     </tr>
                   </thead>
 
@@ -262,9 +374,67 @@ export default function UsersPage() {
                           {user.role}
                         </td>
 
+                        <td className="py-4 pr-4">
+                          <span
+                            className={`rounded-full px-2.5 py-1 text-xs font-semibold ${
+                              user.active
+                                ? "bg-emerald-100 text-emerald-800"
+                                : "bg-slate-200 text-slate-700"
+                            }`}
+                          >
+                            {user.active ? "Activo" : "Inactivo"}
+                          </span>
+                        </td>
+
                         <td className="py-4 text-slate-600">
                           {new Date(user.createdAt).toLocaleDateString()}
                         </td>
+                        {canManageUsers && (
+                          <td className="py-4 pl-3">
+                            <div className="flex min-w-52 flex-wrap gap-2">
+                              <button
+                                type="button"
+                                disabled={actionUserId === user.id}
+                                onClick={() => void userAction(user, "edit")}
+                                className="rounded border border-slate-300 px-2.5 py-1.5 font-semibold text-slate-700 disabled:opacity-50"
+                              >
+                                Editar
+                              </button>
+                              <button
+                                type="button"
+                                disabled={actionUserId === user.id}
+                                onClick={() =>
+                                  void userAction(user, "password")
+                                }
+                                className="rounded border border-slate-300 px-2.5 py-1.5 font-semibold text-slate-700 disabled:opacity-50"
+                              >
+                                Contraseña
+                              </button>
+                              <button
+                                type="button"
+                                disabled={
+                                  actionUserId === user.id ||
+                                  (currentUser?.id === user.id && user.active)
+                                }
+                                onClick={() => void userAction(user, "status")}
+                                className="rounded border border-amber-400 px-2.5 py-1.5 font-semibold text-amber-800 disabled:opacity-50"
+                              >
+                                {user.active ? "Desactivar" : "Reactivar"}
+                              </button>
+                              <button
+                                type="button"
+                                disabled={
+                                  actionUserId === user.id ||
+                                  currentUser?.id === user.id
+                                }
+                                onClick={() => void userAction(user, "delete")}
+                                className="rounded border border-red-300 px-2.5 py-1.5 font-semibold text-red-700 disabled:opacity-50"
+                              >
+                                Eliminar
+                              </button>
+                            </div>
+                          </td>
+                        )}
                       </tr>
                     ))}
                   </tbody>

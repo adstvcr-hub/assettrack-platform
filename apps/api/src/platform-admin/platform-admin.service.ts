@@ -349,7 +349,10 @@ export class PlatformAdminService {
     await this.prisma.$transaction([
       this.prisma.user.update({
         where: { id: user.id },
-        data: { passwordHash: await bcrypt.hash(temporaryPassword, 12) },
+        data: {
+          passwordHash: await bcrypt.hash(temporaryPassword, 12),
+          sessionVersion: { increment: 1 },
+        },
       }),
       this.prisma.refreshToken.updateMany({
         where: { userId: user.id, revokedAt: null },

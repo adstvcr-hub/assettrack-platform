@@ -24,6 +24,7 @@ type StaffUser = {
   restaurantRole: RestaurantRole | null;
   restaurantAvailability:
     "AVAILABLE" | "BREAK" | "TEMPORARILY_UNAVAILABLE" | "OFF_SHIFT";
+  active: boolean;
 };
 type MenuItem = {
   id: string;
@@ -2075,7 +2076,15 @@ export default function RestaurantAdminDashboard() {
         </div>
       </section>
       <section className="mt-12">
-        <h2 className="text-xl font-bold">Personal y estación de trabajo</h2>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h2 className="text-xl font-bold">Personal y estación de trabajo</h2>
+          <a
+            href="/users"
+            className="rounded-lg bg-slate-950 px-4 py-2 text-sm font-semibold text-white"
+          >
+            Administrar usuarios y credenciales
+          </a>
+        </div>
         <p className="mt-1 text-sm text-slate-600">
           Los propietarios y administradores generales conservan acceso total.
         </p>
@@ -2087,6 +2096,7 @@ export default function RestaurantAdminDashboard() {
                 <th className="p-3">Correo</th>
                 <th className="p-3">Dashboard</th>
                 <th className="p-3">Disponibilidad</th>
+                <th className="p-3">Cuenta</th>
               </tr>
             </thead>
             <tbody>
@@ -2102,6 +2112,7 @@ export default function RestaurantAdminDashboard() {
                     ) : (
                       <select
                         className="rounded border p-2"
+                        disabled={!user.active}
                         value={user.restaurantRole ?? ""}
                         onChange={(event) =>
                           void post(
@@ -2122,6 +2133,7 @@ export default function RestaurantAdminDashboard() {
                   <td className="p-3">
                     <select
                       className="rounded border p-2"
+                      disabled={!user.active}
                       value={user.restaurantAvailability}
                       onChange={(event) => {
                         const availability = event.target.value;
@@ -2146,6 +2158,17 @@ export default function RestaurantAdminDashboard() {
                       </option>
                       <option value="OFF_SHIFT">Turno finalizado</option>
                     </select>
+                  </td>
+                  <td className="p-3">
+                    <span
+                      className={`rounded-full px-2.5 py-1 text-xs font-semibold ${
+                        user.active
+                          ? "bg-emerald-100 text-emerald-800"
+                          : "bg-slate-200 text-slate-700"
+                      }`}
+                    >
+                      {user.active ? "Activa" : "Inactiva"}
+                    </span>
                   </td>
                 </tr>
               ))}

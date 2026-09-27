@@ -146,6 +146,7 @@ model Organization {
   restaurantPromotions        RestaurantPromotion[]
   restaurantLoyaltyActivities RestaurantLoyaltyActivity[]
   restaurantRewardPrograms    RestaurantRewardProgram[]
+  userManagementEvents        UserManagementEvent[]
 
   restaurantTaxRateBps              Int                  @default(1300)
   restaurantTaxIncluded             Boolean              @default(false)
@@ -342,6 +343,21 @@ model PlatformAdminEvent {
   @@map("platform_admin_events")
 }
 
+model UserManagementEvent {
+  id             String       @id @default(uuid())
+  organizationId String
+  actorId        String
+  targetUserId   String?
+  action         String
+  metadata       Json?
+  createdAt      DateTime     @default(now())
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, createdAt])
+  @@index([targetUserId, createdAt])
+  @@map("user_management_events")
+}
+
 model RestaurantMenuItem {
   id             String                    @id @default(uuid())
   organizationId String
@@ -500,6 +516,9 @@ model User {
   role                   UserRole                    @default(USER)
   restaurantRole         RestaurantStaffRole?
   restaurantAvailability RestaurantStaffAvailability @default(AVAILABLE)
+  active                 Boolean                      @default(true)
+  deactivatedAt          DateTime?
+  sessionVersion         Int                          @default(0)
   createdAt              DateTime                    @default(now())
   updatedAt              DateTime                    @updatedAt
 

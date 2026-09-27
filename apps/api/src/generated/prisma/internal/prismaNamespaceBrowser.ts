@@ -60,6 +60,7 @@ export const ModelName = {
   RestaurantRewardProgram: 'RestaurantRewardProgram',
   RestaurantVisitTransfer: 'RestaurantVisitTransfer',
   PlatformAdminEvent: 'PlatformAdminEvent',
+  UserManagementEvent: 'UserManagementEvent',
   RestaurantMenuItem: 'RestaurantMenuItem',
   RestaurantOrder: 'RestaurantOrder',
   RestaurantOrderItem: 'RestaurantOrderItem',
@@ -256,6 +257,19 @@ export const PlatformAdminEventScalarFieldEnum = {
 export type PlatformAdminEventScalarFieldEnum = (typeof PlatformAdminEventScalarFieldEnum)[keyof typeof PlatformAdminEventScalarFieldEnum]
 
 
+export const UserManagementEventScalarFieldEnum = {
+  id: 'id',
+  organizationId: 'organizationId',
+  actorId: 'actorId',
+  targetUserId: 'targetUserId',
+  action: 'action',
+  metadata: 'metadata',
+  createdAt: 'createdAt'
+} as const
+
+export type UserManagementEventScalarFieldEnum = (typeof UserManagementEventScalarFieldEnum)[keyof typeof UserManagementEventScalarFieldEnum]
+
+
 export const RestaurantMenuItemScalarFieldEnum = {
   id: 'id',
   organizationId: 'organizationId',
@@ -391,6 +405,9 @@ export const UserScalarFieldEnum = {
   role: 'role',
   restaurantRole: 'restaurantRole',
   restaurantAvailability: 'restaurantAvailability',
+  active: 'active',
+  deactivatedAt: 'deactivatedAt',
+  sessionVersion: 'sessionVersion',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const

@@ -119,6 +119,7 @@ export class RestaurantService {
       tx.user.findMany({
         where: {
           organizationId,
+          active: true,
           restaurantRole: RestaurantStaffRole.WAITER,
           restaurantAvailability: RestaurantStaffAvailability.AVAILABLE,
         },
@@ -221,6 +222,7 @@ export class RestaurantService {
         const bartender = await tx.user.findFirst({
           where: {
             organizationId,
+            active: true,
             restaurantRole: RestaurantStaffRole.BAR,
             restaurantAvailability: RestaurantStaffAvailability.AVAILABLE,
             id: { not: unavailableUserId },
@@ -233,6 +235,7 @@ export class RestaurantService {
           const administrator = await tx.user.findFirst({
             where: {
               organizationId,
+              active: true,
               OR: [
                 { role: { in: [UserRole.OWNER, UserRole.ADMIN] } },
                 { restaurantRole: RestaurantStaffRole.RESTAURANT_ADMIN },
@@ -261,6 +264,7 @@ export class RestaurantService {
           where: {
             id: visit.table.waiterId,
             organizationId,
+            active: true,
             restaurantAvailability: RestaurantStaffAvailability.AVAILABLE,
           },
           select: { id: true },
@@ -285,7 +289,11 @@ export class RestaurantService {
 
   async profile(actor: RestaurantActor) {
     const user = await this.prisma.user.findFirst({
-      where: { id: actor.id, organizationId: actor.organizationId },
+      where: {
+        id: actor.id,
+        organizationId: actor.organizationId,
+        active: true,
+      },
       select: { name: true },
     });
     if (!user) throw new NotFoundException("User not found");
@@ -355,6 +363,7 @@ export class RestaurantService {
         where: {
           id: waiterId,
           organizationId: actor.organizationId,
+          active: true,
           restaurantRole: RestaurantStaffRole.WAITER,
         },
       });
@@ -641,6 +650,7 @@ export class RestaurantService {
         role: true,
         restaurantRole: true,
         restaurantAvailability: true,
+        active: true,
       },
       orderBy: { name: "asc" },
     });
@@ -653,7 +663,7 @@ export class RestaurantService {
   ) {
     this.requireRestaurantAdmin(actor);
     const user = await this.prisma.user.findFirst({
-      where: { id: userId, organizationId: actor.organizationId },
+      where: { id: userId, organizationId: actor.organizationId, active: true },
     });
     if (!user) throw new NotFoundException("User not found");
     return this.prisma.$transaction(async (tx) => {
@@ -687,7 +697,7 @@ export class RestaurantService {
   ) {
     this.requireRestaurantAdmin(actor);
     const user = await this.prisma.user.findFirst({
-      where: { id: userId, organizationId: actor.organizationId },
+      where: { id: userId, organizationId: actor.organizationId, active: true },
       select: { id: true, restaurantRole: true },
     });
     if (!user) throw new NotFoundException("User not found");
@@ -747,7 +757,11 @@ export class RestaurantService {
 
     return this.prisma.$transaction(async (tx) => {
       const user = await tx.user.findFirst({
-        where: { id: actor.id, organizationId: actor.organizationId },
+        where: {
+          id: actor.id,
+          organizationId: actor.organizationId,
+          active: true,
+        },
         select: { id: true, restaurantRole: true },
       });
       if (!user?.restaurantRole) {
@@ -1028,6 +1042,7 @@ export class RestaurantService {
             where: {
               id: currentResponsibleId,
               organizationId: actor.organizationId,
+              active: true,
             },
             select: {
               id: true,
@@ -1049,6 +1064,7 @@ export class RestaurantService {
               where: {
                 id: destination.waiterId,
                 organizationId: actor.organizationId,
+                active: true,
                 restaurantRole: RestaurantStaffRole.WAITER,
                 restaurantAvailability: RestaurantStaffAvailability.AVAILABLE,
               },
@@ -1065,6 +1081,7 @@ export class RestaurantService {
         const bartenders = await tx.user.findMany({
           where: {
             organizationId: actor.organizationId,
+            active: true,
             restaurantRole: RestaurantStaffRole.BAR,
             restaurantAvailability: RestaurantStaffAvailability.AVAILABLE,
           },
@@ -1149,6 +1166,7 @@ export class RestaurantService {
     const users = await this.prisma.user.findMany({
       where: {
         organizationId,
+        active: true,
         restaurantRole: {
           in: [RestaurantStaffRole.KITCHEN, RestaurantStaffRole.BAR],
         },
@@ -1846,6 +1864,7 @@ export class RestaurantService {
             const availableStaff = await tx.user.findMany({
               where: {
                 organizationId: table.organizationId,
+                active: true,
                 restaurantAvailability: RestaurantStaffAvailability.AVAILABLE,
                 restaurantRole: {
                   in: [RestaurantStaffRole.WAITER, RestaurantStaffRole.BAR],
@@ -1888,6 +1907,7 @@ export class RestaurantService {
             const staff = await tx.user.findMany({
               where: {
                 organizationId: table.organizationId,
+                active: true,
                 restaurantAvailability: RestaurantStaffAvailability.AVAILABLE,
                 restaurantRole: preferredRole
                   ? preferredRole

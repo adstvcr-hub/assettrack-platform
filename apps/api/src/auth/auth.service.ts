@@ -29,7 +29,8 @@ export class AuthService {
   async login(dto: LoginDto) {
     const user = await this.prisma.user.findFirst({
       where: {
-        email: dto.email,
+        email: dto.email.trim().toLowerCase(),
+        active: true,
         organization: {
           slug: dto.organizationSlug,
         },
@@ -51,6 +52,7 @@ export class AuthService {
       organizationId: user.organizationId,
       role: user.role,
       restaurantRole: user.restaurantRole,
+      sessionVersion: user.sessionVersion,
     };
 
     const accessToken = await this.jwtService.signAsync(payload);
@@ -109,6 +111,7 @@ export class AuthService {
 
     if (
       !storedToken ||
+      !storedToken.user.active ||
       storedToken.revokedAt ||
       storedToken.expiresAt <= new Date()
     ) {
@@ -120,6 +123,7 @@ export class AuthService {
       organizationId: storedToken.user.organizationId,
       role: storedToken.user.role,
       restaurantRole: storedToken.user.restaurantRole,
+      sessionVersion: storedToken.user.sessionVersion,
     };
 
     const accessToken = await this.jwtService.signAsync(payload);
