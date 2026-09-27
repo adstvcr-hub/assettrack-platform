@@ -415,6 +415,7 @@ export const ModelName = {
   RestaurantStaffEvent: 'RestaurantStaffEvent',
   OrganizationLocation: 'OrganizationLocation',
   User: 'User',
+  StaffAccessCode: 'StaffAccessCode',
   Asset: 'Asset',
   QrCode: 'QrCode',
   ScanEvent: 'ScanEvent',
@@ -434,7 +435,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "organization" | "restaurantTable" | "restaurantVisit" | "restaurantQrAccess" | "restaurantLoyaltyMember" | "restaurantLoyaltyActivity" | "restaurantRewardProgram" | "restaurantVisitTransfer" | "platformAdminEvent" | "userManagementEvent" | "restaurantMenuItem" | "restaurantOrder" | "restaurantOrderItem" | "restaurantPromotion" | "restaurantItemEvent" | "restaurantStaffEvent" | "organizationLocation" | "user" | "asset" | "qrCode" | "scanEvent" | "refreshToken"
+    modelProps: "organization" | "restaurantTable" | "restaurantVisit" | "restaurantQrAccess" | "restaurantLoyaltyMember" | "restaurantLoyaltyActivity" | "restaurantRewardProgram" | "restaurantVisitTransfer" | "platformAdminEvent" | "userManagementEvent" | "restaurantMenuItem" | "restaurantOrder" | "restaurantOrderItem" | "restaurantPromotion" | "restaurantItemEvent" | "restaurantStaffEvent" | "organizationLocation" | "user" | "staffAccessCode" | "asset" | "qrCode" | "scanEvent" | "refreshToken"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1770,6 +1771,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    StaffAccessCode: {
+      payload: Prisma.$StaffAccessCodePayload<ExtArgs>
+      fields: Prisma.StaffAccessCodeFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.StaffAccessCodeFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StaffAccessCodePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.StaffAccessCodeFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StaffAccessCodePayload>
+        }
+        findFirst: {
+          args: Prisma.StaffAccessCodeFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StaffAccessCodePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.StaffAccessCodeFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StaffAccessCodePayload>
+        }
+        findMany: {
+          args: Prisma.StaffAccessCodeFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StaffAccessCodePayload>[]
+        }
+        create: {
+          args: Prisma.StaffAccessCodeCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StaffAccessCodePayload>
+        }
+        createMany: {
+          args: Prisma.StaffAccessCodeCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.StaffAccessCodeCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StaffAccessCodePayload>[]
+        }
+        delete: {
+          args: Prisma.StaffAccessCodeDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StaffAccessCodePayload>
+        }
+        update: {
+          args: Prisma.StaffAccessCodeUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StaffAccessCodePayload>
+        }
+        deleteMany: {
+          args: Prisma.StaffAccessCodeDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.StaffAccessCodeUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.StaffAccessCodeUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StaffAccessCodePayload>[]
+        }
+        upsert: {
+          args: Prisma.StaffAccessCodeUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StaffAccessCodePayload>
+        }
+        aggregate: {
+          args: Prisma.StaffAccessCodeAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateStaffAccessCode>
+        }
+        groupBy: {
+          args: Prisma.StaffAccessCodeGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.StaffAccessCodeGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.StaffAccessCodeCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.StaffAccessCodeCountAggregateOutputType> | number
+        }
+      }
+    }
     Asset: {
       payload: Prisma.$AssetPayload<ExtArgs>
       fields: Prisma.AssetFieldRefs
@@ -2429,6 +2504,20 @@ export const UserScalarFieldEnum = {
 export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
 
 
+export const StaffAccessCodeScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  code: 'code',
+  active: 'active',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  lastUsedAt: 'lastUsedAt',
+  revokedAt: 'revokedAt'
+} as const
+
+export type StaffAccessCodeScalarFieldEnum = (typeof StaffAccessCodeScalarFieldEnum)[keyof typeof StaffAccessCodeScalarFieldEnum]
+
+
 export const AssetScalarFieldEnum = {
   id: 'id',
   organizationId: 'organizationId',
@@ -3048,6 +3137,7 @@ export type GlobalOmitConfig = {
   restaurantStaffEvent?: Prisma.RestaurantStaffEventOmit
   organizationLocation?: Prisma.OrganizationLocationOmit
   user?: Prisma.UserOmit
+  staffAccessCode?: Prisma.StaffAccessCodeOmit
   asset?: Prisma.AssetOmit
   qrCode?: Prisma.QrCodeOmit
   scanEvent?: Prisma.ScanEventOmit

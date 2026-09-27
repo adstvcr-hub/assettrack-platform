@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import { PrismaService } from "../prisma/prisma.service";
 import {
   RestaurantStaffAvailability,
+  RestaurantStaffRole,
   UserRole,
 } from "../generated/prisma/enums";
 import { UsersService } from "./users.service";
@@ -33,6 +34,10 @@ function createService() {
       delete: vi.fn(),
     },
     refreshToken: { updateMany: vi.fn() },
+    staffAccessCode: {
+      upsert: vi.fn(),
+      updateMany: vi.fn().mockResolvedValue({ count: 1 }),
+    },
     userManagementEvent: { create: vi.fn() },
     restaurantVisit: {
       findMany: vi.fn().mockResolvedValue([]),
@@ -120,5 +125,28 @@ describe("UsersService", () => {
     expect(prisma.user.delete).toHaveBeenCalledWith({
       where: { id: target.id },
     });
+  });
+
+  it("creates a renewable QR only for active restaurant staff", async () => {
+    const { prisma, service } = createService();
+    prisma.user.findFirst.mockResolvedValue({
+      ...target,
+      restaurantRole: RestaurantStaffRole.WAITER,
+    });
+
+    const result = await service.generateStaffAccessQr(
+      "org-a",
+      "admin-a",
+      target.id,
+    );
+
+    expect(prisma.staffAccessCode.upsert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { userId: target.id },
+        update: expect.objectContaining({ active: true, revokedAt: null }),
+      }),
+    );
+    expect(result.accessUrl).toContain("/restaurant/staff-login/");
+    expect(result.image).toMatch(/^data:image\/png;base64,/);
   });
 });

@@ -130,6 +130,11 @@ export type OrganizationLocation = Prisma.OrganizationLocationModel
  */
 export type User = Prisma.UserModel
 /**
+ * Model StaffAccessCode
+ * 
+ */
+export type StaffAccessCode = Prisma.StaffAccessCodeModel
+/**
  * Model Asset
  * 
  */

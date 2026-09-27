@@ -69,6 +69,7 @@ export const ModelName = {
   RestaurantStaffEvent: 'RestaurantStaffEvent',
   OrganizationLocation: 'OrganizationLocation',
   User: 'User',
+  StaffAccessCode: 'StaffAccessCode',
   Asset: 'Asset',
   QrCode: 'QrCode',
   ScanEvent: 'ScanEvent',
@@ -413,6 +414,20 @@ export const UserScalarFieldEnum = {
 } as const
 
 export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
+
+
+export const StaffAccessCodeScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  code: 'code',
+  active: 'active',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  lastUsedAt: 'lastUsedAt',
+  revokedAt: 'revokedAt'
+} as const
+
+export type StaffAccessCodeScalarFieldEnum = (typeof StaffAccessCodeScalarFieldEnum)[keyof typeof StaffAccessCodeScalarFieldEnum]
 
 
 export const AssetScalarFieldEnum = {

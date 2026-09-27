@@ -6,6 +6,8 @@ import {
   NotFoundException,
 } from "@nestjs/common";
 import * as bcrypt from "bcrypt";
+import * as QRCode from "qrcode";
+import { randomBytes } from "crypto";
 import { Prisma } from "../generated/prisma/client";
 import {
   RestaurantStaffAvailability,
@@ -30,6 +32,9 @@ const userSelection = {
   deactivatedAt: true,
   createdAt: true,
   updatedAt: true,
+  staffAccessCode: {
+    select: { active: true, updatedAt: true, lastUsedAt: true },
+  },
 } as const;
 
 @Injectable()
@@ -308,6 +313,80 @@ export class UsersService {
     });
   }
 
+  async generateStaffAccessQr(
+    organizationId: string,
+    actorId: string,
+    id: string,
+  ) {
+    const code = randomBytes(32).toString("base64url");
+    const target = await this.prisma.$transaction(async (tx) => {
+      const user = await this.requireUser(tx, organizationId, id);
+      if (!user.active) {
+        throw new BadRequestException(
+          "Inactive users cannot receive an access QR",
+        );
+      }
+      if (
+        !user.restaurantRole &&
+        user.role !== UserRole.OWNER &&
+        user.role !== UserRole.ADMIN
+      ) {
+        throw new BadRequestException(
+          "Assign restaurant access before creating this QR",
+        );
+      }
+      await tx.staffAccessCode.upsert({
+        where: { userId: id },
+        create: { userId: id, code },
+        update: { code, active: true, revokedAt: null },
+      });
+      await tx.userManagementEvent.create({
+        data: {
+          organizationId,
+          actorId,
+          targetUserId: id,
+          action: "STAFF_ACCESS_QR_GENERATED",
+        },
+      });
+      return user;
+    });
+    const webUrl = (
+      process.env.PUBLIC_WEB_URL ?? "http://localhost:3001"
+    ).replace(/\/$/, "");
+    const accessUrl = `${webUrl}/restaurant/staff-login/${encodeURIComponent(code)}`;
+    return {
+      userId: id,
+      staffName: target.name,
+      accessUrl,
+      image: await QRCode.toDataURL(accessUrl, { width: 500, margin: 2 }),
+      warning:
+        "This image is shown after creation or renewal. Keep it under administrative control.",
+    };
+  }
+
+  async revokeStaffAccessQr(
+    organizationId: string,
+    actorId: string,
+    id: string,
+  ) {
+    return this.prisma.$transaction(async (tx) => {
+      await this.requireUser(tx, organizationId, id);
+      const result = await tx.staffAccessCode.updateMany({
+        where: { userId: id, active: true },
+        data: { active: false, revokedAt: new Date() },
+      });
+      await tx.userManagementEvent.create({
+        data: {
+          organizationId,
+          actorId,
+          targetUserId: id,
+          action: "STAFF_ACCESS_QR_REVOKED",
+        },
+      });
+      return { id, revoked: result.count > 0 };
+    });
+  }
+
   async setActive(
     organizationId: string,
     actorId: string,
@@ -339,6 +418,12 @@ export class UsersService {
         where: { userId: id, revokedAt: null },
         data: { revokedAt: new Date() },
       });
+      if (!active) {
+        await tx.staffAccessCode.updateMany({
+          where: { userId: id, active: true },
+          data: { active: false, revokedAt: new Date() },
+        });
+      }
       await tx.userManagementEvent.create({
         data: {
           organizationId,
@@ -403,6 +488,10 @@ export class UsersService {
         await tx.refreshToken.updateMany({
           where: { userId: id, revokedAt: null },
           data: { revokedAt: new Date() },
+        });
+        await tx.staffAccessCode.updateMany({
+          where: { userId: id, active: true },
+          data: { active: false, revokedAt: new Date() },
         });
         await tx.userManagementEvent.create({
           data: {

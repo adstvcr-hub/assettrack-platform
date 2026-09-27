@@ -2,6 +2,8 @@ import {
   Body,
   Controller,
   ForbiddenException,
+  Get,
+  Param,
   Post,
   Req,
   Res,
@@ -11,6 +13,7 @@ import type { Request, Response } from "express";
 import { AuthService } from "./auth.service";
 import { LoginDto } from "./dto/login.dto";
 import { Throttle } from "@nestjs/throttler";
+import { StaffAccessLoginDto } from "./dto/staff-access-login.dto";
 
 @Controller("auth")
 export class AuthController {
@@ -28,6 +31,16 @@ export class AuthController {
       throw new ForbiddenException("Invalid request origin");
     }
   }
+
+  private setRefreshCookie(response: Response, refreshToken: string) {
+    response.cookie("assettrack_refresh_token", refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+      path: "/api/v1/auth",
+      maxAge: 30 * 24 * 60 * 60 * 1000,
+    });
+  }
   @Throttle({ default: { limit: 5, ttl: 60000 } })
   @Post("login")
   async login(
@@ -36,18 +49,32 @@ export class AuthController {
   ) {
     const result = await this.authService.login(dto);
 
-    response.cookie("assettrack_refresh_token", result.refreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-      path: "/api/v1/auth",
-      maxAge: 30 * 24 * 60 * 60 * 1000,
-    });
+    this.setRefreshCookie(response, result.refreshToken);
 
     return {
       accessToken: result.accessToken,
       user: result.user,
     };
+  }
+
+  @Throttle({ default: { limit: 30, ttl: 60000 } })
+  @Get("staff-access/:accessCode")
+  staffAccessProfile(@Param("accessCode") accessCode: string) {
+    return this.authService.staffAccessProfile(accessCode);
+  }
+
+  @Throttle({ default: { limit: 5, ttl: 60000 } })
+  @Post("staff-access/login")
+  async staffAccessLogin(
+    @Body() dto: StaffAccessLoginDto,
+    @Res({ passthrough: true }) response: Response,
+  ) {
+    const result = await this.authService.loginWithStaffAccess(
+      dto.accessCode,
+      dto.password,
+    );
+    this.setRefreshCookie(response, result.refreshToken);
+    return { accessToken: result.accessToken, user: result.user };
   }
 
   @Throttle({ default: { limit: 20, ttl: 60000 } })
@@ -65,13 +92,7 @@ export class AuthController {
 
     const result = await this.authService.refresh(refreshToken);
 
-    response.cookie("assettrack_refresh_token", result.refreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-      path: "/api/v1/auth",
-      maxAge: 30 * 24 * 60 * 60 * 1000,
-    });
+    this.setRefreshCookie(response, result.refreshToken);
 
     return {
       accessToken: result.accessToken,

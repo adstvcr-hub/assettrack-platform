@@ -89,6 +89,32 @@ export class UsersController {
   }
 
   @Roles(UserRole.OWNER, UserRole.ADMIN)
+  @Post(":id/staff-access-qr")
+  generateStaffAccessQr(
+    @Param("id") id: string,
+    @Req() req: AuthenticatedRequest,
+  ) {
+    return this.usersService.generateStaffAccessQr(
+      req.user.organizationId,
+      req.user.id,
+      id,
+    );
+  }
+
+  @Roles(UserRole.OWNER, UserRole.ADMIN)
+  @Delete(":id/staff-access-qr")
+  revokeStaffAccessQr(
+    @Param("id") id: string,
+    @Req() req: AuthenticatedRequest,
+  ) {
+    return this.usersService.revokeStaffAccessQr(
+      req.user.organizationId,
+      req.user.id,
+      id,
+    );
+  }
+
+  @Roles(UserRole.OWNER, UserRole.ADMIN)
   @Delete(":id")
   remove(@Param("id") id: string, @Req() req: AuthenticatedRequest) {
     return this.usersService.remove(req.user.organizationId, req.user.id, id);

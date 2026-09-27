@@ -2,6 +2,7 @@
 import { API_URL, authenticatedFetch } from "@/lib/api";
 import { FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 
 type User = {
   id: string;
@@ -14,12 +15,22 @@ type User = {
     "AVAILABLE" | "BREAK" | "TEMPORARILY_UNAVAILABLE" | "OFF_SHIFT";
   active: boolean;
   deactivatedAt: string | null;
+  staffAccessCode: {
+    active: boolean;
+    updatedAt: string;
+    lastUsedAt: string | null;
+  } | null;
   createdAt: string;
   updatedAt: string;
 };
 type CurrentUser = {
   id: string;
   role: "OWNER" | "ADMIN" | "USER" | "VIEWER";
+};
+type StaffQr = {
+  staffName: string;
+  accessUrl: string;
+  image: string;
 };
 
 export default function UsersPage() {
@@ -36,6 +47,7 @@ export default function UsersPage() {
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [actionUserId, setActionUserId] = useState<string | null>(null);
+  const [staffQr, setStaffQr] = useState<StaffQr | null>(null);
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
@@ -243,6 +255,104 @@ export default function UsersPage() {
       setActionUserId(null);
     }
   }
+
+  async function generateStaffQr(user: User) {
+    const token = getToken();
+    if (!token) return;
+    if (
+      user.staffAccessCode?.active &&
+      !window.confirm(
+        `¿Renovar el QR de ${user.name}? El código impreso anteriormente dejará de funcionar.`,
+      )
+    ) {
+      return;
+    }
+    setActionUserId(user.id);
+    setError("");
+    setNotice("");
+    try {
+      const response = await authenticatedFetch(
+        `${API_URL}/api/v1/users/${user.id}/staff-access-qr`,
+        {
+          method: "POST",
+          headers: { Authorization: `Bearer ${token}` },
+        },
+      );
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(data.message ?? "No fue posible crear el código QR");
+      }
+      setStaffQr(data as StaffQr);
+      setNotice("Código QR creado. Descárguelo o imprímalo antes de cerrar.");
+      await loadUsers();
+    } catch (reason) {
+      setError(
+        reason instanceof Error ? reason.message : "No fue posible crear el QR",
+      );
+    } finally {
+      setActionUserId(null);
+    }
+  }
+
+  async function revokeStaffQr(user: User) {
+    const token = getToken();
+    if (!token || !window.confirm(`¿Desactivar el QR de ${user.name}?`)) return;
+    setActionUserId(user.id);
+    setError("");
+    setNotice("");
+    try {
+      const response = await authenticatedFetch(
+        `${API_URL}/api/v1/users/${user.id}/staff-access-qr`,
+        {
+          method: "DELETE",
+          headers: { Authorization: `Bearer ${token}` },
+        },
+      );
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(data.message ?? "No fue posible desactivar el QR");
+      }
+      setNotice("Código QR desactivado.");
+      await loadUsers();
+    } catch (reason) {
+      setError(
+        reason instanceof Error
+          ? reason.message
+          : "No fue posible desactivar el QR",
+      );
+    } finally {
+      setActionUserId(null);
+    }
+  }
+
+  function printStaffQr() {
+    if (!staffQr) return;
+    const printWindow = window.open("", "_blank", "width=650,height=760");
+    if (!printWindow) {
+      setError("El navegador bloqueó la ventana de impresión.");
+      return;
+    }
+    printWindow.document.title = `QR de acceso - ${staffQr.staffName}`;
+    const container = printWindow.document.createElement("main");
+    container.style.cssText =
+      "font-family:Arial,sans-serif;text-align:center;padding:32px;color:#0f172a";
+    const heading = printWindow.document.createElement("h1");
+    heading.textContent = "Acceso de personal";
+    const name = printWindow.document.createElement("h2");
+    name.textContent = staffQr.staffName;
+    const image = printWindow.document.createElement("img");
+    image.src = staffQr.image;
+    image.alt = `QR de ${staffQr.staffName}`;
+    image.style.cssText = "width:420px;max-width:100%;margin:24px auto";
+    const note = printWindow.document.createElement("p");
+    note.textContent = "Escanee el código e ingrese únicamente su contraseña.";
+    container.append(heading, name, image, note);
+    printWindow.document.body.append(container);
+    image.onload = () => {
+      printWindow.focus();
+      printWindow.print();
+    };
+  }
   const canManageUsers =
     currentUser?.role === "OWNER" || currentUser?.role === "ADMIN";
   return (
@@ -410,6 +520,32 @@ export default function UsersPage() {
                               >
                                 Contraseña
                               </button>
+                              {(user.restaurantRole ||
+                                user.role === "OWNER" ||
+                                user.role === "ADMIN") && (
+                                <button
+                                  type="button"
+                                  disabled={
+                                    actionUserId === user.id || !user.active
+                                  }
+                                  onClick={() => void generateStaffQr(user)}
+                                  className="rounded border border-emerald-400 px-2.5 py-1.5 font-semibold text-emerald-800 disabled:opacity-50"
+                                >
+                                  {user.staffAccessCode?.active
+                                    ? "Renovar QR"
+                                    : "Crear QR"}
+                                </button>
+                              )}
+                              {user.staffAccessCode?.active && (
+                                <button
+                                  type="button"
+                                  disabled={actionUserId === user.id}
+                                  onClick={() => void revokeStaffQr(user)}
+                                  className="rounded border border-slate-400 px-2.5 py-1.5 font-semibold text-slate-700 disabled:opacity-50"
+                                >
+                                  Desactivar QR
+                                </button>
+                              )}
                               <button
                                 type="button"
                                 disabled={
@@ -469,6 +605,69 @@ export default function UsersPage() {
           </div>
         </div>
       </section>
+
+      {staffQr && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 p-4">
+          <section className="max-h-[95vh] w-full max-w-lg overflow-y-auto rounded-2xl bg-white p-6 text-slate-950 shadow-2xl">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="text-sm font-bold uppercase tracking-wider text-emerald-700">
+                  Acceso rápido
+                </p>
+                <h2 className="mt-1 text-2xl font-black">
+                  {staffQr.staffName}
+                </h2>
+              </div>
+              <button
+                type="button"
+                onClick={() => setStaffQr(null)}
+                className="rounded-lg border px-3 py-2 font-bold"
+                aria-label="Cerrar"
+              >
+                ×
+              </button>
+            </div>
+            <Image
+              src={staffQr.image}
+              alt={`QR de acceso de ${staffQr.staffName}`}
+              width={500}
+              height={500}
+              unoptimized
+              className="mx-auto mt-5 w-full max-w-sm rounded-xl border"
+            />
+            <p className="mt-4 break-all rounded-lg bg-slate-100 p-3 text-xs text-slate-600">
+              {staffQr.accessUrl}
+            </p>
+            <p className="mt-3 text-sm text-slate-600">
+              Este QR identifica la cuenta. La contraseña no está incluida y
+              siempre será solicitada.
+            </p>
+            <div className="mt-5 grid gap-3 sm:grid-cols-3">
+              <a
+                href={staffQr.image}
+                download={`acceso-${staffQr.staffName.replaceAll(" ", "-")}.png`}
+                className="rounded-lg bg-emerald-700 px-4 py-3 text-center font-bold text-white"
+              >
+                Descargar
+              </a>
+              <button
+                type="button"
+                onClick={printStaffQr}
+                className="rounded-lg bg-slate-950 px-4 py-3 font-bold text-white"
+              >
+                Imprimir
+              </button>
+              <button
+                type="button"
+                onClick={() => setStaffQr(null)}
+                className="rounded-lg border border-slate-300 px-4 py-3 font-bold text-slate-700"
+              >
+                Cerrar
+              </button>
+            </div>
+          </section>
+        </div>
+      )}
     </main>
   );
 }
