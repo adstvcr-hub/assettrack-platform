@@ -12,7 +12,8 @@ import {
   useState,
 } from "react";
 
-type Fulfillment = "DINE_IN" | "TAKEOUT";
+type Fulfillment = "DINE_IN" | "TAKEOUT" | "DELIVERY";
+type AccessMode = "CHECKING" | "ONSITE" | "DELIVERY" | "UNVERIFIED";
 type MenuItem = {
   id: string;
   name: string;
@@ -46,7 +47,8 @@ type Menu = {
     menuBackgroundSize: "cover" | "contain";
   };
   table: string;
-  tableKind: "DINING" | "TAKEOUT_STATION";
+  tableKind: "DINING" | "BAR_SEAT" | "TAKEOUT_STATION";
+  locationVerificationRequired: boolean;
   activeAccountCount: number;
   waiter: { id: string; name: string } | null;
   productTypes: string[];
@@ -84,7 +86,16 @@ export default function RestaurantTablePage() {
   const [separateAcknowledged, setSeparateAcknowledged] = useState(false);
   const [promotion, setPromotion] = useState<Promotion | null>(null);
   const [promotionQuantity, setPromotionQuantity] = useState(1);
+  const [accessMode, setAccessMode] = useState<AccessMode>("CHECKING");
+  const [location, setLocation] = useState<{
+    latitude: number;
+    longitude: number;
+    accuracy: number;
+  } | null>(null);
+  const [deliveryPhone, setDeliveryPhone] = useState("");
+  const [deliveryAddress, setDeliveryAddress] = useState("");
   const requestId = useRef<string | null>(null);
+  const accessRecorded = useRef(false);
 
   const load = useCallback(async () => {
     try {
@@ -103,6 +114,75 @@ export default function RestaurantTablePage() {
       );
     }
   }, [code]);
+
+  const recordAccess = useCallback(
+    async (coordinates?: {
+      latitude: number;
+      longitude: number;
+      accuracy: number;
+    }) => {
+      let sessionKey = window.localStorage.getItem(
+        "assettrack_restaurant_guest_session",
+      );
+      if (!sessionKey) {
+        sessionKey = crypto.randomUUID();
+        window.localStorage.setItem(
+          "assettrack_restaurant_guest_session",
+          sessionKey,
+        );
+      }
+      const response = await fetch(
+        `${API_URL}/api/v1/restaurant/guest/tables/${encodeURIComponent(code)}/access`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ sessionKey, ...coordinates }),
+        },
+      );
+      if (!response.ok) throw new Error("No se pudo verificar la ubicación.");
+      const result: { mode: "ONSITE" | "DELIVERY" | "UNVERIFIED" } =
+        await response.json();
+      setLocation(coordinates ?? null);
+      setAccessMode(result.mode);
+      if (result.mode === "DELIVERY") setFulfillment("DELIVERY");
+    },
+    [code],
+  );
+
+  const verifyLocation = useCallback(() => {
+    setAccessMode("CHECKING");
+    if (!navigator.geolocation) {
+      void recordAccess()
+        .then(() => setAccessMode("UNVERIFIED"))
+        .catch(() => setAccessMode("UNVERIFIED"));
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        void recordAccess({
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+          accuracy: position.coords.accuracy,
+        }).catch(() => setAccessMode("UNVERIFIED"));
+      },
+      () => {
+        void recordAccess()
+          .then(() => setAccessMode("UNVERIFIED"))
+          .catch(() => setAccessMode("UNVERIFIED"));
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 },
+    );
+  }, [recordAccess]);
+
+  useEffect(() => {
+    if (!data || accessRecorded.current) return;
+    accessRecorded.current = true;
+    if (data.locationVerificationRequired) {
+      verifyLocation();
+    } else {
+      void recordAccess().catch(() => setAccessMode("ONSITE"));
+    }
+  }, [data, recordAccess, verifyLocation]);
 
   useEffect(() => {
     void load();
@@ -194,18 +274,38 @@ export default function RestaurantTablePage() {
         menuItemId,
         quantity,
         fulfillment:
-          data?.tableKind === "TAKEOUT_STATION" ||
-          fulfillment === "TAKEOUT" ||
-          takeoutItems[menuItemId]
-            ? "TAKEOUT"
-            : "DINE_IN",
+          fulfillment === "DELIVERY"
+            ? "DELIVERY"
+            : data?.tableKind === "TAKEOUT_STATION" ||
+                fulfillment === "TAKEOUT" ||
+                takeoutItems[menuItemId]
+              ? "TAKEOUT"
+              : "DINE_IN",
       }));
     if (!items.length) {
       setError("Seleccione al menos un producto.");
       return;
     }
+    if (accessMode === "CHECKING") {
+      setError("Espere mientras verificamos su ubicación.");
+      return;
+    }
+    if (accessMode === "UNVERIFIED" && fulfillment !== "DELIVERY") {
+      setError(
+        "Debe confirmar su ubicación o seleccionar entrega a domicilio.",
+      );
+      return;
+    }
+    if (
+      fulfillment === "DELIVERY" &&
+      (!deliveryPhone.trim() || !deliveryAddress.trim())
+    ) {
+      setError("Ingrese el teléfono y la dirección de entrega.");
+      return;
+    }
     if (
       data &&
+      fulfillment !== "DELIVERY" &&
       data.activeAccountCount > 0 &&
       !trackedOrder &&
       !separateAcknowledged
@@ -227,9 +327,23 @@ export default function RestaurantTablePage() {
           body: JSON.stringify({
             items,
             requestId: requestId.current,
-            accountAccessCode: trackedOrder ?? undefined,
+            accountAccessCode:
+              fulfillment === "DELIVERY"
+                ? undefined
+                : (trackedOrder ?? undefined),
             fulfillment:
-              data?.tableKind === "TAKEOUT_STATION" ? "TAKEOUT" : fulfillment,
+              fulfillment === "DELIVERY"
+                ? "DELIVERY"
+                : data?.tableKind === "TAKEOUT_STATION"
+                  ? "TAKEOUT"
+                  : fulfillment,
+            latitude: location?.latitude,
+            longitude: location?.longitude,
+            locationAccuracy: location?.accuracy,
+            deliveryPhone:
+              fulfillment === "DELIVERY" ? deliveryPhone.trim() : undefined,
+            deliveryAddress:
+              fulfillment === "DELIVERY" ? deliveryAddress.trim() : undefined,
             promotionId: promotion?.id,
           }),
         },
@@ -312,9 +426,10 @@ export default function RestaurantTablePage() {
         subtotal - (subtotal * 10000) / (10000 + data.billing.taxRateBps),
       )
     : Math.round((subtotal * (data?.billing.taxRateBps ?? 0)) / 10000);
-  const service = data?.billing.serviceChargeEnabled
-    ? Math.round((subtotal * data.billing.serviceRateBps) / 10000)
-    : 0;
+  const service =
+    fulfillment !== "DELIVERY" && data?.billing.serviceChargeEnabled
+      ? Math.round((subtotal * data.billing.serviceRateBps) / 10000)
+      : 0;
   const total = subtotal + service + (data?.billing.taxIncluded ? 0 : tax);
   const menuBackgroundStyle: CSSProperties | undefined =
     data?.branding.menuBackgroundEnabled &&
@@ -354,17 +469,20 @@ export default function RestaurantTablePage() {
           />
         )}
         <p>{data?.table ?? "Cargando..."}</p>
-        {data && data.tableKind === "DINING" && (
-          <p className="mt-2 rounded-lg bg-sky-50 px-3 py-2 text-sky-900">
-            {data.waiter
-              ? `Mesero a cargo: ${data.waiter.name}`
-              : "Asignando mesero, es un gusto servirle."}
-          </p>
-        )}
+        {data &&
+          data.tableKind !== "TAKEOUT_STATION" &&
+          fulfillment !== "DELIVERY" && (
+            <p className="mt-2 rounded-lg bg-sky-50 px-3 py-2 text-sky-900">
+              {data.waiter
+                ? `Mesero a cargo: ${data.waiter.name}`
+                : "Asignando mesero, es un gusto servirle."}
+            </p>
+          )}
       </header>
 
       {data &&
         data.activeAccountCount > 0 &&
+        fulfillment !== "DELIVERY" &&
         !trackedOrder &&
         !separateAcknowledged && (
           <section className="mb-5 rounded-xl border border-amber-300 bg-amber-50 p-4">
@@ -427,27 +545,98 @@ export default function RestaurantTablePage() {
         </p>
       )}
 
-      {data?.tableKind === "DINING" && (
-        <section className="mb-5 max-w-2xl rounded-xl border bg-white p-3">
-          <h2 className="mb-2 text-base font-bold leading-snug">
-            ¿Cómo desea su pedido?
-          </h2>
-          <div className="grid grid-cols-2 gap-2">
-            <label className="flex min-h-11 items-center gap-2 rounded-lg bg-slate-50 px-2 py-2 text-sm sm:px-3 sm:text-base">
+      {data?.locationVerificationRequired && accessMode === "CHECKING" && (
+        <p className="mb-5 rounded-xl border border-sky-300 bg-sky-50 p-4 text-sky-950">
+          Verificando que se encuentra dentro del local…
+        </p>
+      )}
+      {data?.locationVerificationRequired &&
+        (accessMode === "DELIVERY" || accessMode === "UNVERIFIED") && (
+          <section className="mb-5 rounded-xl border border-amber-400 bg-amber-50 p-4">
+            <p className="text-lg font-black text-amber-950">
+              {accessMode === "DELIVERY"
+                ? "Estás fuera del alcance del local comercial."
+                : "No pudimos confirmar su ubicación dentro del local."}
+            </p>
+            <p className="mt-1 text-sm text-amber-900">
+              Puede volver a verificar la ubicación o continuar como pedido a
+              domicilio. El pago deberá ser confirmado antes de preparar la
+              orden.
+            </p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              <button
+                type="button"
+                className="rounded border border-amber-700 px-4 py-2 font-semibold"
+                onClick={verifyLocation}
+              >
+                Reintentar ubicación
+              </button>
+              <button
+                type="button"
+                className="rounded bg-amber-800 px-4 py-2 font-semibold text-white"
+                onClick={() => setFulfillment("DELIVERY")}
+              >
+                Pedir a domicilio
+              </button>
+            </div>
+          </section>
+        )}
+
+      {data &&
+        data.tableKind !== "TAKEOUT_STATION" &&
+        accessMode === "ONSITE" && (
+          <section className="mb-5 max-w-2xl rounded-xl border bg-white p-3">
+            <h2 className="mb-2 text-base font-bold leading-snug">
+              ¿Cómo desea su pedido?
+            </h2>
+            <div className="grid grid-cols-2 gap-2">
+              <label className="flex min-h-11 items-center gap-2 rounded-lg bg-slate-50 px-2 py-2 text-sm sm:px-3 sm:text-base">
+                <input
+                  type="radio"
+                  checked={fulfillment === "DINE_IN"}
+                  onChange={() => setFulfillment("DINE_IN")}
+                />
+                <span>Consumir en el local</span>
+              </label>
+              <label className="flex min-h-11 items-center gap-2 rounded-lg bg-slate-50 px-2 py-2 text-sm sm:px-3 sm:text-base">
+                <input
+                  type="radio"
+                  checked={fulfillment === "TAKEOUT"}
+                  onChange={() => setFulfillment("TAKEOUT")}
+                />
+                <span>Todo para llevar</span>
+              </label>
+            </div>
+          </section>
+        )}
+
+      {fulfillment === "DELIVERY" && (
+        <section className="mb-5 rounded-xl border border-violet-300 bg-violet-50 p-4">
+          <h2 className="font-bold">Datos para entrega a domicilio</h2>
+          <p className="mt-1 text-sm text-violet-900">
+            Esta orden no ocupará la mesa o posición del código escaneado.
+          </p>
+          <div className="mt-3 grid gap-3 sm:grid-cols-2">
+            <label className="font-semibold">
+              Número telefónico
               <input
-                type="radio"
-                checked={fulfillment === "DINE_IN"}
-                onChange={() => setFulfillment("DINE_IN")}
+                required
+                inputMode="tel"
+                maxLength={40}
+                className="mt-1 w-full rounded border bg-white p-3"
+                value={deliveryPhone}
+                onChange={(event) => setDeliveryPhone(event.target.value)}
               />
-              <span>Consumir en el local</span>
             </label>
-            <label className="flex min-h-11 items-center gap-2 rounded-lg bg-slate-50 px-2 py-2 text-sm sm:px-3 sm:text-base">
-              <input
-                type="radio"
-                checked={fulfillment === "TAKEOUT"}
-                onChange={() => setFulfillment("TAKEOUT")}
+            <label className="font-semibold">
+              Dirección de entrega
+              <textarea
+                required
+                maxLength={500}
+                className="mt-1 min-h-24 w-full rounded border bg-white p-3"
+                value={deliveryAddress}
+                onChange={(event) => setDeliveryAddress(event.target.value)}
               />
-              <span>Todo para llevar</span>
             </label>
           </div>
         </section>
@@ -548,7 +737,7 @@ export default function RestaurantTablePage() {
                     ))}
                   </select>
                 </label>
-                {data?.tableKind === "DINING" &&
+                {data?.tableKind !== "TAKEOUT_STATION" &&
                   fulfillment === "DINE_IN" &&
                   (quantities[item.id] ?? 0) > 0 && (
                     <label className="mt-3 flex items-center gap-2 text-sm">
@@ -575,7 +764,7 @@ export default function RestaurantTablePage() {
         <footer className="sticky bottom-0 mt-6 rounded-xl bg-slate-900 p-4 text-white">
           <div className="mb-4 space-y-1 text-sm">
             <div className="flex justify-between">
-              <span>Subtotal de productos</span>
+              <span>{credit > 0 ? "Subtotal de productos" : "Subtotal"}</span>
               <span>₡{grossSubtotal.toLocaleString()}</span>
             </div>
             {credit > 0 && (
@@ -584,10 +773,12 @@ export default function RestaurantTablePage() {
                 <span>− ₡{credit.toLocaleString()}</span>
               </div>
             )}
-            <div className="flex justify-between">
-              <span>Subtotal neto</span>
-              <span>₡{subtotal.toLocaleString()}</span>
-            </div>
+            {credit > 0 && (
+              <div className="flex justify-between">
+                <span>Subtotal neto</span>
+                <span>₡{subtotal.toLocaleString()}</span>
+              </div>
+            )}
             {data.billing.taxRateBps > 0 && (
               <div className="flex justify-between text-slate-300">
                 <span>
@@ -597,12 +788,13 @@ export default function RestaurantTablePage() {
                 <span>₡{tax.toLocaleString()}</span>
               </div>
             )}
-            {data.billing.serviceChargeEnabled && (
-              <div className="flex justify-between text-slate-300">
-                <span>Servicio {data.billing.serviceRateBps / 100}%</span>
-                <span>₡{service.toLocaleString()}</span>
-              </div>
-            )}
+            {fulfillment !== "DELIVERY" &&
+              data.billing.serviceChargeEnabled && (
+                <div className="flex justify-between text-slate-300">
+                  <span>Servicio {data.billing.serviceRateBps / 100}%</span>
+                  <span>₡{service.toLocaleString()}</span>
+                </div>
+              )}
             <div className="flex justify-between border-t border-slate-700 pt-2 text-lg">
               <strong>Total estimado</strong>
               <strong>₡{total.toLocaleString()}</strong>
@@ -616,8 +808,9 @@ export default function RestaurantTablePage() {
             {sending ? "Enviando..." : "Confirmar orden"}
           </button>
           <p className="mt-2 text-sm text-slate-300">
-            Le atenderemos con prontitud. El pago es gestionado por el
-            restaurante.
+            {fulfillment === "DELIVERY"
+              ? "La orden se enviará a preparación cuando el personal confirme el pago."
+              : "Le atenderemos con prontitud. El pago es gestionado por el restaurante."}
           </p>
         </footer>
       )}

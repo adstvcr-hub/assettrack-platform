@@ -6,6 +6,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   Req,
   UseGuards,
 } from "@nestjs/common";
@@ -22,6 +23,7 @@ import {
   CreateTableDto,
   JoinLoyaltyDto,
   PlaceOrderDto,
+  RecordQrAccessDto,
   RequestInvoiceDto,
   UpdateItemStatusDto,
   UpdateItemFulfillmentDto,
@@ -30,8 +32,10 @@ import {
   UpdateRestaurantRoleDto,
   UpdateRestaurantBillingDto,
   UpdateRestaurantBrandingDto,
+  UpdateRestaurantOrderingAreaDto,
   UpdateStaffAvailabilityDto,
   UpdateTableBillingDto,
+  UpdateVisitPaymentDto,
   UpdatePromotionDto,
   TransferVisitDto,
 } from "./dto/restaurant.dto";
@@ -47,6 +51,12 @@ export class RestaurantGuestController {
   @Get("tables/:code")
   menu(@Param("code") code: string) {
     return this.restaurant.guestMenu(code);
+  }
+
+  @Throttle({ default: { limit: 20, ttl: 60000 } })
+  @Post("tables/:code/access")
+  access(@Param("code") code: string, @Body() dto: RecordQrAccessDto) {
+    return this.restaurant.recordQrAccess(code, dto);
   }
 
   @Throttle({ default: { limit: 5, ttl: 60000 } })
@@ -126,6 +136,28 @@ export class RestaurantStaffController {
   @Get("billing-settings")
   billingSettings(@Req() req: StaffRequest) {
     return this.restaurant.billingSettings(req.user);
+  }
+
+  @Get("ordering-area-settings")
+  orderingAreaSettings(@Req() req: StaffRequest) {
+    return this.restaurant.orderingAreaSettings(req.user);
+  }
+
+  @Patch("ordering-area-settings")
+  updateOrderingAreaSettings(
+    @Req() req: StaffRequest,
+    @Body() dto: UpdateRestaurantOrderingAreaDto,
+  ) {
+    return this.restaurant.updateOrderingAreaSettings(req.user, dto);
+  }
+
+  @Get("analytics")
+  analytics(
+    @Req() req: StaffRequest,
+    @Query("from") from?: string,
+    @Query("to") to?: string,
+  ) {
+    return this.restaurant.analytics(req.user, from, to);
   }
 
   @Patch("billing-settings")
@@ -305,6 +337,20 @@ export class RestaurantStaffController {
   @Patch("visits/:id/close")
   closeVisit(@Req() req: StaffRequest, @Param("id") id: string) {
     return this.restaurant.closeVisit(req.user, id);
+  }
+
+  @Patch("visits/:id/payment")
+  updateVisitPayment(
+    @Req() req: StaffRequest,
+    @Param("id") id: string,
+    @Body() dto: UpdateVisitPaymentDto,
+  ) {
+    return this.restaurant.updateVisitPayment(req.user, id, dto.status);
+  }
+
+  @Patch("visits/:id/delivery-handoff")
+  handoffDelivery(@Req() req: StaffRequest, @Param("id") id: string) {
+    return this.restaurant.handoffDelivery(req.user, id);
   }
 
   @Patch("visits/:id/transfer")

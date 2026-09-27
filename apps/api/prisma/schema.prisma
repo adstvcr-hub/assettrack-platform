@@ -87,6 +87,14 @@ enum RestaurantProductOrigin {
 enum RestaurantFulfillment {
   DINE_IN
   TAKEOUT
+  DELIVERY
+}
+
+enum RestaurantPaymentStatus {
+  NOT_REQUIRED
+  PENDING
+  CONFIRMED
+  REJECTED
 }
 
 enum RestaurantTableKind {
@@ -139,17 +147,21 @@ model Organization {
   restaurantLoyaltyActivities RestaurantLoyaltyActivity[]
   restaurantRewardPrograms    RestaurantRewardProgram[]
 
-  restaurantTaxRateBps              Int     @default(1300)
-  restaurantTaxIncluded             Boolean @default(false)
-  restaurantServiceRateBps          Int     @default(1000)
-  restaurantAccessEnabled           Boolean @default(true)
+  restaurantTaxRateBps              Int                  @default(1300)
+  restaurantTaxIncluded             Boolean              @default(false)
+  restaurantServiceRateBps          Int                  @default(1000)
+  restaurantAccessEnabled           Boolean              @default(true)
   restaurantDisplayName             String?
   restaurantHeaderImageData         String?
-  restaurantUseHeaderImage          Boolean @default(false)
+  restaurantUseHeaderImage          Boolean              @default(false)
   restaurantMenuBackgroundImageData String?
-  restaurantMenuBackgroundEnabled   Boolean @default(false)
-  restaurantMenuBackgroundPosition  String  @default("center")
-  restaurantMenuBackgroundSize      String  @default("cover")
+  restaurantMenuBackgroundEnabled   Boolean              @default(false)
+  restaurantMenuBackgroundPosition  String               @default("center")
+  restaurantMenuBackgroundSize      String               @default("cover")
+  restaurantLatitude                Decimal?             @db.Decimal(10, 7)
+  restaurantLongitude               Decimal?             @db.Decimal(10, 7)
+  restaurantOrderRadiusMeters       Int                  @default(150)
+  restaurantQrAccesses              RestaurantQrAccess[]
 
   @@map("organizations")
 }
@@ -170,6 +182,7 @@ model RestaurantTable {
   visits               RestaurantVisit[]
   visitTransfersFrom   RestaurantVisitTransfer[] @relation("VisitTransferFrom")
   visitTransfersTo     RestaurantVisitTransfer[] @relation("VisitTransferTo")
+  qrAccesses           RestaurantQrAccess[]
 
   @@unique([organizationId, name])
   @@index([organizationId])
@@ -178,38 +191,64 @@ model RestaurantTable {
 }
 
 model RestaurantVisit {
-  id                   String                         @id @default(uuid())
-  organizationId       String
-  tableId              String
-  accessCode           String                         @unique @default(uuid())
-  status               RestaurantVisitStatus          @default(OPEN)
-  openedAt             DateTime                       @default(now())
-  closedAt             DateTime?
-  taxRateBps           Int                            @default(1300)
-  taxIncluded          Boolean                        @default(false)
-  serviceRateBps       Int                            @default(1000)
-  serviceChargeEnabled Boolean                        @default(true)
-  invoiceRequestStatus RestaurantInvoiceRequestStatus @default(NOT_REQUESTED)
-  invoiceRequestedAt   DateTime?
-  invoiceName          String?
-  invoiceEmail         String?
-  invoicePhone         String?
-  invoiceTaxId         String?
-  invoiceReference     String?
-  responsibleStaffId   String?
-  fallbackStaffId      String?
-  organization         Organization                   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  table                RestaurantTable                @relation(fields: [tableId], references: [id])
-  responsibleStaff     User?                          @relation("RestaurantVisitResponsible", fields: [responsibleStaffId], references: [id], onDelete: SetNull)
-  fallbackStaff        User?                          @relation("RestaurantVisitFallback", fields: [fallbackStaffId], references: [id], onDelete: SetNull)
-  orders               RestaurantOrder[]
-  loyaltyActivities    RestaurantLoyaltyActivity[]
-  transfers            RestaurantVisitTransfer[]
+  id                    String                         @id @default(uuid())
+  organizationId        String
+  tableId               String
+  accessCode            String                         @unique @default(uuid())
+  status                RestaurantVisitStatus          @default(OPEN)
+  openedAt              DateTime                       @default(now())
+  closedAt              DateTime?
+  taxRateBps            Int                            @default(1300)
+  taxIncluded           Boolean                        @default(false)
+  serviceRateBps        Int                            @default(1000)
+  serviceChargeEnabled  Boolean                        @default(true)
+  occupiesTable         Boolean                        @default(true)
+  deliveryPhone         String?
+  deliveryAddress       String?
+  paymentStatus         RestaurantPaymentStatus        @default(NOT_REQUIRED)
+  paymentConfirmedAt    DateTime?
+  paymentConfirmedById  String?
+  deliveryHandedOffAt   DateTime?
+  deliveryHandedOffById String?
+  invoiceRequestStatus  RestaurantInvoiceRequestStatus @default(NOT_REQUESTED)
+  invoiceRequestedAt    DateTime?
+  invoiceName           String?
+  invoiceEmail          String?
+  invoicePhone          String?
+  invoiceTaxId          String?
+  invoiceReference      String?
+  responsibleStaffId    String?
+  fallbackStaffId       String?
+  organization          Organization                   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  table                 RestaurantTable                @relation(fields: [tableId], references: [id])
+  responsibleStaff      User?                          @relation("RestaurantVisitResponsible", fields: [responsibleStaffId], references: [id], onDelete: SetNull)
+  fallbackStaff         User?                          @relation("RestaurantVisitFallback", fields: [fallbackStaffId], references: [id], onDelete: SetNull)
+  orders                RestaurantOrder[]
+  loyaltyActivities     RestaurantLoyaltyActivity[]
+  transfers             RestaurantVisitTransfer[]
 
   @@index([organizationId, status])
   @@index([tableId, status])
   @@index([responsibleStaffId, status])
   @@map("restaurant_visits")
+}
+
+model RestaurantQrAccess {
+  id             String          @id @default(uuid())
+  organizationId String
+  tableId        String
+  sessionKey     String
+  insideLocal    Boolean?
+  distanceMeters Int?
+  accuracyMeters Int?
+  createdAt      DateTime        @default(now())
+  organization   Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  table          RestaurantTable @relation(fields: [tableId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, createdAt])
+  @@index([tableId, createdAt])
+  @@index([sessionKey, createdAt])
+  @@map("restaurant_qr_accesses")
 }
 
 model RestaurantLoyaltyMember {

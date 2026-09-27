@@ -11,6 +11,7 @@
 export type * from './models/Organization'
 export type * from './models/RestaurantTable'
 export type * from './models/RestaurantVisit'
+export type * from './models/RestaurantQrAccess'
 export type * from './models/RestaurantLoyaltyMember'
 export type * from './models/RestaurantLoyaltyActivity'
 export type * from './models/RestaurantRewardProgram'

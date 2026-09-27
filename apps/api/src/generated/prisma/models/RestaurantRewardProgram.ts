@@ -667,14 +667,6 @@ export type EnumRestaurantRewardTypeFieldUpdateOperationsInput = {
   set?: $Enums.RestaurantRewardType
 }
 
-export type NullableIntFieldUpdateOperationsInput = {
-  set?: number | null
-  increment?: number
-  decrement?: number
-  multiply?: number
-  divide?: number
-}
-
 export type RestaurantRewardProgramCreateNestedManyWithoutMenuItemInput = {
   create?: Prisma.XOR<Prisma.RestaurantRewardProgramCreateWithoutMenuItemInput, Prisma.RestaurantRewardProgramUncheckedCreateWithoutMenuItemInput> | Prisma.RestaurantRewardProgramCreateWithoutMenuItemInput[] | Prisma.RestaurantRewardProgramUncheckedCreateWithoutMenuItemInput[]
   connectOrCreate?: Prisma.RestaurantRewardProgramCreateOrConnectWithoutMenuItemInput | Prisma.RestaurantRewardProgramCreateOrConnectWithoutMenuItemInput[]

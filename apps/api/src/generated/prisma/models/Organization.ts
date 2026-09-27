@@ -29,11 +29,17 @@ export type AggregateOrganization = {
 export type OrganizationAvgAggregateOutputType = {
   restaurantTaxRateBps: number | null
   restaurantServiceRateBps: number | null
+  restaurantLatitude: runtime.Decimal | null
+  restaurantLongitude: runtime.Decimal | null
+  restaurantOrderRadiusMeters: number | null
 }
 
 export type OrganizationSumAggregateOutputType = {
   restaurantTaxRateBps: number | null
   restaurantServiceRateBps: number | null
+  restaurantLatitude: runtime.Decimal | null
+  restaurantLongitude: runtime.Decimal | null
+  restaurantOrderRadiusMeters: number | null
 }
 
 export type OrganizationMinAggregateOutputType = {
@@ -53,6 +59,9 @@ export type OrganizationMinAggregateOutputType = {
   restaurantMenuBackgroundEnabled: boolean | null
   restaurantMenuBackgroundPosition: string | null
   restaurantMenuBackgroundSize: string | null
+  restaurantLatitude: runtime.Decimal | null
+  restaurantLongitude: runtime.Decimal | null
+  restaurantOrderRadiusMeters: number | null
 }
 
 export type OrganizationMaxAggregateOutputType = {
@@ -72,6 +81,9 @@ export type OrganizationMaxAggregateOutputType = {
   restaurantMenuBackgroundEnabled: boolean | null
   restaurantMenuBackgroundPosition: string | null
   restaurantMenuBackgroundSize: string | null
+  restaurantLatitude: runtime.Decimal | null
+  restaurantLongitude: runtime.Decimal | null
+  restaurantOrderRadiusMeters: number | null
 }
 
 export type OrganizationCountAggregateOutputType = {
@@ -91,6 +103,9 @@ export type OrganizationCountAggregateOutputType = {
   restaurantMenuBackgroundEnabled: number
   restaurantMenuBackgroundPosition: number
   restaurantMenuBackgroundSize: number
+  restaurantLatitude: number
+  restaurantLongitude: number
+  restaurantOrderRadiusMeters: number
   _all: number
 }
 
@@ -98,11 +113,17 @@ export type OrganizationCountAggregateOutputType = {
 export type OrganizationAvgAggregateInputType = {
   restaurantTaxRateBps?: true
   restaurantServiceRateBps?: true
+  restaurantLatitude?: true
+  restaurantLongitude?: true
+  restaurantOrderRadiusMeters?: true
 }
 
 export type OrganizationSumAggregateInputType = {
   restaurantTaxRateBps?: true
   restaurantServiceRateBps?: true
+  restaurantLatitude?: true
+  restaurantLongitude?: true
+  restaurantOrderRadiusMeters?: true
 }
 
 export type OrganizationMinAggregateInputType = {
@@ -122,6 +143,9 @@ export type OrganizationMinAggregateInputType = {
   restaurantMenuBackgroundEnabled?: true
   restaurantMenuBackgroundPosition?: true
   restaurantMenuBackgroundSize?: true
+  restaurantLatitude?: true
+  restaurantLongitude?: true
+  restaurantOrderRadiusMeters?: true
 }
 
 export type OrganizationMaxAggregateInputType = {
@@ -141,6 +165,9 @@ export type OrganizationMaxAggregateInputType = {
   restaurantMenuBackgroundEnabled?: true
   restaurantMenuBackgroundPosition?: true
   restaurantMenuBackgroundSize?: true
+  restaurantLatitude?: true
+  restaurantLongitude?: true
+  restaurantOrderRadiusMeters?: true
 }
 
 export type OrganizationCountAggregateInputType = {
@@ -160,6 +187,9 @@ export type OrganizationCountAggregateInputType = {
   restaurantMenuBackgroundEnabled?: true
   restaurantMenuBackgroundPosition?: true
   restaurantMenuBackgroundSize?: true
+  restaurantLatitude?: true
+  restaurantLongitude?: true
+  restaurantOrderRadiusMeters?: true
   _all?: true
 }
 
@@ -266,6 +296,9 @@ export type OrganizationGroupByOutputType = {
   restaurantMenuBackgroundEnabled: boolean
   restaurantMenuBackgroundPosition: string
   restaurantMenuBackgroundSize: string
+  restaurantLatitude: runtime.Decimal | null
+  restaurantLongitude: runtime.Decimal | null
+  restaurantOrderRadiusMeters: number
   _count: OrganizationCountAggregateOutputType | null
   _avg: OrganizationAvgAggregateOutputType | null
   _sum: OrganizationSumAggregateOutputType | null
@@ -308,6 +341,9 @@ export type OrganizationWhereInput = {
   restaurantMenuBackgroundEnabled?: Prisma.BoolFilter<"Organization"> | boolean
   restaurantMenuBackgroundPosition?: Prisma.StringFilter<"Organization"> | string
   restaurantMenuBackgroundSize?: Prisma.StringFilter<"Organization"> | string
+  restaurantLatitude?: Prisma.DecimalNullableFilter<"Organization"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  restaurantLongitude?: Prisma.DecimalNullableFilter<"Organization"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  restaurantOrderRadiusMeters?: Prisma.IntFilter<"Organization"> | number
   users?: Prisma.UserListRelationFilter
   assets?: Prisma.AssetListRelationFilter
   locations?: Prisma.OrganizationLocationListRelationFilter
@@ -318,6 +354,7 @@ export type OrganizationWhereInput = {
   restaurantPromotions?: Prisma.RestaurantPromotionListRelationFilter
   restaurantLoyaltyActivities?: Prisma.RestaurantLoyaltyActivityListRelationFilter
   restaurantRewardPrograms?: Prisma.RestaurantRewardProgramListRelationFilter
+  restaurantQrAccesses?: Prisma.RestaurantQrAccessListRelationFilter
 }
 
 export type OrganizationOrderByWithRelationInput = {
@@ -337,6 +374,9 @@ export type OrganizationOrderByWithRelationInput = {
   restaurantMenuBackgroundEnabled?: Prisma.SortOrder
   restaurantMenuBackgroundPosition?: Prisma.SortOrder
   restaurantMenuBackgroundSize?: Prisma.SortOrder
+  restaurantLatitude?: Prisma.SortOrderInput | Prisma.SortOrder
+  restaurantLongitude?: Prisma.SortOrderInput | Prisma.SortOrder
+  restaurantOrderRadiusMeters?: Prisma.SortOrder
   users?: Prisma.UserOrderByRelationAggregateInput
   assets?: Prisma.AssetOrderByRelationAggregateInput
   locations?: Prisma.OrganizationLocationOrderByRelationAggregateInput
@@ -347,6 +387,7 @@ export type OrganizationOrderByWithRelationInput = {
   restaurantPromotions?: Prisma.RestaurantPromotionOrderByRelationAggregateInput
   restaurantLoyaltyActivities?: Prisma.RestaurantLoyaltyActivityOrderByRelationAggregateInput
   restaurantRewardPrograms?: Prisma.RestaurantRewardProgramOrderByRelationAggregateInput
+  restaurantQrAccesses?: Prisma.RestaurantQrAccessOrderByRelationAggregateInput
 }
 
 export type OrganizationWhereUniqueInput = Prisma.AtLeast<{
@@ -369,6 +410,9 @@ export type OrganizationWhereUniqueInput = Prisma.AtLeast<{
   restaurantMenuBackgroundEnabled?: Prisma.BoolFilter<"Organization"> | boolean
   restaurantMenuBackgroundPosition?: Prisma.StringFilter<"Organization"> | string
   restaurantMenuBackgroundSize?: Prisma.StringFilter<"Organization"> | string
+  restaurantLatitude?: Prisma.DecimalNullableFilter<"Organization"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  restaurantLongitude?: Prisma.DecimalNullableFilter<"Organization"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  restaurantOrderRadiusMeters?: Prisma.IntFilter<"Organization"> | number
   users?: Prisma.UserListRelationFilter
   assets?: Prisma.AssetListRelationFilter
   locations?: Prisma.OrganizationLocationListRelationFilter
@@ -379,6 +423,7 @@ export type OrganizationWhereUniqueInput = Prisma.AtLeast<{
   restaurantPromotions?: Prisma.RestaurantPromotionListRelationFilter
   restaurantLoyaltyActivities?: Prisma.RestaurantLoyaltyActivityListRelationFilter
   restaurantRewardPrograms?: Prisma.RestaurantRewardProgramListRelationFilter
+  restaurantQrAccesses?: Prisma.RestaurantQrAccessListRelationFilter
 }, "id" | "slug">
 
 export type OrganizationOrderByWithAggregationInput = {
@@ -398,6 +443,9 @@ export type OrganizationOrderByWithAggregationInput = {
   restaurantMenuBackgroundEnabled?: Prisma.SortOrder
   restaurantMenuBackgroundPosition?: Prisma.SortOrder
   restaurantMenuBackgroundSize?: Prisma.SortOrder
+  restaurantLatitude?: Prisma.SortOrderInput | Prisma.SortOrder
+  restaurantLongitude?: Prisma.SortOrderInput | Prisma.SortOrder
+  restaurantOrderRadiusMeters?: Prisma.SortOrder
   _count?: Prisma.OrganizationCountOrderByAggregateInput
   _avg?: Prisma.OrganizationAvgOrderByAggregateInput
   _max?: Prisma.OrganizationMaxOrderByAggregateInput
@@ -425,6 +473,9 @@ export type OrganizationScalarWhereWithAggregatesInput = {
   restaurantMenuBackgroundEnabled?: Prisma.BoolWithAggregatesFilter<"Organization"> | boolean
   restaurantMenuBackgroundPosition?: Prisma.StringWithAggregatesFilter<"Organization"> | string
   restaurantMenuBackgroundSize?: Prisma.StringWithAggregatesFilter<"Organization"> | string
+  restaurantLatitude?: Prisma.DecimalNullableWithAggregatesFilter<"Organization"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  restaurantLongitude?: Prisma.DecimalNullableWithAggregatesFilter<"Organization"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  restaurantOrderRadiusMeters?: Prisma.IntWithAggregatesFilter<"Organization"> | number
 }
 
 export type OrganizationCreateInput = {
@@ -444,6 +495,9 @@ export type OrganizationCreateInput = {
   restaurantMenuBackgroundEnabled?: boolean
   restaurantMenuBackgroundPosition?: string
   restaurantMenuBackgroundSize?: string
+  restaurantLatitude?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  restaurantLongitude?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  restaurantOrderRadiusMeters?: number
   users?: Prisma.UserCreateNestedManyWithoutOrganizationInput
   assets?: Prisma.AssetCreateNestedManyWithoutOrganizationInput
   locations?: Prisma.OrganizationLocationCreateNestedManyWithoutOrganizationInput
@@ -454,6 +508,7 @@ export type OrganizationCreateInput = {
   restaurantPromotions?: Prisma.RestaurantPromotionCreateNestedManyWithoutOrganizationInput
   restaurantLoyaltyActivities?: Prisma.RestaurantLoyaltyActivityCreateNestedManyWithoutOrganizationInput
   restaurantRewardPrograms?: Prisma.RestaurantRewardProgramCreateNestedManyWithoutOrganizationInput
+  restaurantQrAccesses?: Prisma.RestaurantQrAccessCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationUncheckedCreateInput = {
@@ -473,6 +528,9 @@ export type OrganizationUncheckedCreateInput = {
   restaurantMenuBackgroundEnabled?: boolean
   restaurantMenuBackgroundPosition?: string
   restaurantMenuBackgroundSize?: string
+  restaurantLatitude?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  restaurantLongitude?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  restaurantOrderRadiusMeters?: number
   users?: Prisma.UserUncheckedCreateNestedManyWithoutOrganizationInput
   assets?: Prisma.AssetUncheckedCreateNestedManyWithoutOrganizationInput
   locations?: Prisma.OrganizationLocationUncheckedCreateNestedManyWithoutOrganizationInput
@@ -483,6 +541,7 @@ export type OrganizationUncheckedCreateInput = {
   restaurantPromotions?: Prisma.RestaurantPromotionUncheckedCreateNestedManyWithoutOrganizationInput
   restaurantLoyaltyActivities?: Prisma.RestaurantLoyaltyActivityUncheckedCreateNestedManyWithoutOrganizationInput
   restaurantRewardPrograms?: Prisma.RestaurantRewardProgramUncheckedCreateNestedManyWithoutOrganizationInput
+  restaurantQrAccesses?: Prisma.RestaurantQrAccessUncheckedCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationUpdateInput = {
@@ -502,6 +561,9 @@ export type OrganizationUpdateInput = {
   restaurantMenuBackgroundEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   restaurantMenuBackgroundPosition?: Prisma.StringFieldUpdateOperationsInput | string
   restaurantMenuBackgroundSize?: Prisma.StringFieldUpdateOperationsInput | string
+  restaurantLatitude?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  restaurantLongitude?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  restaurantOrderRadiusMeters?: Prisma.IntFieldUpdateOperationsInput | number
   users?: Prisma.UserUpdateManyWithoutOrganizationNestedInput
   assets?: Prisma.AssetUpdateManyWithoutOrganizationNestedInput
   locations?: Prisma.OrganizationLocationUpdateManyWithoutOrganizationNestedInput
@@ -512,6 +574,7 @@ export type OrganizationUpdateInput = {
   restaurantPromotions?: Prisma.RestaurantPromotionUpdateManyWithoutOrganizationNestedInput
   restaurantLoyaltyActivities?: Prisma.RestaurantLoyaltyActivityUpdateManyWithoutOrganizationNestedInput
   restaurantRewardPrograms?: Prisma.RestaurantRewardProgramUpdateManyWithoutOrganizationNestedInput
+  restaurantQrAccesses?: Prisma.RestaurantQrAccessUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationUncheckedUpdateInput = {
@@ -531,6 +594,9 @@ export type OrganizationUncheckedUpdateInput = {
   restaurantMenuBackgroundEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   restaurantMenuBackgroundPosition?: Prisma.StringFieldUpdateOperationsInput | string
   restaurantMenuBackgroundSize?: Prisma.StringFieldUpdateOperationsInput | string
+  restaurantLatitude?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  restaurantLongitude?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  restaurantOrderRadiusMeters?: Prisma.IntFieldUpdateOperationsInput | number
   users?: Prisma.UserUncheckedUpdateManyWithoutOrganizationNestedInput
   assets?: Prisma.AssetUncheckedUpdateManyWithoutOrganizationNestedInput
   locations?: Prisma.OrganizationLocationUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -541,6 +607,7 @@ export type OrganizationUncheckedUpdateInput = {
   restaurantPromotions?: Prisma.RestaurantPromotionUncheckedUpdateManyWithoutOrganizationNestedInput
   restaurantLoyaltyActivities?: Prisma.RestaurantLoyaltyActivityUncheckedUpdateManyWithoutOrganizationNestedInput
   restaurantRewardPrograms?: Prisma.RestaurantRewardProgramUncheckedUpdateManyWithoutOrganizationNestedInput
+  restaurantQrAccesses?: Prisma.RestaurantQrAccessUncheckedUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationCreateManyInput = {
@@ -560,6 +627,9 @@ export type OrganizationCreateManyInput = {
   restaurantMenuBackgroundEnabled?: boolean
   restaurantMenuBackgroundPosition?: string
   restaurantMenuBackgroundSize?: string
+  restaurantLatitude?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  restaurantLongitude?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  restaurantOrderRadiusMeters?: number
 }
 
 export type OrganizationUpdateManyMutationInput = {
@@ -579,6 +649,9 @@ export type OrganizationUpdateManyMutationInput = {
   restaurantMenuBackgroundEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   restaurantMenuBackgroundPosition?: Prisma.StringFieldUpdateOperationsInput | string
   restaurantMenuBackgroundSize?: Prisma.StringFieldUpdateOperationsInput | string
+  restaurantLatitude?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  restaurantLongitude?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  restaurantOrderRadiusMeters?: Prisma.IntFieldUpdateOperationsInput | number
 }
 
 export type OrganizationUncheckedUpdateManyInput = {
@@ -598,6 +671,9 @@ export type OrganizationUncheckedUpdateManyInput = {
   restaurantMenuBackgroundEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   restaurantMenuBackgroundPosition?: Prisma.StringFieldUpdateOperationsInput | string
   restaurantMenuBackgroundSize?: Prisma.StringFieldUpdateOperationsInput | string
+  restaurantLatitude?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  restaurantLongitude?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  restaurantOrderRadiusMeters?: Prisma.IntFieldUpdateOperationsInput | number
 }
 
 export type OrganizationCountOrderByAggregateInput = {
@@ -617,11 +693,17 @@ export type OrganizationCountOrderByAggregateInput = {
   restaurantMenuBackgroundEnabled?: Prisma.SortOrder
   restaurantMenuBackgroundPosition?: Prisma.SortOrder
   restaurantMenuBackgroundSize?: Prisma.SortOrder
+  restaurantLatitude?: Prisma.SortOrder
+  restaurantLongitude?: Prisma.SortOrder
+  restaurantOrderRadiusMeters?: Prisma.SortOrder
 }
 
 export type OrganizationAvgOrderByAggregateInput = {
   restaurantTaxRateBps?: Prisma.SortOrder
   restaurantServiceRateBps?: Prisma.SortOrder
+  restaurantLatitude?: Prisma.SortOrder
+  restaurantLongitude?: Prisma.SortOrder
+  restaurantOrderRadiusMeters?: Prisma.SortOrder
 }
 
 export type OrganizationMaxOrderByAggregateInput = {
@@ -641,6 +723,9 @@ export type OrganizationMaxOrderByAggregateInput = {
   restaurantMenuBackgroundEnabled?: Prisma.SortOrder
   restaurantMenuBackgroundPosition?: Prisma.SortOrder
   restaurantMenuBackgroundSize?: Prisma.SortOrder
+  restaurantLatitude?: Prisma.SortOrder
+  restaurantLongitude?: Prisma.SortOrder
+  restaurantOrderRadiusMeters?: Prisma.SortOrder
 }
 
 export type OrganizationMinOrderByAggregateInput = {
@@ -660,11 +745,17 @@ export type OrganizationMinOrderByAggregateInput = {
   restaurantMenuBackgroundEnabled?: Prisma.SortOrder
   restaurantMenuBackgroundPosition?: Prisma.SortOrder
   restaurantMenuBackgroundSize?: Prisma.SortOrder
+  restaurantLatitude?: Prisma.SortOrder
+  restaurantLongitude?: Prisma.SortOrder
+  restaurantOrderRadiusMeters?: Prisma.SortOrder
 }
 
 export type OrganizationSumOrderByAggregateInput = {
   restaurantTaxRateBps?: Prisma.SortOrder
   restaurantServiceRateBps?: Prisma.SortOrder
+  restaurantLatitude?: Prisma.SortOrder
+  restaurantLongitude?: Prisma.SortOrder
+  restaurantOrderRadiusMeters?: Prisma.SortOrder
 }
 
 export type OrganizationScalarRelationFilter = {
@@ -701,6 +792,14 @@ export type NullableStringFieldUpdateOperationsInput = {
   set?: string | null
 }
 
+export type NullableDecimalFieldUpdateOperationsInput = {
+  set?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  increment?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  decrement?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  multiply?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  divide?: runtime.Decimal | runtime.DecimalJsLike | number | string
+}
+
 export type OrganizationCreateNestedOneWithoutRestaurantTablesInput = {
   create?: Prisma.XOR<Prisma.OrganizationCreateWithoutRestaurantTablesInput, Prisma.OrganizationUncheckedCreateWithoutRestaurantTablesInput>
   connectOrCreate?: Prisma.OrganizationCreateOrConnectWithoutRestaurantTablesInput
@@ -727,6 +826,20 @@ export type OrganizationUpdateOneRequiredWithoutRestaurantVisitsNestedInput = {
   upsert?: Prisma.OrganizationUpsertWithoutRestaurantVisitsInput
   connect?: Prisma.OrganizationWhereUniqueInput
   update?: Prisma.XOR<Prisma.XOR<Prisma.OrganizationUpdateToOneWithWhereWithoutRestaurantVisitsInput, Prisma.OrganizationUpdateWithoutRestaurantVisitsInput>, Prisma.OrganizationUncheckedUpdateWithoutRestaurantVisitsInput>
+}
+
+export type OrganizationCreateNestedOneWithoutRestaurantQrAccessesInput = {
+  create?: Prisma.XOR<Prisma.OrganizationCreateWithoutRestaurantQrAccessesInput, Prisma.OrganizationUncheckedCreateWithoutRestaurantQrAccessesInput>
+  connectOrCreate?: Prisma.OrganizationCreateOrConnectWithoutRestaurantQrAccessesInput
+  connect?: Prisma.OrganizationWhereUniqueInput
+}
+
+export type OrganizationUpdateOneRequiredWithoutRestaurantQrAccessesNestedInput = {
+  create?: Prisma.XOR<Prisma.OrganizationCreateWithoutRestaurantQrAccessesInput, Prisma.OrganizationUncheckedCreateWithoutRestaurantQrAccessesInput>
+  connectOrCreate?: Prisma.OrganizationCreateOrConnectWithoutRestaurantQrAccessesInput
+  upsert?: Prisma.OrganizationUpsertWithoutRestaurantQrAccessesInput
+  connect?: Prisma.OrganizationWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.OrganizationUpdateToOneWithWhereWithoutRestaurantQrAccessesInput, Prisma.OrganizationUpdateWithoutRestaurantQrAccessesInput>, Prisma.OrganizationUncheckedUpdateWithoutRestaurantQrAccessesInput>
 }
 
 export type OrganizationCreateNestedOneWithoutRestaurantLoyaltyActivitiesInput = {
@@ -860,6 +973,9 @@ export type OrganizationCreateWithoutRestaurantTablesInput = {
   restaurantMenuBackgroundEnabled?: boolean
   restaurantMenuBackgroundPosition?: string
   restaurantMenuBackgroundSize?: string
+  restaurantLatitude?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  restaurantLongitude?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  restaurantOrderRadiusMeters?: number
   users?: Prisma.UserCreateNestedManyWithoutOrganizationInput
   assets?: Prisma.AssetCreateNestedManyWithoutOrganizationInput
   locations?: Prisma.OrganizationLocationCreateNestedManyWithoutOrganizationInput
@@ -869,6 +985,7 @@ export type OrganizationCreateWithoutRestaurantTablesInput = {
   restaurantPromotions?: Prisma.RestaurantPromotionCreateNestedManyWithoutOrganizationInput
   restaurantLoyaltyActivities?: Prisma.RestaurantLoyaltyActivityCreateNestedManyWithoutOrganizationInput
   restaurantRewardPrograms?: Prisma.RestaurantRewardProgramCreateNestedManyWithoutOrganizationInput
+  restaurantQrAccesses?: Prisma.RestaurantQrAccessCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationUncheckedCreateWithoutRestaurantTablesInput = {
@@ -888,6 +1005,9 @@ export type OrganizationUncheckedCreateWithoutRestaurantTablesInput = {
   restaurantMenuBackgroundEnabled?: boolean
   restaurantMenuBackgroundPosition?: string
   restaurantMenuBackgroundSize?: string
+  restaurantLatitude?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  restaurantLongitude?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  restaurantOrderRadiusMeters?: number
   users?: Prisma.UserUncheckedCreateNestedManyWithoutOrganizationInput
   assets?: Prisma.AssetUncheckedCreateNestedManyWithoutOrganizationInput
   locations?: Prisma.OrganizationLocationUncheckedCreateNestedManyWithoutOrganizationInput
@@ -897,6 +1017,7 @@ export type OrganizationUncheckedCreateWithoutRestaurantTablesInput = {
   restaurantPromotions?: Prisma.RestaurantPromotionUncheckedCreateNestedManyWithoutOrganizationInput
   restaurantLoyaltyActivities?: Prisma.RestaurantLoyaltyActivityUncheckedCreateNestedManyWithoutOrganizationInput
   restaurantRewardPrograms?: Prisma.RestaurantRewardProgramUncheckedCreateNestedManyWithoutOrganizationInput
+  restaurantQrAccesses?: Prisma.RestaurantQrAccessUncheckedCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationCreateOrConnectWithoutRestaurantTablesInput = {
@@ -932,6 +1053,9 @@ export type OrganizationUpdateWithoutRestaurantTablesInput = {
   restaurantMenuBackgroundEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   restaurantMenuBackgroundPosition?: Prisma.StringFieldUpdateOperationsInput | string
   restaurantMenuBackgroundSize?: Prisma.StringFieldUpdateOperationsInput | string
+  restaurantLatitude?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  restaurantLongitude?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  restaurantOrderRadiusMeters?: Prisma.IntFieldUpdateOperationsInput | number
   users?: Prisma.UserUpdateManyWithoutOrganizationNestedInput
   assets?: Prisma.AssetUpdateManyWithoutOrganizationNestedInput
   locations?: Prisma.OrganizationLocationUpdateManyWithoutOrganizationNestedInput
@@ -941,6 +1065,7 @@ export type OrganizationUpdateWithoutRestaurantTablesInput = {
   restaurantPromotions?: Prisma.RestaurantPromotionUpdateManyWithoutOrganizationNestedInput
   restaurantLoyaltyActivities?: Prisma.RestaurantLoyaltyActivityUpdateManyWithoutOrganizationNestedInput
   restaurantRewardPrograms?: Prisma.RestaurantRewardProgramUpdateManyWithoutOrganizationNestedInput
+  restaurantQrAccesses?: Prisma.RestaurantQrAccessUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationUncheckedUpdateWithoutRestaurantTablesInput = {
@@ -960,6 +1085,9 @@ export type OrganizationUncheckedUpdateWithoutRestaurantTablesInput = {
   restaurantMenuBackgroundEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   restaurantMenuBackgroundPosition?: Prisma.StringFieldUpdateOperationsInput | string
   restaurantMenuBackgroundSize?: Prisma.StringFieldUpdateOperationsInput | string
+  restaurantLatitude?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  restaurantLongitude?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  restaurantOrderRadiusMeters?: Prisma.IntFieldUpdateOperationsInput | number
   users?: Prisma.UserUncheckedUpdateManyWithoutOrganizationNestedInput
   assets?: Prisma.AssetUncheckedUpdateManyWithoutOrganizationNestedInput
   locations?: Prisma.OrganizationLocationUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -969,6 +1097,7 @@ export type OrganizationUncheckedUpdateWithoutRestaurantTablesInput = {
   restaurantPromotions?: Prisma.RestaurantPromotionUncheckedUpdateManyWithoutOrganizationNestedInput
   restaurantLoyaltyActivities?: Prisma.RestaurantLoyaltyActivityUncheckedUpdateManyWithoutOrganizationNestedInput
   restaurantRewardPrograms?: Prisma.RestaurantRewardProgramUncheckedUpdateManyWithoutOrganizationNestedInput
+  restaurantQrAccesses?: Prisma.RestaurantQrAccessUncheckedUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationCreateWithoutRestaurantVisitsInput = {
@@ -988,6 +1117,9 @@ export type OrganizationCreateWithoutRestaurantVisitsInput = {
   restaurantMenuBackgroundEnabled?: boolean
   restaurantMenuBackgroundPosition?: string
   restaurantMenuBackgroundSize?: string
+  restaurantLatitude?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  restaurantLongitude?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  restaurantOrderRadiusMeters?: number
   users?: Prisma.UserCreateNestedManyWithoutOrganizationInput
   assets?: Prisma.AssetCreateNestedManyWithoutOrganizationInput
   locations?: Prisma.OrganizationLocationCreateNestedManyWithoutOrganizationInput
@@ -997,6 +1129,7 @@ export type OrganizationCreateWithoutRestaurantVisitsInput = {
   restaurantPromotions?: Prisma.RestaurantPromotionCreateNestedManyWithoutOrganizationInput
   restaurantLoyaltyActivities?: Prisma.RestaurantLoyaltyActivityCreateNestedManyWithoutOrganizationInput
   restaurantRewardPrograms?: Prisma.RestaurantRewardProgramCreateNestedManyWithoutOrganizationInput
+  restaurantQrAccesses?: Prisma.RestaurantQrAccessCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationUncheckedCreateWithoutRestaurantVisitsInput = {
@@ -1016,6 +1149,9 @@ export type OrganizationUncheckedCreateWithoutRestaurantVisitsInput = {
   restaurantMenuBackgroundEnabled?: boolean
   restaurantMenuBackgroundPosition?: string
   restaurantMenuBackgroundSize?: string
+  restaurantLatitude?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  restaurantLongitude?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  restaurantOrderRadiusMeters?: number
   users?: Prisma.UserUncheckedCreateNestedManyWithoutOrganizationInput
   assets?: Prisma.AssetUncheckedCreateNestedManyWithoutOrganizationInput
   locations?: Prisma.OrganizationLocationUncheckedCreateNestedManyWithoutOrganizationInput
@@ -1025,6 +1161,7 @@ export type OrganizationUncheckedCreateWithoutRestaurantVisitsInput = {
   restaurantPromotions?: Prisma.RestaurantPromotionUncheckedCreateNestedManyWithoutOrganizationInput
   restaurantLoyaltyActivities?: Prisma.RestaurantLoyaltyActivityUncheckedCreateNestedManyWithoutOrganizationInput
   restaurantRewardPrograms?: Prisma.RestaurantRewardProgramUncheckedCreateNestedManyWithoutOrganizationInput
+  restaurantQrAccesses?: Prisma.RestaurantQrAccessUncheckedCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationCreateOrConnectWithoutRestaurantVisitsInput = {
@@ -1060,6 +1197,9 @@ export type OrganizationUpdateWithoutRestaurantVisitsInput = {
   restaurantMenuBackgroundEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   restaurantMenuBackgroundPosition?: Prisma.StringFieldUpdateOperationsInput | string
   restaurantMenuBackgroundSize?: Prisma.StringFieldUpdateOperationsInput | string
+  restaurantLatitude?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  restaurantLongitude?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  restaurantOrderRadiusMeters?: Prisma.IntFieldUpdateOperationsInput | number
   users?: Prisma.UserUpdateManyWithoutOrganizationNestedInput
   assets?: Prisma.AssetUpdateManyWithoutOrganizationNestedInput
   locations?: Prisma.OrganizationLocationUpdateManyWithoutOrganizationNestedInput
@@ -1069,6 +1209,7 @@ export type OrganizationUpdateWithoutRestaurantVisitsInput = {
   restaurantPromotions?: Prisma.RestaurantPromotionUpdateManyWithoutOrganizationNestedInput
   restaurantLoyaltyActivities?: Prisma.RestaurantLoyaltyActivityUpdateManyWithoutOrganizationNestedInput
   restaurantRewardPrograms?: Prisma.RestaurantRewardProgramUpdateManyWithoutOrganizationNestedInput
+  restaurantQrAccesses?: Prisma.RestaurantQrAccessUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationUncheckedUpdateWithoutRestaurantVisitsInput = {
@@ -1088,12 +1229,160 @@ export type OrganizationUncheckedUpdateWithoutRestaurantVisitsInput = {
   restaurantMenuBackgroundEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   restaurantMenuBackgroundPosition?: Prisma.StringFieldUpdateOperationsInput | string
   restaurantMenuBackgroundSize?: Prisma.StringFieldUpdateOperationsInput | string
+  restaurantLatitude?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  restaurantLongitude?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  restaurantOrderRadiusMeters?: Prisma.IntFieldUpdateOperationsInput | number
   users?: Prisma.UserUncheckedUpdateManyWithoutOrganizationNestedInput
   assets?: Prisma.AssetUncheckedUpdateManyWithoutOrganizationNestedInput
   locations?: Prisma.OrganizationLocationUncheckedUpdateManyWithoutOrganizationNestedInput
   restaurantTables?: Prisma.RestaurantTableUncheckedUpdateManyWithoutOrganizationNestedInput
   restaurantMenuItems?: Prisma.RestaurantMenuItemUncheckedUpdateManyWithoutOrganizationNestedInput
   restaurantOrders?: Prisma.RestaurantOrderUncheckedUpdateManyWithoutOrganizationNestedInput
+  restaurantPromotions?: Prisma.RestaurantPromotionUncheckedUpdateManyWithoutOrganizationNestedInput
+  restaurantLoyaltyActivities?: Prisma.RestaurantLoyaltyActivityUncheckedUpdateManyWithoutOrganizationNestedInput
+  restaurantRewardPrograms?: Prisma.RestaurantRewardProgramUncheckedUpdateManyWithoutOrganizationNestedInput
+  restaurantQrAccesses?: Prisma.RestaurantQrAccessUncheckedUpdateManyWithoutOrganizationNestedInput
+}
+
+export type OrganizationCreateWithoutRestaurantQrAccessesInput = {
+  id?: string
+  name: string
+  slug: string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  restaurantTaxRateBps?: number
+  restaurantTaxIncluded?: boolean
+  restaurantServiceRateBps?: number
+  restaurantAccessEnabled?: boolean
+  restaurantDisplayName?: string | null
+  restaurantHeaderImageData?: string | null
+  restaurantUseHeaderImage?: boolean
+  restaurantMenuBackgroundImageData?: string | null
+  restaurantMenuBackgroundEnabled?: boolean
+  restaurantMenuBackgroundPosition?: string
+  restaurantMenuBackgroundSize?: string
+  restaurantLatitude?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  restaurantLongitude?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  restaurantOrderRadiusMeters?: number
+  users?: Prisma.UserCreateNestedManyWithoutOrganizationInput
+  assets?: Prisma.AssetCreateNestedManyWithoutOrganizationInput
+  locations?: Prisma.OrganizationLocationCreateNestedManyWithoutOrganizationInput
+  restaurantTables?: Prisma.RestaurantTableCreateNestedManyWithoutOrganizationInput
+  restaurantMenuItems?: Prisma.RestaurantMenuItemCreateNestedManyWithoutOrganizationInput
+  restaurantOrders?: Prisma.RestaurantOrderCreateNestedManyWithoutOrganizationInput
+  restaurantVisits?: Prisma.RestaurantVisitCreateNestedManyWithoutOrganizationInput
+  restaurantPromotions?: Prisma.RestaurantPromotionCreateNestedManyWithoutOrganizationInput
+  restaurantLoyaltyActivities?: Prisma.RestaurantLoyaltyActivityCreateNestedManyWithoutOrganizationInput
+  restaurantRewardPrograms?: Prisma.RestaurantRewardProgramCreateNestedManyWithoutOrganizationInput
+}
+
+export type OrganizationUncheckedCreateWithoutRestaurantQrAccessesInput = {
+  id?: string
+  name: string
+  slug: string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  restaurantTaxRateBps?: number
+  restaurantTaxIncluded?: boolean
+  restaurantServiceRateBps?: number
+  restaurantAccessEnabled?: boolean
+  restaurantDisplayName?: string | null
+  restaurantHeaderImageData?: string | null
+  restaurantUseHeaderImage?: boolean
+  restaurantMenuBackgroundImageData?: string | null
+  restaurantMenuBackgroundEnabled?: boolean
+  restaurantMenuBackgroundPosition?: string
+  restaurantMenuBackgroundSize?: string
+  restaurantLatitude?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  restaurantLongitude?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  restaurantOrderRadiusMeters?: number
+  users?: Prisma.UserUncheckedCreateNestedManyWithoutOrganizationInput
+  assets?: Prisma.AssetUncheckedCreateNestedManyWithoutOrganizationInput
+  locations?: Prisma.OrganizationLocationUncheckedCreateNestedManyWithoutOrganizationInput
+  restaurantTables?: Prisma.RestaurantTableUncheckedCreateNestedManyWithoutOrganizationInput
+  restaurantMenuItems?: Prisma.RestaurantMenuItemUncheckedCreateNestedManyWithoutOrganizationInput
+  restaurantOrders?: Prisma.RestaurantOrderUncheckedCreateNestedManyWithoutOrganizationInput
+  restaurantVisits?: Prisma.RestaurantVisitUncheckedCreateNestedManyWithoutOrganizationInput
+  restaurantPromotions?: Prisma.RestaurantPromotionUncheckedCreateNestedManyWithoutOrganizationInput
+  restaurantLoyaltyActivities?: Prisma.RestaurantLoyaltyActivityUncheckedCreateNestedManyWithoutOrganizationInput
+  restaurantRewardPrograms?: Prisma.RestaurantRewardProgramUncheckedCreateNestedManyWithoutOrganizationInput
+}
+
+export type OrganizationCreateOrConnectWithoutRestaurantQrAccessesInput = {
+  where: Prisma.OrganizationWhereUniqueInput
+  create: Prisma.XOR<Prisma.OrganizationCreateWithoutRestaurantQrAccessesInput, Prisma.OrganizationUncheckedCreateWithoutRestaurantQrAccessesInput>
+}
+
+export type OrganizationUpsertWithoutRestaurantQrAccessesInput = {
+  update: Prisma.XOR<Prisma.OrganizationUpdateWithoutRestaurantQrAccessesInput, Prisma.OrganizationUncheckedUpdateWithoutRestaurantQrAccessesInput>
+  create: Prisma.XOR<Prisma.OrganizationCreateWithoutRestaurantQrAccessesInput, Prisma.OrganizationUncheckedCreateWithoutRestaurantQrAccessesInput>
+  where?: Prisma.OrganizationWhereInput
+}
+
+export type OrganizationUpdateToOneWithWhereWithoutRestaurantQrAccessesInput = {
+  where?: Prisma.OrganizationWhereInput
+  data: Prisma.XOR<Prisma.OrganizationUpdateWithoutRestaurantQrAccessesInput, Prisma.OrganizationUncheckedUpdateWithoutRestaurantQrAccessesInput>
+}
+
+export type OrganizationUpdateWithoutRestaurantQrAccessesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  restaurantTaxRateBps?: Prisma.IntFieldUpdateOperationsInput | number
+  restaurantTaxIncluded?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  restaurantServiceRateBps?: Prisma.IntFieldUpdateOperationsInput | number
+  restaurantAccessEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  restaurantDisplayName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  restaurantHeaderImageData?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  restaurantUseHeaderImage?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  restaurantMenuBackgroundImageData?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  restaurantMenuBackgroundEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  restaurantMenuBackgroundPosition?: Prisma.StringFieldUpdateOperationsInput | string
+  restaurantMenuBackgroundSize?: Prisma.StringFieldUpdateOperationsInput | string
+  restaurantLatitude?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  restaurantLongitude?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  restaurantOrderRadiusMeters?: Prisma.IntFieldUpdateOperationsInput | number
+  users?: Prisma.UserUpdateManyWithoutOrganizationNestedInput
+  assets?: Prisma.AssetUpdateManyWithoutOrganizationNestedInput
+  locations?: Prisma.OrganizationLocationUpdateManyWithoutOrganizationNestedInput
+  restaurantTables?: Prisma.RestaurantTableUpdateManyWithoutOrganizationNestedInput
+  restaurantMenuItems?: Prisma.RestaurantMenuItemUpdateManyWithoutOrganizationNestedInput
+  restaurantOrders?: Prisma.RestaurantOrderUpdateManyWithoutOrganizationNestedInput
+  restaurantVisits?: Prisma.RestaurantVisitUpdateManyWithoutOrganizationNestedInput
+  restaurantPromotions?: Prisma.RestaurantPromotionUpdateManyWithoutOrganizationNestedInput
+  restaurantLoyaltyActivities?: Prisma.RestaurantLoyaltyActivityUpdateManyWithoutOrganizationNestedInput
+  restaurantRewardPrograms?: Prisma.RestaurantRewardProgramUpdateManyWithoutOrganizationNestedInput
+}
+
+export type OrganizationUncheckedUpdateWithoutRestaurantQrAccessesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  restaurantTaxRateBps?: Prisma.IntFieldUpdateOperationsInput | number
+  restaurantTaxIncluded?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  restaurantServiceRateBps?: Prisma.IntFieldUpdateOperationsInput | number
+  restaurantAccessEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  restaurantDisplayName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  restaurantHeaderImageData?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  restaurantUseHeaderImage?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  restaurantMenuBackgroundImageData?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  restaurantMenuBackgroundEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  restaurantMenuBackgroundPosition?: Prisma.StringFieldUpdateOperationsInput | string
+  restaurantMenuBackgroundSize?: Prisma.StringFieldUpdateOperationsInput | string
+  restaurantLatitude?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  restaurantLongitude?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  restaurantOrderRadiusMeters?: Prisma.IntFieldUpdateOperationsInput | number
+  users?: Prisma.UserUncheckedUpdateManyWithoutOrganizationNestedInput
+  assets?: Prisma.AssetUncheckedUpdateManyWithoutOrganizationNestedInput
+  locations?: Prisma.OrganizationLocationUncheckedUpdateManyWithoutOrganizationNestedInput
+  restaurantTables?: Prisma.RestaurantTableUncheckedUpdateManyWithoutOrganizationNestedInput
+  restaurantMenuItems?: Prisma.RestaurantMenuItemUncheckedUpdateManyWithoutOrganizationNestedInput
+  restaurantOrders?: Prisma.RestaurantOrderUncheckedUpdateManyWithoutOrganizationNestedInput
+  restaurantVisits?: Prisma.RestaurantVisitUncheckedUpdateManyWithoutOrganizationNestedInput
   restaurantPromotions?: Prisma.RestaurantPromotionUncheckedUpdateManyWithoutOrganizationNestedInput
   restaurantLoyaltyActivities?: Prisma.RestaurantLoyaltyActivityUncheckedUpdateManyWithoutOrganizationNestedInput
   restaurantRewardPrograms?: Prisma.RestaurantRewardProgramUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -1116,6 +1405,9 @@ export type OrganizationCreateWithoutRestaurantLoyaltyActivitiesInput = {
   restaurantMenuBackgroundEnabled?: boolean
   restaurantMenuBackgroundPosition?: string
   restaurantMenuBackgroundSize?: string
+  restaurantLatitude?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  restaurantLongitude?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  restaurantOrderRadiusMeters?: number
   users?: Prisma.UserCreateNestedManyWithoutOrganizationInput
   assets?: Prisma.AssetCreateNestedManyWithoutOrganizationInput
   locations?: Prisma.OrganizationLocationCreateNestedManyWithoutOrganizationInput
@@ -1125,6 +1417,7 @@ export type OrganizationCreateWithoutRestaurantLoyaltyActivitiesInput = {
   restaurantVisits?: Prisma.RestaurantVisitCreateNestedManyWithoutOrganizationInput
   restaurantPromotions?: Prisma.RestaurantPromotionCreateNestedManyWithoutOrganizationInput
   restaurantRewardPrograms?: Prisma.RestaurantRewardProgramCreateNestedManyWithoutOrganizationInput
+  restaurantQrAccesses?: Prisma.RestaurantQrAccessCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationUncheckedCreateWithoutRestaurantLoyaltyActivitiesInput = {
@@ -1144,6 +1437,9 @@ export type OrganizationUncheckedCreateWithoutRestaurantLoyaltyActivitiesInput =
   restaurantMenuBackgroundEnabled?: boolean
   restaurantMenuBackgroundPosition?: string
   restaurantMenuBackgroundSize?: string
+  restaurantLatitude?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  restaurantLongitude?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  restaurantOrderRadiusMeters?: number
   users?: Prisma.UserUncheckedCreateNestedManyWithoutOrganizationInput
   assets?: Prisma.AssetUncheckedCreateNestedManyWithoutOrganizationInput
   locations?: Prisma.OrganizationLocationUncheckedCreateNestedManyWithoutOrganizationInput
@@ -1153,6 +1449,7 @@ export type OrganizationUncheckedCreateWithoutRestaurantLoyaltyActivitiesInput =
   restaurantVisits?: Prisma.RestaurantVisitUncheckedCreateNestedManyWithoutOrganizationInput
   restaurantPromotions?: Prisma.RestaurantPromotionUncheckedCreateNestedManyWithoutOrganizationInput
   restaurantRewardPrograms?: Prisma.RestaurantRewardProgramUncheckedCreateNestedManyWithoutOrganizationInput
+  restaurantQrAccesses?: Prisma.RestaurantQrAccessUncheckedCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationCreateOrConnectWithoutRestaurantLoyaltyActivitiesInput = {
@@ -1188,6 +1485,9 @@ export type OrganizationUpdateWithoutRestaurantLoyaltyActivitiesInput = {
   restaurantMenuBackgroundEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   restaurantMenuBackgroundPosition?: Prisma.StringFieldUpdateOperationsInput | string
   restaurantMenuBackgroundSize?: Prisma.StringFieldUpdateOperationsInput | string
+  restaurantLatitude?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  restaurantLongitude?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  restaurantOrderRadiusMeters?: Prisma.IntFieldUpdateOperationsInput | number
   users?: Prisma.UserUpdateManyWithoutOrganizationNestedInput
   assets?: Prisma.AssetUpdateManyWithoutOrganizationNestedInput
   locations?: Prisma.OrganizationLocationUpdateManyWithoutOrganizationNestedInput
@@ -1197,6 +1497,7 @@ export type OrganizationUpdateWithoutRestaurantLoyaltyActivitiesInput = {
   restaurantVisits?: Prisma.RestaurantVisitUpdateManyWithoutOrganizationNestedInput
   restaurantPromotions?: Prisma.RestaurantPromotionUpdateManyWithoutOrganizationNestedInput
   restaurantRewardPrograms?: Prisma.RestaurantRewardProgramUpdateManyWithoutOrganizationNestedInput
+  restaurantQrAccesses?: Prisma.RestaurantQrAccessUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationUncheckedUpdateWithoutRestaurantLoyaltyActivitiesInput = {
@@ -1216,6 +1517,9 @@ export type OrganizationUncheckedUpdateWithoutRestaurantLoyaltyActivitiesInput =
   restaurantMenuBackgroundEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   restaurantMenuBackgroundPosition?: Prisma.StringFieldUpdateOperationsInput | string
   restaurantMenuBackgroundSize?: Prisma.StringFieldUpdateOperationsInput | string
+  restaurantLatitude?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  restaurantLongitude?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  restaurantOrderRadiusMeters?: Prisma.IntFieldUpdateOperationsInput | number
   users?: Prisma.UserUncheckedUpdateManyWithoutOrganizationNestedInput
   assets?: Prisma.AssetUncheckedUpdateManyWithoutOrganizationNestedInput
   locations?: Prisma.OrganizationLocationUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -1225,6 +1529,7 @@ export type OrganizationUncheckedUpdateWithoutRestaurantLoyaltyActivitiesInput =
   restaurantVisits?: Prisma.RestaurantVisitUncheckedUpdateManyWithoutOrganizationNestedInput
   restaurantPromotions?: Prisma.RestaurantPromotionUncheckedUpdateManyWithoutOrganizationNestedInput
   restaurantRewardPrograms?: Prisma.RestaurantRewardProgramUncheckedUpdateManyWithoutOrganizationNestedInput
+  restaurantQrAccesses?: Prisma.RestaurantQrAccessUncheckedUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationCreateWithoutRestaurantRewardProgramsInput = {
@@ -1244,6 +1549,9 @@ export type OrganizationCreateWithoutRestaurantRewardProgramsInput = {
   restaurantMenuBackgroundEnabled?: boolean
   restaurantMenuBackgroundPosition?: string
   restaurantMenuBackgroundSize?: string
+  restaurantLatitude?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  restaurantLongitude?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  restaurantOrderRadiusMeters?: number
   users?: Prisma.UserCreateNestedManyWithoutOrganizationInput
   assets?: Prisma.AssetCreateNestedManyWithoutOrganizationInput
   locations?: Prisma.OrganizationLocationCreateNestedManyWithoutOrganizationInput
@@ -1253,6 +1561,7 @@ export type OrganizationCreateWithoutRestaurantRewardProgramsInput = {
   restaurantVisits?: Prisma.RestaurantVisitCreateNestedManyWithoutOrganizationInput
   restaurantPromotions?: Prisma.RestaurantPromotionCreateNestedManyWithoutOrganizationInput
   restaurantLoyaltyActivities?: Prisma.RestaurantLoyaltyActivityCreateNestedManyWithoutOrganizationInput
+  restaurantQrAccesses?: Prisma.RestaurantQrAccessCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationUncheckedCreateWithoutRestaurantRewardProgramsInput = {
@@ -1272,6 +1581,9 @@ export type OrganizationUncheckedCreateWithoutRestaurantRewardProgramsInput = {
   restaurantMenuBackgroundEnabled?: boolean
   restaurantMenuBackgroundPosition?: string
   restaurantMenuBackgroundSize?: string
+  restaurantLatitude?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  restaurantLongitude?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  restaurantOrderRadiusMeters?: number
   users?: Prisma.UserUncheckedCreateNestedManyWithoutOrganizationInput
   assets?: Prisma.AssetUncheckedCreateNestedManyWithoutOrganizationInput
   locations?: Prisma.OrganizationLocationUncheckedCreateNestedManyWithoutOrganizationInput
@@ -1281,6 +1593,7 @@ export type OrganizationUncheckedCreateWithoutRestaurantRewardProgramsInput = {
   restaurantVisits?: Prisma.RestaurantVisitUncheckedCreateNestedManyWithoutOrganizationInput
   restaurantPromotions?: Prisma.RestaurantPromotionUncheckedCreateNestedManyWithoutOrganizationInput
   restaurantLoyaltyActivities?: Prisma.RestaurantLoyaltyActivityUncheckedCreateNestedManyWithoutOrganizationInput
+  restaurantQrAccesses?: Prisma.RestaurantQrAccessUncheckedCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationCreateOrConnectWithoutRestaurantRewardProgramsInput = {
@@ -1316,6 +1629,9 @@ export type OrganizationUpdateWithoutRestaurantRewardProgramsInput = {
   restaurantMenuBackgroundEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   restaurantMenuBackgroundPosition?: Prisma.StringFieldUpdateOperationsInput | string
   restaurantMenuBackgroundSize?: Prisma.StringFieldUpdateOperationsInput | string
+  restaurantLatitude?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  restaurantLongitude?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  restaurantOrderRadiusMeters?: Prisma.IntFieldUpdateOperationsInput | number
   users?: Prisma.UserUpdateManyWithoutOrganizationNestedInput
   assets?: Prisma.AssetUpdateManyWithoutOrganizationNestedInput
   locations?: Prisma.OrganizationLocationUpdateManyWithoutOrganizationNestedInput
@@ -1325,6 +1641,7 @@ export type OrganizationUpdateWithoutRestaurantRewardProgramsInput = {
   restaurantVisits?: Prisma.RestaurantVisitUpdateManyWithoutOrganizationNestedInput
   restaurantPromotions?: Prisma.RestaurantPromotionUpdateManyWithoutOrganizationNestedInput
   restaurantLoyaltyActivities?: Prisma.RestaurantLoyaltyActivityUpdateManyWithoutOrganizationNestedInput
+  restaurantQrAccesses?: Prisma.RestaurantQrAccessUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationUncheckedUpdateWithoutRestaurantRewardProgramsInput = {
@@ -1344,6 +1661,9 @@ export type OrganizationUncheckedUpdateWithoutRestaurantRewardProgramsInput = {
   restaurantMenuBackgroundEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   restaurantMenuBackgroundPosition?: Prisma.StringFieldUpdateOperationsInput | string
   restaurantMenuBackgroundSize?: Prisma.StringFieldUpdateOperationsInput | string
+  restaurantLatitude?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  restaurantLongitude?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  restaurantOrderRadiusMeters?: Prisma.IntFieldUpdateOperationsInput | number
   users?: Prisma.UserUncheckedUpdateManyWithoutOrganizationNestedInput
   assets?: Prisma.AssetUncheckedUpdateManyWithoutOrganizationNestedInput
   locations?: Prisma.OrganizationLocationUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -1353,6 +1673,7 @@ export type OrganizationUncheckedUpdateWithoutRestaurantRewardProgramsInput = {
   restaurantVisits?: Prisma.RestaurantVisitUncheckedUpdateManyWithoutOrganizationNestedInput
   restaurantPromotions?: Prisma.RestaurantPromotionUncheckedUpdateManyWithoutOrganizationNestedInput
   restaurantLoyaltyActivities?: Prisma.RestaurantLoyaltyActivityUncheckedUpdateManyWithoutOrganizationNestedInput
+  restaurantQrAccesses?: Prisma.RestaurantQrAccessUncheckedUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationCreateWithoutRestaurantMenuItemsInput = {
@@ -1372,6 +1693,9 @@ export type OrganizationCreateWithoutRestaurantMenuItemsInput = {
   restaurantMenuBackgroundEnabled?: boolean
   restaurantMenuBackgroundPosition?: string
   restaurantMenuBackgroundSize?: string
+  restaurantLatitude?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  restaurantLongitude?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  restaurantOrderRadiusMeters?: number
   users?: Prisma.UserCreateNestedManyWithoutOrganizationInput
   assets?: Prisma.AssetCreateNestedManyWithoutOrganizationInput
   locations?: Prisma.OrganizationLocationCreateNestedManyWithoutOrganizationInput
@@ -1381,6 +1705,7 @@ export type OrganizationCreateWithoutRestaurantMenuItemsInput = {
   restaurantPromotions?: Prisma.RestaurantPromotionCreateNestedManyWithoutOrganizationInput
   restaurantLoyaltyActivities?: Prisma.RestaurantLoyaltyActivityCreateNestedManyWithoutOrganizationInput
   restaurantRewardPrograms?: Prisma.RestaurantRewardProgramCreateNestedManyWithoutOrganizationInput
+  restaurantQrAccesses?: Prisma.RestaurantQrAccessCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationUncheckedCreateWithoutRestaurantMenuItemsInput = {
@@ -1400,6 +1725,9 @@ export type OrganizationUncheckedCreateWithoutRestaurantMenuItemsInput = {
   restaurantMenuBackgroundEnabled?: boolean
   restaurantMenuBackgroundPosition?: string
   restaurantMenuBackgroundSize?: string
+  restaurantLatitude?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  restaurantLongitude?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  restaurantOrderRadiusMeters?: number
   users?: Prisma.UserUncheckedCreateNestedManyWithoutOrganizationInput
   assets?: Prisma.AssetUncheckedCreateNestedManyWithoutOrganizationInput
   locations?: Prisma.OrganizationLocationUncheckedCreateNestedManyWithoutOrganizationInput
@@ -1409,6 +1737,7 @@ export type OrganizationUncheckedCreateWithoutRestaurantMenuItemsInput = {
   restaurantPromotions?: Prisma.RestaurantPromotionUncheckedCreateNestedManyWithoutOrganizationInput
   restaurantLoyaltyActivities?: Prisma.RestaurantLoyaltyActivityUncheckedCreateNestedManyWithoutOrganizationInput
   restaurantRewardPrograms?: Prisma.RestaurantRewardProgramUncheckedCreateNestedManyWithoutOrganizationInput
+  restaurantQrAccesses?: Prisma.RestaurantQrAccessUncheckedCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationCreateOrConnectWithoutRestaurantMenuItemsInput = {
@@ -1444,6 +1773,9 @@ export type OrganizationUpdateWithoutRestaurantMenuItemsInput = {
   restaurantMenuBackgroundEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   restaurantMenuBackgroundPosition?: Prisma.StringFieldUpdateOperationsInput | string
   restaurantMenuBackgroundSize?: Prisma.StringFieldUpdateOperationsInput | string
+  restaurantLatitude?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  restaurantLongitude?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  restaurantOrderRadiusMeters?: Prisma.IntFieldUpdateOperationsInput | number
   users?: Prisma.UserUpdateManyWithoutOrganizationNestedInput
   assets?: Prisma.AssetUpdateManyWithoutOrganizationNestedInput
   locations?: Prisma.OrganizationLocationUpdateManyWithoutOrganizationNestedInput
@@ -1453,6 +1785,7 @@ export type OrganizationUpdateWithoutRestaurantMenuItemsInput = {
   restaurantPromotions?: Prisma.RestaurantPromotionUpdateManyWithoutOrganizationNestedInput
   restaurantLoyaltyActivities?: Prisma.RestaurantLoyaltyActivityUpdateManyWithoutOrganizationNestedInput
   restaurantRewardPrograms?: Prisma.RestaurantRewardProgramUpdateManyWithoutOrganizationNestedInput
+  restaurantQrAccesses?: Prisma.RestaurantQrAccessUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationUncheckedUpdateWithoutRestaurantMenuItemsInput = {
@@ -1472,6 +1805,9 @@ export type OrganizationUncheckedUpdateWithoutRestaurantMenuItemsInput = {
   restaurantMenuBackgroundEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   restaurantMenuBackgroundPosition?: Prisma.StringFieldUpdateOperationsInput | string
   restaurantMenuBackgroundSize?: Prisma.StringFieldUpdateOperationsInput | string
+  restaurantLatitude?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  restaurantLongitude?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  restaurantOrderRadiusMeters?: Prisma.IntFieldUpdateOperationsInput | number
   users?: Prisma.UserUncheckedUpdateManyWithoutOrganizationNestedInput
   assets?: Prisma.AssetUncheckedUpdateManyWithoutOrganizationNestedInput
   locations?: Prisma.OrganizationLocationUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -1481,6 +1817,7 @@ export type OrganizationUncheckedUpdateWithoutRestaurantMenuItemsInput = {
   restaurantPromotions?: Prisma.RestaurantPromotionUncheckedUpdateManyWithoutOrganizationNestedInput
   restaurantLoyaltyActivities?: Prisma.RestaurantLoyaltyActivityUncheckedUpdateManyWithoutOrganizationNestedInput
   restaurantRewardPrograms?: Prisma.RestaurantRewardProgramUncheckedUpdateManyWithoutOrganizationNestedInput
+  restaurantQrAccesses?: Prisma.RestaurantQrAccessUncheckedUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationCreateWithoutRestaurantOrdersInput = {
@@ -1500,6 +1837,9 @@ export type OrganizationCreateWithoutRestaurantOrdersInput = {
   restaurantMenuBackgroundEnabled?: boolean
   restaurantMenuBackgroundPosition?: string
   restaurantMenuBackgroundSize?: string
+  restaurantLatitude?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  restaurantLongitude?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  restaurantOrderRadiusMeters?: number
   users?: Prisma.UserCreateNestedManyWithoutOrganizationInput
   assets?: Prisma.AssetCreateNestedManyWithoutOrganizationInput
   locations?: Prisma.OrganizationLocationCreateNestedManyWithoutOrganizationInput
@@ -1509,6 +1849,7 @@ export type OrganizationCreateWithoutRestaurantOrdersInput = {
   restaurantPromotions?: Prisma.RestaurantPromotionCreateNestedManyWithoutOrganizationInput
   restaurantLoyaltyActivities?: Prisma.RestaurantLoyaltyActivityCreateNestedManyWithoutOrganizationInput
   restaurantRewardPrograms?: Prisma.RestaurantRewardProgramCreateNestedManyWithoutOrganizationInput
+  restaurantQrAccesses?: Prisma.RestaurantQrAccessCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationUncheckedCreateWithoutRestaurantOrdersInput = {
@@ -1528,6 +1869,9 @@ export type OrganizationUncheckedCreateWithoutRestaurantOrdersInput = {
   restaurantMenuBackgroundEnabled?: boolean
   restaurantMenuBackgroundPosition?: string
   restaurantMenuBackgroundSize?: string
+  restaurantLatitude?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  restaurantLongitude?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  restaurantOrderRadiusMeters?: number
   users?: Prisma.UserUncheckedCreateNestedManyWithoutOrganizationInput
   assets?: Prisma.AssetUncheckedCreateNestedManyWithoutOrganizationInput
   locations?: Prisma.OrganizationLocationUncheckedCreateNestedManyWithoutOrganizationInput
@@ -1537,6 +1881,7 @@ export type OrganizationUncheckedCreateWithoutRestaurantOrdersInput = {
   restaurantPromotions?: Prisma.RestaurantPromotionUncheckedCreateNestedManyWithoutOrganizationInput
   restaurantLoyaltyActivities?: Prisma.RestaurantLoyaltyActivityUncheckedCreateNestedManyWithoutOrganizationInput
   restaurantRewardPrograms?: Prisma.RestaurantRewardProgramUncheckedCreateNestedManyWithoutOrganizationInput
+  restaurantQrAccesses?: Prisma.RestaurantQrAccessUncheckedCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationCreateOrConnectWithoutRestaurantOrdersInput = {
@@ -1572,6 +1917,9 @@ export type OrganizationUpdateWithoutRestaurantOrdersInput = {
   restaurantMenuBackgroundEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   restaurantMenuBackgroundPosition?: Prisma.StringFieldUpdateOperationsInput | string
   restaurantMenuBackgroundSize?: Prisma.StringFieldUpdateOperationsInput | string
+  restaurantLatitude?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  restaurantLongitude?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  restaurantOrderRadiusMeters?: Prisma.IntFieldUpdateOperationsInput | number
   users?: Prisma.UserUpdateManyWithoutOrganizationNestedInput
   assets?: Prisma.AssetUpdateManyWithoutOrganizationNestedInput
   locations?: Prisma.OrganizationLocationUpdateManyWithoutOrganizationNestedInput
@@ -1581,6 +1929,7 @@ export type OrganizationUpdateWithoutRestaurantOrdersInput = {
   restaurantPromotions?: Prisma.RestaurantPromotionUpdateManyWithoutOrganizationNestedInput
   restaurantLoyaltyActivities?: Prisma.RestaurantLoyaltyActivityUpdateManyWithoutOrganizationNestedInput
   restaurantRewardPrograms?: Prisma.RestaurantRewardProgramUpdateManyWithoutOrganizationNestedInput
+  restaurantQrAccesses?: Prisma.RestaurantQrAccessUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationUncheckedUpdateWithoutRestaurantOrdersInput = {
@@ -1600,6 +1949,9 @@ export type OrganizationUncheckedUpdateWithoutRestaurantOrdersInput = {
   restaurantMenuBackgroundEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   restaurantMenuBackgroundPosition?: Prisma.StringFieldUpdateOperationsInput | string
   restaurantMenuBackgroundSize?: Prisma.StringFieldUpdateOperationsInput | string
+  restaurantLatitude?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  restaurantLongitude?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  restaurantOrderRadiusMeters?: Prisma.IntFieldUpdateOperationsInput | number
   users?: Prisma.UserUncheckedUpdateManyWithoutOrganizationNestedInput
   assets?: Prisma.AssetUncheckedUpdateManyWithoutOrganizationNestedInput
   locations?: Prisma.OrganizationLocationUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -1609,6 +1961,7 @@ export type OrganizationUncheckedUpdateWithoutRestaurantOrdersInput = {
   restaurantPromotions?: Prisma.RestaurantPromotionUncheckedUpdateManyWithoutOrganizationNestedInput
   restaurantLoyaltyActivities?: Prisma.RestaurantLoyaltyActivityUncheckedUpdateManyWithoutOrganizationNestedInput
   restaurantRewardPrograms?: Prisma.RestaurantRewardProgramUncheckedUpdateManyWithoutOrganizationNestedInput
+  restaurantQrAccesses?: Prisma.RestaurantQrAccessUncheckedUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationCreateWithoutRestaurantPromotionsInput = {
@@ -1628,6 +1981,9 @@ export type OrganizationCreateWithoutRestaurantPromotionsInput = {
   restaurantMenuBackgroundEnabled?: boolean
   restaurantMenuBackgroundPosition?: string
   restaurantMenuBackgroundSize?: string
+  restaurantLatitude?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  restaurantLongitude?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  restaurantOrderRadiusMeters?: number
   users?: Prisma.UserCreateNestedManyWithoutOrganizationInput
   assets?: Prisma.AssetCreateNestedManyWithoutOrganizationInput
   locations?: Prisma.OrganizationLocationCreateNestedManyWithoutOrganizationInput
@@ -1637,6 +1993,7 @@ export type OrganizationCreateWithoutRestaurantPromotionsInput = {
   restaurantVisits?: Prisma.RestaurantVisitCreateNestedManyWithoutOrganizationInput
   restaurantLoyaltyActivities?: Prisma.RestaurantLoyaltyActivityCreateNestedManyWithoutOrganizationInput
   restaurantRewardPrograms?: Prisma.RestaurantRewardProgramCreateNestedManyWithoutOrganizationInput
+  restaurantQrAccesses?: Prisma.RestaurantQrAccessCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationUncheckedCreateWithoutRestaurantPromotionsInput = {
@@ -1656,6 +2013,9 @@ export type OrganizationUncheckedCreateWithoutRestaurantPromotionsInput = {
   restaurantMenuBackgroundEnabled?: boolean
   restaurantMenuBackgroundPosition?: string
   restaurantMenuBackgroundSize?: string
+  restaurantLatitude?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  restaurantLongitude?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  restaurantOrderRadiusMeters?: number
   users?: Prisma.UserUncheckedCreateNestedManyWithoutOrganizationInput
   assets?: Prisma.AssetUncheckedCreateNestedManyWithoutOrganizationInput
   locations?: Prisma.OrganizationLocationUncheckedCreateNestedManyWithoutOrganizationInput
@@ -1665,6 +2025,7 @@ export type OrganizationUncheckedCreateWithoutRestaurantPromotionsInput = {
   restaurantVisits?: Prisma.RestaurantVisitUncheckedCreateNestedManyWithoutOrganizationInput
   restaurantLoyaltyActivities?: Prisma.RestaurantLoyaltyActivityUncheckedCreateNestedManyWithoutOrganizationInput
   restaurantRewardPrograms?: Prisma.RestaurantRewardProgramUncheckedCreateNestedManyWithoutOrganizationInput
+  restaurantQrAccesses?: Prisma.RestaurantQrAccessUncheckedCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationCreateOrConnectWithoutRestaurantPromotionsInput = {
@@ -1700,6 +2061,9 @@ export type OrganizationUpdateWithoutRestaurantPromotionsInput = {
   restaurantMenuBackgroundEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   restaurantMenuBackgroundPosition?: Prisma.StringFieldUpdateOperationsInput | string
   restaurantMenuBackgroundSize?: Prisma.StringFieldUpdateOperationsInput | string
+  restaurantLatitude?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  restaurantLongitude?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  restaurantOrderRadiusMeters?: Prisma.IntFieldUpdateOperationsInput | number
   users?: Prisma.UserUpdateManyWithoutOrganizationNestedInput
   assets?: Prisma.AssetUpdateManyWithoutOrganizationNestedInput
   locations?: Prisma.OrganizationLocationUpdateManyWithoutOrganizationNestedInput
@@ -1709,6 +2073,7 @@ export type OrganizationUpdateWithoutRestaurantPromotionsInput = {
   restaurantVisits?: Prisma.RestaurantVisitUpdateManyWithoutOrganizationNestedInput
   restaurantLoyaltyActivities?: Prisma.RestaurantLoyaltyActivityUpdateManyWithoutOrganizationNestedInput
   restaurantRewardPrograms?: Prisma.RestaurantRewardProgramUpdateManyWithoutOrganizationNestedInput
+  restaurantQrAccesses?: Prisma.RestaurantQrAccessUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationUncheckedUpdateWithoutRestaurantPromotionsInput = {
@@ -1728,6 +2093,9 @@ export type OrganizationUncheckedUpdateWithoutRestaurantPromotionsInput = {
   restaurantMenuBackgroundEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   restaurantMenuBackgroundPosition?: Prisma.StringFieldUpdateOperationsInput | string
   restaurantMenuBackgroundSize?: Prisma.StringFieldUpdateOperationsInput | string
+  restaurantLatitude?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  restaurantLongitude?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  restaurantOrderRadiusMeters?: Prisma.IntFieldUpdateOperationsInput | number
   users?: Prisma.UserUncheckedUpdateManyWithoutOrganizationNestedInput
   assets?: Prisma.AssetUncheckedUpdateManyWithoutOrganizationNestedInput
   locations?: Prisma.OrganizationLocationUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -1737,6 +2105,7 @@ export type OrganizationUncheckedUpdateWithoutRestaurantPromotionsInput = {
   restaurantVisits?: Prisma.RestaurantVisitUncheckedUpdateManyWithoutOrganizationNestedInput
   restaurantLoyaltyActivities?: Prisma.RestaurantLoyaltyActivityUncheckedUpdateManyWithoutOrganizationNestedInput
   restaurantRewardPrograms?: Prisma.RestaurantRewardProgramUncheckedUpdateManyWithoutOrganizationNestedInput
+  restaurantQrAccesses?: Prisma.RestaurantQrAccessUncheckedUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationCreateWithoutLocationsInput = {
@@ -1756,6 +2125,9 @@ export type OrganizationCreateWithoutLocationsInput = {
   restaurantMenuBackgroundEnabled?: boolean
   restaurantMenuBackgroundPosition?: string
   restaurantMenuBackgroundSize?: string
+  restaurantLatitude?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  restaurantLongitude?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  restaurantOrderRadiusMeters?: number
   users?: Prisma.UserCreateNestedManyWithoutOrganizationInput
   assets?: Prisma.AssetCreateNestedManyWithoutOrganizationInput
   restaurantTables?: Prisma.RestaurantTableCreateNestedManyWithoutOrganizationInput
@@ -1765,6 +2137,7 @@ export type OrganizationCreateWithoutLocationsInput = {
   restaurantPromotions?: Prisma.RestaurantPromotionCreateNestedManyWithoutOrganizationInput
   restaurantLoyaltyActivities?: Prisma.RestaurantLoyaltyActivityCreateNestedManyWithoutOrganizationInput
   restaurantRewardPrograms?: Prisma.RestaurantRewardProgramCreateNestedManyWithoutOrganizationInput
+  restaurantQrAccesses?: Prisma.RestaurantQrAccessCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationUncheckedCreateWithoutLocationsInput = {
@@ -1784,6 +2157,9 @@ export type OrganizationUncheckedCreateWithoutLocationsInput = {
   restaurantMenuBackgroundEnabled?: boolean
   restaurantMenuBackgroundPosition?: string
   restaurantMenuBackgroundSize?: string
+  restaurantLatitude?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  restaurantLongitude?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  restaurantOrderRadiusMeters?: number
   users?: Prisma.UserUncheckedCreateNestedManyWithoutOrganizationInput
   assets?: Prisma.AssetUncheckedCreateNestedManyWithoutOrganizationInput
   restaurantTables?: Prisma.RestaurantTableUncheckedCreateNestedManyWithoutOrganizationInput
@@ -1793,6 +2169,7 @@ export type OrganizationUncheckedCreateWithoutLocationsInput = {
   restaurantPromotions?: Prisma.RestaurantPromotionUncheckedCreateNestedManyWithoutOrganizationInput
   restaurantLoyaltyActivities?: Prisma.RestaurantLoyaltyActivityUncheckedCreateNestedManyWithoutOrganizationInput
   restaurantRewardPrograms?: Prisma.RestaurantRewardProgramUncheckedCreateNestedManyWithoutOrganizationInput
+  restaurantQrAccesses?: Prisma.RestaurantQrAccessUncheckedCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationCreateOrConnectWithoutLocationsInput = {
@@ -1828,6 +2205,9 @@ export type OrganizationUpdateWithoutLocationsInput = {
   restaurantMenuBackgroundEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   restaurantMenuBackgroundPosition?: Prisma.StringFieldUpdateOperationsInput | string
   restaurantMenuBackgroundSize?: Prisma.StringFieldUpdateOperationsInput | string
+  restaurantLatitude?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  restaurantLongitude?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  restaurantOrderRadiusMeters?: Prisma.IntFieldUpdateOperationsInput | number
   users?: Prisma.UserUpdateManyWithoutOrganizationNestedInput
   assets?: Prisma.AssetUpdateManyWithoutOrganizationNestedInput
   restaurantTables?: Prisma.RestaurantTableUpdateManyWithoutOrganizationNestedInput
@@ -1837,6 +2217,7 @@ export type OrganizationUpdateWithoutLocationsInput = {
   restaurantPromotions?: Prisma.RestaurantPromotionUpdateManyWithoutOrganizationNestedInput
   restaurantLoyaltyActivities?: Prisma.RestaurantLoyaltyActivityUpdateManyWithoutOrganizationNestedInput
   restaurantRewardPrograms?: Prisma.RestaurantRewardProgramUpdateManyWithoutOrganizationNestedInput
+  restaurantQrAccesses?: Prisma.RestaurantQrAccessUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationUncheckedUpdateWithoutLocationsInput = {
@@ -1856,6 +2237,9 @@ export type OrganizationUncheckedUpdateWithoutLocationsInput = {
   restaurantMenuBackgroundEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   restaurantMenuBackgroundPosition?: Prisma.StringFieldUpdateOperationsInput | string
   restaurantMenuBackgroundSize?: Prisma.StringFieldUpdateOperationsInput | string
+  restaurantLatitude?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  restaurantLongitude?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  restaurantOrderRadiusMeters?: Prisma.IntFieldUpdateOperationsInput | number
   users?: Prisma.UserUncheckedUpdateManyWithoutOrganizationNestedInput
   assets?: Prisma.AssetUncheckedUpdateManyWithoutOrganizationNestedInput
   restaurantTables?: Prisma.RestaurantTableUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -1865,6 +2249,7 @@ export type OrganizationUncheckedUpdateWithoutLocationsInput = {
   restaurantPromotions?: Prisma.RestaurantPromotionUncheckedUpdateManyWithoutOrganizationNestedInput
   restaurantLoyaltyActivities?: Prisma.RestaurantLoyaltyActivityUncheckedUpdateManyWithoutOrganizationNestedInput
   restaurantRewardPrograms?: Prisma.RestaurantRewardProgramUncheckedUpdateManyWithoutOrganizationNestedInput
+  restaurantQrAccesses?: Prisma.RestaurantQrAccessUncheckedUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationCreateWithoutUsersInput = {
@@ -1884,6 +2269,9 @@ export type OrganizationCreateWithoutUsersInput = {
   restaurantMenuBackgroundEnabled?: boolean
   restaurantMenuBackgroundPosition?: string
   restaurantMenuBackgroundSize?: string
+  restaurantLatitude?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  restaurantLongitude?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  restaurantOrderRadiusMeters?: number
   assets?: Prisma.AssetCreateNestedManyWithoutOrganizationInput
   locations?: Prisma.OrganizationLocationCreateNestedManyWithoutOrganizationInput
   restaurantTables?: Prisma.RestaurantTableCreateNestedManyWithoutOrganizationInput
@@ -1893,6 +2281,7 @@ export type OrganizationCreateWithoutUsersInput = {
   restaurantPromotions?: Prisma.RestaurantPromotionCreateNestedManyWithoutOrganizationInput
   restaurantLoyaltyActivities?: Prisma.RestaurantLoyaltyActivityCreateNestedManyWithoutOrganizationInput
   restaurantRewardPrograms?: Prisma.RestaurantRewardProgramCreateNestedManyWithoutOrganizationInput
+  restaurantQrAccesses?: Prisma.RestaurantQrAccessCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationUncheckedCreateWithoutUsersInput = {
@@ -1912,6 +2301,9 @@ export type OrganizationUncheckedCreateWithoutUsersInput = {
   restaurantMenuBackgroundEnabled?: boolean
   restaurantMenuBackgroundPosition?: string
   restaurantMenuBackgroundSize?: string
+  restaurantLatitude?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  restaurantLongitude?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  restaurantOrderRadiusMeters?: number
   assets?: Prisma.AssetUncheckedCreateNestedManyWithoutOrganizationInput
   locations?: Prisma.OrganizationLocationUncheckedCreateNestedManyWithoutOrganizationInput
   restaurantTables?: Prisma.RestaurantTableUncheckedCreateNestedManyWithoutOrganizationInput
@@ -1921,6 +2313,7 @@ export type OrganizationUncheckedCreateWithoutUsersInput = {
   restaurantPromotions?: Prisma.RestaurantPromotionUncheckedCreateNestedManyWithoutOrganizationInput
   restaurantLoyaltyActivities?: Prisma.RestaurantLoyaltyActivityUncheckedCreateNestedManyWithoutOrganizationInput
   restaurantRewardPrograms?: Prisma.RestaurantRewardProgramUncheckedCreateNestedManyWithoutOrganizationInput
+  restaurantQrAccesses?: Prisma.RestaurantQrAccessUncheckedCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationCreateOrConnectWithoutUsersInput = {
@@ -1956,6 +2349,9 @@ export type OrganizationUpdateWithoutUsersInput = {
   restaurantMenuBackgroundEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   restaurantMenuBackgroundPosition?: Prisma.StringFieldUpdateOperationsInput | string
   restaurantMenuBackgroundSize?: Prisma.StringFieldUpdateOperationsInput | string
+  restaurantLatitude?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  restaurantLongitude?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  restaurantOrderRadiusMeters?: Prisma.IntFieldUpdateOperationsInput | number
   assets?: Prisma.AssetUpdateManyWithoutOrganizationNestedInput
   locations?: Prisma.OrganizationLocationUpdateManyWithoutOrganizationNestedInput
   restaurantTables?: Prisma.RestaurantTableUpdateManyWithoutOrganizationNestedInput
@@ -1965,6 +2361,7 @@ export type OrganizationUpdateWithoutUsersInput = {
   restaurantPromotions?: Prisma.RestaurantPromotionUpdateManyWithoutOrganizationNestedInput
   restaurantLoyaltyActivities?: Prisma.RestaurantLoyaltyActivityUpdateManyWithoutOrganizationNestedInput
   restaurantRewardPrograms?: Prisma.RestaurantRewardProgramUpdateManyWithoutOrganizationNestedInput
+  restaurantQrAccesses?: Prisma.RestaurantQrAccessUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationUncheckedUpdateWithoutUsersInput = {
@@ -1984,6 +2381,9 @@ export type OrganizationUncheckedUpdateWithoutUsersInput = {
   restaurantMenuBackgroundEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   restaurantMenuBackgroundPosition?: Prisma.StringFieldUpdateOperationsInput | string
   restaurantMenuBackgroundSize?: Prisma.StringFieldUpdateOperationsInput | string
+  restaurantLatitude?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  restaurantLongitude?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  restaurantOrderRadiusMeters?: Prisma.IntFieldUpdateOperationsInput | number
   assets?: Prisma.AssetUncheckedUpdateManyWithoutOrganizationNestedInput
   locations?: Prisma.OrganizationLocationUncheckedUpdateManyWithoutOrganizationNestedInput
   restaurantTables?: Prisma.RestaurantTableUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -1993,6 +2393,7 @@ export type OrganizationUncheckedUpdateWithoutUsersInput = {
   restaurantPromotions?: Prisma.RestaurantPromotionUncheckedUpdateManyWithoutOrganizationNestedInput
   restaurantLoyaltyActivities?: Prisma.RestaurantLoyaltyActivityUncheckedUpdateManyWithoutOrganizationNestedInput
   restaurantRewardPrograms?: Prisma.RestaurantRewardProgramUncheckedUpdateManyWithoutOrganizationNestedInput
+  restaurantQrAccesses?: Prisma.RestaurantQrAccessUncheckedUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationCreateWithoutAssetsInput = {
@@ -2012,6 +2413,9 @@ export type OrganizationCreateWithoutAssetsInput = {
   restaurantMenuBackgroundEnabled?: boolean
   restaurantMenuBackgroundPosition?: string
   restaurantMenuBackgroundSize?: string
+  restaurantLatitude?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  restaurantLongitude?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  restaurantOrderRadiusMeters?: number
   users?: Prisma.UserCreateNestedManyWithoutOrganizationInput
   locations?: Prisma.OrganizationLocationCreateNestedManyWithoutOrganizationInput
   restaurantTables?: Prisma.RestaurantTableCreateNestedManyWithoutOrganizationInput
@@ -2021,6 +2425,7 @@ export type OrganizationCreateWithoutAssetsInput = {
   restaurantPromotions?: Prisma.RestaurantPromotionCreateNestedManyWithoutOrganizationInput
   restaurantLoyaltyActivities?: Prisma.RestaurantLoyaltyActivityCreateNestedManyWithoutOrganizationInput
   restaurantRewardPrograms?: Prisma.RestaurantRewardProgramCreateNestedManyWithoutOrganizationInput
+  restaurantQrAccesses?: Prisma.RestaurantQrAccessCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationUncheckedCreateWithoutAssetsInput = {
@@ -2040,6 +2445,9 @@ export type OrganizationUncheckedCreateWithoutAssetsInput = {
   restaurantMenuBackgroundEnabled?: boolean
   restaurantMenuBackgroundPosition?: string
   restaurantMenuBackgroundSize?: string
+  restaurantLatitude?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  restaurantLongitude?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  restaurantOrderRadiusMeters?: number
   users?: Prisma.UserUncheckedCreateNestedManyWithoutOrganizationInput
   locations?: Prisma.OrganizationLocationUncheckedCreateNestedManyWithoutOrganizationInput
   restaurantTables?: Prisma.RestaurantTableUncheckedCreateNestedManyWithoutOrganizationInput
@@ -2049,6 +2457,7 @@ export type OrganizationUncheckedCreateWithoutAssetsInput = {
   restaurantPromotions?: Prisma.RestaurantPromotionUncheckedCreateNestedManyWithoutOrganizationInput
   restaurantLoyaltyActivities?: Prisma.RestaurantLoyaltyActivityUncheckedCreateNestedManyWithoutOrganizationInput
   restaurantRewardPrograms?: Prisma.RestaurantRewardProgramUncheckedCreateNestedManyWithoutOrganizationInput
+  restaurantQrAccesses?: Prisma.RestaurantQrAccessUncheckedCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationCreateOrConnectWithoutAssetsInput = {
@@ -2084,6 +2493,9 @@ export type OrganizationUpdateWithoutAssetsInput = {
   restaurantMenuBackgroundEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   restaurantMenuBackgroundPosition?: Prisma.StringFieldUpdateOperationsInput | string
   restaurantMenuBackgroundSize?: Prisma.StringFieldUpdateOperationsInput | string
+  restaurantLatitude?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  restaurantLongitude?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  restaurantOrderRadiusMeters?: Prisma.IntFieldUpdateOperationsInput | number
   users?: Prisma.UserUpdateManyWithoutOrganizationNestedInput
   locations?: Prisma.OrganizationLocationUpdateManyWithoutOrganizationNestedInput
   restaurantTables?: Prisma.RestaurantTableUpdateManyWithoutOrganizationNestedInput
@@ -2093,6 +2505,7 @@ export type OrganizationUpdateWithoutAssetsInput = {
   restaurantPromotions?: Prisma.RestaurantPromotionUpdateManyWithoutOrganizationNestedInput
   restaurantLoyaltyActivities?: Prisma.RestaurantLoyaltyActivityUpdateManyWithoutOrganizationNestedInput
   restaurantRewardPrograms?: Prisma.RestaurantRewardProgramUpdateManyWithoutOrganizationNestedInput
+  restaurantQrAccesses?: Prisma.RestaurantQrAccessUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationUncheckedUpdateWithoutAssetsInput = {
@@ -2112,6 +2525,9 @@ export type OrganizationUncheckedUpdateWithoutAssetsInput = {
   restaurantMenuBackgroundEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   restaurantMenuBackgroundPosition?: Prisma.StringFieldUpdateOperationsInput | string
   restaurantMenuBackgroundSize?: Prisma.StringFieldUpdateOperationsInput | string
+  restaurantLatitude?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  restaurantLongitude?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  restaurantOrderRadiusMeters?: Prisma.IntFieldUpdateOperationsInput | number
   users?: Prisma.UserUncheckedUpdateManyWithoutOrganizationNestedInput
   locations?: Prisma.OrganizationLocationUncheckedUpdateManyWithoutOrganizationNestedInput
   restaurantTables?: Prisma.RestaurantTableUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -2121,6 +2537,7 @@ export type OrganizationUncheckedUpdateWithoutAssetsInput = {
   restaurantPromotions?: Prisma.RestaurantPromotionUncheckedUpdateManyWithoutOrganizationNestedInput
   restaurantLoyaltyActivities?: Prisma.RestaurantLoyaltyActivityUncheckedUpdateManyWithoutOrganizationNestedInput
   restaurantRewardPrograms?: Prisma.RestaurantRewardProgramUncheckedUpdateManyWithoutOrganizationNestedInput
+  restaurantQrAccesses?: Prisma.RestaurantQrAccessUncheckedUpdateManyWithoutOrganizationNestedInput
 }
 
 
@@ -2139,6 +2556,7 @@ export type OrganizationCountOutputType = {
   restaurantPromotions: number
   restaurantLoyaltyActivities: number
   restaurantRewardPrograms: number
+  restaurantQrAccesses: number
 }
 
 export type OrganizationCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -2152,6 +2570,7 @@ export type OrganizationCountOutputTypeSelect<ExtArgs extends runtime.Types.Exte
   restaurantPromotions?: boolean | OrganizationCountOutputTypeCountRestaurantPromotionsArgs
   restaurantLoyaltyActivities?: boolean | OrganizationCountOutputTypeCountRestaurantLoyaltyActivitiesArgs
   restaurantRewardPrograms?: boolean | OrganizationCountOutputTypeCountRestaurantRewardProgramsArgs
+  restaurantQrAccesses?: boolean | OrganizationCountOutputTypeCountRestaurantQrAccessesArgs
 }
 
 /**
@@ -2234,6 +2653,13 @@ export type OrganizationCountOutputTypeCountRestaurantRewardProgramsArgs<ExtArgs
   where?: Prisma.RestaurantRewardProgramWhereInput
 }
 
+/**
+ * OrganizationCountOutputType without action
+ */
+export type OrganizationCountOutputTypeCountRestaurantQrAccessesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.RestaurantQrAccessWhereInput
+}
+
 
 export type OrganizationSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -2252,6 +2678,9 @@ export type OrganizationSelect<ExtArgs extends runtime.Types.Extensions.Internal
   restaurantMenuBackgroundEnabled?: boolean
   restaurantMenuBackgroundPosition?: boolean
   restaurantMenuBackgroundSize?: boolean
+  restaurantLatitude?: boolean
+  restaurantLongitude?: boolean
+  restaurantOrderRadiusMeters?: boolean
   users?: boolean | Prisma.Organization$usersArgs<ExtArgs>
   assets?: boolean | Prisma.Organization$assetsArgs<ExtArgs>
   locations?: boolean | Prisma.Organization$locationsArgs<ExtArgs>
@@ -2262,6 +2691,7 @@ export type OrganizationSelect<ExtArgs extends runtime.Types.Extensions.Internal
   restaurantPromotions?: boolean | Prisma.Organization$restaurantPromotionsArgs<ExtArgs>
   restaurantLoyaltyActivities?: boolean | Prisma.Organization$restaurantLoyaltyActivitiesArgs<ExtArgs>
   restaurantRewardPrograms?: boolean | Prisma.Organization$restaurantRewardProgramsArgs<ExtArgs>
+  restaurantQrAccesses?: boolean | Prisma.Organization$restaurantQrAccessesArgs<ExtArgs>
   _count?: boolean | Prisma.OrganizationCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["organization"]>
 
@@ -2282,6 +2712,9 @@ export type OrganizationSelectCreateManyAndReturn<ExtArgs extends runtime.Types.
   restaurantMenuBackgroundEnabled?: boolean
   restaurantMenuBackgroundPosition?: boolean
   restaurantMenuBackgroundSize?: boolean
+  restaurantLatitude?: boolean
+  restaurantLongitude?: boolean
+  restaurantOrderRadiusMeters?: boolean
 }, ExtArgs["result"]["organization"]>
 
 export type OrganizationSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -2301,6 +2734,9 @@ export type OrganizationSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.
   restaurantMenuBackgroundEnabled?: boolean
   restaurantMenuBackgroundPosition?: boolean
   restaurantMenuBackgroundSize?: boolean
+  restaurantLatitude?: boolean
+  restaurantLongitude?: boolean
+  restaurantOrderRadiusMeters?: boolean
 }, ExtArgs["result"]["organization"]>
 
 export type OrganizationSelectScalar = {
@@ -2320,9 +2756,12 @@ export type OrganizationSelectScalar = {
   restaurantMenuBackgroundEnabled?: boolean
   restaurantMenuBackgroundPosition?: boolean
   restaurantMenuBackgroundSize?: boolean
+  restaurantLatitude?: boolean
+  restaurantLongitude?: boolean
+  restaurantOrderRadiusMeters?: boolean
 }
 
-export type OrganizationOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "slug" | "createdAt" | "updatedAt" | "restaurantTaxRateBps" | "restaurantTaxIncluded" | "restaurantServiceRateBps" | "restaurantAccessEnabled" | "restaurantDisplayName" | "restaurantHeaderImageData" | "restaurantUseHeaderImage" | "restaurantMenuBackgroundImageData" | "restaurantMenuBackgroundEnabled" | "restaurantMenuBackgroundPosition" | "restaurantMenuBackgroundSize", ExtArgs["result"]["organization"]>
+export type OrganizationOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "slug" | "createdAt" | "updatedAt" | "restaurantTaxRateBps" | "restaurantTaxIncluded" | "restaurantServiceRateBps" | "restaurantAccessEnabled" | "restaurantDisplayName" | "restaurantHeaderImageData" | "restaurantUseHeaderImage" | "restaurantMenuBackgroundImageData" | "restaurantMenuBackgroundEnabled" | "restaurantMenuBackgroundPosition" | "restaurantMenuBackgroundSize" | "restaurantLatitude" | "restaurantLongitude" | "restaurantOrderRadiusMeters", ExtArgs["result"]["organization"]>
 export type OrganizationInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   users?: boolean | Prisma.Organization$usersArgs<ExtArgs>
   assets?: boolean | Prisma.Organization$assetsArgs<ExtArgs>
@@ -2334,6 +2773,7 @@ export type OrganizationInclude<ExtArgs extends runtime.Types.Extensions.Interna
   restaurantPromotions?: boolean | Prisma.Organization$restaurantPromotionsArgs<ExtArgs>
   restaurantLoyaltyActivities?: boolean | Prisma.Organization$restaurantLoyaltyActivitiesArgs<ExtArgs>
   restaurantRewardPrograms?: boolean | Prisma.Organization$restaurantRewardProgramsArgs<ExtArgs>
+  restaurantQrAccesses?: boolean | Prisma.Organization$restaurantQrAccessesArgs<ExtArgs>
   _count?: boolean | Prisma.OrganizationCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type OrganizationIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -2352,6 +2792,7 @@ export type $OrganizationPayload<ExtArgs extends runtime.Types.Extensions.Intern
     restaurantPromotions: Prisma.$RestaurantPromotionPayload<ExtArgs>[]
     restaurantLoyaltyActivities: Prisma.$RestaurantLoyaltyActivityPayload<ExtArgs>[]
     restaurantRewardPrograms: Prisma.$RestaurantRewardProgramPayload<ExtArgs>[]
+    restaurantQrAccesses: Prisma.$RestaurantQrAccessPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -2370,6 +2811,9 @@ export type $OrganizationPayload<ExtArgs extends runtime.Types.Extensions.Intern
     restaurantMenuBackgroundEnabled: boolean
     restaurantMenuBackgroundPosition: string
     restaurantMenuBackgroundSize: string
+    restaurantLatitude: runtime.Decimal | null
+    restaurantLongitude: runtime.Decimal | null
+    restaurantOrderRadiusMeters: number
   }, ExtArgs["result"]["organization"]>
   composites: {}
 }
@@ -2774,6 +3218,7 @@ export interface Prisma__OrganizationClient<T, Null = never, ExtArgs extends run
   restaurantPromotions<T extends Prisma.Organization$restaurantPromotionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organization$restaurantPromotionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$RestaurantPromotionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   restaurantLoyaltyActivities<T extends Prisma.Organization$restaurantLoyaltyActivitiesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organization$restaurantLoyaltyActivitiesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$RestaurantLoyaltyActivityPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   restaurantRewardPrograms<T extends Prisma.Organization$restaurantRewardProgramsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organization$restaurantRewardProgramsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$RestaurantRewardProgramPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  restaurantQrAccesses<T extends Prisma.Organization$restaurantQrAccessesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organization$restaurantQrAccessesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$RestaurantQrAccessPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2819,6 +3264,9 @@ export interface OrganizationFieldRefs {
   readonly restaurantMenuBackgroundEnabled: Prisma.FieldRef<"Organization", 'Boolean'>
   readonly restaurantMenuBackgroundPosition: Prisma.FieldRef<"Organization", 'String'>
   readonly restaurantMenuBackgroundSize: Prisma.FieldRef<"Organization", 'String'>
+  readonly restaurantLatitude: Prisma.FieldRef<"Organization", 'Decimal'>
+  readonly restaurantLongitude: Prisma.FieldRef<"Organization", 'Decimal'>
+  readonly restaurantOrderRadiusMeters: Prisma.FieldRef<"Organization", 'Int'>
 }
     
 
@@ -3449,6 +3897,30 @@ export type Organization$restaurantRewardProgramsArgs<ExtArgs extends runtime.Ty
   take?: number
   skip?: number
   distinct?: Prisma.RestaurantRewardProgramScalarFieldEnum | Prisma.RestaurantRewardProgramScalarFieldEnum[]
+}
+
+/**
+ * Organization.restaurantQrAccesses
+ */
+export type Organization$restaurantQrAccessesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the RestaurantQrAccess
+   */
+  select?: Prisma.RestaurantQrAccessSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the RestaurantQrAccess
+   */
+  omit?: Prisma.RestaurantQrAccessOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.RestaurantQrAccessInclude<ExtArgs> | null
+  where?: Prisma.RestaurantQrAccessWhereInput
+  orderBy?: Prisma.RestaurantQrAccessOrderByWithRelationInput | Prisma.RestaurantQrAccessOrderByWithRelationInput[]
+  cursor?: Prisma.RestaurantQrAccessWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.RestaurantQrAccessScalarFieldEnum | Prisma.RestaurantQrAccessScalarFieldEnum[]
 }
 
 /**

@@ -14,7 +14,7 @@ type OrderItem = {
   station: Station;
   course: string;
   status: string;
-  fulfillment: "DINE_IN" | "TAKEOUT";
+  fulfillment: "DINE_IN" | "TAKEOUT" | "DELIVERY";
   handedOffAt?: string | null;
   serviceAction?: boolean;
 };
@@ -353,14 +353,18 @@ export function OperationalDashboard({ station }: { station: Station }) {
                 </p>
                 <span
                   className={`mt-3 inline-flex rounded-full px-4 py-2 text-lg font-black ${
-                    item.fulfillment === "TAKEOUT"
-                      ? "bg-fuchsia-100 text-fuchsia-900 ring-2 ring-fuchsia-300"
-                      : "bg-sky-100 text-sky-900 ring-2 ring-sky-300"
+                    item.fulfillment === "DELIVERY"
+                      ? "bg-violet-100 text-violet-900 ring-2 ring-violet-300"
+                      : item.fulfillment === "TAKEOUT"
+                        ? "bg-fuchsia-100 text-fuchsia-900 ring-2 ring-fuchsia-300"
+                        : "bg-sky-100 text-sky-900 ring-2 ring-sky-300"
                   }`}
                 >
-                  {item.fulfillment === "TAKEOUT"
-                    ? "PARA LLEVAR"
-                    : "CONSUMO EN EL LOCAL"}
+                  {item.fulfillment === "DELIVERY"
+                    ? "ENTREGA A DOMICILIO"
+                    : item.fulfillment === "TAKEOUT"
+                      ? "PARA LLEVAR"
+                      : "CONSUMO EN EL LOCAL"}
                 </span>
                 <p className="mt-2 text-sm text-slate-600">
                   {labels[item.status] ?? item.status} · recibido a las{" "}

@@ -12,7 +12,7 @@ type Item = {
   quantity: number;
   station: "KITCHEN" | "BAR";
   status: string;
-  fulfillment: "DINE_IN" | "TAKEOUT";
+  fulfillment: "DINE_IN" | "TAKEOUT" | "DELIVERY";
   handedOffAt?: string | null;
   serviceAction?: boolean;
 };
@@ -32,6 +32,11 @@ type Visit = {
     restaurantRole: string;
   } | null;
   canClose: boolean;
+  canHandoffDelivery: boolean;
+  occupiesTable: boolean;
+  deliveryPhone?: string | null;
+  deliveryAddress?: string | null;
+  paymentStatus: "NOT_REQUIRED" | "PENDING" | "CONFIRMED" | "REJECTED";
   transferDestinations: Array<{
     id: string;
     name: string;
@@ -59,7 +64,7 @@ type Visit = {
     quantity: number;
     price: number;
     status: string;
-    fulfillment: "DINE_IN" | "TAKEOUT";
+    fulfillment: "DINE_IN" | "TAKEOUT" | "DELIVERY";
     handedOffAt?: string | null;
   }>;
 };
@@ -168,6 +173,7 @@ export default function WaiterPage() {
   }
 
   async function correctFulfillment(item: Item) {
+    if (item.fulfillment === "DELIVERY") return;
     const next = item.fulfillment === "TAKEOUT" ? "DINE_IN" : "TAKEOUT";
     if (
       !window.confirm(
@@ -204,6 +210,48 @@ export default function WaiterPage() {
     if (!response.ok) {
       const body = await response.json().catch(() => ({}));
       setError(body.message ?? "No se pudo cerrar la cuenta");
+      return;
+    }
+    await load();
+  }
+
+  async function updatePayment(
+    visitId: string,
+    status: "CONFIRMED" | "REJECTED",
+  ) {
+    const action = status === "CONFIRMED" ? "confirmar" : "rechazar";
+    if (!window.confirm(`¿Desea ${action} el pago de este pedido?`)) return;
+    const response = await authenticatedFetch(
+      `${API_URL}/api/v1/restaurant/visits/${visitId}/payment`,
+      {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status }),
+      },
+    );
+    const body = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      setError(body.message ?? "No se pudo actualizar el pago");
+      return;
+    }
+    await load();
+  }
+
+  async function handoffDelivery(visitId: string) {
+    if (
+      !window.confirm(
+        "¿Confirma que entregó el pedido completo a la persona repartidora? Esta acción cerrará la cuenta.",
+      )
+    ) {
+      return;
+    }
+    const response = await authenticatedFetch(
+      `${API_URL}/api/v1/restaurant/visits/${visitId}/delivery-handoff`,
+      { method: "PATCH" },
+    );
+    const body = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      setError(body.message ?? "No se pudo cerrar la entrega");
       return;
     }
     await load();
@@ -314,12 +362,19 @@ export default function WaiterPage() {
     .filter((item) => item.status === "READY" && !item.handedOffAt).length;
   const alerts = useOperationalAlerts(
     "waiter",
-    orders.flatMap((order) =>
-      order.items
-        .filter((item) => item.status === "READY")
-        .filter((item) => !item.handedOffAt)
-        .map((item) => item.id),
-    ),
+    [
+      ...orders.flatMap((order) =>
+        order.items
+          .filter((item) => item.status === "READY")
+          .filter((item) => !item.handedOffAt)
+          .map((item) => item.id),
+      ),
+      ...visits
+        .filter(
+          (visit) => !visit.occupiesTable && visit.paymentStatus === "PENDING",
+        )
+        .map((visit) => `payment-${visit.id}`),
+    ],
     { maxAttempts: null },
   );
 
@@ -431,44 +486,98 @@ export default function WaiterPage() {
                       <p>
                         Total acumulado: ₡{visit.billing.total.toLocaleString()}
                       </p>
+                      {!visit.occupiesTable && (
+                        <div className="mt-2 rounded-lg bg-violet-50 p-3 text-sm text-violet-950">
+                          <p className="font-black">ENTREGA A DOMICILIO</p>
+                          <p>Teléfono: {visit.deliveryPhone}</p>
+                          <p>Dirección: {visit.deliveryAddress}</p>
+                          <p>
+                            Pago:{" "}
+                            {visit.paymentStatus === "PENDING"
+                              ? "pendiente"
+                              : visit.paymentStatus === "CONFIRMED"
+                                ? "confirmado"
+                                : "rechazado"}
+                          </p>
+                        </div>
+                      )}
                     </div>
-                    <button
-                      disabled={!visit.canClose}
-                      className="rounded-lg bg-slate-900 px-4 py-3 font-semibold text-white disabled:cursor-not-allowed disabled:opacity-40"
-                      onClick={() => void closeVisit(visit.id)}
-                    >
-                      {visit.canClose ? "Cerrar cuenta" : "Pedidos pendientes"}
-                    </button>
-                  </div>
-                  <div className="mt-3 rounded-lg bg-slate-50 p-3">
-                    <label className="text-sm font-semibold">
-                      Trasladar cliente y cuenta
-                      <select
-                        className="mt-1 w-full rounded border bg-white p-2"
-                        defaultValue=""
-                        onChange={(event) => {
-                          const value = event.target.value;
-                          event.target.value = "";
-                          if (value) void transferVisit(visit, value);
-                        }}
+                    {visit.occupiesTable ? (
+                      <button
+                        disabled={!visit.canClose}
+                        className="rounded-lg bg-slate-900 px-4 py-3 font-semibold text-white disabled:cursor-not-allowed disabled:opacity-40"
+                        onClick={() => void closeVisit(visit.id)}
                       >
-                        <option value="">Seleccione la nueva posición</option>
-                        {visit.transferDestinations.map((destination) => (
-                          <option key={destination.id} value={destination.id}>
-                            {destination.name} ·{" "}
-                            {destination.kind === "BAR_SEAT"
-                              ? "Bar, sin servicio"
-                              : destination.kind === "DINING"
-                                ? "Mesa"
-                                : "Para llevar"}
-                            {destination.activeAccountCount
-                              ? ` · ${destination.activeAccountCount} cuenta(s)`
-                              : ""}
-                          </option>
-                        ))}
-                      </select>
-                    </label>
+                        {visit.canClose
+                          ? "Cerrar cuenta"
+                          : "Pedidos pendientes"}
+                      </button>
+                    ) : (
+                      <div className="flex flex-wrap gap-2">
+                        {visit.paymentStatus !== "CONFIRMED" && (
+                          <button
+                            className="rounded-lg bg-emerald-700 px-4 py-3 font-semibold text-white"
+                            onClick={() =>
+                              void updatePayment(visit.id, "CONFIRMED")
+                            }
+                          >
+                            Confirmar pago
+                          </button>
+                        )}
+                        {visit.paymentStatus !== "REJECTED" &&
+                          visit.paymentStatus !== "CONFIRMED" && (
+                            <button
+                              className="rounded-lg border border-red-600 px-4 py-3 font-semibold text-red-700"
+                              onClick={() =>
+                                void updatePayment(visit.id, "REJECTED")
+                              }
+                            >
+                              Rechazar pago
+                            </button>
+                          )}
+                        <button
+                          disabled={!visit.canHandoffDelivery}
+                          className="rounded-lg bg-violet-800 px-4 py-3 font-semibold text-white disabled:cursor-not-allowed disabled:opacity-40"
+                          onClick={() => void handoffDelivery(visit.id)}
+                        >
+                          {visit.canHandoffDelivery
+                            ? "Entregar a repartidor y cerrar"
+                            : "Entrega pendiente"}
+                        </button>
+                      </div>
+                    )}
                   </div>
+                  {visit.occupiesTable && (
+                    <div className="mt-3 rounded-lg bg-slate-50 p-3">
+                      <label className="text-sm font-semibold">
+                        Trasladar cliente y cuenta
+                        <select
+                          className="mt-1 w-full rounded border bg-white p-2"
+                          defaultValue=""
+                          onChange={(event) => {
+                            const value = event.target.value;
+                            event.target.value = "";
+                            if (value) void transferVisit(visit, value);
+                          }}
+                        >
+                          <option value="">Seleccione la nueva posición</option>
+                          {visit.transferDestinations.map((destination) => (
+                            <option key={destination.id} value={destination.id}>
+                              {destination.name} ·{" "}
+                              {destination.kind === "BAR_SEAT"
+                                ? "Bar, sin servicio"
+                                : destination.kind === "DINING"
+                                  ? "Mesa"
+                                  : "Para llevar"}
+                              {destination.activeAccountCount
+                                ? ` · ${destination.activeAccountCount} cuenta(s)`
+                                : ""}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                    </div>
+                  )}
                   <div className="mt-4 overflow-x-auto">
                     <table className="w-full min-w-[560px] text-left text-sm">
                       <thead className="border-b bg-slate-50">
@@ -500,14 +609,18 @@ export default function WaiterPage() {
                             <td className="p-2">
                               <span
                                 className={`inline-flex rounded-full px-3 py-1 text-sm font-black ${
-                                  item.fulfillment === "TAKEOUT"
-                                    ? "bg-fuchsia-100 text-fuchsia-900 ring-1 ring-fuchsia-300"
-                                    : "bg-sky-100 text-sky-900 ring-1 ring-sky-300"
+                                  item.fulfillment === "DELIVERY"
+                                    ? "bg-violet-100 text-violet-900 ring-1 ring-violet-300"
+                                    : item.fulfillment === "TAKEOUT"
+                                      ? "bg-fuchsia-100 text-fuchsia-900 ring-1 ring-fuchsia-300"
+                                      : "bg-sky-100 text-sky-900 ring-1 ring-sky-300"
                                 }`}
                               >
-                                {item.fulfillment === "TAKEOUT"
-                                  ? "PARA LLEVAR"
-                                  : "CONSUMO EN EL LOCAL"}
+                                {item.fulfillment === "DELIVERY"
+                                  ? "ENTREGA A DOMICILIO"
+                                  : item.fulfillment === "TAKEOUT"
+                                    ? "PARA LLEVAR"
+                                    : "CONSUMO EN EL LOCAL"}
                               </span>
                             </td>
                           </tr>
@@ -516,7 +629,11 @@ export default function WaiterPage() {
                     </table>
                   </div>
                   <dl className="mt-4 ml-auto grid max-w-md grid-cols-2 gap-x-5 gap-y-1 rounded-lg bg-slate-50 p-4 text-sm">
-                    <dt>Subtotal de productos</dt>
+                    <dt>
+                      {visit.billing.promotionCredit > 0
+                        ? "Subtotal de productos"
+                        : "Subtotal"}
+                    </dt>
                     <dd className="text-right">
                       ₡{visit.billing.grossSubtotal.toLocaleString()}
                     </dd>
@@ -530,10 +647,14 @@ export default function WaiterPage() {
                         </dd>
                       </>
                     )}
-                    <dt>Subtotal neto</dt>
-                    <dd className="text-right">
-                      ₡{visit.billing.subtotal.toLocaleString()}
-                    </dd>
+                    {visit.billing.promotionCredit > 0 && (
+                      <>
+                        <dt>Subtotal neto</dt>
+                        <dd className="text-right">
+                          ₡{visit.billing.subtotal.toLocaleString()}
+                        </dd>
+                      </>
+                    )}
                     {visit.billing.taxRateBps > 0 && (
                       <>
                         <dt>
@@ -609,23 +730,29 @@ export default function WaiterPage() {
                     </p>
                     <span
                       className={`mt-2 inline-flex rounded-full px-4 py-2 text-base font-black ${
-                        item.fulfillment === "TAKEOUT"
-                          ? "bg-fuchsia-100 text-fuchsia-900 ring-2 ring-fuchsia-300"
-                          : "bg-sky-100 text-sky-900 ring-2 ring-sky-300"
+                        item.fulfillment === "DELIVERY"
+                          ? "bg-violet-100 text-violet-900 ring-2 ring-violet-300"
+                          : item.fulfillment === "TAKEOUT"
+                            ? "bg-fuchsia-100 text-fuchsia-900 ring-2 ring-fuchsia-300"
+                            : "bg-sky-100 text-sky-900 ring-2 ring-sky-300"
                       }`}
                     >
-                      {item.fulfillment === "TAKEOUT"
-                        ? "PARA LLEVAR"
-                        : "CONSUMO EN EL LOCAL"}
+                      {item.fulfillment === "DELIVERY"
+                        ? "ENTREGA A DOMICILIO"
+                        : item.fulfillment === "TAKEOUT"
+                          ? "PARA LLEVAR"
+                          : "CONSUMO EN EL LOCAL"}
                     </span>
                   </div>
                   <div className="flex flex-wrap gap-2">
-                    <button
-                      className="rounded border px-3 py-2 text-sm"
-                      onClick={() => void correctFulfillment(item)}
-                    >
-                      Corregir modalidad
-                    </button>
+                    {item.fulfillment !== "DELIVERY" && (
+                      <button
+                        className="rounded border px-3 py-2 text-sm"
+                        onClick={() => void correctFulfillment(item)}
+                      >
+                        Corregir modalidad
+                      </button>
+                    )}
                     {item.status === "READY" && (
                       <button
                         className="rounded-lg bg-sky-700 px-5 py-3 font-bold text-white"

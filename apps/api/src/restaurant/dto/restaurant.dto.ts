@@ -9,6 +9,7 @@ import {
   IsEnum,
   IsInt,
   IsIn,
+  IsNumber,
   IsOptional,
   IsString,
   IsUUID,
@@ -86,6 +87,12 @@ export class PlaceOrderDto {
   @IsEnum(RestaurantFulfillment)
   fulfillment?: RestaurantFulfillment;
 
+  @IsOptional() @IsNumber() @Min(-90) @Max(90) latitude?: number;
+  @IsOptional() @IsNumber() @Min(-180) @Max(180) longitude?: number;
+  @IsOptional() @IsNumber() @Min(0) @Max(10000) locationAccuracy?: number;
+  @IsOptional() @IsString() @MaxLength(40) deliveryPhone?: string;
+  @IsOptional() @IsString() @MaxLength(500) deliveryAddress?: string;
+
   @IsOptional()
   @IsUUID()
   promotionId?: string;
@@ -96,6 +103,13 @@ export class PlaceOrderDto {
   @ValidateNested({ each: true })
   @Type(() => OrderLineDto)
   items!: OrderLineDto[];
+}
+
+export class RecordQrAccessDto {
+  @IsUUID() sessionKey!: string;
+  @IsOptional() @IsNumber() @Min(-90) @Max(90) latitude?: number;
+  @IsOptional() @IsNumber() @Min(-180) @Max(180) longitude?: number;
+  @IsOptional() @IsNumber() @Min(0) @Max(10000) accuracy?: number;
 }
 
 export class UpdateItemStatusDto {
@@ -128,6 +142,17 @@ export class UpdateRestaurantBillingDto {
   @IsInt() @Min(0) @Max(10000) taxRateBps!: number;
   @IsBoolean() taxIncluded!: boolean;
   @IsInt() @Min(0) @Max(10000) serviceRateBps!: number;
+}
+
+export class UpdateRestaurantOrderingAreaDto {
+  @IsNumber() @Min(-90) @Max(90) latitude!: number;
+  @IsNumber() @Min(-180) @Max(180) longitude!: number;
+  @IsInt() @Min(25) @Max(5000) radiusMeters!: number;
+}
+
+export class UpdateVisitPaymentDto {
+  @IsIn(["CONFIRMED", "REJECTED"])
+  status!: "CONFIRMED" | "REJECTED";
 }
 
 export class UpdateRestaurantBrandingDto {

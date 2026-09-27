@@ -13,6 +13,10 @@ type Order = {
   status: "OPEN" | "CLOSED";
   createdAt: string;
   closedAt?: string | null;
+  occupiesTable?: boolean;
+  deliveryPhone?: string | null;
+  deliveryAddress?: string | null;
+  paymentStatus?: "NOT_REQUIRED" | "PENDING" | "CONFIRMED" | "REJECTED";
   restaurant?: string;
   branding?: {
     displayName: string;
@@ -38,7 +42,7 @@ type Order = {
     status: string;
     course: string;
     station: string;
-    fulfillment: "DINE_IN" | "TAKEOUT";
+    fulfillment: "DINE_IN" | "TAKEOUT" | "DELIVERY";
   }[];
   billing: {
     grossSubtotal: number;
@@ -122,21 +126,25 @@ export default function RestaurantOrderPage() {
     ? `${order.status}:${order.items.map((item) => `${item.id}:${item.status}`).join("|")}`
     : "";
   const guestEventMessage =
-    order?.status === "CLOSED"
-      ? "Su cuenta ha sido cerrada. Gracias por su visita."
-      : order?.items.length &&
-          order.items.every(
-            (item) =>
-              item.status === "DELIVERED" || item.status === "CANCELLED",
-          )
-        ? "La entrega de su pedido fue confirmada."
-        : order?.items.some((item) => item.status === "READY")
-          ? "Una parte de su pedido está lista."
-          : order?.items.some((item) => item.status === "PREPARING")
-            ? "Estamos preparando su pedido."
-            : order?.items.some((item) => item.status === "ACCEPTED")
-              ? "Su pedido fue aceptado."
-              : "Su pedido fue recibido.";
+    order?.paymentStatus === "PENDING"
+      ? "Su pedido está pendiente de confirmación de pago."
+      : order?.paymentStatus === "REJECTED"
+        ? "El pago no fue confirmado. Consulte al restaurante."
+        : order?.status === "CLOSED"
+          ? "Su cuenta ha sido cerrada. Gracias por su visita."
+          : order?.items.length &&
+              order.items.every(
+                (item) =>
+                  item.status === "DELIVERED" || item.status === "CANCELLED",
+              )
+            ? "La entrega de su pedido fue confirmada."
+            : order?.items.some((item) => item.status === "READY")
+              ? "Una parte de su pedido está lista."
+              : order?.items.some((item) => item.status === "PREPARING")
+                ? "Estamos preparando su pedido."
+                : order?.items.some((item) => item.status === "ACCEPTED")
+                  ? "Su pedido fue aceptado."
+                  : "Su pedido fue recibido.";
   const guestAlerts = useGuestAlerts(guestEventKey, guestEventMessage);
   const clearStoredAccountReferences = useCallback((accountCode: string) => {
     const prefix = "assettrack_restaurant_order_";
@@ -287,13 +295,26 @@ export default function RestaurantOrderPage() {
       order.billing.taxRateBps > 0
         ? [`IVA: ₡${order.billing.tax.toLocaleString()}`]
         : [];
+    const subtotalLines =
+      order.billing.promotionCredit > 0
+        ? [
+            `Subtotal de productos: ₡${order.billing.grossSubtotal.toLocaleString()}`,
+            `Crédito promocional: -₡${order.billing.promotionCredit.toLocaleString()}`,
+            `Subtotal neto: ₡${order.billing.subtotal.toLocaleString()}`,
+          ]
+        : [`Subtotal: ₡${order.billing.subtotal.toLocaleString()}`];
     return [
       order.branding?.displayName ?? order.restaurant ?? "Restaurante",
       order.table.name,
+      ...(order.deliveryAddress
+        ? [`Entrega a domicilio: ${order.deliveryAddress}`]
+        : []),
       ...lines,
-      `Subtotal neto: ₡${order.billing.subtotal.toLocaleString()}`,
+      ...subtotalLines,
       ...taxLines,
-      `Servicio: ₡${order.billing.service.toLocaleString()}`,
+      ...(order.billing.serviceChargeEnabled
+        ? [`Servicio: ₡${order.billing.service.toLocaleString()}`]
+        : []),
       `Total: ₡${order.billing.total.toLocaleString()}`,
     ].join("\n");
   }
@@ -335,7 +356,7 @@ export default function RestaurantOrderPage() {
   return (
     <main className="mx-auto max-w-2xl px-4 py-8 text-slate-900">
       <RestaurantBrandHeader order={order} />
-      <h2 className="text-2xl font-bold">Your order · {order?.table.name}</h2>
+      <h2 className="text-2xl font-bold">Su orden · {order?.table.name}</h2>
       <section className="mt-4 rounded-2xl border border-sky-200 bg-gradient-to-r from-sky-50 via-cyan-50 to-violet-50 p-4 text-slate-800 shadow-sm">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
@@ -494,7 +515,7 @@ export default function RestaurantOrderPage() {
           )}
         </section>
       )}
-      {order?.promotions[0] && (
+      {order?.occupiesTable !== false && order?.promotions[0] && (
         <section className="mb-6 rounded-2xl bg-fuchsia-700 p-5 text-white shadow-lg ring-4 ring-fuchsia-200">
           <p className="text-sm font-black uppercase tracking-widest">
             Promoción vigente
@@ -541,9 +562,9 @@ export default function RestaurantOrderPage() {
         </section>
       )}
       <p className="my-4 text-slate-600">
-        Your order updates automatically while this page is open.
+        Su orden está siendo atendida. Te avisaremos en breve.
       </p>
-      {order && (
+      {order && order.occupiesTable !== false && (
         <Link
           href={`/restaurant/table/${encodeURIComponent(order.table.code)}`}
           className="mb-5 inline-flex items-center gap-2 rounded-lg bg-slate-900 px-5 py-3 font-semibold text-white"
@@ -557,7 +578,19 @@ export default function RestaurantOrderPage() {
           {error}
         </p>
       )}
-      {cancelled ? (
+      {order?.paymentStatus === "PENDING" ? (
+        <p
+          role="status"
+          className="my-5 rounded-xl border border-amber-300 bg-amber-50 p-5 font-semibold text-amber-950"
+        >
+          Pago pendiente de confirmación. La orden llegará a cocina y bar
+          después de que el personal confirme el pago.
+        </p>
+      ) : order?.paymentStatus === "REJECTED" ? (
+        <p role="status" className="my-5 rounded-xl bg-red-50 p-5 text-red-900">
+          El pago no fue confirmado. Comuníquese con el restaurante.
+        </p>
+      ) : cancelled ? (
         <p role="status" className="my-5 rounded-xl bg-red-50 p-5 text-red-900">
           Your order was cancelled. Please ask the staff for assistance.
         </p>
@@ -577,8 +610,7 @@ export default function RestaurantOrderPage() {
         </p>
       ) : (
         <p role="status" className="my-5 rounded-xl bg-blue-50 p-4">
-          Your order is being handled. We will show each item&apos;s progress
-          here.
+          Su orden está siendo atendida. Te avisaremos en breve.
         </p>
       )}
       <div className="space-y-3">
@@ -592,14 +624,18 @@ export default function RestaurantOrderPage() {
               {(item.price * item.quantity).toLocaleString()}
               <span
                 className={`ml-2 inline-flex rounded-full px-3 py-1 text-xs font-black ${
-                  item.fulfillment === "TAKEOUT"
-                    ? "bg-fuchsia-100 text-fuchsia-900"
-                    : "bg-sky-100 text-sky-900"
+                  item.fulfillment === "DELIVERY"
+                    ? "bg-amber-100 text-amber-950"
+                    : item.fulfillment === "TAKEOUT"
+                      ? "bg-fuchsia-100 text-fuchsia-900"
+                      : "bg-sky-100 text-sky-900"
                 }`}
               >
-                {item.fulfillment === "TAKEOUT"
-                  ? "PARA LLEVAR"
-                  : "CONSUMO EN EL LOCAL"}
+                {item.fulfillment === "DELIVERY"
+                  ? "ENTREGA A DOMICILIO"
+                  : item.fulfillment === "TAKEOUT"
+                    ? "PARA LLEVAR"
+                    : "CONSUMO EN EL LOCAL"}
               </span>
             </span>
             <strong>{labels[item.status]}</strong>
@@ -610,20 +646,29 @@ export default function RestaurantOrderPage() {
         <section className="mt-6 rounded-xl border bg-white p-5 shadow-sm">
           <h2 className="mb-4 text-xl font-bold">Resumen de la cuenta</h2>
           <div className="space-y-2">
-            <div className="flex justify-between">
-              <span>Subtotal de productos</span>
-              <span>₡{order.billing.grossSubtotal.toLocaleString()}</span>
-            </div>
-            {order.billing.promotionCredit > 0 && (
-              <div className="flex justify-between text-emerald-700">
-                <span>Crédito promocional</span>
-                <span>− ₡{order.billing.promotionCredit.toLocaleString()}</span>
+            {order.billing.promotionCredit > 0 ? (
+              <>
+                <div className="flex justify-between">
+                  <span>Subtotal de productos</span>
+                  <span>₡{order.billing.grossSubtotal.toLocaleString()}</span>
+                </div>
+                <div className="flex justify-between text-emerald-700">
+                  <span>Crédito promocional</span>
+                  <span>
+                    − ₡{order.billing.promotionCredit.toLocaleString()}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Subtotal neto</span>
+                  <span>₡{order.billing.subtotal.toLocaleString()}</span>
+                </div>
+              </>
+            ) : (
+              <div className="flex justify-between">
+                <span>Subtotal</span>
+                <span>₡{order.billing.subtotal.toLocaleString()}</span>
               </div>
             )}
-            <div className="flex justify-between">
-              <span>Subtotal neto</span>
-              <span>₡{order.billing.subtotal.toLocaleString()}</span>
-            </div>
             {order.billing.taxRateBps > 0 && (
               <div className="flex justify-between">
                 <span>

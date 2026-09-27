@@ -220,6 +220,7 @@ export type RestaurantTableWhereInput = {
   visits?: Prisma.RestaurantVisitListRelationFilter
   visitTransfersFrom?: Prisma.RestaurantVisitTransferListRelationFilter
   visitTransfersTo?: Prisma.RestaurantVisitTransferListRelationFilter
+  qrAccesses?: Prisma.RestaurantQrAccessListRelationFilter
 }
 
 export type RestaurantTableOrderByWithRelationInput = {
@@ -238,6 +239,7 @@ export type RestaurantTableOrderByWithRelationInput = {
   visits?: Prisma.RestaurantVisitOrderByRelationAggregateInput
   visitTransfersFrom?: Prisma.RestaurantVisitTransferOrderByRelationAggregateInput
   visitTransfersTo?: Prisma.RestaurantVisitTransferOrderByRelationAggregateInput
+  qrAccesses?: Prisma.RestaurantQrAccessOrderByRelationAggregateInput
 }
 
 export type RestaurantTableWhereUniqueInput = Prisma.AtLeast<{
@@ -260,6 +262,7 @@ export type RestaurantTableWhereUniqueInput = Prisma.AtLeast<{
   visits?: Prisma.RestaurantVisitListRelationFilter
   visitTransfersFrom?: Prisma.RestaurantVisitTransferListRelationFilter
   visitTransfersTo?: Prisma.RestaurantVisitTransferListRelationFilter
+  qrAccesses?: Prisma.RestaurantQrAccessListRelationFilter
 }, "id" | "code" | "organizationId_name">
 
 export type RestaurantTableOrderByWithAggregationInput = {
@@ -306,6 +309,7 @@ export type RestaurantTableCreateInput = {
   visits?: Prisma.RestaurantVisitCreateNestedManyWithoutTableInput
   visitTransfersFrom?: Prisma.RestaurantVisitTransferCreateNestedManyWithoutFromTableInput
   visitTransfersTo?: Prisma.RestaurantVisitTransferCreateNestedManyWithoutToTableInput
+  qrAccesses?: Prisma.RestaurantQrAccessCreateNestedManyWithoutTableInput
 }
 
 export type RestaurantTableUncheckedCreateInput = {
@@ -322,6 +326,7 @@ export type RestaurantTableUncheckedCreateInput = {
   visits?: Prisma.RestaurantVisitUncheckedCreateNestedManyWithoutTableInput
   visitTransfersFrom?: Prisma.RestaurantVisitTransferUncheckedCreateNestedManyWithoutFromTableInput
   visitTransfersTo?: Prisma.RestaurantVisitTransferUncheckedCreateNestedManyWithoutToTableInput
+  qrAccesses?: Prisma.RestaurantQrAccessUncheckedCreateNestedManyWithoutTableInput
 }
 
 export type RestaurantTableUpdateInput = {
@@ -338,6 +343,7 @@ export type RestaurantTableUpdateInput = {
   visits?: Prisma.RestaurantVisitUpdateManyWithoutTableNestedInput
   visitTransfersFrom?: Prisma.RestaurantVisitTransferUpdateManyWithoutFromTableNestedInput
   visitTransfersTo?: Prisma.RestaurantVisitTransferUpdateManyWithoutToTableNestedInput
+  qrAccesses?: Prisma.RestaurantQrAccessUpdateManyWithoutTableNestedInput
 }
 
 export type RestaurantTableUncheckedUpdateInput = {
@@ -354,6 +360,7 @@ export type RestaurantTableUncheckedUpdateInput = {
   visits?: Prisma.RestaurantVisitUncheckedUpdateManyWithoutTableNestedInput
   visitTransfersFrom?: Prisma.RestaurantVisitTransferUncheckedUpdateManyWithoutFromTableNestedInput
   visitTransfersTo?: Prisma.RestaurantVisitTransferUncheckedUpdateManyWithoutToTableNestedInput
+  qrAccesses?: Prisma.RestaurantQrAccessUncheckedUpdateManyWithoutTableNestedInput
 }
 
 export type RestaurantTableCreateManyInput = {
@@ -506,6 +513,20 @@ export type RestaurantTableUpdateOneRequiredWithoutVisitsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.RestaurantTableUpdateToOneWithWhereWithoutVisitsInput, Prisma.RestaurantTableUpdateWithoutVisitsInput>, Prisma.RestaurantTableUncheckedUpdateWithoutVisitsInput>
 }
 
+export type RestaurantTableCreateNestedOneWithoutQrAccessesInput = {
+  create?: Prisma.XOR<Prisma.RestaurantTableCreateWithoutQrAccessesInput, Prisma.RestaurantTableUncheckedCreateWithoutQrAccessesInput>
+  connectOrCreate?: Prisma.RestaurantTableCreateOrConnectWithoutQrAccessesInput
+  connect?: Prisma.RestaurantTableWhereUniqueInput
+}
+
+export type RestaurantTableUpdateOneRequiredWithoutQrAccessesNestedInput = {
+  create?: Prisma.XOR<Prisma.RestaurantTableCreateWithoutQrAccessesInput, Prisma.RestaurantTableUncheckedCreateWithoutQrAccessesInput>
+  connectOrCreate?: Prisma.RestaurantTableCreateOrConnectWithoutQrAccessesInput
+  upsert?: Prisma.RestaurantTableUpsertWithoutQrAccessesInput
+  connect?: Prisma.RestaurantTableWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.RestaurantTableUpdateToOneWithWhereWithoutQrAccessesInput, Prisma.RestaurantTableUpdateWithoutQrAccessesInput>, Prisma.RestaurantTableUncheckedUpdateWithoutQrAccessesInput>
+}
+
 export type RestaurantTableCreateNestedOneWithoutVisitTransfersFromInput = {
   create?: Prisma.XOR<Prisma.RestaurantTableCreateWithoutVisitTransfersFromInput, Prisma.RestaurantTableUncheckedCreateWithoutVisitTransfersFromInput>
   connectOrCreate?: Prisma.RestaurantTableCreateOrConnectWithoutVisitTransfersFromInput
@@ -603,6 +624,7 @@ export type RestaurantTableCreateWithoutOrganizationInput = {
   visits?: Prisma.RestaurantVisitCreateNestedManyWithoutTableInput
   visitTransfersFrom?: Prisma.RestaurantVisitTransferCreateNestedManyWithoutFromTableInput
   visitTransfersTo?: Prisma.RestaurantVisitTransferCreateNestedManyWithoutToTableInput
+  qrAccesses?: Prisma.RestaurantQrAccessCreateNestedManyWithoutTableInput
 }
 
 export type RestaurantTableUncheckedCreateWithoutOrganizationInput = {
@@ -618,6 +640,7 @@ export type RestaurantTableUncheckedCreateWithoutOrganizationInput = {
   visits?: Prisma.RestaurantVisitUncheckedCreateNestedManyWithoutTableInput
   visitTransfersFrom?: Prisma.RestaurantVisitTransferUncheckedCreateNestedManyWithoutFromTableInput
   visitTransfersTo?: Prisma.RestaurantVisitTransferUncheckedCreateNestedManyWithoutToTableInput
+  qrAccesses?: Prisma.RestaurantQrAccessUncheckedCreateNestedManyWithoutTableInput
 }
 
 export type RestaurantTableCreateOrConnectWithoutOrganizationInput = {
@@ -674,6 +697,7 @@ export type RestaurantTableCreateWithoutVisitsInput = {
   orders?: Prisma.RestaurantOrderCreateNestedManyWithoutTableInput
   visitTransfersFrom?: Prisma.RestaurantVisitTransferCreateNestedManyWithoutFromTableInput
   visitTransfersTo?: Prisma.RestaurantVisitTransferCreateNestedManyWithoutToTableInput
+  qrAccesses?: Prisma.RestaurantQrAccessCreateNestedManyWithoutTableInput
 }
 
 export type RestaurantTableUncheckedCreateWithoutVisitsInput = {
@@ -689,6 +713,7 @@ export type RestaurantTableUncheckedCreateWithoutVisitsInput = {
   orders?: Prisma.RestaurantOrderUncheckedCreateNestedManyWithoutTableInput
   visitTransfersFrom?: Prisma.RestaurantVisitTransferUncheckedCreateNestedManyWithoutFromTableInput
   visitTransfersTo?: Prisma.RestaurantVisitTransferUncheckedCreateNestedManyWithoutToTableInput
+  qrAccesses?: Prisma.RestaurantQrAccessUncheckedCreateNestedManyWithoutTableInput
 }
 
 export type RestaurantTableCreateOrConnectWithoutVisitsInput = {
@@ -720,6 +745,7 @@ export type RestaurantTableUpdateWithoutVisitsInput = {
   orders?: Prisma.RestaurantOrderUpdateManyWithoutTableNestedInput
   visitTransfersFrom?: Prisma.RestaurantVisitTransferUpdateManyWithoutFromTableNestedInput
   visitTransfersTo?: Prisma.RestaurantVisitTransferUpdateManyWithoutToTableNestedInput
+  qrAccesses?: Prisma.RestaurantQrAccessUpdateManyWithoutTableNestedInput
 }
 
 export type RestaurantTableUncheckedUpdateWithoutVisitsInput = {
@@ -733,6 +759,87 @@ export type RestaurantTableUncheckedUpdateWithoutVisitsInput = {
   serviceChargeEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   kind?: Prisma.EnumRestaurantTableKindFieldUpdateOperationsInput | $Enums.RestaurantTableKind
   orders?: Prisma.RestaurantOrderUncheckedUpdateManyWithoutTableNestedInput
+  visitTransfersFrom?: Prisma.RestaurantVisitTransferUncheckedUpdateManyWithoutFromTableNestedInput
+  visitTransfersTo?: Prisma.RestaurantVisitTransferUncheckedUpdateManyWithoutToTableNestedInput
+  qrAccesses?: Prisma.RestaurantQrAccessUncheckedUpdateManyWithoutTableNestedInput
+}
+
+export type RestaurantTableCreateWithoutQrAccessesInput = {
+  id?: string
+  name: string
+  code?: string
+  active?: boolean
+  createdAt?: Date | string
+  serviceChargeEnabled?: boolean
+  kind?: $Enums.RestaurantTableKind
+  organization: Prisma.OrganizationCreateNestedOneWithoutRestaurantTablesInput
+  waiter?: Prisma.UserCreateNestedOneWithoutRestaurantTablesInput
+  orders?: Prisma.RestaurantOrderCreateNestedManyWithoutTableInput
+  visits?: Prisma.RestaurantVisitCreateNestedManyWithoutTableInput
+  visitTransfersFrom?: Prisma.RestaurantVisitTransferCreateNestedManyWithoutFromTableInput
+  visitTransfersTo?: Prisma.RestaurantVisitTransferCreateNestedManyWithoutToTableInput
+}
+
+export type RestaurantTableUncheckedCreateWithoutQrAccessesInput = {
+  id?: string
+  organizationId: string
+  name: string
+  code?: string
+  active?: boolean
+  createdAt?: Date | string
+  waiterId?: string | null
+  serviceChargeEnabled?: boolean
+  kind?: $Enums.RestaurantTableKind
+  orders?: Prisma.RestaurantOrderUncheckedCreateNestedManyWithoutTableInput
+  visits?: Prisma.RestaurantVisitUncheckedCreateNestedManyWithoutTableInput
+  visitTransfersFrom?: Prisma.RestaurantVisitTransferUncheckedCreateNestedManyWithoutFromTableInput
+  visitTransfersTo?: Prisma.RestaurantVisitTransferUncheckedCreateNestedManyWithoutToTableInput
+}
+
+export type RestaurantTableCreateOrConnectWithoutQrAccessesInput = {
+  where: Prisma.RestaurantTableWhereUniqueInput
+  create: Prisma.XOR<Prisma.RestaurantTableCreateWithoutQrAccessesInput, Prisma.RestaurantTableUncheckedCreateWithoutQrAccessesInput>
+}
+
+export type RestaurantTableUpsertWithoutQrAccessesInput = {
+  update: Prisma.XOR<Prisma.RestaurantTableUpdateWithoutQrAccessesInput, Prisma.RestaurantTableUncheckedUpdateWithoutQrAccessesInput>
+  create: Prisma.XOR<Prisma.RestaurantTableCreateWithoutQrAccessesInput, Prisma.RestaurantTableUncheckedCreateWithoutQrAccessesInput>
+  where?: Prisma.RestaurantTableWhereInput
+}
+
+export type RestaurantTableUpdateToOneWithWhereWithoutQrAccessesInput = {
+  where?: Prisma.RestaurantTableWhereInput
+  data: Prisma.XOR<Prisma.RestaurantTableUpdateWithoutQrAccessesInput, Prisma.RestaurantTableUncheckedUpdateWithoutQrAccessesInput>
+}
+
+export type RestaurantTableUpdateWithoutQrAccessesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  code?: Prisma.StringFieldUpdateOperationsInput | string
+  active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  serviceChargeEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  kind?: Prisma.EnumRestaurantTableKindFieldUpdateOperationsInput | $Enums.RestaurantTableKind
+  organization?: Prisma.OrganizationUpdateOneRequiredWithoutRestaurantTablesNestedInput
+  waiter?: Prisma.UserUpdateOneWithoutRestaurantTablesNestedInput
+  orders?: Prisma.RestaurantOrderUpdateManyWithoutTableNestedInput
+  visits?: Prisma.RestaurantVisitUpdateManyWithoutTableNestedInput
+  visitTransfersFrom?: Prisma.RestaurantVisitTransferUpdateManyWithoutFromTableNestedInput
+  visitTransfersTo?: Prisma.RestaurantVisitTransferUpdateManyWithoutToTableNestedInput
+}
+
+export type RestaurantTableUncheckedUpdateWithoutQrAccessesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  organizationId?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  code?: Prisma.StringFieldUpdateOperationsInput | string
+  active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  waiterId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  serviceChargeEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  kind?: Prisma.EnumRestaurantTableKindFieldUpdateOperationsInput | $Enums.RestaurantTableKind
+  orders?: Prisma.RestaurantOrderUncheckedUpdateManyWithoutTableNestedInput
+  visits?: Prisma.RestaurantVisitUncheckedUpdateManyWithoutTableNestedInput
   visitTransfersFrom?: Prisma.RestaurantVisitTransferUncheckedUpdateManyWithoutFromTableNestedInput
   visitTransfersTo?: Prisma.RestaurantVisitTransferUncheckedUpdateManyWithoutToTableNestedInput
 }
@@ -750,6 +857,7 @@ export type RestaurantTableCreateWithoutVisitTransfersFromInput = {
   orders?: Prisma.RestaurantOrderCreateNestedManyWithoutTableInput
   visits?: Prisma.RestaurantVisitCreateNestedManyWithoutTableInput
   visitTransfersTo?: Prisma.RestaurantVisitTransferCreateNestedManyWithoutToTableInput
+  qrAccesses?: Prisma.RestaurantQrAccessCreateNestedManyWithoutTableInput
 }
 
 export type RestaurantTableUncheckedCreateWithoutVisitTransfersFromInput = {
@@ -765,6 +873,7 @@ export type RestaurantTableUncheckedCreateWithoutVisitTransfersFromInput = {
   orders?: Prisma.RestaurantOrderUncheckedCreateNestedManyWithoutTableInput
   visits?: Prisma.RestaurantVisitUncheckedCreateNestedManyWithoutTableInput
   visitTransfersTo?: Prisma.RestaurantVisitTransferUncheckedCreateNestedManyWithoutToTableInput
+  qrAccesses?: Prisma.RestaurantQrAccessUncheckedCreateNestedManyWithoutTableInput
 }
 
 export type RestaurantTableCreateOrConnectWithoutVisitTransfersFromInput = {
@@ -785,6 +894,7 @@ export type RestaurantTableCreateWithoutVisitTransfersToInput = {
   orders?: Prisma.RestaurantOrderCreateNestedManyWithoutTableInput
   visits?: Prisma.RestaurantVisitCreateNestedManyWithoutTableInput
   visitTransfersFrom?: Prisma.RestaurantVisitTransferCreateNestedManyWithoutFromTableInput
+  qrAccesses?: Prisma.RestaurantQrAccessCreateNestedManyWithoutTableInput
 }
 
 export type RestaurantTableUncheckedCreateWithoutVisitTransfersToInput = {
@@ -800,6 +910,7 @@ export type RestaurantTableUncheckedCreateWithoutVisitTransfersToInput = {
   orders?: Prisma.RestaurantOrderUncheckedCreateNestedManyWithoutTableInput
   visits?: Prisma.RestaurantVisitUncheckedCreateNestedManyWithoutTableInput
   visitTransfersFrom?: Prisma.RestaurantVisitTransferUncheckedCreateNestedManyWithoutFromTableInput
+  qrAccesses?: Prisma.RestaurantQrAccessUncheckedCreateNestedManyWithoutTableInput
 }
 
 export type RestaurantTableCreateOrConnectWithoutVisitTransfersToInput = {
@@ -831,6 +942,7 @@ export type RestaurantTableUpdateWithoutVisitTransfersFromInput = {
   orders?: Prisma.RestaurantOrderUpdateManyWithoutTableNestedInput
   visits?: Prisma.RestaurantVisitUpdateManyWithoutTableNestedInput
   visitTransfersTo?: Prisma.RestaurantVisitTransferUpdateManyWithoutToTableNestedInput
+  qrAccesses?: Prisma.RestaurantQrAccessUpdateManyWithoutTableNestedInput
 }
 
 export type RestaurantTableUncheckedUpdateWithoutVisitTransfersFromInput = {
@@ -846,6 +958,7 @@ export type RestaurantTableUncheckedUpdateWithoutVisitTransfersFromInput = {
   orders?: Prisma.RestaurantOrderUncheckedUpdateManyWithoutTableNestedInput
   visits?: Prisma.RestaurantVisitUncheckedUpdateManyWithoutTableNestedInput
   visitTransfersTo?: Prisma.RestaurantVisitTransferUncheckedUpdateManyWithoutToTableNestedInput
+  qrAccesses?: Prisma.RestaurantQrAccessUncheckedUpdateManyWithoutTableNestedInput
 }
 
 export type RestaurantTableUpsertWithoutVisitTransfersToInput = {
@@ -872,6 +985,7 @@ export type RestaurantTableUpdateWithoutVisitTransfersToInput = {
   orders?: Prisma.RestaurantOrderUpdateManyWithoutTableNestedInput
   visits?: Prisma.RestaurantVisitUpdateManyWithoutTableNestedInput
   visitTransfersFrom?: Prisma.RestaurantVisitTransferUpdateManyWithoutFromTableNestedInput
+  qrAccesses?: Prisma.RestaurantQrAccessUpdateManyWithoutTableNestedInput
 }
 
 export type RestaurantTableUncheckedUpdateWithoutVisitTransfersToInput = {
@@ -887,6 +1001,7 @@ export type RestaurantTableUncheckedUpdateWithoutVisitTransfersToInput = {
   orders?: Prisma.RestaurantOrderUncheckedUpdateManyWithoutTableNestedInput
   visits?: Prisma.RestaurantVisitUncheckedUpdateManyWithoutTableNestedInput
   visitTransfersFrom?: Prisma.RestaurantVisitTransferUncheckedUpdateManyWithoutFromTableNestedInput
+  qrAccesses?: Prisma.RestaurantQrAccessUncheckedUpdateManyWithoutTableNestedInput
 }
 
 export type RestaurantTableCreateWithoutOrdersInput = {
@@ -902,6 +1017,7 @@ export type RestaurantTableCreateWithoutOrdersInput = {
   visits?: Prisma.RestaurantVisitCreateNestedManyWithoutTableInput
   visitTransfersFrom?: Prisma.RestaurantVisitTransferCreateNestedManyWithoutFromTableInput
   visitTransfersTo?: Prisma.RestaurantVisitTransferCreateNestedManyWithoutToTableInput
+  qrAccesses?: Prisma.RestaurantQrAccessCreateNestedManyWithoutTableInput
 }
 
 export type RestaurantTableUncheckedCreateWithoutOrdersInput = {
@@ -917,6 +1033,7 @@ export type RestaurantTableUncheckedCreateWithoutOrdersInput = {
   visits?: Prisma.RestaurantVisitUncheckedCreateNestedManyWithoutTableInput
   visitTransfersFrom?: Prisma.RestaurantVisitTransferUncheckedCreateNestedManyWithoutFromTableInput
   visitTransfersTo?: Prisma.RestaurantVisitTransferUncheckedCreateNestedManyWithoutToTableInput
+  qrAccesses?: Prisma.RestaurantQrAccessUncheckedCreateNestedManyWithoutTableInput
 }
 
 export type RestaurantTableCreateOrConnectWithoutOrdersInput = {
@@ -948,6 +1065,7 @@ export type RestaurantTableUpdateWithoutOrdersInput = {
   visits?: Prisma.RestaurantVisitUpdateManyWithoutTableNestedInput
   visitTransfersFrom?: Prisma.RestaurantVisitTransferUpdateManyWithoutFromTableNestedInput
   visitTransfersTo?: Prisma.RestaurantVisitTransferUpdateManyWithoutToTableNestedInput
+  qrAccesses?: Prisma.RestaurantQrAccessUpdateManyWithoutTableNestedInput
 }
 
 export type RestaurantTableUncheckedUpdateWithoutOrdersInput = {
@@ -963,6 +1081,7 @@ export type RestaurantTableUncheckedUpdateWithoutOrdersInput = {
   visits?: Prisma.RestaurantVisitUncheckedUpdateManyWithoutTableNestedInput
   visitTransfersFrom?: Prisma.RestaurantVisitTransferUncheckedUpdateManyWithoutFromTableNestedInput
   visitTransfersTo?: Prisma.RestaurantVisitTransferUncheckedUpdateManyWithoutToTableNestedInput
+  qrAccesses?: Prisma.RestaurantQrAccessUncheckedUpdateManyWithoutTableNestedInput
 }
 
 export type RestaurantTableCreateWithoutWaiterInput = {
@@ -978,6 +1097,7 @@ export type RestaurantTableCreateWithoutWaiterInput = {
   visits?: Prisma.RestaurantVisitCreateNestedManyWithoutTableInput
   visitTransfersFrom?: Prisma.RestaurantVisitTransferCreateNestedManyWithoutFromTableInput
   visitTransfersTo?: Prisma.RestaurantVisitTransferCreateNestedManyWithoutToTableInput
+  qrAccesses?: Prisma.RestaurantQrAccessCreateNestedManyWithoutTableInput
 }
 
 export type RestaurantTableUncheckedCreateWithoutWaiterInput = {
@@ -993,6 +1113,7 @@ export type RestaurantTableUncheckedCreateWithoutWaiterInput = {
   visits?: Prisma.RestaurantVisitUncheckedCreateNestedManyWithoutTableInput
   visitTransfersFrom?: Prisma.RestaurantVisitTransferUncheckedCreateNestedManyWithoutFromTableInput
   visitTransfersTo?: Prisma.RestaurantVisitTransferUncheckedCreateNestedManyWithoutToTableInput
+  qrAccesses?: Prisma.RestaurantQrAccessUncheckedCreateNestedManyWithoutTableInput
 }
 
 export type RestaurantTableCreateOrConnectWithoutWaiterInput = {
@@ -1045,6 +1166,7 @@ export type RestaurantTableUpdateWithoutOrganizationInput = {
   visits?: Prisma.RestaurantVisitUpdateManyWithoutTableNestedInput
   visitTransfersFrom?: Prisma.RestaurantVisitTransferUpdateManyWithoutFromTableNestedInput
   visitTransfersTo?: Prisma.RestaurantVisitTransferUpdateManyWithoutToTableNestedInput
+  qrAccesses?: Prisma.RestaurantQrAccessUpdateManyWithoutTableNestedInput
 }
 
 export type RestaurantTableUncheckedUpdateWithoutOrganizationInput = {
@@ -1060,6 +1182,7 @@ export type RestaurantTableUncheckedUpdateWithoutOrganizationInput = {
   visits?: Prisma.RestaurantVisitUncheckedUpdateManyWithoutTableNestedInput
   visitTransfersFrom?: Prisma.RestaurantVisitTransferUncheckedUpdateManyWithoutFromTableNestedInput
   visitTransfersTo?: Prisma.RestaurantVisitTransferUncheckedUpdateManyWithoutToTableNestedInput
+  qrAccesses?: Prisma.RestaurantQrAccessUncheckedUpdateManyWithoutTableNestedInput
 }
 
 export type RestaurantTableUncheckedUpdateManyWithoutOrganizationInput = {
@@ -1097,6 +1220,7 @@ export type RestaurantTableUpdateWithoutWaiterInput = {
   visits?: Prisma.RestaurantVisitUpdateManyWithoutTableNestedInput
   visitTransfersFrom?: Prisma.RestaurantVisitTransferUpdateManyWithoutFromTableNestedInput
   visitTransfersTo?: Prisma.RestaurantVisitTransferUpdateManyWithoutToTableNestedInput
+  qrAccesses?: Prisma.RestaurantQrAccessUpdateManyWithoutTableNestedInput
 }
 
 export type RestaurantTableUncheckedUpdateWithoutWaiterInput = {
@@ -1112,6 +1236,7 @@ export type RestaurantTableUncheckedUpdateWithoutWaiterInput = {
   visits?: Prisma.RestaurantVisitUncheckedUpdateManyWithoutTableNestedInput
   visitTransfersFrom?: Prisma.RestaurantVisitTransferUncheckedUpdateManyWithoutFromTableNestedInput
   visitTransfersTo?: Prisma.RestaurantVisitTransferUncheckedUpdateManyWithoutToTableNestedInput
+  qrAccesses?: Prisma.RestaurantQrAccessUncheckedUpdateManyWithoutTableNestedInput
 }
 
 export type RestaurantTableUncheckedUpdateManyWithoutWaiterInput = {
@@ -1135,6 +1260,7 @@ export type RestaurantTableCountOutputType = {
   visits: number
   visitTransfersFrom: number
   visitTransfersTo: number
+  qrAccesses: number
 }
 
 export type RestaurantTableCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1142,6 +1268,7 @@ export type RestaurantTableCountOutputTypeSelect<ExtArgs extends runtime.Types.E
   visits?: boolean | RestaurantTableCountOutputTypeCountVisitsArgs
   visitTransfersFrom?: boolean | RestaurantTableCountOutputTypeCountVisitTransfersFromArgs
   visitTransfersTo?: boolean | RestaurantTableCountOutputTypeCountVisitTransfersToArgs
+  qrAccesses?: boolean | RestaurantTableCountOutputTypeCountQrAccessesArgs
 }
 
 /**
@@ -1182,6 +1309,13 @@ export type RestaurantTableCountOutputTypeCountVisitTransfersToArgs<ExtArgs exte
   where?: Prisma.RestaurantVisitTransferWhereInput
 }
 
+/**
+ * RestaurantTableCountOutputType without action
+ */
+export type RestaurantTableCountOutputTypeCountQrAccessesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.RestaurantQrAccessWhereInput
+}
+
 
 export type RestaurantTableSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -1199,6 +1333,7 @@ export type RestaurantTableSelect<ExtArgs extends runtime.Types.Extensions.Inter
   visits?: boolean | Prisma.RestaurantTable$visitsArgs<ExtArgs>
   visitTransfersFrom?: boolean | Prisma.RestaurantTable$visitTransfersFromArgs<ExtArgs>
   visitTransfersTo?: boolean | Prisma.RestaurantTable$visitTransfersToArgs<ExtArgs>
+  qrAccesses?: boolean | Prisma.RestaurantTable$qrAccessesArgs<ExtArgs>
   _count?: boolean | Prisma.RestaurantTableCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["restaurantTable"]>
 
@@ -1250,6 +1385,7 @@ export type RestaurantTableInclude<ExtArgs extends runtime.Types.Extensions.Inte
   visits?: boolean | Prisma.RestaurantTable$visitsArgs<ExtArgs>
   visitTransfersFrom?: boolean | Prisma.RestaurantTable$visitTransfersFromArgs<ExtArgs>
   visitTransfersTo?: boolean | Prisma.RestaurantTable$visitTransfersToArgs<ExtArgs>
+  qrAccesses?: boolean | Prisma.RestaurantTable$qrAccessesArgs<ExtArgs>
   _count?: boolean | Prisma.RestaurantTableCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type RestaurantTableIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1270,6 +1406,7 @@ export type $RestaurantTablePayload<ExtArgs extends runtime.Types.Extensions.Int
     visits: Prisma.$RestaurantVisitPayload<ExtArgs>[]
     visitTransfersFrom: Prisma.$RestaurantVisitTransferPayload<ExtArgs>[]
     visitTransfersTo: Prisma.$RestaurantVisitTransferPayload<ExtArgs>[]
+    qrAccesses: Prisma.$RestaurantQrAccessPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1681,6 +1818,7 @@ export interface Prisma__RestaurantTableClient<T, Null = never, ExtArgs extends 
   visits<T extends Prisma.RestaurantTable$visitsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.RestaurantTable$visitsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$RestaurantVisitPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   visitTransfersFrom<T extends Prisma.RestaurantTable$visitTransfersFromArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.RestaurantTable$visitTransfersFromArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$RestaurantVisitTransferPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   visitTransfersTo<T extends Prisma.RestaurantTable$visitTransfersToArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.RestaurantTable$visitTransfersToArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$RestaurantVisitTransferPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  qrAccesses<T extends Prisma.RestaurantTable$qrAccessesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.RestaurantTable$qrAccessesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$RestaurantQrAccessPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2232,6 +2370,30 @@ export type RestaurantTable$visitTransfersToArgs<ExtArgs extends runtime.Types.E
   take?: number
   skip?: number
   distinct?: Prisma.RestaurantVisitTransferScalarFieldEnum | Prisma.RestaurantVisitTransferScalarFieldEnum[]
+}
+
+/**
+ * RestaurantTable.qrAccesses
+ */
+export type RestaurantTable$qrAccessesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the RestaurantQrAccess
+   */
+  select?: Prisma.RestaurantQrAccessSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the RestaurantQrAccess
+   */
+  omit?: Prisma.RestaurantQrAccessOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.RestaurantQrAccessInclude<ExtArgs> | null
+  where?: Prisma.RestaurantQrAccessWhereInput
+  orderBy?: Prisma.RestaurantQrAccessOrderByWithRelationInput | Prisma.RestaurantQrAccessOrderByWithRelationInput[]
+  cursor?: Prisma.RestaurantQrAccessWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.RestaurantQrAccessScalarFieldEnum | Prisma.RestaurantQrAccessScalarFieldEnum[]
 }
 
 /**

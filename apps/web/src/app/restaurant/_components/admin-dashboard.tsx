@@ -113,6 +113,35 @@ type RewardProgram = {
   maxDiscountAmount?: number | null;
   menuItem?: { id: string; name: string } | null;
 };
+type OrderingAreaSettings = {
+  restaurantLatitude: string | number | null;
+  restaurantLongitude: string | number | null;
+  restaurantOrderRadiusMeters: number;
+};
+type RestaurantAnalytics = {
+  range: { from: string; to: string; timezone: string };
+  qrAccesses: number;
+  uniqueQrSessions: number;
+  visitsOpened: number;
+  visitsClosed: number;
+  openVisits: number;
+  orders: number;
+  grossSubtotal: number;
+  promotionCredit: number;
+  subtotal: number;
+  tax: number;
+  service: number;
+  total: number;
+  itemsSold: number;
+  itemsCancelled: number;
+  daily: Array<{
+    date: string;
+    qrAccesses: number;
+    orders: number;
+    sales: number;
+  }>;
+  popularItems: Array<{ name: string; quantity: number }>;
+};
 const nextStatus: Record<string, string | null> = {
   RECEIVED: "ACCEPTED",
   ACCEPTED: "PREPARING",
@@ -185,8 +214,24 @@ export default function RestaurantAdminDashboard() {
   const [rewardMenuItemId, setRewardMenuItemId] = useState("");
   const [rewardDiscount, setRewardDiscount] = useState("10");
   const [rewardDiscountCap, setRewardDiscountCap] = useState("");
+  const [orderingArea, setOrderingArea] = useState<OrderingAreaSettings | null>(
+    null,
+  );
+  const [restaurantLatitude, setRestaurantLatitude] = useState("");
+  const [restaurantLongitude, setRestaurantLongitude] = useState("");
+  const [restaurantRadius, setRestaurantRadius] = useState("150");
+  const [analytics, setAnalytics] = useState<RestaurantAnalytics | null>(null);
+  const [analyticsFrom, setAnalyticsFrom] = useState(() => {
+    const date = new Date();
+    date.setDate(date.getDate() - 29);
+    return date.toISOString().slice(0, 10);
+  });
+  const [analyticsTo, setAnalyticsTo] = useState(() =>
+    new Date().toISOString().slice(0, 10),
+  );
   const billingInitialized = useRef(false);
   const brandingInitialized = useRef(false);
+  const orderingAreaInitialized = useRef(false);
 
   const load = useCallback(async () => {
     try {
@@ -201,6 +246,7 @@ export default function RestaurantAdminDashboard() {
         "invoice-requests",
         "loyalty/summary",
         "loyalty/rewards",
+        "ordering-area-settings",
       ];
       const responses = await Promise.all(
         paths.map((path) =>
@@ -235,6 +281,7 @@ export default function RestaurantAdminDashboard() {
         invoiceData,
         loyaltyData,
         rewardData,
+        orderingAreaData,
       ] = await Promise.all(responses.map((response) => response.json()));
       setTables(tableData);
       setMenu(menuData);
@@ -246,6 +293,7 @@ export default function RestaurantAdminDashboard() {
       setInvoiceRequests(invoiceData);
       setLoyalty(loyaltyData);
       setRewards(rewardData);
+      setOrderingArea(orderingAreaData);
       if (!billingInitialized.current) {
         setTaxRate(String(billingData.restaurantTaxRateBps / 100));
         setServiceRate(String(billingData.restaurantServiceRateBps / 100));
@@ -266,11 +314,48 @@ export default function RestaurantAdminDashboard() {
         setMenuBackgroundSize(brandingData.restaurantMenuBackgroundSize);
         brandingInitialized.current = true;
       }
+      if (!orderingAreaInitialized.current) {
+        setRestaurantLatitude(
+          orderingAreaData.restaurantLatitude == null
+            ? ""
+            : String(orderingAreaData.restaurantLatitude),
+        );
+        setRestaurantLongitude(
+          orderingAreaData.restaurantLongitude == null
+            ? ""
+            : String(orderingAreaData.restaurantLongitude),
+        );
+        setRestaurantRadius(
+          String(orderingAreaData.restaurantOrderRadiusMeters),
+        );
+        orderingAreaInitialized.current = true;
+      }
       setError("");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unable to load orders");
     }
   }, [router]);
+
+  const loadAnalytics = useCallback(async () => {
+    const query = new URLSearchParams({
+      from: analyticsFrom,
+      to: analyticsTo,
+    });
+    const response = await authenticatedFetch(
+      `${API_URL}/api/v1/restaurant/analytics?${query}`,
+    );
+    if (response.status === 401) {
+      router.replace("/?next=/restaurant/admin");
+      return;
+    }
+    if (!response.ok) {
+      const body = await response.json().catch(() => ({}));
+      setError(body.message ?? "No se pudo cargar el análisis del restaurante");
+      return;
+    }
+    setAnalytics(await response.json());
+  }, [analyticsFrom, analyticsTo, router]);
+
   useEffect(() => {
     if (!sessionStorage.getItem("assettrack_token")) {
       router.replace("/?next=/restaurant/admin");
@@ -282,6 +367,11 @@ export default function RestaurantAdminDashboard() {
     }, 5000);
     return () => clearInterval(timer);
   }, [load, router]);
+
+  useEffect(() => {
+    if (!sessionStorage.getItem("assettrack_token")) return;
+    void loadAnalytics();
+  }, [loadAnalytics]);
 
   async function post(path: string, payload: object, method = "POST") {
     setError("");
@@ -355,6 +445,40 @@ export default function RestaurantAdminDashboard() {
     setPrepMinutes(String(item.prepMinutes ?? 10));
     setAlcoholic(item.alcoholic);
     setImageData(item.imageData ?? null);
+  }
+
+  function setAnalyticsDays(days: number) {
+    const end = new Date();
+    const start = new Date();
+    start.setDate(start.getDate() - (days - 1));
+    setAnalyticsFrom(start.toISOString().slice(0, 10));
+    setAnalyticsTo(end.toISOString().slice(0, 10));
+  }
+
+  function setAnalyticsCurrentMonth() {
+    const end = new Date();
+    const start = new Date(end.getFullYear(), end.getMonth(), 1);
+    setAnalyticsFrom(start.toISOString().slice(0, 10));
+    setAnalyticsTo(end.toISOString().slice(0, 10));
+  }
+
+  function useCurrentRestaurantLocation() {
+    if (!navigator.geolocation) {
+      setError("Este dispositivo no permite obtener la ubicación");
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setRestaurantLatitude(position.coords.latitude.toFixed(7));
+        setRestaurantLongitude(position.coords.longitude.toFixed(7));
+        setError("");
+      },
+      () =>
+        setError(
+          "No se pudo obtener la ubicación. Autorice el acceso o ingrese las coordenadas.",
+        ),
+      { enableHighAccuracy: true, timeout: 10000 },
+    );
   }
   async function showQr(id: string) {
     try {
@@ -650,6 +774,241 @@ export default function RestaurantAdminDashboard() {
                       billing.restaurantTaxIncluded ? "incluido" : "agregado"
                     }`}
                 ; servicio {billing.restaurantServiceRateBps / 100}%.
+              </p>
+            )}
+          </section>
+          <section className="mt-8 rounded-xl border bg-white p-5">
+            <div className="flex flex-wrap items-start justify-between gap-4">
+              <div>
+                <h2 className="text-xl font-bold">Actividad y ventas</h2>
+                <p className="mt-1 text-sm text-slate-600">
+                  Las ventas se reconocen cuando se cierra la cuenta. Las
+                  cuentas abiertas se muestran como consumo en curso. Los
+                  accesos QR son anónimos y no almacenan coordenadas ni IP.
+                </p>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  className="rounded border px-3 py-2 text-sm font-semibold"
+                  onClick={() => setAnalyticsDays(7)}
+                >
+                  7 días
+                </button>
+                <button
+                  type="button"
+                  className="rounded border px-3 py-2 text-sm font-semibold"
+                  onClick={() => setAnalyticsDays(30)}
+                >
+                  30 días
+                </button>
+                <button
+                  type="button"
+                  className="rounded border px-3 py-2 text-sm font-semibold"
+                  onClick={setAnalyticsCurrentMonth}
+                >
+                  Este mes
+                </button>
+              </div>
+            </div>
+            <div className="mt-4 flex flex-wrap items-end gap-3">
+              <label className="text-sm font-semibold">
+                Desde
+                <input
+                  type="date"
+                  className="mt-1 block rounded border p-2"
+                  value={analyticsFrom}
+                  onChange={(event) => setAnalyticsFrom(event.target.value)}
+                />
+              </label>
+              <label className="text-sm font-semibold">
+                Hasta
+                <input
+                  type="date"
+                  className="mt-1 block rounded border p-2"
+                  value={analyticsTo}
+                  onChange={(event) => setAnalyticsTo(event.target.value)}
+                />
+              </label>
+              <button
+                type="button"
+                className="rounded bg-slate-900 px-4 py-2 font-semibold text-white"
+                onClick={() => void loadAnalytics()}
+              >
+                Actualizar
+              </button>
+              {analytics && (
+                <span className="text-sm text-slate-500">
+                  Zona horaria: {analytics.range.timezone}
+                </span>
+              )}
+            </div>
+            {analytics && (
+              <>
+                <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                  {[
+                    ["Lecturas QR", analytics.qrAccesses],
+                    ["Visitantes anónimos", analytics.uniqueQrSessions],
+                    ["Visitas abiertas", analytics.visitsOpened],
+                    ["Visitas cerradas", analytics.visitsClosed],
+                    ["Cuentas en curso", analytics.openVisits],
+                    ["Órdenes", analytics.orders],
+                    ["Productos vendidos", analytics.itemsSold],
+                    ["Productos cancelados", analytics.itemsCancelled],
+                  ].map(([label, value]) => (
+                    <div key={label} className="rounded-lg bg-slate-50 p-4">
+                      <p className="text-sm text-slate-600">{label}</p>
+                      <strong className="text-2xl">{value}</strong>
+                    </div>
+                  ))}
+                </div>
+                <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                  {[
+                    ["Subtotal bruto", analytics.grossSubtotal],
+                    ["Créditos promocionales", analytics.promotionCredit],
+                    ["Ventas netas", analytics.subtotal],
+                    ["IVA registrado", analytics.tax],
+                    ["Servicio registrado", analytics.service],
+                    ["Total cobrado", analytics.total],
+                  ].map(([label, value]) => (
+                    <div
+                      key={label}
+                      className="rounded-lg border border-emerald-200 bg-emerald-50 p-4"
+                    >
+                      <p className="text-sm text-emerald-900">{label}</p>
+                      <strong className="text-xl">
+                        ₡{Number(value).toLocaleString()}
+                      </strong>
+                    </div>
+                  ))}
+                </div>
+                <div className="mt-5 grid gap-5 lg:grid-cols-2">
+                  <div className="overflow-x-auto rounded-lg border">
+                    <table className="w-full min-w-[480px] text-left text-sm">
+                      <thead className="bg-slate-100">
+                        <tr>
+                          <th className="p-2">Fecha</th>
+                          <th className="p-2">QR</th>
+                          <th className="p-2">Órdenes</th>
+                          <th className="p-2">Venta neta</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {analytics.daily.map((entry) => (
+                          <tr key={entry.date} className="border-t">
+                            <td className="p-2">{entry.date}</td>
+                            <td className="p-2">{entry.qrAccesses}</td>
+                            <td className="p-2">{entry.orders}</td>
+                            <td className="p-2">
+                              ₡{entry.sales.toLocaleString()}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                  <div className="rounded-lg border p-4">
+                    <h3 className="font-bold">Productos más vendidos</h3>
+                    {analytics.popularItems.length === 0 ? (
+                      <p className="mt-3 text-sm text-slate-600">
+                        No hay cuentas cerradas en este período.
+                      </p>
+                    ) : (
+                      <ol className="mt-3 space-y-2">
+                        {analytics.popularItems.map((item) => (
+                          <li
+                            key={item.name}
+                            className="flex justify-between border-t pt-2"
+                          >
+                            <span>{item.name}</span>
+                            <strong>{item.quantity}</strong>
+                          </li>
+                        ))}
+                      </ol>
+                    )}
+                  </div>
+                </div>
+              </>
+            )}
+          </section>
+          <section className="mt-8 rounded-xl border bg-amber-50 p-5">
+            <h2 className="text-xl font-bold">Alcance para pedidos por QR</h2>
+            <p className="mt-1 text-sm text-slate-700">
+              Configure el centro del local y el radio permitido. Fuera de este
+              radio, los códigos de mesa, barra y para llevar ofrecerán
+              únicamente entrega a domicilio.
+            </p>
+            <form
+              className="mt-4 grid gap-3 md:grid-cols-4 md:items-end"
+              onSubmit={(event) => {
+                event.preventDefault();
+                void post(
+                  "ordering-area-settings",
+                  {
+                    latitude: Number(restaurantLatitude),
+                    longitude: Number(restaurantLongitude),
+                    radiusMeters: Number(restaurantRadius),
+                  },
+                  "PATCH",
+                );
+              }}
+            >
+              <label className="font-semibold">
+                Latitud
+                <input
+                  required
+                  type="number"
+                  min="-90"
+                  max="90"
+                  step="0.0000001"
+                  className="mt-1 w-full rounded border bg-white p-2"
+                  value={restaurantLatitude}
+                  onChange={(event) =>
+                    setRestaurantLatitude(event.target.value)
+                  }
+                />
+              </label>
+              <label className="font-semibold">
+                Longitud
+                <input
+                  required
+                  type="number"
+                  min="-180"
+                  max="180"
+                  step="0.0000001"
+                  className="mt-1 w-full rounded border bg-white p-2"
+                  value={restaurantLongitude}
+                  onChange={(event) =>
+                    setRestaurantLongitude(event.target.value)
+                  }
+                />
+              </label>
+              <label className="font-semibold">
+                Radio (metros)
+                <input
+                  required
+                  type="number"
+                  min="25"
+                  max="5000"
+                  className="mt-1 w-full rounded border bg-white p-2"
+                  value={restaurantRadius}
+                  onChange={(event) => setRestaurantRadius(event.target.value)}
+                />
+              </label>
+              <button className="rounded bg-slate-900 px-4 py-3 font-semibold text-white">
+                Guardar alcance
+              </button>
+            </form>
+            <button
+              type="button"
+              className="mt-3 text-sm font-semibold text-amber-900 underline"
+              onClick={useCurrentRestaurantLocation}
+            >
+              Usar la ubicación actual de este dispositivo
+            </button>
+            {orderingArea?.restaurantLatitude != null && (
+              <p className="mt-3 text-sm text-emerald-800">
+                Geocerca activa: {orderingArea.restaurantOrderRadiusMeters} m.
               </p>
             )}
           </section>

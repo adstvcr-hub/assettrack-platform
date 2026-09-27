@@ -52,7 +52,15 @@ function createService() {
     },
     restaurantTable: {
       findFirst: vi.fn(),
-      findUnique: vi.fn().mockResolvedValue(table),
+      findUnique: vi.fn().mockResolvedValue({
+        ...table,
+        organization: {
+          restaurantAccessEnabled: true,
+          restaurantLatitude: null,
+          restaurantLongitude: null,
+          restaurantOrderRadiusMeters: 150,
+        },
+      }),
       findMany: vi.fn(),
       update: vi.fn(),
       updateMany: vi.fn(),
@@ -65,6 +73,11 @@ function createService() {
         restaurantServiceRateBps: 1000,
       }),
       update: vi.fn(),
+    },
+    organizationLocation: { findFirst: vi.fn().mockResolvedValue(null) },
+    restaurantQrAccess: {
+      create: vi.fn(),
+      findMany: vi.fn().mockResolvedValue([]),
     },
     restaurantVisit: {
       findFirst: vi.fn().mockResolvedValue(null),
@@ -120,6 +133,167 @@ function createService() {
 
 describe("RestaurantService", () => {
   const payload = { requestId, items: [{ menuItemId: itemId, quantity: 2 }] };
+
+  it("blocks on-site ordering outside the configured restaurant radius", async () => {
+    const { prisma, service } = createService();
+    prisma.restaurantTable.findUnique.mockResolvedValue({
+      ...table,
+      organization: {
+        restaurantAccessEnabled: true,
+        restaurantLatitude: 9.9281,
+        restaurantLongitude: -84.0907,
+        restaurantOrderRadiusMeters: 100,
+      },
+    });
+
+    await expect(
+      service.placeOrder("table-code", {
+        ...payload,
+        latitude: 10.0,
+        longitude: -84.2,
+        locationAccuracy: 5,
+      }),
+    ).rejects.toThrow("Estás fuera del alcance del local comercial");
+  });
+
+  it("creates delivery orders without occupying a table and waits for payment", async () => {
+    const { prisma, service } = createService();
+    prisma.user.findMany.mockResolvedValue([
+      { id: "waiter-a", restaurantRole: RestaurantStaffRole.WAITER },
+      { id: "kitchen-a", restaurantRole: RestaurantStaffRole.KITCHEN },
+      { id: "bar-a", restaurantRole: RestaurantStaffRole.BAR },
+    ]);
+
+    await service.placeOrder("table-code", {
+      ...payload,
+      fulfillment: "DELIVERY",
+      deliveryPhone: "8888-8888",
+      deliveryAddress: "San José, 100 m norte del parque",
+    });
+
+    expect(prisma.restaurantVisit.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          occupiesTable: false,
+          serviceChargeEnabled: false,
+          paymentStatus: "PENDING",
+          responsibleStaffId: "waiter-a",
+        }),
+      }),
+    );
+    expect(prisma.restaurantOrder.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          fulfillment: "DELIVERY",
+          items: {
+            create: [expect.objectContaining({ fulfillment: "DELIVERY" })],
+          },
+        }),
+      }),
+    );
+  });
+
+  it("records anonymous QR reach data without storing guest coordinates", async () => {
+    const { prisma, service } = createService();
+    prisma.restaurantTable.findUnique.mockResolvedValue({
+      ...table,
+      organization: {
+        restaurantAccessEnabled: true,
+        restaurantLatitude: 9.9281,
+        restaurantLongitude: -84.0907,
+        restaurantOrderRadiusMeters: 150,
+      },
+    });
+
+    await service.recordQrAccess("table-code", {
+      sessionKey: "4e042db9-2f69-466f-bc62-8f50c9044ceb",
+      latitude: 9.9282,
+      longitude: -84.0907,
+      accuracy: 8,
+    });
+
+    expect(prisma.restaurantQrAccess.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({
+        organizationId: "org-a",
+        tableId: "table-a",
+        sessionKey: "4e042db9-2f69-466f-bc62-8f50c9044ceb",
+        insideLocal: true,
+      }),
+    });
+    const stored = prisma.restaurantQrAccess.create.mock.calls[0][0].data;
+    expect(stored).not.toHaveProperty("latitude");
+    expect(stored).not.toHaveProperty("longitude");
+  });
+
+  it("recognizes restaurant sales only from accounts closed in the period", async () => {
+    const { prisma, service } = createService();
+    const closedAt = new Date("2026-09-20T18:00:00.000Z");
+    prisma.organizationLocation.findFirst.mockResolvedValue({
+      timezone: "UTC",
+    });
+    prisma.restaurantQrAccess.findMany.mockResolvedValue([
+      {
+        sessionKey: "4e042db9-2f69-466f-bc62-8f50c9044ceb",
+        createdAt: closedAt,
+      },
+    ]);
+    prisma.restaurantVisit.findMany
+      .mockResolvedValueOnce([{ openedAt: closedAt }])
+      .mockResolvedValueOnce([
+        {
+          closedAt,
+          taxRateBps: 1300,
+          taxIncluded: false,
+          serviceRateBps: 1000,
+          serviceChargeEnabled: true,
+          orders: [
+            {
+              promotionCredit: 1000,
+              items: [
+                {
+                  name: "Almuerzo",
+                  price: 2500,
+                  quantity: 2,
+                  status: "DELIVERED",
+                },
+              ],
+            },
+          ],
+        },
+      ]);
+    prisma.restaurantVisit.count.mockResolvedValue(3);
+    prisma.restaurantOrder.findMany.mockResolvedValue([
+      { createdAt: closedAt },
+      { createdAt: new Date("2026-09-21T18:00:00.000Z") },
+    ]);
+
+    const result = await service.analytics(
+      {
+        id: "admin-a",
+        organizationId: "org-a",
+        role: UserRole.ADMIN,
+        restaurantRole: RestaurantStaffRole.RESTAURANT_ADMIN,
+        restaurantAvailability: RestaurantStaffAvailability.AVAILABLE,
+      },
+      "2026-09-01",
+      "2026-09-30",
+    );
+
+    expect(result).toEqual(
+      expect.objectContaining({
+        qrAccesses: 1,
+        uniqueQrSessions: 1,
+        visitsOpened: 1,
+        visitsClosed: 1,
+        openVisits: 3,
+        orders: 2,
+        grossSubtotal: 5000,
+        promotionCredit: 1000,
+        subtotal: 4000,
+        itemsSold: 2,
+      }),
+    );
+  });
 
   it("takes menu snapshots only from the restaurant owning the table", async () => {
     const { prisma, service } = createService();

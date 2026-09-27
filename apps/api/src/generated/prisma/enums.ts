@@ -121,10 +121,21 @@ export type RestaurantProductOrigin = (typeof RestaurantProductOrigin)[keyof typ
 
 export const RestaurantFulfillment = {
   DINE_IN: 'DINE_IN',
-  TAKEOUT: 'TAKEOUT'
+  TAKEOUT: 'TAKEOUT',
+  DELIVERY: 'DELIVERY'
 } as const
 
 export type RestaurantFulfillment = (typeof RestaurantFulfillment)[keyof typeof RestaurantFulfillment]
+
+
+export const RestaurantPaymentStatus = {
+  NOT_REQUIRED: 'NOT_REQUIRED',
+  PENDING: 'PENDING',
+  CONFIRMED: 'CONFIRMED',
+  REJECTED: 'REJECTED'
+} as const
+
+export type RestaurantPaymentStatus = (typeof RestaurantPaymentStatus)[keyof typeof RestaurantPaymentStatus]
 
 
 export const RestaurantTableKind = {

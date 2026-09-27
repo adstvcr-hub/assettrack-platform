@@ -14,6 +14,7 @@ import {
   RestaurantRewardSponsor,
   RestaurantStaffAvailability,
   RestaurantStaffRole,
+  RestaurantVisitStatus,
   UserRole,
 } from "../generated/prisma/enums";
 import { CreateRewardProgramDto } from "../restaurant/dto/restaurant.dto";
@@ -32,7 +33,9 @@ export class PlatformAdminService {
       .map((email) => email.trim().toLowerCase())
       .filter(Boolean);
     if (!configured.includes(actor.email.toLowerCase())) {
-      throw new ForbiddenException("AssetTrack platform administrator access required");
+      throw new ForbiddenException(
+        "AssetTrack platform administrator access required",
+      );
     }
   }
 
@@ -166,7 +169,9 @@ export class PlatformAdminService {
 
   async overview(actor: PlatformActor, from?: string, to?: string) {
     this.requirePlatformAdmin(actor);
-    const fromDate = from ? new Date(from) : new Date(Date.now() - 30 * 86400000);
+    const fromDate = from
+      ? new Date(from)
+      : new Date(Date.now() - 30 * 86400000);
     const toDate = to ? new Date(to) : new Date();
     if (
       Number.isNaN(fromDate.getTime()) ||
@@ -176,47 +181,93 @@ export class PlatformAdminService {
       throw new BadRequestException("Invalid date range");
     }
     const range = { gte: fromDate, lt: toDate };
-    const [organizations, orders, visits, loyalty, locations] = await Promise.all([
-      this.prisma.organization.count({ where: { restaurantAccessEnabled: true } }),
-      this.prisma.restaurantOrder.findMany({
-        where: { createdAt: range },
-        select: {
-          organizationId: true,
-          createdAt: true,
-          promotionCredit: true,
-          items: { select: { price: true, quantity: true, status: true } },
-          organization: { select: { name: true } },
-        },
-      }),
-      this.prisma.restaurantVisit.count({ where: { openedAt: range } }),
-      this.prisma.restaurantLoyaltyActivity.findMany({
-        where: { createdAt: range, type: "VISIT_COMPLETED" },
-        select: { memberId: true, organizationId: true },
-      }),
-      this.prisma.organizationLocation.findMany({
-        where: { active: true },
-        select: { organizationId: true, country: true, region: true, city: true },
-      }),
-    ]);
-    const restaurants = new Map<string, { name: string; orders: number; sales: number }>();
+    const [organizations, orders, visits, closedVisits, loyalty, locations] =
+      await Promise.all([
+        this.prisma.organization.count({
+          where: { restaurantAccessEnabled: true },
+        }),
+        this.prisma.restaurantOrder.findMany({
+          where: { createdAt: range },
+          select: {
+            organizationId: true,
+            createdAt: true,
+            promotionCredit: true,
+            items: { select: { price: true, quantity: true, status: true } },
+            organization: { select: { name: true } },
+          },
+        }),
+        this.prisma.restaurantVisit.count({ where: { openedAt: range } }),
+        this.prisma.restaurantVisit.findMany({
+          where: {
+            status: RestaurantVisitStatus.CLOSED,
+            closedAt: range,
+          },
+          select: {
+            organizationId: true,
+            taxRateBps: true,
+            taxIncluded: true,
+            serviceRateBps: true,
+            serviceChargeEnabled: true,
+            organization: { select: { name: true } },
+            orders: {
+              select: {
+                promotionCredit: true,
+                items: {
+                  select: { price: true, quantity: true, status: true },
+                },
+              },
+            },
+          },
+        }),
+        this.prisma.restaurantLoyaltyActivity.findMany({
+          where: { createdAt: range, type: "VISIT_COMPLETED" },
+          select: { memberId: true, organizationId: true },
+        }),
+        this.prisma.organizationLocation.findMany({
+          where: { active: true },
+          select: {
+            organizationId: true,
+            country: true,
+            region: true,
+            city: true,
+          },
+        }),
+      ]);
+    const restaurants = new Map<
+      string,
+      { name: string; orders: number; sales: number }
+    >();
     const demand = new Map<string, number>();
     let globalSales = 0;
     for (const order of orders) {
-      const gross = order.items
-        .filter((item) => item.status !== RestaurantItemStatus.CANCELLED)
-        .reduce((sum, item) => sum + item.price * item.quantity, 0);
-      const sale = Math.max(0, gross - order.promotionCredit);
-      globalSales += sale;
       const current = restaurants.get(order.organizationId) ?? {
         name: order.organization.name,
         orders: 0,
         sales: 0,
       };
       current.orders += 1;
-      current.sales += sale;
       restaurants.set(order.organizationId, current);
       const key = `${order.createdAt.toISOString().slice(0, 10)} ${String(order.createdAt.getUTCHours()).padStart(2, "0")}:00 UTC`;
       demand.set(key, (demand.get(key) ?? 0) + 1);
+    }
+    for (const visit of closedVisits) {
+      const items = visit.orders.flatMap((order) => order.items);
+      const gross = items
+        .filter((item) => item.status !== RestaurantItemStatus.CANCELLED)
+        .reduce((sum, item) => sum + item.price * item.quantity, 0);
+      const promotionCredit = visit.orders.reduce(
+        (sum, order) => sum + order.promotionCredit,
+        0,
+      );
+      const sale = Math.max(0, gross - promotionCredit);
+      globalSales += sale;
+      const current = restaurants.get(visit.organizationId) ?? {
+        name: visit.organization.name,
+        orders: 0,
+        sales: 0,
+      };
+      current.sales += sale;
+      restaurants.set(visit.organizationId, current);
     }
     const geography = new Map<string, Set<string>>();
     for (const location of locations) {
@@ -229,7 +280,10 @@ export class PlatformAdminService {
     }
     const memberVisits = new Map<string, number>();
     for (const activity of loyalty) {
-      memberVisits.set(activity.memberId, (memberVisits.get(activity.memberId) ?? 0) + 1);
+      memberVisits.set(
+        activity.memberId,
+        (memberVisits.get(activity.memberId) ?? 0) + 1,
+      );
     }
     return {
       range: { from: fromDate, to: toDate },
@@ -238,7 +292,8 @@ export class PlatformAdminService {
       visits,
       globalSales,
       loyaltyMembers: memberVisits.size,
-      frequentCustomers: [...memberVisits.values()].filter((count) => count > 1).length,
+      frequentCustomers: [...memberVisits.values()].filter((count) => count > 1)
+        .length,
       restaurants: [...restaurants.entries()]
         .map(([organizationId, value]) => ({ organizationId, ...value }))
         .sort((a, b) => b.sales - a.sales),
@@ -254,7 +309,11 @@ export class PlatformAdminService {
     };
   }
 
-  async setRestaurantAccess(actor: PlatformActor, organizationId: string, enabled: boolean) {
+  async setRestaurantAccess(
+    actor: PlatformActor,
+    organizationId: string,
+    enabled: boolean,
+  ) {
     this.requirePlatformAdmin(actor);
     const result = await this.prisma.organization.updateMany({
       where: { id: organizationId },
@@ -264,7 +323,9 @@ export class PlatformAdminService {
     await this.prisma.platformAdminEvent.create({
       data: {
         actorId: actor.id,
-        action: enabled ? "RESTAURANT_ACCESS_ENABLED" : "RESTAURANT_ACCESS_SUSPENDED",
+        action: enabled
+          ? "RESTAURANT_ACCESS_ENABLED"
+          : "RESTAURANT_ACCESS_SUSPENDED",
         organizationId,
       },
     });
@@ -308,7 +369,8 @@ export class PlatformAdminService {
       userId: user.id,
       email: user.email,
       temporaryPassword,
-      warning: "Shown once. Deliver through a verified channel and require a new password.",
+      warning:
+        "Shown once. Deliver through a verified channel and require a new password.",
     };
   }
 

@@ -54,6 +54,7 @@ export const ModelName = {
   Organization: 'Organization',
   RestaurantTable: 'RestaurantTable',
   RestaurantVisit: 'RestaurantVisit',
+  RestaurantQrAccess: 'RestaurantQrAccess',
   RestaurantLoyaltyMember: 'RestaurantLoyaltyMember',
   RestaurantLoyaltyActivity: 'RestaurantLoyaltyActivity',
   RestaurantRewardProgram: 'RestaurantRewardProgram',
@@ -105,7 +106,10 @@ export const OrganizationScalarFieldEnum = {
   restaurantMenuBackgroundImageData: 'restaurantMenuBackgroundImageData',
   restaurantMenuBackgroundEnabled: 'restaurantMenuBackgroundEnabled',
   restaurantMenuBackgroundPosition: 'restaurantMenuBackgroundPosition',
-  restaurantMenuBackgroundSize: 'restaurantMenuBackgroundSize'
+  restaurantMenuBackgroundSize: 'restaurantMenuBackgroundSize',
+  restaurantLatitude: 'restaurantLatitude',
+  restaurantLongitude: 'restaurantLongitude',
+  restaurantOrderRadiusMeters: 'restaurantOrderRadiusMeters'
 } as const
 
 export type OrganizationScalarFieldEnum = (typeof OrganizationScalarFieldEnum)[keyof typeof OrganizationScalarFieldEnum]
@@ -138,6 +142,14 @@ export const RestaurantVisitScalarFieldEnum = {
   taxIncluded: 'taxIncluded',
   serviceRateBps: 'serviceRateBps',
   serviceChargeEnabled: 'serviceChargeEnabled',
+  occupiesTable: 'occupiesTable',
+  deliveryPhone: 'deliveryPhone',
+  deliveryAddress: 'deliveryAddress',
+  paymentStatus: 'paymentStatus',
+  paymentConfirmedAt: 'paymentConfirmedAt',
+  paymentConfirmedById: 'paymentConfirmedById',
+  deliveryHandedOffAt: 'deliveryHandedOffAt',
+  deliveryHandedOffById: 'deliveryHandedOffById',
   invoiceRequestStatus: 'invoiceRequestStatus',
   invoiceRequestedAt: 'invoiceRequestedAt',
   invoiceName: 'invoiceName',
@@ -150,6 +162,20 @@ export const RestaurantVisitScalarFieldEnum = {
 } as const
 
 export type RestaurantVisitScalarFieldEnum = (typeof RestaurantVisitScalarFieldEnum)[keyof typeof RestaurantVisitScalarFieldEnum]
+
+
+export const RestaurantQrAccessScalarFieldEnum = {
+  id: 'id',
+  organizationId: 'organizationId',
+  tableId: 'tableId',
+  sessionKey: 'sessionKey',
+  insideLocal: 'insideLocal',
+  distanceMeters: 'distanceMeters',
+  accuracyMeters: 'accuracyMeters',
+  createdAt: 'createdAt'
+} as const
+
+export type RestaurantQrAccessScalarFieldEnum = (typeof RestaurantQrAccessScalarFieldEnum)[keyof typeof RestaurantQrAccessScalarFieldEnum]
 
 
 export const RestaurantLoyaltyMemberScalarFieldEnum = {

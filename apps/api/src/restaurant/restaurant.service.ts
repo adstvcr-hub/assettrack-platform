@@ -12,6 +12,7 @@ import {
   RestaurantInvoiceRequestStatus,
   RestaurantItemStatus,
   RestaurantLoyaltyActivityType,
+  RestaurantPaymentStatus,
   RestaurantRewardSponsor,
   RestaurantRewardType,
   RestaurantStaffAvailability,
@@ -27,6 +28,7 @@ import {
   CreateRewardProgramDto,
   CreateTableDto,
   PlaceOrderDto,
+  RecordQrAccessDto,
   JoinLoyaltyDto,
   RequestInvoiceDto,
   UpdateItemStatusDto,
@@ -35,11 +37,16 @@ import {
   UpdateMenuItemDto,
   UpdateRestaurantBillingDto,
   UpdateRestaurantBrandingDto,
+  UpdateRestaurantOrderingAreaDto,
   UpdateStaffAvailabilityDto,
   UpdateTableBillingDto,
   UpdatePromotionDto,
 } from "./dto/restaurant.dto";
 import type { Prisma } from "../generated/prisma/client";
+import {
+  getUtcDateRangeForLocalDate,
+  normalizeTimezone,
+} from "../common/timezone-date-range";
 
 const transitions: Record<RestaurantItemStatus, RestaurantItemStatus[]> = {
   RECEIVED: [RestaurantItemStatus.ACCEPTED, RestaurantItemStatus.CANCELLED],
@@ -73,6 +80,26 @@ export class RestaurantService {
     if (this.effectiveRole(actor) !== RestaurantStaffRole.RESTAURANT_ADMIN) {
       throw new ForbiddenException("Restaurant administrator access required");
     }
+  }
+
+  private distanceMeters(
+    latitudeA: number,
+    longitudeA: number,
+    latitudeB: number,
+    longitudeB: number,
+  ) {
+    const radians = (degrees: number) => (degrees * Math.PI) / 180;
+    const earthRadius = 6_371_000;
+    const latitudeDelta = radians(latitudeB - latitudeA);
+    const longitudeDelta = radians(longitudeB - longitudeA);
+    const value =
+      Math.sin(latitudeDelta / 2) ** 2 +
+      Math.cos(radians(latitudeA)) *
+        Math.cos(radians(latitudeB)) *
+        Math.sin(longitudeDelta / 2) ** 2;
+    return Math.round(
+      2 * earthRadius * Math.atan2(Math.sqrt(value), Math.sqrt(1 - value)),
+    );
   }
 
   private async rebalanceWaiterTables(
@@ -373,6 +400,174 @@ export class RestaurantService {
     });
   }
 
+  orderingAreaSettings(actor: RestaurantActor) {
+    this.requireRestaurantAdmin(actor);
+    return this.prisma.organization.findUnique({
+      where: { id: actor.organizationId },
+      select: {
+        restaurantLatitude: true,
+        restaurantLongitude: true,
+        restaurantOrderRadiusMeters: true,
+      },
+    });
+  }
+
+  updateOrderingAreaSettings(
+    actor: RestaurantActor,
+    dto: UpdateRestaurantOrderingAreaDto,
+  ) {
+    this.requireRestaurantAdmin(actor);
+    return this.prisma.organization.update({
+      where: { id: actor.organizationId },
+      data: {
+        restaurantLatitude: dto.latitude,
+        restaurantLongitude: dto.longitude,
+        restaurantOrderRadiusMeters: dto.radiusMeters,
+      },
+      select: {
+        restaurantLatitude: true,
+        restaurantLongitude: true,
+        restaurantOrderRadiusMeters: true,
+      },
+    });
+  }
+
+  async analytics(actor: RestaurantActor, from?: string, to?: string) {
+    this.requireRestaurantAdmin(actor);
+    const location = await this.prisma.organizationLocation.findFirst({
+      where: { organizationId: actor.organizationId, active: true },
+      select: { timezone: true },
+      orderBy: { createdAt: "asc" },
+    });
+    const timezone = normalizeTimezone(location?.timezone ?? "UTC");
+    const localDate = (date: Date) =>
+      new Intl.DateTimeFormat("en-CA", {
+        timeZone: timezone,
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+      }).format(date);
+    const today = localDate(new Date());
+    const defaultStart = new Date(`${today}T00:00:00.000Z`);
+    defaultStart.setUTCDate(defaultStart.getUTCDate() - 29);
+    const fromDate = from ?? defaultStart.toISOString().slice(0, 10);
+    const toDate = to ?? today;
+    if (
+      !/^\d{4}-\d{2}-\d{2}$/.test(fromDate) ||
+      !/^\d{4}-\d{2}-\d{2}$/.test(toDate)
+    ) {
+      throw new BadRequestException("Use dates in YYYY-MM-DD format");
+    }
+    const start = getUtcDateRangeForLocalDate(fromDate, timezone).start;
+    const end = getUtcDateRangeForLocalDate(toDate, timezone).end;
+    if (start >= end || end.getTime() - start.getTime() > 366 * 86400000) {
+      throw new BadRequestException("Invalid analytics date range");
+    }
+    const range = { gte: start, lt: end };
+    const [qrAccesses, openedVisits, closedVisits, openVisits, orders] =
+      await Promise.all([
+        this.prisma.restaurantQrAccess.findMany({
+          where: { organizationId: actor.organizationId, createdAt: range },
+          select: { sessionKey: true, createdAt: true },
+        }),
+        this.prisma.restaurantVisit.findMany({
+          where: { organizationId: actor.organizationId, openedAt: range },
+          select: { openedAt: true },
+        }),
+        this.prisma.restaurantVisit.findMany({
+          where: {
+            organizationId: actor.organizationId,
+            status: RestaurantVisitStatus.CLOSED,
+            closedAt: range,
+          },
+          include: { orders: { include: { items: true } } },
+        }),
+        this.prisma.restaurantVisit.count({
+          where: {
+            organizationId: actor.organizationId,
+            status: RestaurantVisitStatus.OPEN,
+          },
+        }),
+        this.prisma.restaurantOrder.findMany({
+          where: { organizationId: actor.organizationId, createdAt: range },
+          select: { createdAt: true },
+        }),
+      ]);
+    const totals = {
+      grossSubtotal: 0,
+      promotionCredit: 0,
+      subtotal: 0,
+      tax: 0,
+      service: 0,
+      total: 0,
+      itemsSold: 0,
+      itemsCancelled: 0,
+    };
+    const popular = new Map<string, number>();
+    const daily = new Map<
+      string,
+      { date: string; qrAccesses: number; orders: number; sales: number }
+    >();
+    const day = (date: Date) => {
+      const key = localDate(date);
+      const current = daily.get(key) ?? {
+        date: key,
+        qrAccesses: 0,
+        orders: 0,
+        sales: 0,
+      };
+      daily.set(key, current);
+      return current;
+    };
+    for (const access of qrAccesses) day(access.createdAt).qrAccesses += 1;
+    for (const order of orders) day(order.createdAt).orders += 1;
+    for (const visit of closedVisits) {
+      const items = visit.orders.flatMap((order) => order.items);
+      const billing = this.billingTotals(
+        items,
+        visit,
+        visit.serviceChargeEnabled,
+        visit.orders.reduce(
+          (sum, order) => sum + (order.promotionCredit ?? 0),
+          0,
+        ),
+      );
+      totals.grossSubtotal += billing.grossSubtotal;
+      totals.promotionCredit += billing.promotionCredit;
+      totals.subtotal += billing.subtotal;
+      totals.tax += billing.tax;
+      totals.service += billing.service;
+      totals.total += billing.total;
+      if (visit.closedAt) day(visit.closedAt).sales += billing.subtotal;
+      for (const item of items) {
+        if (item.status === RestaurantItemStatus.CANCELLED) {
+          totals.itemsCancelled += item.quantity;
+        } else {
+          totals.itemsSold += item.quantity;
+          popular.set(item.name, (popular.get(item.name) ?? 0) + item.quantity);
+        }
+      }
+    }
+    return {
+      range: { from: fromDate, to: toDate, timezone },
+      qrAccesses: qrAccesses.length,
+      uniqueQrSessions: new Set(qrAccesses.map((entry) => entry.sessionKey))
+        .size,
+      visitsOpened: openedVisits.length,
+      visitsClosed: closedVisits.length,
+      openVisits,
+      orders: orders.length,
+      ...totals,
+      daily: [...daily.values()].sort((left, right) =>
+        left.date.localeCompare(right.date),
+      ),
+      popularItems: [...popular.entries()]
+        .map(([name, quantity]) => ({ name, quantity }))
+        .sort((left, right) => right.quantity - left.quantity)
+        .slice(0, 10),
+    };
+  }
+
   brandingSettings(actor: RestaurantActor) {
     this.requireRestaurantAdmin(actor);
     return this.prisma.organization.findUnique({
@@ -654,6 +849,11 @@ export class RestaurantService {
         "Only the staff member responsible for this account can close it",
       );
     }
+    if (visit.occupiesTable === false && !visit.deliveryHandedOffAt) {
+      throw new ConflictException(
+        "Confirme la entrega a la persona repartidora para cerrar este pedido",
+      );
+    }
     const hasOpenItems = visit.orders.some((order) =>
       order.items.some(
         (item) =>
@@ -667,6 +867,95 @@ export class RestaurantService {
     return this.prisma.restaurantVisit.update({
       where: { id: visitId },
       data: { status: RestaurantVisitStatus.CLOSED, closedAt: new Date() },
+    });
+  }
+
+  async updateVisitPayment(
+    actor: RestaurantActor,
+    visitId: string,
+    status: "CONFIRMED" | "REJECTED",
+  ) {
+    const visit = await this.prisma.restaurantVisit.findFirst({
+      where: { id: visitId, organizationId: actor.organizationId },
+      include: { table: { select: { waiterId: true } } },
+    });
+    if (!visit) throw new NotFoundException("Restaurant account not found");
+    if (visit.occupiesTable !== false) {
+      throw new BadRequestException("This account is not a delivery order");
+    }
+    const role = this.effectiveRole(actor);
+    const allowed =
+      role === RestaurantStaffRole.RESTAURANT_ADMIN ||
+      ((role === RestaurantStaffRole.WAITER ||
+        role === RestaurantStaffRole.BAR) &&
+        (visit.responsibleStaffId === actor.id ||
+          (!visit.responsibleStaffId && visit.table.waiterId === actor.id)) &&
+        actor.restaurantAvailability === RestaurantStaffAvailability.AVAILABLE);
+    if (!allowed) {
+      throw new ForbiddenException(
+        "Only the staff member responsible for this delivery can confirm payment",
+      );
+    }
+    return this.prisma.restaurantVisit.update({
+      where: { id: visitId },
+      data: {
+        paymentStatus:
+          status === "CONFIRMED"
+            ? RestaurantPaymentStatus.CONFIRMED
+            : RestaurantPaymentStatus.REJECTED,
+        paymentConfirmedAt: status === "CONFIRMED" ? new Date() : null,
+        paymentConfirmedById: status === "CONFIRMED" ? actor.id : null,
+      },
+    });
+  }
+
+  async handoffDelivery(actor: RestaurantActor, visitId: string) {
+    const visit = await this.prisma.restaurantVisit.findFirst({
+      where: { id: visitId, organizationId: actor.organizationId },
+      include: {
+        table: { select: { waiterId: true } },
+        orders: { select: { items: { select: { status: true } } } },
+      },
+    });
+    if (!visit) throw new NotFoundException("Restaurant account not found");
+    if (visit.occupiesTable !== false) {
+      throw new BadRequestException("This account is not a delivery order");
+    }
+    const role = this.effectiveRole(actor);
+    const allowed =
+      role === RestaurantStaffRole.RESTAURANT_ADMIN ||
+      ((role === RestaurantStaffRole.WAITER ||
+        role === RestaurantStaffRole.BAR) &&
+        (visit.responsibleStaffId === actor.id ||
+          (!visit.responsibleStaffId && visit.table.waiterId === actor.id)) &&
+        actor.restaurantAvailability === RestaurantStaffAvailability.AVAILABLE);
+    if (!allowed) {
+      throw new ForbiddenException(
+        "Only the staff member responsible for this delivery can close it",
+      );
+    }
+    if (visit.paymentStatus !== RestaurantPaymentStatus.CONFIRMED) {
+      throw new ConflictException("Confirm payment before delivery handoff");
+    }
+    const hasOpenItems = visit.orders.some((order) =>
+      order.items.some(
+        (item) =>
+          item.status !== RestaurantItemStatus.DELIVERED &&
+          item.status !== RestaurantItemStatus.CANCELLED,
+      ),
+    );
+    if (hasOpenItems) {
+      throw new ConflictException("Deliver or cancel all items before handoff");
+    }
+    const now = new Date();
+    return this.prisma.restaurantVisit.update({
+      where: { id: visitId },
+      data: {
+        deliveryHandedOffAt: now,
+        deliveryHandedOffById: actor.id,
+        status: RestaurantVisitStatus.CLOSED,
+        closedAt: now,
+      },
     });
   }
 
@@ -700,6 +989,11 @@ export class RestaurantService {
       if (!visit) throw new NotFoundException("Restaurant account not found");
       if (visit.status !== RestaurantVisitStatus.OPEN) {
         throw new ConflictException("Only open accounts can be transferred");
+      }
+      if (visit.occupiesTable === false) {
+        throw new BadRequestException(
+          "Los pedidos a domicilio no ocupan ni se trasladan entre posiciones",
+        );
       }
       const canMoveAccount =
         role === RestaurantStaffRole.RESTAURANT_ADMIN ||
@@ -839,6 +1133,7 @@ export class RestaurantService {
         where: {
           tableId: destination.id,
           status: RestaurantVisitStatus.OPEN,
+          occupiesTable: true,
         },
       });
       return {
@@ -1209,6 +1504,9 @@ export class RestaurantService {
             restaurantMenuBackgroundEnabled: true,
             restaurantMenuBackgroundPosition: true,
             restaurantMenuBackgroundSize: true,
+            restaurantLatitude: true,
+            restaurantLongitude: true,
+            restaurantOrderRadiusMeters: true,
           },
         },
         waiter: { select: { id: true, name: true } },
@@ -1247,7 +1545,11 @@ export class RestaurantService {
           },
         }),
         this.prisma.restaurantVisit.count({
-          where: { tableId: table.id, status: RestaurantVisitStatus.OPEN },
+          where: {
+            tableId: table.id,
+            status: RestaurantVisitStatus.OPEN,
+            occupiesTable: true,
+          },
         }),
         this.prisma.restaurantPromotion.findMany({
           where: {
@@ -1292,6 +1594,9 @@ export class RestaurantService {
       },
       table: table.name,
       tableKind: table.kind,
+      locationVerificationRequired:
+        table.organization.restaurantLatitude != null &&
+        table.organization.restaurantLongitude != null,
       activeAccountCount,
       waiter: table.waiter,
       billing: {
@@ -1326,17 +1631,133 @@ export class RestaurantService {
     };
   }
 
+  async recordQrAccess(code: string, dto: RecordQrAccessDto) {
+    const table = await this.prisma.restaurantTable.findUnique({
+      where: { code },
+      include: {
+        organization: {
+          select: {
+            restaurantAccessEnabled: true,
+            restaurantLatitude: true,
+            restaurantLongitude: true,
+            restaurantOrderRadiusMeters: true,
+          },
+        },
+      },
+    });
+    if (!table?.active) throw new NotFoundException("Table not found");
+    if (!table.organization.restaurantAccessEnabled) {
+      throw new ForbiddenException(
+        "Restaurant ordering is temporarily unavailable",
+      );
+    }
+    const configured =
+      table.organization.restaurantLatitude != null &&
+      table.organization.restaurantLongitude != null;
+    const hasCoordinates =
+      dto.latitude !== undefined && dto.longitude !== undefined;
+    const distanceMeters =
+      configured && hasCoordinates
+        ? this.distanceMeters(
+            Number(table.organization.restaurantLatitude),
+            Number(table.organization.restaurantLongitude),
+            dto.latitude!,
+            dto.longitude!,
+          )
+        : null;
+    const accuracyMeters =
+      dto.accuracy === undefined ? null : Math.round(dto.accuracy);
+    const tolerance = Math.min(accuracyMeters ?? 0, 50);
+    const insideLocal =
+      distanceMeters === null
+        ? null
+        : distanceMeters <=
+          table.organization.restaurantOrderRadiusMeters + tolerance;
+    await this.prisma.restaurantQrAccess.create({
+      data: {
+        organizationId: table.organizationId,
+        tableId: table.id,
+        sessionKey: dto.sessionKey,
+        insideLocal,
+        distanceMeters,
+        accuracyMeters,
+      },
+    });
+    return {
+      verificationRequired: configured,
+      insideLocal,
+      distanceMeters,
+      radiusMeters: table.organization.restaurantOrderRadiusMeters,
+      mode:
+        insideLocal === false
+          ? "DELIVERY"
+          : insideLocal === true || !configured
+            ? "ONSITE"
+            : "UNVERIFIED",
+    };
+  }
+
   async placeOrder(code: string, dto: PlaceOrderDto) {
     const table = await this.prisma.restaurantTable.findUnique({
       where: { code },
       include: {
-        organization: { select: { restaurantAccessEnabled: true } },
+        organization: {
+          select: {
+            restaurantAccessEnabled: true,
+            restaurantLatitude: true,
+            restaurantLongitude: true,
+            restaurantOrderRadiusMeters: true,
+          },
+        },
       },
     });
     if (!table?.active) throw new NotFoundException("Table not found");
     if (table.organization?.restaurantAccessEnabled === false) {
       throw new ForbiddenException(
         "Restaurant ordering is temporarily unavailable",
+      );
+    }
+    const isDelivery = dto.fulfillment === RestaurantFulfillment.DELIVERY;
+    const geofenceConfigured =
+      table.organization.restaurantLatitude != null &&
+      table.organization.restaurantLongitude != null;
+    if (!isDelivery && geofenceConfigured) {
+      if (dto.latitude === undefined || dto.longitude === undefined) {
+        throw new ForbiddenException(
+          "Debe confirmar su ubicación para ordenar dentro del local",
+        );
+      }
+      const distance = this.distanceMeters(
+        Number(table.organization.restaurantLatitude),
+        Number(table.organization.restaurantLongitude),
+        dto.latitude,
+        dto.longitude,
+      );
+      const tolerance = Math.min(Math.round(dto.locationAccuracy ?? 0), 50);
+      if (
+        distance >
+        table.organization.restaurantOrderRadiusMeters + tolerance
+      ) {
+        throw new ForbiddenException(
+          "Estás fuera del alcance del local comercial",
+        );
+      }
+    }
+    const deliveryPhone = dto.deliveryPhone?.trim();
+    const deliveryAddress = dto.deliveryAddress?.trim();
+    if (isDelivery && (!deliveryPhone || !deliveryAddress)) {
+      throw new BadRequestException(
+        "El teléfono y la dirección son obligatorios para entrega a domicilio",
+      );
+    }
+    if (
+      !isDelivery &&
+      dto.items.some(
+        (item) => item.fulfillment === RestaurantFulfillment.DELIVERY,
+      )
+    ) {
+      throw new BadRequestException(
+        "La entrega a domicilio debe seleccionarse para toda la orden",
       );
     }
     const include = {
@@ -1397,6 +1818,20 @@ export class RestaurantService {
             "La cuenta anterior fue cerrada o trasladada a otra posición",
           );
         }
+        if (
+          visit &&
+          ((visit.occupiesTable !== false && isDelivery) ||
+            (visit.occupiesTable === false && !isDelivery))
+        ) {
+          throw new BadRequestException(
+            "La modalidad de la cuenta anterior no coincide con este pedido",
+          );
+        }
+        if (visit && visit.occupiesTable === false) {
+          throw new ConflictException(
+            "Los pedidos a domicilio no permiten agregar productos después del envío",
+          );
+        }
         if (!visit) {
           const settings = await tx.organization.findUniqueOrThrow({
             where: { id: table.organizationId },
@@ -1407,7 +1842,35 @@ export class RestaurantService {
             },
           });
           let responsibleStaffId = table.waiterId;
-          if (
+          if (isDelivery) {
+            const waiters = await tx.user.findMany({
+              where: {
+                organizationId: table.organizationId,
+                restaurantAvailability: RestaurantStaffAvailability.AVAILABLE,
+                restaurantRole: RestaurantStaffRole.WAITER,
+              },
+              select: { id: true },
+              orderBy: [{ updatedAt: "asc" }, { id: "asc" }],
+            });
+            const loads = await Promise.all(
+              waiters.map(async (candidate) => ({
+                id: candidate.id,
+                load: await tx.restaurantVisit.count({
+                  where: {
+                    responsibleStaffId: candidate.id,
+                    status: RestaurantVisitStatus.OPEN,
+                  },
+                }),
+              })),
+            );
+            loads.sort((left, right) => left.load - right.load);
+            responsibleStaffId = loads[0]?.id ?? null;
+            if (!responsibleStaffId) {
+              throw new ConflictException(
+                "No hay un mesero disponible para confirmar el pedido a domicilio",
+              );
+            }
+          } else if (
             table.kind === RestaurantTableKind.BAR_SEAT ||
             table.kind === RestaurantTableKind.TAKEOUT_STATION
           ) {
@@ -1457,13 +1920,22 @@ export class RestaurantService {
               taxRateBps: settings.restaurantTaxRateBps,
               taxIncluded: settings.restaurantTaxIncluded,
               serviceRateBps: settings.restaurantServiceRateBps,
-              serviceChargeEnabled: table.serviceChargeEnabled,
+              serviceChargeEnabled: isDelivery
+                ? false
+                : table.serviceChargeEnabled,
+              occupiesTable: !isDelivery,
+              deliveryPhone: isDelivery ? deliveryPhone : null,
+              deliveryAddress: isDelivery ? deliveryAddress : null,
+              paymentStatus: isDelivery
+                ? RestaurantPaymentStatus.PENDING
+                : RestaurantPaymentStatus.NOT_REQUIRED,
               responsibleStaffId,
             },
           });
         }
-        const defaultFulfillment =
-          table.kind === RestaurantTableKind.TAKEOUT_STATION
+        const defaultFulfillment = isDelivery
+          ? RestaurantFulfillment.DELIVERY
+          : table.kind === RestaurantTableKind.TAKEOUT_STATION
             ? RestaurantFulfillment.TAKEOUT
             : (dto.fulfillment ?? RestaurantFulfillment.DINE_IN);
         const promotion = dto.promotionId
@@ -1487,8 +1959,9 @@ export class RestaurantService {
               item,
               menuItemId,
               quantity,
-              fulfillment:
-                table.kind === RestaurantTableKind.TAKEOUT_STATION
+              fulfillment: isDelivery
+                ? RestaurantFulfillment.DELIVERY
+                : table.kind === RestaurantTableKind.TAKEOUT_STATION
                   ? RestaurantFulfillment.TAKEOUT
                   : (fulfillment ?? defaultFulfillment),
             };
@@ -1516,7 +1989,22 @@ export class RestaurantService {
         );
         const activeWork = await tx.restaurantOrderItem.count({
           where: {
-            order: { organizationId: table.organizationId },
+            order: {
+              organizationId: table.organizationId,
+              OR: [
+                { visitId: null },
+                {
+                  visit: {
+                    paymentStatus: {
+                      in: [
+                        RestaurantPaymentStatus.NOT_REQUIRED,
+                        RestaurantPaymentStatus.CONFIRMED,
+                      ],
+                    },
+                  },
+                },
+              ],
+            },
             status: {
               in: [
                 RestaurantItemStatus.RECEIVED,
@@ -1706,6 +2194,12 @@ export class RestaurantService {
         useHeaderImage: visit.organization?.restaurantUseHeaderImage ?? false,
       },
       table: visit.table,
+      occupiesTable: visit.occupiesTable,
+      deliveryPhone: visit.deliveryPhone,
+      deliveryAddress: visit.deliveryAddress,
+      paymentStatus: visit.paymentStatus,
+      paymentConfirmedAt: visit.paymentConfirmedAt,
+      deliveryHandedOffAt: visit.deliveryHandedOffAt,
       responsibleStaff: visit.responsibleStaff,
       orders: visit.orders,
       items,
@@ -1732,6 +2226,8 @@ export class RestaurantService {
       openedAt: account.createdAt,
       closedAt: account.closedAt,
       status: account.status,
+      paymentStatus: account.paymentStatus,
+      deliveryAddress: account.deliveryAddress,
       items: account.items.map((item) => ({
         name: item.name,
         quantity: item.quantity,
@@ -2009,6 +2505,23 @@ export class RestaurantService {
       where: {
         organizationId: actor.organizationId,
         ...roleWhere,
+        AND: [
+          {
+            OR: [
+              { visitId: null },
+              {
+                visit: {
+                  paymentStatus: {
+                    in: [
+                      RestaurantPaymentStatus.NOT_REQUIRED,
+                      RestaurantPaymentStatus.CONFIRMED,
+                    ],
+                  },
+                },
+              },
+            ],
+          },
+        ],
       },
       include: {
         items: {
@@ -2021,7 +2534,13 @@ export class RestaurantService {
         },
         table: { select: { id: true, name: true, waiterId: true } },
         visit: {
-          select: { id: true, status: true, responsibleStaffId: true },
+          select: {
+            id: true,
+            status: true,
+            responsibleStaffId: true,
+            paymentStatus: true,
+            occupiesTable: true,
+          },
         },
       },
       orderBy: { createdAt: "desc" },
@@ -2130,7 +2649,12 @@ export class RestaurantService {
           serviceChargeEnabled: true,
           _count: {
             select: {
-              visits: { where: { status: RestaurantVisitStatus.OPEN } },
+              visits: {
+                where: {
+                  status: RestaurantVisitStatus.OPEN,
+                  occupiesTable: true,
+                },
+              },
             },
           },
         },
@@ -2147,6 +2671,12 @@ export class RestaurantService {
       return {
         id: visit.id,
         openedAt: visit.openedAt,
+        occupiesTable: visit.occupiesTable,
+        deliveryPhone: visit.deliveryPhone,
+        deliveryAddress: visit.deliveryAddress,
+        paymentStatus: visit.paymentStatus,
+        paymentConfirmedAt: visit.paymentConfirmedAt,
+        deliveryHandedOffAt: visit.deliveryHandedOffAt,
         table: visit.table,
         responsibleStaff: visit.responsibleStaff,
         items,
@@ -2159,18 +2689,31 @@ export class RestaurantService {
             0,
           ),
         ),
-        canClose: items.every(
-          (item) =>
-            item.status === RestaurantItemStatus.DELIVERED ||
-            item.status === RestaurantItemStatus.CANCELLED,
-        ),
-        transferDestinations: destinations
-          .filter((table) => table.id !== visit.tableId)
-          .map((table) => ({
-            ...table,
-            activeAccountCount: table._count.visits,
-            _count: undefined,
-          })),
+        canClose:
+          visit.occupiesTable !== false &&
+          items.every(
+            (item) =>
+              item.status === RestaurantItemStatus.DELIVERED ||
+              item.status === RestaurantItemStatus.CANCELLED,
+          ),
+        canHandoffDelivery:
+          visit.occupiesTable === false &&
+          visit.paymentStatus === RestaurantPaymentStatus.CONFIRMED &&
+          items.every(
+            (item) =>
+              item.status === RestaurantItemStatus.DELIVERED ||
+              item.status === RestaurantItemStatus.CANCELLED,
+          ),
+        transferDestinations:
+          visit.occupiesTable !== false
+            ? destinations
+                .filter((table) => table.id !== visit.tableId)
+                .map((table) => ({
+                  ...table,
+                  activeAccountCount: table._count.visits,
+                  _count: undefined,
+                }))
+            : [],
       };
     });
   }
@@ -2332,6 +2875,14 @@ export class RestaurantService {
         },
       });
       if (!item) throw new NotFoundException("Order item not found");
+      if (
+        item.fulfillment === RestaurantFulfillment.DELIVERY ||
+        dto.fulfillment === RestaurantFulfillment.DELIVERY
+      ) {
+        throw new BadRequestException(
+          "La modalidad a domicilio se gestiona para la cuenta completa",
+        );
+      }
       const role = this.effectiveRole(actor);
       const allowed =
         role === RestaurantStaffRole.RESTAURANT_ADMIN ||
