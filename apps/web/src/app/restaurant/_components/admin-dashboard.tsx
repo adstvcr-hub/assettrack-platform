@@ -607,11 +607,15 @@ export default function RestaurantAdminDashboard() {
                   value={taxRate}
                   onChange={(event) => setTaxRate(event.target.value)}
                 />
+                <span className="mt-1 block text-xs font-normal text-slate-500">
+                  Use 0 para desactivar y ocultar el IVA en la cuenta.
+                </span>
               </label>
               <label className="font-semibold">
                 Tratamiento del IVA
                 <select
                   className="mt-1 w-full rounded border bg-white p-2"
+                  disabled={Number(taxRate) === 0}
                   value={taxIncluded ? "included" : "added"}
                   onChange={(event) =>
                     setTaxIncluded(event.target.value === "included")
@@ -639,9 +643,13 @@ export default function RestaurantAdminDashboard() {
             </form>
             {billing && (
               <p className="mt-3 text-sm text-emerald-800">
-                Configuración activa: IVA {billing.restaurantTaxRateBps / 100}%{" "}
-                {billing.restaurantTaxIncluded ? "incluido" : "agregado"};
-                servicio {billing.restaurantServiceRateBps / 100}%.
+                Configuración activa:{" "}
+                {billing.restaurantTaxRateBps === 0
+                  ? "IVA desactivado"
+                  : `IVA ${billing.restaurantTaxRateBps / 100}% ${
+                      billing.restaurantTaxIncluded ? "incluido" : "agregado"
+                    }`}
+                ; servicio {billing.restaurantServiceRateBps / 100}%.
               </p>
             )}
           </section>
@@ -650,8 +658,9 @@ export default function RestaurantAdminDashboard() {
               Identidad visual del menú del cliente
             </h2>
             <p className="mt-1 text-sm text-slate-600">
-              Personaliza el título y el fondo de la zona desplazable del menú.
-              La cuenta y el botón para confirmar conservan su fondo sólido.
+              El nombre elegido para el establecimiento aparece siempre como
+              título. Puede agregar una imagen proporcional debajo y
+              personalizar el fondo de la zona desplazable del menú.
             </p>
             <form
               className="mt-5 space-y-6"
@@ -692,25 +701,17 @@ export default function RestaurantAdminDashboard() {
                         onChange={(event) => setDisplayName(event.target.value)}
                       />
                     </label>
-                    <div className="flex flex-wrap gap-4">
-                      <label className="flex items-center gap-2">
-                        <input
-                          type="radio"
-                          checked={!useHeaderImage}
-                          onChange={() => setUseHeaderImage(false)}
-                        />
-                        Mostrar texto
-                      </label>
-                      <label className="flex items-center gap-2">
-                        <input
-                          type="radio"
-                          checked={useHeaderImage}
-                          disabled={!headerImageData}
-                          onChange={() => setUseHeaderImage(true)}
-                        />
-                        Mostrar imagen
-                      </label>
-                    </div>
+                    <label className="flex items-center gap-2 rounded border p-3">
+                      <input
+                        type="checkbox"
+                        checked={useHeaderImage}
+                        disabled={!headerImageData}
+                        onChange={(event) =>
+                          setUseHeaderImage(event.target.checked)
+                        }
+                      />
+                      Mostrar una imagen debajo del título
+                    </label>
                     <label className="block text-sm">
                       Imagen del encabezado (JPEG, PNG o WebP; máximo 2 MB y
                       1600 × 1600)
@@ -739,20 +740,19 @@ export default function RestaurantAdminDashboard() {
                       </button>
                     )}
                   </div>
-                  <div className="flex min-h-32 items-center rounded-xl border bg-slate-100 p-4">
-                    {useHeaderImage && headerImageData ? (
+                  <div className="min-h-32 rounded-xl border bg-slate-100 p-4">
+                    <strong className="block text-3xl">
+                      {displayName || branding?.name || "Restaurante"}
+                    </strong>
+                    {useHeaderImage && headerImageData && (
                       <Image
                         src={headerImageData}
                         alt={displayName || "Vista previa del encabezado"}
-                        width={600}
-                        height={200}
+                        width={1600}
+                        height={1600}
                         unoptimized
-                        className="h-auto max-h-24 w-auto max-w-full object-contain object-left"
+                        className="mt-3 h-auto w-full object-contain"
                       />
-                    ) : (
-                      <strong className="text-3xl">
-                        {displayName || branding?.name || "Restaurante"}
-                      </strong>
                     )}
                   </div>
                 </div>

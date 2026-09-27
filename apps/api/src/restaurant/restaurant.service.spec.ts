@@ -288,6 +288,12 @@ describe("RestaurantService", () => {
       accessCode: "secret",
       status: "OPEN",
       openedAt: new Date(),
+      organization: {
+        name: "Café del Parque",
+        restaurantDisplayName: "Café del Parque Centro",
+        restaurantHeaderImageData: "data:image/png;base64,header",
+        restaurantUseHeaderImage: true,
+      },
       table: {
         name: "Mesa 1",
         code: "table-code",
@@ -307,9 +313,22 @@ describe("RestaurantService", () => {
       id: "waiter-b",
       name: "Mesero 2",
     });
+    expect(result.branding).toEqual({
+      displayName: "Café del Parque Centro",
+      headerImageData: "data:image/png;base64,header",
+      useHeaderImage: true,
+    });
     expect(prisma.restaurantVisit.findUnique).toHaveBeenCalledWith({
       where: { accessCode: "secret" },
       include: expect.objectContaining({
+        organization: {
+          select: {
+            name: true,
+            restaurantDisplayName: true,
+            restaurantHeaderImageData: true,
+            restaurantUseHeaderImage: true,
+          },
+        },
         table: {
           select: {
             name: true,
@@ -379,6 +398,53 @@ describe("RestaurantService", () => {
         tax: 1365,
         service: 1050,
         total: 12915,
+      }),
+    );
+  });
+
+  it("omits tax from the total when the configured rate is zero", async () => {
+    const { prisma, service } = createService();
+    prisma.restaurantVisit.findUnique.mockResolvedValue({
+      id: "visit-a",
+      accessCode: "secret",
+      status: "OPEN",
+      openedAt: new Date(),
+      table: {
+        name: "Mesa 1",
+        code: "table-code",
+        serviceChargeEnabled: true,
+        waiter: { id: "waiter-b", name: "Mesero 2" },
+      },
+      taxRateBps: 0,
+      taxIncluded: false,
+      serviceRateBps: 1000,
+      serviceChargeEnabled: true,
+      orders: [
+        {
+          id: "order-1",
+          createdAt: new Date(),
+          items: [
+            {
+              id: "one",
+              name: "Casado",
+              price: 5000,
+              quantity: 1,
+              status: "DELIVERED",
+            },
+          ],
+        },
+      ],
+    });
+
+    const result = await service.guestOrder("secret");
+
+    expect(result.billing).toEqual(
+      expect.objectContaining({
+        subtotal: 5000,
+        taxRateBps: 0,
+        tax: 0,
+        service: 500,
+        total: 5500,
       }),
     );
   });

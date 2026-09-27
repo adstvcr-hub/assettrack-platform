@@ -1,6 +1,7 @@
 "use client";
 
 import { API_URL } from "@/lib/api";
+import Image from "next/image";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
@@ -13,6 +14,11 @@ type Order = {
   createdAt: string;
   closedAt?: string | null;
   restaurant?: string;
+  branding?: {
+    displayName: string;
+    headerImageData?: string | null;
+    useHeaderImage: boolean;
+  };
   table: {
     name: string;
     code: string;
@@ -67,6 +73,28 @@ const labels: Record<string, string> = {
   DELIVERED: "Delivered",
   CANCELLED: "Cancelled",
 };
+
+function RestaurantBrandHeader({ order }: { order: Order | null }) {
+  const displayName =
+    order?.branding?.displayName ?? order?.restaurant ?? "Restaurante";
+
+  return (
+    <header className="mb-4">
+      <h1 className="text-3xl font-bold">{displayName}</h1>
+      {order?.branding?.useHeaderImage && order.branding.headerImageData && (
+        <Image
+          src={order.branding.headerImageData}
+          alt={displayName}
+          width={1600}
+          height={1600}
+          unoptimized
+          className="mt-3 h-auto w-full object-contain"
+        />
+      )}
+    </header>
+  );
+}
+
 export default function RestaurantOrderPage() {
   const { accessCode } = useParams<{ accessCode: string }>();
   const [order, setOrder] = useState<Order | null>(null);
@@ -255,12 +283,16 @@ export default function RestaurantOrderPage() {
       (item) =>
         `${item.quantity} x ${item.name}: ₡${(item.price * item.quantity).toLocaleString()}`,
     );
+    const taxLines =
+      order.billing.taxRateBps > 0
+        ? [`IVA: ₡${order.billing.tax.toLocaleString()}`]
+        : [];
     return [
-      order.restaurant ?? "Restaurante",
+      order.branding?.displayName ?? order.restaurant ?? "Restaurante",
       order.table.name,
       ...lines,
       `Subtotal neto: ₡${order.billing.subtotal.toLocaleString()}`,
-      `IVA: ₡${order.billing.tax.toLocaleString()}`,
+      ...taxLines,
       `Servicio: ₡${order.billing.service.toLocaleString()}`,
       `Total: ₡${order.billing.total.toLocaleString()}`,
     ].join("\n");
@@ -292,10 +324,8 @@ export default function RestaurantOrderPage() {
   if (visitEnded) {
     return (
       <main className="mx-auto max-w-xl px-4 py-16 text-center text-slate-900">
-        <p className="font-semibold tracking-widest text-emerald-700">
-          ASSETTRACK · RESTAURANT
-        </p>
-        <h1 className="mt-3 text-3xl font-bold">Gracias por su visita</h1>
+        <RestaurantBrandHeader order={order} />
+        <h2 className="mt-3 text-3xl font-bold">Gracias por su visita</h2>
         <p className="mt-4 text-slate-600">
           La sesión de esta mesa fue retirada de este dispositivo.
         </p>
@@ -304,10 +334,8 @@ export default function RestaurantOrderPage() {
   }
   return (
     <main className="mx-auto max-w-2xl px-4 py-8 text-slate-900">
-      <p className="font-semibold tracking-widest text-emerald-700">
-        ASSETTRACK · RESTAURANT
-      </p>
-      <h1 className="text-3xl font-bold">Your order · {order?.table.name}</h1>
+      <RestaurantBrandHeader order={order} />
+      <h2 className="text-2xl font-bold">Your order · {order?.table.name}</h2>
       <section className="mt-4 rounded-2xl border border-sky-200 bg-gradient-to-r from-sky-50 via-cyan-50 to-violet-50 p-4 text-slate-800 shadow-sm">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
@@ -596,13 +624,15 @@ export default function RestaurantOrderPage() {
               <span>Subtotal neto</span>
               <span>₡{order.billing.subtotal.toLocaleString()}</span>
             </div>
-            <div className="flex justify-between">
-              <span>
-                IVA {(order.billing.taxRateBps / 100).toLocaleString()}%
-                {order.billing.taxIncluded ? " (incluido)" : ""}
-              </span>
-              <span>₡{order.billing.tax.toLocaleString()}</span>
-            </div>
+            {order.billing.taxRateBps > 0 && (
+              <div className="flex justify-between">
+                <span>
+                  IVA {(order.billing.taxRateBps / 100).toLocaleString()}%
+                  {order.billing.taxIncluded ? " (incluido)" : ""}
+                </span>
+                <span>₡{order.billing.tax.toLocaleString()}</span>
+              </div>
+            )}
             {order.billing.serviceChargeEnabled && (
               <div className="flex justify-between">
                 <span>

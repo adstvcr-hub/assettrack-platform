@@ -340,22 +340,18 @@ export default function RestaurantTablePage() {
         </button>
       )}
       <header className="mb-6">
-        <p className="font-semibold tracking-widest text-emerald-700">
-          ASSETTRACK · RESTAURANTE
-        </p>
-        {data?.branding.useHeaderImage && data.branding.headerImageData ? (
+        <h1 className="text-3xl font-bold">
+          {data?.branding.displayName ?? data?.restaurant ?? "Menú"}
+        </h1>
+        {data?.branding.useHeaderImage && data.branding.headerImageData && (
           <Image
             src={data.branding.headerImageData}
             alt={data.branding.displayName}
-            width={600}
-            height={200}
+            width={1600}
+            height={1600}
             unoptimized
-            className="mt-2 h-auto max-h-24 w-auto max-w-full object-contain object-left"
+            className="mt-3 h-auto w-full object-contain"
           />
-        ) : (
-          <h1 className="text-3xl font-bold">
-            {data?.branding.displayName ?? data?.restaurant ?? "Menú"}
-          </h1>
         )}
         <p>{data?.table ?? "Cargando..."}</p>
         {data && data.tableKind === "DINING" && (
@@ -432,12 +428,12 @@ export default function RestaurantTablePage() {
       )}
 
       {data?.tableKind === "DINING" && (
-        <fieldset className="mb-5 min-h-36 rounded-xl border bg-white px-4 pb-5 pt-3">
-          <legend className="max-w-full px-2 text-lg font-bold leading-snug">
+        <section className="mb-5 max-w-2xl rounded-xl border bg-white p-3">
+          <h2 className="mb-2 text-base font-bold leading-snug">
             ¿Cómo desea su pedido?
-          </legend>
-          <div className="mt-2 grid gap-3 sm:grid-cols-2">
-            <label className="flex min-h-12 items-center gap-2 rounded-lg bg-slate-50 p-3">
+          </h2>
+          <div className="grid grid-cols-2 gap-2">
+            <label className="flex min-h-11 items-center gap-2 rounded-lg bg-slate-50 px-2 py-2 text-sm sm:px-3 sm:text-base">
               <input
                 type="radio"
                 checked={fulfillment === "DINE_IN"}
@@ -445,7 +441,7 @@ export default function RestaurantTablePage() {
               />
               <span>Consumir en el local</span>
             </label>
-            <label className="flex min-h-12 items-center gap-2 rounded-lg bg-slate-50 p-3">
+            <label className="flex min-h-11 items-center gap-2 rounded-lg bg-slate-50 px-2 py-2 text-sm sm:px-3 sm:text-base">
               <input
                 type="radio"
                 checked={fulfillment === "TAKEOUT"}
@@ -454,7 +450,7 @@ export default function RestaurantTablePage() {
               <span>Todo para llevar</span>
             </label>
           </div>
-        </fieldset>
+        </section>
       )}
 
       <section
@@ -592,13 +588,15 @@ export default function RestaurantTablePage() {
               <span>Subtotal neto</span>
               <span>₡{subtotal.toLocaleString()}</span>
             </div>
-            <div className="flex justify-between text-slate-300">
-              <span>
-                IVA {data.billing.taxRateBps / 100}%
-                {data.billing.taxIncluded ? " (incluido)" : ""}
-              </span>
-              <span>₡{tax.toLocaleString()}</span>
-            </div>
+            {data.billing.taxRateBps > 0 && (
+              <div className="flex justify-between text-slate-300">
+                <span>
+                  IVA {data.billing.taxRateBps / 100}%
+                  {data.billing.taxIncluded ? " (incluido)" : ""}
+                </span>
+                <span>₡{tax.toLocaleString()}</span>
+              </div>
+            )}
             {data.billing.serviceChargeEnabled && (
               <div className="flex justify-between text-slate-300">
                 <span>Servicio {data.billing.serviceRateBps / 100}%</span>

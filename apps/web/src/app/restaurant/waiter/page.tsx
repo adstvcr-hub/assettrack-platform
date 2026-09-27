@@ -534,13 +534,17 @@ export default function WaiterPage() {
                     <dd className="text-right">
                       ₡{visit.billing.subtotal.toLocaleString()}
                     </dd>
-                    <dt>
-                      IVA {visit.billing.taxRateBps / 100}%
-                      {visit.billing.taxIncluded ? " (incluido)" : ""}
-                    </dt>
-                    <dd className="text-right">
-                      ₡{visit.billing.tax.toLocaleString()}
-                    </dd>
+                    {visit.billing.taxRateBps > 0 && (
+                      <>
+                        <dt>
+                          IVA {visit.billing.taxRateBps / 100}%
+                          {visit.billing.taxIncluded ? " (incluido)" : ""}
+                        </dt>
+                        <dd className="text-right">
+                          ₡{visit.billing.tax.toLocaleString()}
+                        </dd>
+                      </>
+                    )}
                     {visit.billing.serviceChargeEnabled && (
                       <>
                         <dt>Servicio {visit.billing.serviceRateBps / 100}%</dt>

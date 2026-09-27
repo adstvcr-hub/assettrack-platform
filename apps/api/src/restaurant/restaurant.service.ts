@@ -1600,11 +1600,14 @@ export class RestaurantService {
       .reduce((sum, item) => sum + item.price * item.quantity, 0);
     const credit = Math.min(Math.max(0, promotionCredit), grossSubtotal);
     const subtotal = grossSubtotal - credit;
-    const tax = settings.taxIncluded
-      ? Math.round(
-          subtotal - (subtotal * 10000) / (10000 + settings.taxRateBps),
-        )
-      : Math.round((subtotal * settings.taxRateBps) / 10000);
+    const tax =
+      settings.taxRateBps === 0
+        ? 0
+        : settings.taxIncluded
+          ? Math.round(
+              subtotal - (subtotal * 10000) / (10000 + settings.taxRateBps),
+            )
+          : Math.round((subtotal * settings.taxRateBps) / 10000);
     const service = serviceChargeEnabled
       ? Math.round((subtotal * settings.serviceRateBps) / 10000)
       : 0;
@@ -1626,7 +1629,14 @@ export class RestaurantService {
     const visit = await this.prisma.restaurantVisit.findUnique({
       where: { accessCode },
       include: {
-        organization: { select: { name: true } },
+        organization: {
+          select: {
+            name: true,
+            restaurantDisplayName: true,
+            restaurantHeaderImageData: true,
+            restaurantUseHeaderImage: true,
+          },
+        },
         responsibleStaff: {
           select: { id: true, name: true, restaurantRole: true },
         },
@@ -1687,6 +1697,14 @@ export class RestaurantService {
       createdAt: visit.openedAt,
       closedAt: visit.closedAt,
       restaurant: visit.organization?.name ?? "Restaurante",
+      branding: {
+        displayName:
+          visit.organization?.restaurantDisplayName ||
+          visit.organization?.name ||
+          "Restaurante",
+        headerImageData: visit.organization?.restaurantHeaderImageData ?? null,
+        useHeaderImage: visit.organization?.restaurantUseHeaderImage ?? false,
+      },
       table: visit.table,
       responsibleStaff: visit.responsibleStaff,
       orders: visit.orders,
