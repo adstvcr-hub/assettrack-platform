@@ -37,6 +37,45 @@ type StaffAccessQr = {
   accessUrl: string;
   image: string;
 };
+type StaffHoursReport = {
+  range: { from: string; to: string; timezone: string };
+  summary: {
+    employees: number;
+    sessions: number;
+    activeMs: number;
+    outOfServiceMs: number;
+  };
+  employees: Array<{
+    userId: string;
+    name: string;
+    email: string;
+    restaurantRole: RestaurantRole | null;
+    sessions: number;
+    activeMs: number;
+    outOfServiceMs: number;
+    breakMs: number;
+    temporarilyUnavailableMs: number;
+    offShiftMs: number;
+    firstEntryAt: string;
+    lastExitAt?: string | null;
+    openSessions: number;
+  }>;
+  sessions: Array<{
+    id: string;
+    userId: string;
+    name: string;
+    email: string;
+    restaurantRole: RestaurantRole | null;
+    entryAt: string;
+    exitAt?: string | null;
+    status: "OPEN" | "CLOSED" | "STALE";
+    activeMs: number;
+    outOfServiceMs: number;
+    breakMs: number;
+    temporarilyUnavailableMs: number;
+    offShiftMs: number;
+  }>;
+};
 type MenuItem = {
   id: string;
   name: string;
@@ -326,6 +365,21 @@ const nextStatus: Record<string, string | null> = {
   CANCELLED: null,
 };
 
+function formatStaffDuration(milliseconds: number) {
+  const totalMinutes = Math.max(0, Math.round(milliseconds / 60_000));
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+  return `${hours} h ${minutes.toString().padStart(2, "0")} min`;
+}
+
+function restaurantRoleLabel(role: RestaurantRole | null) {
+  if (role === "RESTAURANT_ADMIN") return "Administración";
+  if (role === "KITCHEN") return "Cocina";
+  if (role === "BAR") return "Bar";
+  if (role === "WAITER") return "Mesero";
+  return "Sin puesto";
+}
+
 export default function RestaurantAdminDashboard({
   section = "overview",
 }: {
@@ -418,6 +472,16 @@ export default function RestaurantAdminDashboard({
   );
   const [salesHistory, setSalesHistory] = useState<SalesHistory | null>(null);
   const [salesSearch, setSalesSearch] = useState("");
+  const [staffHours, setStaffHours] = useState<StaffHoursReport | null>(null);
+  const [staffHoursFrom, setStaffHoursFrom] = useState(() => {
+    const date = new Date();
+    date.setDate(date.getDate() - 6);
+    return date.toISOString().slice(0, 10);
+  });
+  const [staffHoursTo, setStaffHoursTo] = useState(() =>
+    new Date().toISOString().slice(0, 10),
+  );
+  const [staffHoursUserId, setStaffHoursUserId] = useState("");
   const billingInitialized = useRef(false);
   const brandingInitialized = useRef(false);
   const orderingAreaInitialized = useRef(false);
@@ -580,6 +644,36 @@ export default function RestaurantAdminDashboard({
     setError("");
   }, [analyticsFrom, analyticsTo, router, salesSearch]);
 
+  const loadStaffHours = useCallback(async () => {
+    if (staffHoursFrom > staffHoursTo) {
+      setError("La fecha inicial no puede ser posterior a la fecha final");
+      return;
+    }
+    const query = new URLSearchParams({
+      from: staffHoursFrom,
+      to: staffHoursTo,
+    });
+    if (staffHoursUserId) query.set("userId", staffHoursUserId);
+    const response = await authenticatedFetch(
+      `${API_URL}/api/v1/restaurant/staff-hours?${query}`,
+    );
+    if (response.status === 401) {
+      router.replace("/?next=/restaurant/admin/staff");
+      return;
+    }
+    if (response.status === 403) {
+      router.replace("/restaurant/staff");
+      return;
+    }
+    const body = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      setError(body.message ?? "No se pudo cargar el control horario");
+      return;
+    }
+    setStaffHours(body as StaffHoursReport);
+    setError("");
+  }, [router, staffHoursFrom, staffHoursTo, staffHoursUserId]);
+
   useEffect(() => {
     if (!sessionStorage.getItem("assettrack_token")) {
       router.replace("/?next=/restaurant/admin");
@@ -604,6 +698,12 @@ export default function RestaurantAdminDashboard({
     if (!sessionStorage.getItem("assettrack_token")) return;
     void loadSalesHistory();
   }, [loadSalesHistory, section]);
+
+  useEffect(() => {
+    if (section !== "staff") return;
+    if (!sessionStorage.getItem("assettrack_token")) return;
+    void loadStaffHours();
+  }, [loadStaffHours, section]);
 
   async function downloadSalesHistory() {
     const query = new URLSearchParams({
@@ -2840,6 +2940,234 @@ export default function RestaurantAdminDashboard({
         <p className="mt-1 text-sm text-slate-600">
           Los propietarios y administradores generales conservan acceso total.
         </p>
+        <section className="mt-6 rounded-xl border bg-slate-50 p-5">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <h3 className="text-lg font-bold">
+                Consulta de horas del personal
+              </h3>
+              <p className="mt-1 text-sm text-slate-600">
+                Calcula la jornada desde el inicio de sesión y descuenta
+                descansos, indisponibilidad temporal y tiempo fuera de turno.
+              </p>
+            </div>
+            {staffHours && (
+              <span className="rounded-full bg-white px-3 py-1 text-sm font-semibold text-slate-700 shadow-sm">
+                Zona horaria: {staffHours.range.timezone}
+              </span>
+            )}
+          </div>
+          <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-[180px_180px_1fr_auto] lg:items-end">
+            <label className="text-sm font-semibold">
+              Desde
+              <input
+                type="date"
+                className="mt-1 w-full rounded border bg-white p-2"
+                value={staffHoursFrom}
+                onChange={(event) => setStaffHoursFrom(event.target.value)}
+              />
+            </label>
+            <label className="text-sm font-semibold">
+              Hasta
+              <input
+                type="date"
+                className="mt-1 w-full rounded border bg-white p-2"
+                value={staffHoursTo}
+                onChange={(event) => setStaffHoursTo(event.target.value)}
+              />
+            </label>
+            <label className="text-sm font-semibold">
+              Empleado
+              <select
+                className="mt-1 w-full rounded border bg-white p-2"
+                value={staffHoursUserId}
+                onChange={(event) => setStaffHoursUserId(event.target.value)}
+              >
+                <option value="">Todos los empleados</option>
+                {staffUsers
+                  .filter(
+                    (user) =>
+                      user.restaurantRole ||
+                      user.role === "OWNER" ||
+                      user.role === "ADMIN",
+                  )
+                  .map((user) => (
+                    <option key={user.id} value={user.id}>
+                      {user.name} · {restaurantRoleLabel(user.restaurantRole)}
+                    </option>
+                  ))}
+              </select>
+            </label>
+            <button
+              type="button"
+              className="rounded bg-slate-950 px-4 py-2.5 font-semibold text-white"
+              onClick={() => void loadStaffHours()}
+            >
+              Consultar
+            </button>
+          </div>
+
+          {staffHours && (
+            <>
+              <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                {[
+                  ["Funcionarios", staffHours.summary.employees],
+                  ["Jornadas", staffHours.summary.sessions],
+                  [
+                    "Tiempo activo",
+                    formatStaffDuration(staffHours.summary.activeMs),
+                  ],
+                  [
+                    "Fuera de servicio",
+                    formatStaffDuration(staffHours.summary.outOfServiceMs),
+                  ],
+                ].map(([label, value]) => (
+                  <div
+                    key={label}
+                    className="rounded-lg bg-white p-4 shadow-sm"
+                  >
+                    <p className="text-sm text-slate-600">{label}</p>
+                    <strong className="text-xl">{value}</strong>
+                  </div>
+                ))}
+              </div>
+
+              {staffHours.employees.length > 0 ? (
+                <div className="mt-5 overflow-x-auto rounded-xl border bg-white">
+                  <table className="w-full min-w-[900px] text-left text-sm">
+                    <thead className="bg-slate-100">
+                      <tr>
+                        <th className="p-3">Funcionario</th>
+                        <th className="p-3">Puesto</th>
+                        <th className="p-3">Primera entrada</th>
+                        <th className="p-3">Última salida</th>
+                        <th className="p-3">Tiempo activo</th>
+                        <th className="p-3">Fuera de servicio</th>
+                        <th className="p-3">Jornadas</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {staffHours.employees.map((employee) => (
+                        <tr
+                          key={employee.userId}
+                          className="border-t align-top"
+                        >
+                          <td className="p-3">
+                            <strong>{employee.name}</strong>
+                            <span className="block text-xs text-slate-500">
+                              {employee.email}
+                            </span>
+                          </td>
+                          <td className="p-3">
+                            {restaurantRoleLabel(employee.restaurantRole)}
+                          </td>
+                          <td className="p-3">
+                            {new Date(employee.firstEntryAt).toLocaleString(
+                              "es-CR",
+                            )}
+                          </td>
+                          <td className="p-3">
+                            {employee.openSessions > 0
+                              ? "Sesión activa"
+                              : employee.lastExitAt
+                                ? new Date(employee.lastExitAt).toLocaleString(
+                                    "es-CR",
+                                  )
+                                : "Sin salida registrada"}
+                          </td>
+                          <td className="p-3 font-semibold text-emerald-800">
+                            {formatStaffDuration(employee.activeMs)}
+                          </td>
+                          <td className="p-3">
+                            <strong>
+                              {formatStaffDuration(employee.outOfServiceMs)}
+                            </strong>
+                            <span className="mt-1 block text-xs text-slate-500">
+                              Descanso {formatStaffDuration(employee.breakMs)} ·
+                              temporal{" "}
+                              {formatStaffDuration(
+                                employee.temporarilyUnavailableMs,
+                              )}{" "}
+                              · turno finalizado{" "}
+                              {formatStaffDuration(employee.offShiftMs)}
+                            </span>
+                          </td>
+                          <td className="p-3">{employee.sessions}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <p className="mt-5 rounded-lg bg-white p-4 text-slate-600">
+                  No hay jornadas registradas para los filtros seleccionados.
+                </p>
+              )}
+
+              {staffHours.sessions.length > 0 && (
+                <details className="mt-5 rounded-xl border bg-white p-4">
+                  <summary className="cursor-pointer font-bold">
+                    Ver entradas y salidas por jornada
+                  </summary>
+                  <div className="mt-4 overflow-x-auto">
+                    <table className="w-full min-w-[820px] text-left text-sm">
+                      <thead className="bg-slate-100">
+                        <tr>
+                          <th className="p-2">Funcionario</th>
+                          <th className="p-2">Entrada</th>
+                          <th className="p-2">Salida</th>
+                          <th className="p-2">Activo</th>
+                          <th className="p-2">Fuera de servicio</th>
+                          <th className="p-2">Estado</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {staffHours.sessions.map((workSession) => (
+                          <tr key={workSession.id} className="border-t">
+                            <td className="p-2 font-semibold">
+                              {workSession.name}
+                            </td>
+                            <td className="p-2">
+                              {new Date(workSession.entryAt).toLocaleString(
+                                "es-CR",
+                              )}
+                            </td>
+                            <td className="p-2">
+                              {workSession.exitAt
+                                ? new Date(workSession.exitAt).toLocaleString(
+                                    "es-CR",
+                                  )
+                                : "En curso"}
+                            </td>
+                            <td className="p-2">
+                              {formatStaffDuration(workSession.activeMs)}
+                            </td>
+                            <td className="p-2">
+                              {formatStaffDuration(workSession.outOfServiceMs)}
+                            </td>
+                            <td className="p-2">
+                              {workSession.status === "OPEN"
+                                ? "Activa"
+                                : workSession.status === "STALE"
+                                  ? "Sin cierre confirmado"
+                                  : "Cerrada"}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </details>
+              )}
+              <p className="mt-3 text-xs text-slate-500">
+                Si no se registra una salida, la jornada deja de acumular tiempo
+                doce horas después de la última confirmación de sesión. El
+                registro comienza con los inicios de sesión posteriores a esta
+                actualización.
+              </p>
+            </>
+          )}
+        </section>
         <div className="mt-4 overflow-x-auto rounded-xl border bg-white">
           <table className="w-full text-left">
             <thead className="bg-slate-100 text-sm">

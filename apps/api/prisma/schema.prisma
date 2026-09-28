@@ -149,6 +149,7 @@ model Organization {
   restaurantAnalyticsDaily    RestaurantAnalyticsDaily[]
   restaurantAnalyticsProducts RestaurantAnalyticsProductDaily[]
   userManagementEvents        UserManagementEvent[]
+  restaurantStaffSessions     RestaurantStaffSession[]
 
   restaurantTaxRateBps              Int                  @default(1300)
   restaurantTaxIncluded             Boolean              @default(false)
@@ -532,6 +533,24 @@ model RestaurantStaffEvent {
   @@map("restaurant_staff_events")
 }
 
+model RestaurantStaffSession {
+  id                  String                      @id @default(uuid())
+  organizationId      String
+  userId              String
+  initialAvailability RestaurantStaffAvailability
+  startedAt           DateTime                    @default(now())
+  lastSeenAt          DateTime                    @default(now())
+  endedAt             DateTime?
+  organization        Organization                @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user                User                        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  refreshTokens       RefreshToken[]
+
+  @@index([organizationId, startedAt])
+  @@index([userId, startedAt])
+  @@index([organizationId, endedAt])
+  @@map("restaurant_staff_sessions")
+}
+
 model OrganizationLocation {
   id             String                   @id @default(uuid())
   organizationId String
@@ -577,13 +596,14 @@ model User {
   createdAt              DateTime                    @default(now())
   updatedAt              DateTime                    @updatedAt
 
-  organization                Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organization                Organization             @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   scanEvents                  ScanEvent[]
   refreshTokens               RefreshToken[]
-  restaurantTables            RestaurantTable[] @relation("RestaurantWaiterTables")
-  responsibleRestaurantVisits RestaurantVisit[] @relation("RestaurantVisitResponsible")
-  fallbackRestaurantVisits    RestaurantVisit[] @relation("RestaurantVisitFallback")
+  restaurantTables            RestaurantTable[]        @relation("RestaurantWaiterTables")
+  responsibleRestaurantVisits RestaurantVisit[]        @relation("RestaurantVisitResponsible")
+  fallbackRestaurantVisits    RestaurantVisit[]        @relation("RestaurantVisitFallback")
   staffAccessCode             StaffAccessCode?
+  restaurantStaffSessions     RestaurantStaffSession[]
 
   @@unique([organizationId, email])
   @@index([organizationId])
@@ -672,16 +692,19 @@ model ScanEvent {
 }
 
 model RefreshToken {
-  id        String    @id @default(uuid())
-  userId    String
-  tokenHash String    @unique
-  expiresAt DateTime
-  createdAt DateTime  @default(now())
-  revokedAt DateTime?
+  id                       String    @id @default(uuid())
+  userId                   String
+  restaurantStaffSessionId String?
+  tokenHash                String    @unique
+  expiresAt                DateTime
+  createdAt                DateTime  @default(now())
+  revokedAt                DateTime?
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user                   User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  restaurantStaffSession RestaurantStaffSession? @relation(fields: [restaurantStaffSessionId], references: [id], onDelete: SetNull)
 
   @@index([userId])
+  @@index([restaurantStaffSessionId])
   @@index([expiresAt])
   @@map("refresh_tokens")
 }

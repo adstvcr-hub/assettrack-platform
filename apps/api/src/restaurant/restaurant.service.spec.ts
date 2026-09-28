@@ -125,7 +125,13 @@ function createService() {
       count: vi.fn().mockResolvedValue(0),
     },
     restaurantItemEvent: { create: vi.fn() },
-    restaurantStaffEvent: { create: vi.fn() },
+    restaurantStaffEvent: {
+      create: vi.fn(),
+      findMany: vi.fn().mockResolvedValue([]),
+    },
+    restaurantStaffSession: {
+      findMany: vi.fn().mockResolvedValue([]),
+    },
     restaurantVisitTransfer: { create: vi.fn() },
     $transaction: vi.fn(async (callback: (tx: unknown) => Promise<unknown>) =>
       callback(prisma),
@@ -1253,6 +1259,92 @@ describe("RestaurantService", () => {
         { status: "ACCEPTED" },
       ),
     ).rejects.toBeInstanceOf(ForbiddenException);
+  });
+
+  it("calculates active and unavailable staff time inside a date range", async () => {
+    const { prisma, service } = createService();
+    prisma.organizationLocation.findFirst.mockResolvedValue({
+      timezone: "UTC",
+    });
+    prisma.restaurantStaffSession.findMany.mockResolvedValue([
+      {
+        id: "session-a",
+        organizationId: "org-a",
+        userId: "waiter-a",
+        initialAvailability: RestaurantStaffAvailability.AVAILABLE,
+        startedAt: new Date("2026-09-27T08:00:00.000Z"),
+        lastSeenAt: new Date("2026-09-27T17:00:00.000Z"),
+        endedAt: new Date("2026-09-27T17:00:00.000Z"),
+        user: {
+          id: "waiter-a",
+          name: "Mesero 1",
+          email: "mesero1@example.com",
+          restaurantRole: RestaurantStaffRole.WAITER,
+          role: UserRole.USER,
+        },
+      },
+    ]);
+    prisma.restaurantStaffEvent.findMany.mockResolvedValue([
+      {
+        userId: "waiter-a",
+        availability: RestaurantStaffAvailability.BREAK,
+        reason: "Almuerzo",
+        createdAt: new Date("2026-09-27T12:00:00.000Z"),
+      },
+      {
+        userId: "waiter-a",
+        availability: RestaurantStaffAvailability.AVAILABLE,
+        reason: "Regreso",
+        createdAt: new Date("2026-09-27T13:00:00.000Z"),
+      },
+      {
+        userId: "waiter-a",
+        availability: RestaurantStaffAvailability.TEMPORARILY_UNAVAILABLE,
+        reason: "Gestión personal",
+        createdAt: new Date("2026-09-27T15:00:00.000Z"),
+      },
+      {
+        userId: "waiter-a",
+        availability: RestaurantStaffAvailability.AVAILABLE,
+        reason: "Regreso",
+        createdAt: new Date("2026-09-27T15:30:00.000Z"),
+      },
+    ]);
+
+    const result = await service.staffHours(
+      {
+        id: "admin-a",
+        organizationId: "org-a",
+        role: UserRole.ADMIN,
+        restaurantRole: RestaurantStaffRole.RESTAURANT_ADMIN,
+        restaurantAvailability: RestaurantStaffAvailability.AVAILABLE,
+      },
+      "2026-09-27",
+      "2026-09-27",
+      "waiter-a",
+    );
+
+    expect(result.summary).toEqual({
+      employees: 1,
+      sessions: 1,
+      activeMs: 7.5 * 60 * 60 * 1000,
+      outOfServiceMs: 1.5 * 60 * 60 * 1000,
+    });
+    expect(result.employees[0]).toEqual(
+      expect.objectContaining({
+        name: "Mesero 1",
+        activeMs: 7.5 * 60 * 60 * 1000,
+        breakMs: 60 * 60 * 1000,
+        temporarilyUnavailableMs: 30 * 60 * 1000,
+      }),
+    );
+    expect(result.sessions[0]).toEqual(
+      expect.objectContaining({
+        entryAt: new Date("2026-09-27T08:00:00.000Z"),
+        exitAt: new Date("2026-09-27T17:00:00.000Z"),
+        status: "CLOSED",
+      }),
+    );
   });
 
   it("automatically balances a waiter's active tables when going unavailable", async () => {

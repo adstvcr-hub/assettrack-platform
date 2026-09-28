@@ -953,6 +953,255 @@ export class RestaurantService {
     });
   }
 
+  async staffHours(
+    actor: RestaurantActor,
+    from?: string,
+    to?: string,
+    userId?: string,
+  ) {
+    this.requireRestaurantAdmin(actor);
+    const location = await this.prisma.organizationLocation.findFirst({
+      where: { organizationId: actor.organizationId, active: true },
+      select: { timezone: true },
+      orderBy: { createdAt: "asc" },
+    });
+    const timezone = normalizeTimezone(location?.timezone ?? "UTC");
+    const today = new Date().toISOString().slice(0, 10);
+    const defaultStart = new Date();
+    defaultStart.setUTCDate(defaultStart.getUTCDate() - 6);
+    const fromDate = from ?? defaultStart.toISOString().slice(0, 10);
+    const toDate = to ?? today;
+    if (
+      !/^\d{4}-\d{2}-\d{2}$/.test(fromDate) ||
+      !/^\d{4}-\d{2}-\d{2}$/.test(toDate)
+    ) {
+      throw new BadRequestException("Use dates in YYYY-MM-DD format");
+    }
+    const start = getUtcDateRangeForLocalDate(fromDate, timezone).start;
+    const end = getUtcDateRangeForLocalDate(toDate, timezone).end;
+    if (start >= end) {
+      throw new BadRequestException(
+        "The start date cannot be after the end date",
+      );
+    }
+    if (end.getTime() - start.getTime() > 366 * 86_400_000) {
+      throw new BadRequestException("The maximum range is 366 days");
+    }
+    const sessions = await this.prisma.restaurantStaffSession.findMany({
+      where: {
+        organizationId: actor.organizationId,
+        ...(userId ? { userId } : {}),
+        startedAt: { lt: end },
+        OR: [{ endedAt: null }, { endedAt: { gt: start } }],
+      },
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            restaurantRole: true,
+            role: true,
+          },
+        },
+      },
+      orderBy: { startedAt: "desc" },
+    });
+    const earliestSession = sessions.reduce(
+      (earliest, session) =>
+        session.startedAt < earliest ? session.startedAt : earliest,
+      start,
+    );
+    const relevantUserIds = [
+      ...new Set(sessions.map((session) => session.userId)),
+    ];
+    const events = relevantUserIds.length
+      ? await this.prisma.restaurantStaffEvent.findMany({
+          where: {
+            organizationId: actor.organizationId,
+            userId: { in: relevantUserIds },
+            createdAt: { gte: earliestSession, lt: end },
+          },
+          select: {
+            userId: true,
+            availability: true,
+            reason: true,
+            createdAt: true,
+          },
+          orderBy: { createdAt: "asc" },
+        })
+      : [];
+    const eventsByUser = new Map<
+      string,
+      Array<{
+        availability: RestaurantStaffAvailability;
+        reason: string | null;
+        createdAt: Date;
+      }>
+    >();
+    for (const event of events) {
+      const userEvents = eventsByUser.get(event.userId) ?? [];
+      userEvents.push(event);
+      eventsByUser.set(event.userId, userEvents);
+    }
+    const now = new Date();
+    const maximumUnconfirmedSessionMs = 12 * 60 * 60 * 1000;
+    const employeeMap = new Map<
+      string,
+      {
+        userId: string;
+        name: string;
+        email: string;
+        restaurantRole: RestaurantStaffRole | null;
+        sessions: number;
+        activeMs: number;
+        outOfServiceMs: number;
+        breakMs: number;
+        temporarilyUnavailableMs: number;
+        offShiftMs: number;
+        firstEntryAt: Date;
+        lastExitAt: Date | null;
+        openSessions: number;
+      }
+    >();
+    const sessionRows = sessions
+      .map((session) => {
+        const staleAt = new Date(
+          session.lastSeenAt.getTime() + maximumUnconfirmedSessionMs,
+        );
+        const reportedEnd = session.endedAt ?? now;
+        const effectiveEnd = new Date(
+          Math.min(reportedEnd.getTime(), staleAt.getTime(), now.getTime()),
+        );
+        if (effectiveEnd <= start || session.startedAt >= end) return null;
+        const status = session.endedAt
+          ? "CLOSED"
+          : staleAt <= now
+            ? "STALE"
+            : "OPEN";
+        const clippedStart = new Date(
+          Math.max(session.startedAt.getTime(), start.getTime()),
+        );
+        const clippedEnd = new Date(
+          Math.min(effectiveEnd.getTime(), end.getTime()),
+        );
+        let activeMs = 0;
+        let outOfServiceMs = 0;
+        let breakMs = 0;
+        let temporarilyUnavailableMs = 0;
+        let offShiftMs = 0;
+        let availability = session.initialAvailability;
+        let cursor = session.startedAt;
+        const addInterval = (intervalEnd: Date) => {
+          const intervalStartMs = Math.max(
+            cursor.getTime(),
+            clippedStart.getTime(),
+          );
+          const intervalEndMs = Math.min(
+            intervalEnd.getTime(),
+            clippedEnd.getTime(),
+          );
+          const duration = Math.max(0, intervalEndMs - intervalStartMs);
+          if (availability === RestaurantStaffAvailability.AVAILABLE) {
+            activeMs += duration;
+          } else {
+            outOfServiceMs += duration;
+            if (availability === RestaurantStaffAvailability.BREAK) {
+              breakMs += duration;
+            } else if (
+              availability ===
+              RestaurantStaffAvailability.TEMPORARILY_UNAVAILABLE
+            ) {
+              temporarilyUnavailableMs += duration;
+            } else if (availability === RestaurantStaffAvailability.OFF_SHIFT) {
+              offShiftMs += duration;
+            }
+          }
+        };
+        for (const event of eventsByUser.get(session.userId) ?? []) {
+          if (
+            event.createdAt <= session.startedAt ||
+            event.createdAt >= effectiveEnd
+          ) {
+            continue;
+          }
+          addInterval(event.createdAt);
+          cursor = event.createdAt;
+          availability = event.availability;
+        }
+        addInterval(effectiveEnd);
+        const exitAt = status === "OPEN" ? null : effectiveEnd;
+        const employee = employeeMap.get(session.userId) ?? {
+          userId: session.userId,
+          name: session.user.name,
+          email: session.user.email,
+          restaurantRole: session.user.restaurantRole,
+          sessions: 0,
+          activeMs: 0,
+          outOfServiceMs: 0,
+          breakMs: 0,
+          temporarilyUnavailableMs: 0,
+          offShiftMs: 0,
+          firstEntryAt: session.startedAt,
+          lastExitAt: null,
+          openSessions: 0,
+        };
+        employee.sessions += 1;
+        employee.activeMs += activeMs;
+        employee.outOfServiceMs += outOfServiceMs;
+        employee.breakMs += breakMs;
+        employee.temporarilyUnavailableMs += temporarilyUnavailableMs;
+        employee.offShiftMs += offShiftMs;
+        if (session.startedAt < employee.firstEntryAt) {
+          employee.firstEntryAt = session.startedAt;
+        }
+        if (exitAt && (!employee.lastExitAt || exitAt > employee.lastExitAt)) {
+          employee.lastExitAt = exitAt;
+        }
+        if (status === "OPEN") employee.openSessions += 1;
+        employeeMap.set(session.userId, employee);
+        return {
+          id: session.id,
+          userId: session.userId,
+          name: session.user.name,
+          email: session.user.email,
+          restaurantRole: session.user.restaurantRole,
+          entryAt: session.startedAt,
+          exitAt,
+          status,
+          activeMs,
+          outOfServiceMs,
+          breakMs,
+          temporarilyUnavailableMs,
+          offShiftMs,
+        };
+      })
+      .filter((session): session is NonNullable<typeof session> =>
+        Boolean(session),
+      );
+    const employees = [...employeeMap.values()].sort((left, right) =>
+      left.name.localeCompare(right.name),
+    );
+    return {
+      range: { from: fromDate, to: toDate, timezone },
+      filters: { userId: userId || null },
+      summary: {
+        employees: employees.length,
+        sessions: sessionRows.length,
+        activeMs: employees.reduce(
+          (sum, employee) => sum + employee.activeMs,
+          0,
+        ),
+        outOfServiceMs: employees.reduce(
+          (sum, employee) => sum + employee.outOfServiceMs,
+          0,
+        ),
+      },
+      employees,
+      sessions: sessionRows,
+    };
+  }
+
   async updateRestaurantRole(
     actor: RestaurantActor,
     userId: string,

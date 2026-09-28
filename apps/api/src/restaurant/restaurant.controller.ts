@@ -347,6 +347,16 @@ export class RestaurantStaffController {
     return this.restaurant.restaurantUsers(req.user);
   }
 
+  @Get("staff-hours")
+  staffHours(
+    @Req() req: StaffRequest,
+    @Query("from") from?: string,
+    @Query("to") to?: string,
+    @Query("userId") userId?: string,
+  ) {
+    return this.restaurant.staffHours(req.user, from, to, userId);
+  }
+
   @Patch("staff-users/:id/role")
   updateRestaurantRole(
     @Req() req: StaffRequest,

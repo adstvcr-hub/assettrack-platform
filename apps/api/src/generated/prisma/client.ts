@@ -130,6 +130,11 @@ export type RestaurantItemEvent = Prisma.RestaurantItemEventModel
  */
 export type RestaurantStaffEvent = Prisma.RestaurantStaffEventModel
 /**
+ * Model RestaurantStaffSession
+ *
+ */
+export type RestaurantStaffSession = Prisma.RestaurantStaffSessionModel
+/**
  * Model OrganizationLocation
  *
  */

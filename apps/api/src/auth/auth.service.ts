@@ -8,7 +8,10 @@ import { createHash, randomBytes } from "crypto";
 import * as bcrypt from "bcrypt";
 import { PrismaService } from "../prisma/prisma.service";
 import { LoginDto } from "./dto/login.dto";
-import { UserRole } from "../generated/prisma/enums";
+import {
+  RestaurantStaffAvailability,
+  UserRole,
+} from "../generated/prisma/enums";
 
 @Injectable()
 export class AuthService {
@@ -38,6 +41,7 @@ export class AuthService {
     name: string;
     role: UserRole;
     restaurantRole: string | null;
+    restaurantAvailability: RestaurantStaffAvailability;
     sessionVersion: number;
   }) {
     const payload = {
@@ -49,12 +53,37 @@ export class AuthService {
     };
     const accessToken = await this.jwtService.signAsync(payload);
     const refreshToken = this.generateRefreshToken();
-    await this.prisma.refreshToken.create({
-      data: {
-        userId: user.id,
-        tokenHash: this.hashToken(refreshToken),
-        expiresAt: this.getRefreshTokenExpiry(),
-      },
+    const now = new Date();
+    const tracksRestaurantWork =
+      Boolean(user.restaurantRole) ||
+      user.role === UserRole.OWNER ||
+      user.role === UserRole.ADMIN;
+    await this.prisma.$transaction(async (tx) => {
+      let restaurantStaffSessionId: string | undefined;
+      if (tracksRestaurantWork) {
+        await tx.restaurantStaffSession.updateMany({
+          where: { userId: user.id, endedAt: null },
+          data: { endedAt: now },
+        });
+        const session = await tx.restaurantStaffSession.create({
+          data: {
+            organizationId: user.organizationId,
+            userId: user.id,
+            initialAvailability: user.restaurantAvailability,
+            startedAt: now,
+            lastSeenAt: now,
+          },
+        });
+        restaurantStaffSessionId = session.id;
+      }
+      await tx.refreshToken.create({
+        data: {
+          userId: user.id,
+          restaurantStaffSessionId,
+          tokenHash: this.hashToken(refreshToken),
+          expiresAt: this.getRefreshTokenExpiry(),
+        },
+      });
     });
     return {
       accessToken,
@@ -85,6 +114,7 @@ export class AuthService {
             passwordHash: true,
             role: true,
             restaurantRole: true,
+            restaurantAvailability: true,
             active: true,
             sessionVersion: true,
             organization: {
@@ -170,15 +200,23 @@ export class AuthService {
 
   async logout(refreshToken: string) {
     const tokenHash = this.hashToken(refreshToken);
-
-    await this.prisma.refreshToken.updateMany({
-      where: {
-        tokenHash,
-        revokedAt: null,
-      },
-      data: {
-        revokedAt: new Date(),
-      },
+    const storedToken = await this.prisma.refreshToken.findUnique({
+      where: { tokenHash },
+      select: { id: true, restaurantStaffSessionId: true },
+    });
+    if (!storedToken) return;
+    const now = new Date();
+    await this.prisma.$transaction(async (tx) => {
+      const revoked = await tx.refreshToken.updateMany({
+        where: { id: storedToken.id, revokedAt: null },
+        data: { revokedAt: now },
+      });
+      if (revoked.count === 1 && storedToken.restaurantStaffSessionId) {
+        await tx.restaurantStaffSession.updateMany({
+          where: { id: storedToken.restaurantStaffSessionId, endedAt: null },
+          data: { endedAt: now, lastSeenAt: now },
+        });
+      }
     });
   }
 
@@ -235,10 +273,17 @@ export class AuthService {
       await tx.refreshToken.create({
         data: {
           userId: storedToken.user.id,
+          restaurantStaffSessionId: storedToken.restaurantStaffSessionId,
           tokenHash: newRefreshTokenHash,
           expiresAt: newRefreshTokenExpiresAt,
         },
       });
+      if (storedToken.restaurantStaffSessionId) {
+        await tx.restaurantStaffSession.updateMany({
+          where: { id: storedToken.restaurantStaffSessionId, endedAt: null },
+          data: { lastSeenAt: new Date() },
+        });
+      }
     });
 
     return {
