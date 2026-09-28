@@ -629,7 +629,7 @@ export class RestaurantService {
           }
         : {}),
     };
-    const [visits, total] = await Promise.all([
+    const [visits, total, summaryVisits] = await Promise.all([
       this.prisma.restaurantVisit.findMany({
         where,
         include: {
@@ -645,7 +645,101 @@ export class RestaurantService {
         take: safeLimit,
       }),
       this.prisma.restaurantVisit.count({ where }),
+      this.prisma.restaurantVisit.findMany({
+        where,
+        select: {
+          table: { select: { name: true } },
+          responsibleStaff: { select: { name: true } },
+          taxRateBps: true,
+          taxIncluded: true,
+          serviceRateBps: true,
+          serviceChargeEnabled: true,
+          orders: {
+            select: {
+              promotionCredit: true,
+              items: {
+                select: {
+                  price: true,
+                  quantity: true,
+                  status: true,
+                },
+              },
+            },
+          },
+        },
+      }),
     ]);
+    const summary = {
+      accounts: total,
+      orders: 0,
+      items: 0,
+      billing: {
+        grossSubtotal: 0,
+        promotionCredit: 0,
+        subtotal: 0,
+        tax: 0,
+        service: 0,
+        total: 0,
+      },
+      byResponsible: new Map<
+        string,
+        { name: string; accounts: number; orders: number; total: number }
+      >(),
+      byTable: new Map<
+        string,
+        { name: string; accounts: number; orders: number; total: number }
+      >(),
+    };
+    for (const visit of summaryVisits) {
+      const items = visit.orders.flatMap((order) => order.items);
+      const billing = this.billingTotals(
+        items,
+        visit,
+        visit.serviceChargeEnabled,
+        visit.orders.reduce(
+          (sum, order) => sum + (order.promotionCredit ?? 0),
+          0,
+        ),
+      );
+      summary.orders += visit.orders.length;
+      summary.items += items
+        .filter((item) => item.status !== RestaurantItemStatus.CANCELLED)
+        .reduce((sum, item) => sum + item.quantity, 0);
+      summary.billing.grossSubtotal += billing.grossSubtotal;
+      summary.billing.promotionCredit += billing.promotionCredit;
+      summary.billing.subtotal += billing.subtotal;
+      summary.billing.tax += billing.tax;
+      summary.billing.service += billing.service;
+      summary.billing.total += billing.total;
+
+      const responsibleName =
+        visit.responsibleStaff?.name?.trim() || "Sin asignar";
+      const responsible = summary.byResponsible.get(responsibleName) ?? {
+        name: responsibleName,
+        accounts: 0,
+        orders: 0,
+        total: 0,
+      };
+      responsible.accounts += 1;
+      responsible.orders += visit.orders.length;
+      responsible.total += billing.total;
+      summary.byResponsible.set(responsibleName, responsible);
+
+      const table = summary.byTable.get(visit.table.name) ?? {
+        name: visit.table.name,
+        accounts: 0,
+        orders: 0,
+        total: 0,
+      };
+      table.accounts += 1;
+      table.orders += visit.orders.length;
+      table.total += billing.total;
+      summary.byTable.set(visit.table.name, table);
+    }
+    const sortSummary = (
+      left: { name: string; total: number },
+      right: { name: string; total: number },
+    ) => right.total - left.total || left.name.localeCompare(right.name);
     return {
       items: visits.map((visit) => {
         const items = visit.orders.flatMap((order) =>
@@ -703,6 +797,15 @@ export class RestaurantService {
       page: safePage,
       limit: safeLimit,
       totalPages: Math.max(1, Math.ceil(total / safeLimit)),
+      range: { from: start, to: end, timezone },
+      summary: {
+        accounts: summary.accounts,
+        orders: summary.orders,
+        items: summary.items,
+        billing: summary.billing,
+        byResponsible: [...summary.byResponsible.values()].sort(sortSummary),
+        byTable: [...summary.byTable.values()].sort(sortSummary),
+      },
       retentionDays: organization.restaurantRetentionDays,
       maximumRetentionDays: 30,
       cutoff,

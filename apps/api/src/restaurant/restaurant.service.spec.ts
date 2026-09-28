@@ -329,6 +329,105 @@ describe("RestaurantService", () => {
     );
   });
 
+  it("summarizes every closed account in the selected sales-history range", async () => {
+    const { prisma, service } = createService();
+    prisma.organization.findUniqueOrThrow.mockResolvedValue({
+      restaurantRetentionDays: 30,
+    });
+    prisma.organizationLocation.findFirst.mockResolvedValue({
+      timezone: "UTC",
+    });
+    const detailedVisit = {
+      id: "visit-closed",
+      receiptNumber: "AT-20260920-TEST",
+      openedAt: new Date("2026-09-20T12:00:00.000Z"),
+      closedAt: new Date("2026-09-20T13:00:00.000Z"),
+      table: { name: "Mesa 4", kind: "DINING" },
+      responsibleStaff: { name: "Katherine" },
+      taxRateBps: 1300,
+      taxIncluded: false,
+      serviceRateBps: 1000,
+      serviceChargeEnabled: true,
+      invoiceRequestStatus: "NOT_REQUESTED",
+      invoiceRequestedAt: null,
+      invoiceName: null,
+      invoiceEmail: null,
+      invoicePhone: null,
+      invoiceTaxId: null,
+      invoiceReference: null,
+      orders: [
+        {
+          createdAt: new Date("2026-09-20T12:05:00.000Z"),
+          promotionCredit: 500,
+          items: [
+            {
+              id: "item-closed",
+              name: "Casado",
+              quantity: 2,
+              price: 2500,
+              status: "DELIVERED",
+              fulfillment: "DINE_IN",
+            },
+          ],
+        },
+      ],
+    };
+    prisma.restaurantVisit.findMany
+      .mockResolvedValueOnce([detailedVisit])
+      .mockResolvedValueOnce([
+        {
+          table: { name: detailedVisit.table.name },
+          responsibleStaff: detailedVisit.responsibleStaff,
+          taxRateBps: detailedVisit.taxRateBps,
+          taxIncluded: detailedVisit.taxIncluded,
+          serviceRateBps: detailedVisit.serviceRateBps,
+          serviceChargeEnabled: detailedVisit.serviceChargeEnabled,
+          orders: detailedVisit.orders.map((closedOrder) => ({
+            promotionCredit: closedOrder.promotionCredit,
+            items: closedOrder.items.map(({ price, quantity, status }) => ({
+              price,
+              quantity,
+              status,
+            })),
+          })),
+        },
+      ]);
+    prisma.restaurantVisit.count.mockResolvedValue(1);
+
+    const result = await service.salesHistory(
+      {
+        id: "admin-a",
+        organizationId: "org-a",
+        role: UserRole.ADMIN,
+        restaurantRole: RestaurantStaffRole.RESTAURANT_ADMIN,
+        restaurantAvailability: RestaurantStaffAvailability.AVAILABLE,
+      },
+      "",
+      "2026-09-01",
+      "2026-09-30",
+      1,
+      50,
+    );
+
+    expect(result.summary).toEqual({
+      accounts: 1,
+      orders: 1,
+      items: 2,
+      billing: {
+        grossSubtotal: 5000,
+        promotionCredit: 500,
+        subtotal: 4500,
+        tax: 585,
+        service: 450,
+        total: 5535,
+      },
+      byResponsible: [
+        { name: "Katherine", accounts: 1, orders: 1, total: 5535 },
+      ],
+      byTable: [{ name: "Mesa 4", accounts: 1, orders: 1, total: 5535 }],
+    });
+  });
+
   it("takes menu snapshots only from the restaurant owning the table", async () => {
     const { prisma, service } = createService();
     await service.placeOrder("table-code", payload);

@@ -216,6 +216,35 @@ type ClosedSale = {
 type SalesHistory = {
   items: ClosedSale[];
   total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+  range: { from: string; to: string; timezone: string };
+  summary: {
+    accounts: number;
+    orders: number;
+    items: number;
+    billing: {
+      grossSubtotal: number;
+      promotionCredit: number;
+      subtotal: number;
+      tax: number;
+      service: number;
+      total: number;
+    };
+    byResponsible: Array<{
+      name: string;
+      accounts: number;
+      orders: number;
+      total: number;
+    }>;
+    byTable: Array<{
+      name: string;
+      accounts: number;
+      orders: number;
+      total: number;
+    }>;
+  };
   retentionDays: number;
   maximumRetentionDays: number;
 };
@@ -521,6 +550,10 @@ export default function RestaurantAdminDashboard({
   }, [analyticsFrom, analyticsTo, router]);
 
   const loadSalesHistory = useCallback(async () => {
+    if (analyticsFrom > analyticsTo) {
+      setError("La fecha inicial no puede ser posterior a la fecha final");
+      return;
+    }
     const query = new URLSearchParams({
       from: analyticsFrom,
       to: analyticsTo,
@@ -544,6 +577,7 @@ export default function RestaurantAdminDashboard({
       return;
     }
     setSalesHistory(body as SalesHistory);
+    setError("");
   }, [analyticsFrom, analyticsTo, router, salesSearch]);
 
   useEffect(() => {
@@ -1479,8 +1513,26 @@ export default function RestaurantAdminDashboard({
                 Descargar CSV
               </button>
             </div>
-            <div className="mt-4 flex flex-wrap items-end gap-3">
-              <label className="min-w-64 flex-1 text-sm font-semibold">
+            <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-[180px_180px_1fr_auto] lg:items-end">
+              <label className="text-sm font-semibold">
+                Desde
+                <input
+                  type="date"
+                  className="mt-1 w-full rounded border p-2"
+                  value={analyticsFrom}
+                  onChange={(event) => setAnalyticsFrom(event.target.value)}
+                />
+              </label>
+              <label className="text-sm font-semibold">
+                Hasta
+                <input
+                  type="date"
+                  className="mt-1 w-full rounded border p-2"
+                  value={analyticsTo}
+                  onChange={(event) => setAnalyticsTo(event.target.value)}
+                />
+              </label>
+              <label className="text-sm font-semibold">
                 Buscar comprobante, mesa, responsable o dato fiscal
                 <input
                   className="mt-1 w-full rounded border p-2"
@@ -1491,19 +1543,158 @@ export default function RestaurantAdminDashboard({
               </label>
               <button
                 type="button"
-                className="rounded bg-slate-900 px-4 py-2 font-semibold text-white"
+                className="rounded bg-slate-900 px-4 py-2.5 font-semibold text-white"
                 onClick={() => void loadSalesHistory()}
               >
-                Buscar
+                Aplicar filtros
               </button>
             </div>
             {salesHistory && (
-              <p className="mt-3 rounded bg-amber-50 p-3 text-sm text-amber-900">
-                Se muestran {salesHistory.total} cuentas. El detalle permanece
-                disponible durante {salesHistory.retentionDays} días; el máximo
-                de AssetTrack es {salesHistory.maximumRetentionDays} días.
-              </p>
+              <>
+                {salesHistory.summary && (
+                  <>
+                    <section
+                      aria-labelledby="sales-period-summary"
+                      className="mt-6 rounded-xl border border-emerald-200 bg-emerald-50/60 p-4"
+                    >
+                      <div className="flex flex-wrap items-end justify-between gap-2">
+                        <div>
+                          <h3
+                            id="sales-period-summary"
+                            className="text-lg font-bold"
+                          >
+                            Resumen del periodo
+                          </h3>
+                          <p className="text-sm text-slate-600">
+                            Cuentas cerradas por fecha de cierre · zona horaria:{" "}
+                            {salesHistory.range.timezone}
+                          </p>
+                        </div>
+                        <span className="rounded-full bg-white px-3 py-1 text-sm font-semibold text-emerald-900 shadow-sm">
+                          {salesHistory.total} registros
+                        </span>
+                      </div>
+                      <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                        {[
+                          ["Cuentas cerradas", salesHistory.summary.accounts],
+                          ["Órdenes", salesHistory.summary.orders],
+                          ["Productos", salesHistory.summary.items],
+                          [
+                            "Total cobrado",
+                            `₡${salesHistory.summary.billing.total.toLocaleString()}`,
+                          ],
+                        ].map(([label, value]) => (
+                          <div
+                            key={label}
+                            className="rounded-lg bg-white p-4 shadow-sm"
+                          >
+                            <p className="text-sm text-slate-600">{label}</p>
+                            <strong className="text-2xl">{value}</strong>
+                          </div>
+                        ))}
+                      </div>
+                      <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+                        {[
+                          [
+                            "Subtotal bruto",
+                            salesHistory.summary.billing.grossSubtotal,
+                          ],
+                          [
+                            "Promociones",
+                            -salesHistory.summary.billing.promotionCredit,
+                          ],
+                          ["Subtotal", salesHistory.summary.billing.subtotal],
+                          ["IVA", salesHistory.summary.billing.tax],
+                          ["Servicio", salesHistory.summary.billing.service],
+                        ].map(([label, value]) => (
+                          <div
+                            key={label}
+                            className="rounded-lg border bg-white p-3"
+                          >
+                            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                              {label}
+                            </p>
+                            <strong>
+                              {Number(value) < 0 ? "−" : ""}₡
+                              {Math.abs(Number(value)).toLocaleString()}
+                            </strong>
+                          </div>
+                        ))}
+                      </div>
+                    </section>
+
+                    <div className="mt-5 grid gap-5 lg:grid-cols-2">
+                      <div className="overflow-x-auto rounded-xl border">
+                        <h3 className="bg-slate-100 p-3 font-bold">
+                          Responsables que atendieron
+                        </h3>
+                        <table className="w-full min-w-[480px] text-left text-sm">
+                          <thead>
+                            <tr className="border-t bg-slate-50">
+                              <th className="p-2">Responsable</th>
+                              <th className="p-2">Cuentas</th>
+                              <th className="p-2">Órdenes</th>
+                              <th className="p-2">Total</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {salesHistory.summary.byResponsible.map((entry) => (
+                              <tr key={entry.name} className="border-t">
+                                <td className="p-2 font-semibold">
+                                  {entry.name}
+                                </td>
+                                <td className="p-2">{entry.accounts}</td>
+                                <td className="p-2">{entry.orders}</td>
+                                <td className="p-2">
+                                  ₡{entry.total.toLocaleString()}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                      <div className="overflow-x-auto rounded-xl border">
+                        <h3 className="bg-slate-100 p-3 font-bold">
+                          Mesas y posiciones atendidas
+                        </h3>
+                        <table className="w-full min-w-[480px] text-left text-sm">
+                          <thead>
+                            <tr className="border-t bg-slate-50">
+                              <th className="p-2">Mesa o posición</th>
+                              <th className="p-2">Cuentas</th>
+                              <th className="p-2">Órdenes</th>
+                              <th className="p-2">Total</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {salesHistory.summary.byTable.map((entry) => (
+                              <tr key={entry.name} className="border-t">
+                                <td className="p-2 font-semibold">
+                                  {entry.name}
+                                </td>
+                                <td className="p-2">{entry.accounts}</td>
+                                <td className="p-2">{entry.orders}</td>
+                                <td className="p-2">
+                                  ₡{entry.total.toLocaleString()}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  </>
+                )}
+
+                <p className="mt-5 rounded bg-amber-50 p-3 text-sm text-amber-900">
+                  Se muestran {salesHistory.total} cuentas. El detalle permanece
+                  disponible durante {salesHistory.retentionDays} días; el
+                  máximo de AssetTrack es {salesHistory.maximumRetentionDays}{" "}
+                  días.
+                </p>
+              </>
             )}
+            <h3 className="mt-6 text-lg font-bold">Registros individuales</h3>
             <div className="mt-4 space-y-4">
               {salesHistory?.items.map((sale) => (
                 <details key={sale.id} className="rounded-lg border p-4">
