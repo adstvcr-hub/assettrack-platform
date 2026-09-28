@@ -10,22 +10,24 @@ import * as bcrypt from "bcrypt";
 import { PrismaService } from "../prisma/prisma.service";
 import {
   OrganizationLocationType,
-  RestaurantItemStatus,
   RestaurantRewardSponsor,
   RestaurantStaffAvailability,
   RestaurantStaffRole,
-  RestaurantVisitStatus,
   UserRole,
 } from "../generated/prisma/enums";
 import { CreateRewardProgramDto } from "../restaurant/dto/restaurant.dto";
 import { normalizeLocationName } from "../common/normalize-location-name";
 import { CreateRestaurantOrganizationDto } from "./dto/platform-admin.dto";
+import { RestaurantDataLifecycleService } from "../restaurant/restaurant-data-lifecycle.service";
 
 export type PlatformActor = { id: string; email: string };
 
 @Injectable()
 export class PlatformAdminService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly lifecycle?: RestaurantDataLifecycleService,
+  ) {}
 
   requirePlatformAdmin(actor: PlatformActor) {
     const configured = (process.env.PLATFORM_ADMIN_EMAILS ?? "")
@@ -52,6 +54,7 @@ export class PlatformAdminService {
         name: true,
         slug: true,
         restaurantAccessEnabled: true,
+        restaurantRetentionDays: true,
         createdAt: true,
         _count: {
           select: {
@@ -169,6 +172,7 @@ export class PlatformAdminService {
 
   async overview(actor: PlatformActor, from?: string, to?: string) {
     this.requirePlatformAdmin(actor);
+    await this.lifecycle?.consolidatePending();
     const fromDate = from
       ? new Date(from)
       : new Date(Date.now() - 30 * 86400000);
@@ -180,94 +184,63 @@ export class PlatformAdminService {
     ) {
       throw new BadRequestException("Invalid date range");
     }
-    const range = { gte: fromDate, lt: toDate };
-    const [organizations, orders, visits, closedVisits, loyalty, locations] =
-      await Promise.all([
-        this.prisma.organization.count({
-          where: { restaurantAccessEnabled: true },
-        }),
-        this.prisma.restaurantOrder.findMany({
-          where: { createdAt: range },
-          select: {
-            organizationId: true,
-            createdAt: true,
-            promotionCredit: true,
-            items: { select: { price: true, quantity: true, status: true } },
-            organization: { select: { name: true } },
-          },
-        }),
-        this.prisma.restaurantVisit.count({ where: { openedAt: range } }),
-        this.prisma.restaurantVisit.findMany({
-          where: {
-            status: RestaurantVisitStatus.CLOSED,
-            closedAt: range,
-          },
-          select: {
-            organizationId: true,
-            taxRateBps: true,
-            taxIncluded: true,
-            serviceRateBps: true,
-            serviceChargeEnabled: true,
-            organization: { select: { name: true } },
-            orders: {
-              select: {
-                promotionCredit: true,
-                items: {
-                  select: { price: true, quantity: true, status: true },
-                },
-              },
-            },
-          },
-        }),
-        this.prisma.restaurantLoyaltyActivity.findMany({
-          where: { createdAt: range, type: "VISIT_COMPLETED" },
-          select: { memberId: true, organizationId: true },
-        }),
-        this.prisma.organizationLocation.findMany({
-          where: { active: true },
-          select: {
-            organizationId: true,
-            country: true,
-            region: true,
-            city: true,
-          },
-        }),
-      ]);
+    const dateRange = {
+      gte: fromDate.toISOString().slice(0, 10),
+      lte: toDate.toISOString().slice(0, 10),
+    };
+    const [organizations, analytics, loyalty, locations] = await Promise.all([
+      this.prisma.organization.count({
+        where: { restaurantAccessEnabled: true },
+      }),
+      this.prisma.restaurantAnalyticsDaily.findMany({
+        where: { date: dateRange },
+        select: {
+          organizationId: true,
+          date: true,
+          orders: true,
+          visitsOpened: true,
+          subtotal: true,
+          organization: { select: { name: true } },
+        },
+      }),
+      this.prisma.restaurantLoyaltyActivity.findMany({
+        where: {
+          createdAt: { gte: fromDate, lt: toDate },
+          type: "VISIT_COMPLETED",
+        },
+        select: { memberId: true, organizationId: true },
+      }),
+      this.prisma.organizationLocation.findMany({
+        where: { active: true },
+        select: {
+          organizationId: true,
+          country: true,
+          region: true,
+          city: true,
+        },
+      }),
+    ]);
     const restaurants = new Map<
       string,
       { name: string; orders: number; sales: number }
     >();
     const demand = new Map<string, number>();
     let globalSales = 0;
-    for (const order of orders) {
-      const current = restaurants.get(order.organizationId) ?? {
-        name: order.organization.name,
+    let orders = 0;
+    let visits = 0;
+    for (const entry of analytics) {
+      const current = restaurants.get(entry.organizationId) ?? {
+        name: entry.organization.name,
         orders: 0,
         sales: 0,
       };
-      current.orders += 1;
-      restaurants.set(order.organizationId, current);
-      const key = `${order.createdAt.toISOString().slice(0, 10)} ${String(order.createdAt.getUTCHours()).padStart(2, "0")}:00 UTC`;
-      demand.set(key, (demand.get(key) ?? 0) + 1);
-    }
-    for (const visit of closedVisits) {
-      const items = visit.orders.flatMap((order) => order.items);
-      const gross = items
-        .filter((item) => item.status !== RestaurantItemStatus.CANCELLED)
-        .reduce((sum, item) => sum + item.price * item.quantity, 0);
-      const promotionCredit = visit.orders.reduce(
-        (sum, order) => sum + order.promotionCredit,
-        0,
-      );
-      const sale = Math.max(0, gross - promotionCredit);
-      globalSales += sale;
-      const current = restaurants.get(visit.organizationId) ?? {
-        name: visit.organization.name,
-        orders: 0,
-        sales: 0,
-      };
-      current.sales += sale;
-      restaurants.set(visit.organizationId, current);
+      current.orders += entry.orders;
+      current.sales += entry.subtotal;
+      restaurants.set(entry.organizationId, current);
+      orders += entry.orders;
+      visits += entry.visitsOpened;
+      globalSales += entry.subtotal;
+      demand.set(entry.date, (demand.get(entry.date) ?? 0) + entry.orders);
     }
     const geography = new Map<string, Set<string>>();
     for (const location of locations) {
@@ -288,7 +261,7 @@ export class PlatformAdminService {
     return {
       range: { from: fromDate, to: toDate },
       organizations,
-      orders: orders.length,
+      orders,
       visits,
       globalSales,
       loyaltyMembers: memberVisits.size,
@@ -307,6 +280,53 @@ export class PlatformAdminService {
         .slice(0, 20),
       privacy: "Aggregated metrics only; scanner identity is not stored.",
     };
+  }
+
+  async setRestaurantRetention(
+    actor: PlatformActor,
+    organizationId: string,
+    days: number,
+  ) {
+    this.requirePlatformAdmin(actor);
+    if (!Number.isInteger(days) || days < 1 || days > 30) {
+      throw new BadRequestException("Retention must be between 1 and 30 days");
+    }
+    const result = await this.prisma.organization.updateMany({
+      where: { id: organizationId },
+      data: { restaurantRetentionDays: days },
+    });
+    if (!result.count) throw new NotFoundException("Organization not found");
+    await this.prisma.platformAdminEvent.create({
+      data: {
+        actorId: actor.id,
+        action: "RESTAURANT_RETENTION_UPDATED",
+        organizationId,
+        metadata: { days, maximumDays: 30 },
+      },
+    });
+    const maintenance = await this.lifecycle?.runMaintenance(organizationId);
+    return {
+      organizationId,
+      restaurantRetentionDays: days,
+      maximumDays: 30,
+      maintenance: maintenance ?? null,
+    };
+  }
+
+  async runDataMaintenance(actor: PlatformActor) {
+    this.requirePlatformAdmin(actor);
+    if (!this.lifecycle) {
+      throw new ConflictException("Data maintenance service unavailable");
+    }
+    const result = await this.lifecycle.runMaintenance();
+    await this.prisma.platformAdminEvent.create({
+      data: {
+        actorId: actor.id,
+        action: "RESTAURANT_DATA_MAINTENANCE_RUN",
+        metadata: result,
+      },
+    });
+    return result;
   }
 
   async setRestaurantAccess(

@@ -1,4 +1,4 @@
-import { ConflictException } from "@nestjs/common";
+import { BadRequestException, ConflictException } from "@nestjs/common";
 import * as bcrypt from "bcrypt";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { PrismaService } from "../prisma/prisma.service";
@@ -8,6 +8,7 @@ function createService() {
   const prisma = {
     organization: {
       findUnique: vi.fn().mockResolvedValue(null),
+      updateMany: vi.fn().mockResolvedValue({ count: 1 }),
       create: vi.fn().mockResolvedValue({
         id: "org-new",
         name: "Restaurante Nuevo",
@@ -125,5 +126,34 @@ describe("PlatformAdminService restaurant onboarding", () => {
       ),
     ).rejects.toBeInstanceOf(ConflictException);
     expect(prisma.$transaction).not.toHaveBeenCalled();
+  });
+
+  it("allows only the platform administrator to set retention up to 30 days", async () => {
+    const { prisma, service } = createService();
+
+    await expect(
+      service.setRestaurantRetention(
+        { id: "platform-admin", email: "platform@assettrack.local" },
+        "org-a",
+        30,
+      ),
+    ).resolves.toEqual(
+      expect.objectContaining({
+        organizationId: "org-a",
+        restaurantRetentionDays: 30,
+        maximumDays: 30,
+      }),
+    );
+    expect(prisma.organization.updateMany).toHaveBeenCalledWith({
+      where: { id: "org-a" },
+      data: { restaurantRetentionDays: 30 },
+    });
+    await expect(
+      service.setRestaurantRetention(
+        { id: "platform-admin", email: "platform@assettrack.local" },
+        "org-a",
+        31,
+      ),
+    ).rejects.toBeInstanceOf(BadRequestException);
   });
 });

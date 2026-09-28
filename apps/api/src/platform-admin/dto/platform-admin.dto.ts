@@ -2,11 +2,14 @@ import {
   IsBoolean,
   IsEmail,
   IsNotEmpty,
+  IsInt,
   IsOptional,
   IsString,
   IsTimeZone,
   Matches,
+  Max,
   MaxLength,
+  Min,
 } from "class-validator";
 
 export class CreateRestaurantOrganizationDto {
@@ -66,4 +69,11 @@ export class ResetUserCredentialDto {
   @IsString()
   @MaxLength(200)
   reason!: string;
+}
+
+export class UpdateRestaurantRetentionDto {
+  @IsInt()
+  @Min(1)
+  @Max(30)
+  days!: number;
 }

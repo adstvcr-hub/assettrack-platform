@@ -4,6 +4,7 @@ import {
   Delete,
   ForbiddenException,
   Get,
+  Header,
   Param,
   Patch,
   Post,
@@ -174,6 +175,37 @@ export class RestaurantStaffController {
     @Query("to") to?: string,
   ) {
     return this.restaurant.analytics(req.user, from, to);
+  }
+
+  @Get("sales-history")
+  salesHistory(
+    @Req() req: StaffRequest,
+    @Query("search") search?: string,
+    @Query("from") from?: string,
+    @Query("to") to?: string,
+    @Query("page") page?: string,
+    @Query("limit") limit?: string,
+  ) {
+    return this.restaurant.salesHistory(
+      req.user,
+      search,
+      from,
+      to,
+      Number(page ?? 1),
+      Number(limit ?? 25),
+    );
+  }
+
+  @Get("sales-history/export")
+  @Header("Content-Type", "text/csv; charset=utf-8")
+  @Header("Content-Disposition", 'attachment; filename="historial-ventas.csv"')
+  salesHistoryExport(
+    @Req() req: StaffRequest,
+    @Query("search") search?: string,
+    @Query("from") from?: string,
+    @Query("to") to?: string,
+  ) {
+    return this.restaurant.salesHistoryCsv(req.user, search, from, to);
   }
 
   @Patch("billing-settings")

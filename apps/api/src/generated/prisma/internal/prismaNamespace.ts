@@ -406,6 +406,8 @@ export const ModelName = {
   RestaurantRewardProgram: 'RestaurantRewardProgram',
   RestaurantVisitTransfer: 'RestaurantVisitTransfer',
   PlatformAdminEvent: 'PlatformAdminEvent',
+  RestaurantAnalyticsDaily: 'RestaurantAnalyticsDaily',
+  RestaurantAnalyticsProductDaily: 'RestaurantAnalyticsProductDaily',
   UserManagementEvent: 'UserManagementEvent',
   RestaurantMenuItem: 'RestaurantMenuItem',
   RestaurantOrder: 'RestaurantOrder',
@@ -435,7 +437,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "organization" | "restaurantTable" | "restaurantVisit" | "restaurantQrAccess" | "restaurantLoyaltyMember" | "restaurantLoyaltyActivity" | "restaurantRewardProgram" | "restaurantVisitTransfer" | "platformAdminEvent" | "userManagementEvent" | "restaurantMenuItem" | "restaurantOrder" | "restaurantOrderItem" | "restaurantPromotion" | "restaurantItemEvent" | "restaurantStaffEvent" | "organizationLocation" | "user" | "staffAccessCode" | "asset" | "qrCode" | "scanEvent" | "refreshToken"
+    modelProps: "organization" | "restaurantTable" | "restaurantVisit" | "restaurantQrAccess" | "restaurantLoyaltyMember" | "restaurantLoyaltyActivity" | "restaurantRewardProgram" | "restaurantVisitTransfer" | "platformAdminEvent" | "restaurantAnalyticsDaily" | "restaurantAnalyticsProductDaily" | "userManagementEvent" | "restaurantMenuItem" | "restaurantOrder" | "restaurantOrderItem" | "restaurantPromotion" | "restaurantItemEvent" | "restaurantStaffEvent" | "organizationLocation" | "user" | "staffAccessCode" | "asset" | "qrCode" | "scanEvent" | "refreshToken"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1102,6 +1104,154 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.PlatformAdminEventCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.PlatformAdminEventCountAggregateOutputType> | number
+        }
+      }
+    }
+    RestaurantAnalyticsDaily: {
+      payload: Prisma.$RestaurantAnalyticsDailyPayload<ExtArgs>
+      fields: Prisma.RestaurantAnalyticsDailyFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.RestaurantAnalyticsDailyFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RestaurantAnalyticsDailyPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.RestaurantAnalyticsDailyFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RestaurantAnalyticsDailyPayload>
+        }
+        findFirst: {
+          args: Prisma.RestaurantAnalyticsDailyFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RestaurantAnalyticsDailyPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.RestaurantAnalyticsDailyFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RestaurantAnalyticsDailyPayload>
+        }
+        findMany: {
+          args: Prisma.RestaurantAnalyticsDailyFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RestaurantAnalyticsDailyPayload>[]
+        }
+        create: {
+          args: Prisma.RestaurantAnalyticsDailyCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RestaurantAnalyticsDailyPayload>
+        }
+        createMany: {
+          args: Prisma.RestaurantAnalyticsDailyCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.RestaurantAnalyticsDailyCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RestaurantAnalyticsDailyPayload>[]
+        }
+        delete: {
+          args: Prisma.RestaurantAnalyticsDailyDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RestaurantAnalyticsDailyPayload>
+        }
+        update: {
+          args: Prisma.RestaurantAnalyticsDailyUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RestaurantAnalyticsDailyPayload>
+        }
+        deleteMany: {
+          args: Prisma.RestaurantAnalyticsDailyDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.RestaurantAnalyticsDailyUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.RestaurantAnalyticsDailyUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RestaurantAnalyticsDailyPayload>[]
+        }
+        upsert: {
+          args: Prisma.RestaurantAnalyticsDailyUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RestaurantAnalyticsDailyPayload>
+        }
+        aggregate: {
+          args: Prisma.RestaurantAnalyticsDailyAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateRestaurantAnalyticsDaily>
+        }
+        groupBy: {
+          args: Prisma.RestaurantAnalyticsDailyGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.RestaurantAnalyticsDailyGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.RestaurantAnalyticsDailyCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.RestaurantAnalyticsDailyCountAggregateOutputType> | number
+        }
+      }
+    }
+    RestaurantAnalyticsProductDaily: {
+      payload: Prisma.$RestaurantAnalyticsProductDailyPayload<ExtArgs>
+      fields: Prisma.RestaurantAnalyticsProductDailyFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.RestaurantAnalyticsProductDailyFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RestaurantAnalyticsProductDailyPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.RestaurantAnalyticsProductDailyFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RestaurantAnalyticsProductDailyPayload>
+        }
+        findFirst: {
+          args: Prisma.RestaurantAnalyticsProductDailyFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RestaurantAnalyticsProductDailyPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.RestaurantAnalyticsProductDailyFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RestaurantAnalyticsProductDailyPayload>
+        }
+        findMany: {
+          args: Prisma.RestaurantAnalyticsProductDailyFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RestaurantAnalyticsProductDailyPayload>[]
+        }
+        create: {
+          args: Prisma.RestaurantAnalyticsProductDailyCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RestaurantAnalyticsProductDailyPayload>
+        }
+        createMany: {
+          args: Prisma.RestaurantAnalyticsProductDailyCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.RestaurantAnalyticsProductDailyCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RestaurantAnalyticsProductDailyPayload>[]
+        }
+        delete: {
+          args: Prisma.RestaurantAnalyticsProductDailyDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RestaurantAnalyticsProductDailyPayload>
+        }
+        update: {
+          args: Prisma.RestaurantAnalyticsProductDailyUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RestaurantAnalyticsProductDailyPayload>
+        }
+        deleteMany: {
+          args: Prisma.RestaurantAnalyticsProductDailyDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.RestaurantAnalyticsProductDailyUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.RestaurantAnalyticsProductDailyUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RestaurantAnalyticsProductDailyPayload>[]
+        }
+        upsert: {
+          args: Prisma.RestaurantAnalyticsProductDailyUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RestaurantAnalyticsProductDailyPayload>
+        }
+        aggregate: {
+          args: Prisma.RestaurantAnalyticsProductDailyAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateRestaurantAnalyticsProductDaily>
+        }
+        groupBy: {
+          args: Prisma.RestaurantAnalyticsProductDailyGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.RestaurantAnalyticsProductDailyGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.RestaurantAnalyticsProductDailyCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.RestaurantAnalyticsProductDailyCountAggregateOutputType> | number
         }
       }
     }
@@ -2199,7 +2349,8 @@ export const OrganizationScalarFieldEnum = {
   restaurantMenuBackgroundSize: 'restaurantMenuBackgroundSize',
   restaurantLatitude: 'restaurantLatitude',
   restaurantLongitude: 'restaurantLongitude',
-  restaurantOrderRadiusMeters: 'restaurantOrderRadiusMeters'
+  restaurantOrderRadiusMeters: 'restaurantOrderRadiusMeters',
+  restaurantRetentionDays: 'restaurantRetentionDays'
 } as const
 
 export type OrganizationScalarFieldEnum = (typeof OrganizationScalarFieldEnum)[keyof typeof OrganizationScalarFieldEnum]
@@ -2248,7 +2399,10 @@ export const RestaurantVisitScalarFieldEnum = {
   invoiceTaxId: 'invoiceTaxId',
   invoiceReference: 'invoiceReference',
   responsibleStaffId: 'responsibleStaffId',
-  fallbackStaffId: 'fallbackStaffId'
+  fallbackStaffId: 'fallbackStaffId',
+  receiptNumber: 'receiptNumber',
+  openedAnalyticsConsolidatedAt: 'openedAnalyticsConsolidatedAt',
+  closedAnalyticsConsolidatedAt: 'closedAnalyticsConsolidatedAt'
 } as const
 
 export type RestaurantVisitScalarFieldEnum = (typeof RestaurantVisitScalarFieldEnum)[keyof typeof RestaurantVisitScalarFieldEnum]
@@ -2262,7 +2416,8 @@ export const RestaurantQrAccessScalarFieldEnum = {
   insideLocal: 'insideLocal',
   distanceMeters: 'distanceMeters',
   accuracyMeters: 'accuracyMeters',
-  createdAt: 'createdAt'
+  createdAt: 'createdAt',
+  analyticsConsolidatedAt: 'analyticsConsolidatedAt'
 } as const
 
 export type RestaurantQrAccessScalarFieldEnum = (typeof RestaurantQrAccessScalarFieldEnum)[keyof typeof RestaurantQrAccessScalarFieldEnum]
@@ -2346,6 +2501,45 @@ export const PlatformAdminEventScalarFieldEnum = {
 export type PlatformAdminEventScalarFieldEnum = (typeof PlatformAdminEventScalarFieldEnum)[keyof typeof PlatformAdminEventScalarFieldEnum]
 
 
+export const RestaurantAnalyticsDailyScalarFieldEnum = {
+  id: 'id',
+  organizationId: 'organizationId',
+  date: 'date',
+  qrAccesses: 'qrAccesses',
+  uniqueQrSessions: 'uniqueQrSessions',
+  visitsOpened: 'visitsOpened',
+  visitsClosed: 'visitsClosed',
+  orders: 'orders',
+  grossSubtotal: 'grossSubtotal',
+  promotionCredit: 'promotionCredit',
+  subtotal: 'subtotal',
+  tax: 'tax',
+  service: 'service',
+  total: 'total',
+  itemsSold: 'itemsSold',
+  itemsCancelled: 'itemsCancelled',
+  dineInOrders: 'dineInOrders',
+  takeoutOrders: 'takeoutOrders',
+  deliveryOrders: 'deliveryOrders',
+  demandByHour: 'demandByHour',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type RestaurantAnalyticsDailyScalarFieldEnum = (typeof RestaurantAnalyticsDailyScalarFieldEnum)[keyof typeof RestaurantAnalyticsDailyScalarFieldEnum]
+
+
+export const RestaurantAnalyticsProductDailyScalarFieldEnum = {
+  id: 'id',
+  organizationId: 'organizationId',
+  date: 'date',
+  productName: 'productName',
+  quantity: 'quantity'
+} as const
+
+export type RestaurantAnalyticsProductDailyScalarFieldEnum = (typeof RestaurantAnalyticsProductDailyScalarFieldEnum)[keyof typeof RestaurantAnalyticsProductDailyScalarFieldEnum]
+
+
 export const UserManagementEventScalarFieldEnum = {
   id: 'id',
   organizationId: 'organizationId',
@@ -2394,7 +2588,8 @@ export const RestaurantOrderScalarFieldEnum = {
   promotionCredit: 'promotionCredit',
   expectedMinutes: 'expectedMinutes',
   thresholdMinutes: 'thresholdMinutes',
-  delayedAt: 'delayedAt'
+  delayedAt: 'delayedAt',
+  analyticsConsolidatedAt: 'analyticsConsolidatedAt'
 } as const
 
 export type RestaurantOrderScalarFieldEnum = (typeof RestaurantOrderScalarFieldEnum)[keyof typeof RestaurantOrderScalarFieldEnum]
@@ -3128,6 +3323,8 @@ export type GlobalOmitConfig = {
   restaurantRewardProgram?: Prisma.RestaurantRewardProgramOmit
   restaurantVisitTransfer?: Prisma.RestaurantVisitTransferOmit
   platformAdminEvent?: Prisma.PlatformAdminEventOmit
+  restaurantAnalyticsDaily?: Prisma.RestaurantAnalyticsDailyOmit
+  restaurantAnalyticsProductDaily?: Prisma.RestaurantAnalyticsProductDailyOmit
   userManagementEvent?: Prisma.UserManagementEventOmit
   restaurantMenuItem?: Prisma.RestaurantMenuItemOmit
   restaurantOrder?: Prisma.RestaurantOrderOmit

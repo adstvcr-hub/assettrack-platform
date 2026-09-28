@@ -45,6 +45,7 @@ export type RestaurantQrAccessMinAggregateOutputType = {
   distanceMeters: number | null
   accuracyMeters: number | null
   createdAt: Date | null
+  analyticsConsolidatedAt: Date | null
 }
 
 export type RestaurantQrAccessMaxAggregateOutputType = {
@@ -56,6 +57,7 @@ export type RestaurantQrAccessMaxAggregateOutputType = {
   distanceMeters: number | null
   accuracyMeters: number | null
   createdAt: Date | null
+  analyticsConsolidatedAt: Date | null
 }
 
 export type RestaurantQrAccessCountAggregateOutputType = {
@@ -67,6 +69,7 @@ export type RestaurantQrAccessCountAggregateOutputType = {
   distanceMeters: number
   accuracyMeters: number
   createdAt: number
+  analyticsConsolidatedAt: number
   _all: number
 }
 
@@ -90,6 +93,7 @@ export type RestaurantQrAccessMinAggregateInputType = {
   distanceMeters?: true
   accuracyMeters?: true
   createdAt?: true
+  analyticsConsolidatedAt?: true
 }
 
 export type RestaurantQrAccessMaxAggregateInputType = {
@@ -101,6 +105,7 @@ export type RestaurantQrAccessMaxAggregateInputType = {
   distanceMeters?: true
   accuracyMeters?: true
   createdAt?: true
+  analyticsConsolidatedAt?: true
 }
 
 export type RestaurantQrAccessCountAggregateInputType = {
@@ -112,6 +117,7 @@ export type RestaurantQrAccessCountAggregateInputType = {
   distanceMeters?: true
   accuracyMeters?: true
   createdAt?: true
+  analyticsConsolidatedAt?: true
   _all?: true
 }
 
@@ -210,6 +216,7 @@ export type RestaurantQrAccessGroupByOutputType = {
   distanceMeters: number | null
   accuracyMeters: number | null
   createdAt: Date
+  analyticsConsolidatedAt: Date | null
   _count: RestaurantQrAccessCountAggregateOutputType | null
   _avg: RestaurantQrAccessAvgAggregateOutputType | null
   _sum: RestaurantQrAccessSumAggregateOutputType | null
@@ -244,6 +251,7 @@ export type RestaurantQrAccessWhereInput = {
   distanceMeters?: Prisma.IntNullableFilter<"RestaurantQrAccess"> | number | null
   accuracyMeters?: Prisma.IntNullableFilter<"RestaurantQrAccess"> | number | null
   createdAt?: Prisma.DateTimeFilter<"RestaurantQrAccess"> | Date | string
+  analyticsConsolidatedAt?: Prisma.DateTimeNullableFilter<"RestaurantQrAccess"> | Date | string | null
   organization?: Prisma.XOR<Prisma.OrganizationScalarRelationFilter, Prisma.OrganizationWhereInput>
   table?: Prisma.XOR<Prisma.RestaurantTableScalarRelationFilter, Prisma.RestaurantTableWhereInput>
 }
@@ -257,6 +265,7 @@ export type RestaurantQrAccessOrderByWithRelationInput = {
   distanceMeters?: Prisma.SortOrderInput | Prisma.SortOrder
   accuracyMeters?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
+  analyticsConsolidatedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   organization?: Prisma.OrganizationOrderByWithRelationInput
   table?: Prisma.RestaurantTableOrderByWithRelationInput
 }
@@ -273,6 +282,7 @@ export type RestaurantQrAccessWhereUniqueInput = Prisma.AtLeast<{
   distanceMeters?: Prisma.IntNullableFilter<"RestaurantQrAccess"> | number | null
   accuracyMeters?: Prisma.IntNullableFilter<"RestaurantQrAccess"> | number | null
   createdAt?: Prisma.DateTimeFilter<"RestaurantQrAccess"> | Date | string
+  analyticsConsolidatedAt?: Prisma.DateTimeNullableFilter<"RestaurantQrAccess"> | Date | string | null
   organization?: Prisma.XOR<Prisma.OrganizationScalarRelationFilter, Prisma.OrganizationWhereInput>
   table?: Prisma.XOR<Prisma.RestaurantTableScalarRelationFilter, Prisma.RestaurantTableWhereInput>
 }, "id">
@@ -286,6 +296,7 @@ export type RestaurantQrAccessOrderByWithAggregationInput = {
   distanceMeters?: Prisma.SortOrderInput | Prisma.SortOrder
   accuracyMeters?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
+  analyticsConsolidatedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   _count?: Prisma.RestaurantQrAccessCountOrderByAggregateInput
   _avg?: Prisma.RestaurantQrAccessAvgOrderByAggregateInput
   _max?: Prisma.RestaurantQrAccessMaxOrderByAggregateInput
@@ -305,6 +316,7 @@ export type RestaurantQrAccessScalarWhereWithAggregatesInput = {
   distanceMeters?: Prisma.IntNullableWithAggregatesFilter<"RestaurantQrAccess"> | number | null
   accuracyMeters?: Prisma.IntNullableWithAggregatesFilter<"RestaurantQrAccess"> | number | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"RestaurantQrAccess"> | Date | string
+  analyticsConsolidatedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"RestaurantQrAccess"> | Date | string | null
 }
 
 export type RestaurantQrAccessCreateInput = {
@@ -314,6 +326,7 @@ export type RestaurantQrAccessCreateInput = {
   distanceMeters?: number | null
   accuracyMeters?: number | null
   createdAt?: Date | string
+  analyticsConsolidatedAt?: Date | string | null
   organization: Prisma.OrganizationCreateNestedOneWithoutRestaurantQrAccessesInput
   table: Prisma.RestaurantTableCreateNestedOneWithoutQrAccessesInput
 }
@@ -327,6 +340,7 @@ export type RestaurantQrAccessUncheckedCreateInput = {
   distanceMeters?: number | null
   accuracyMeters?: number | null
   createdAt?: Date | string
+  analyticsConsolidatedAt?: Date | string | null
 }
 
 export type RestaurantQrAccessUpdateInput = {
@@ -336,6 +350,7 @@ export type RestaurantQrAccessUpdateInput = {
   distanceMeters?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   accuracyMeters?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  analyticsConsolidatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutRestaurantQrAccessesNestedInput
   table?: Prisma.RestaurantTableUpdateOneRequiredWithoutQrAccessesNestedInput
 }
@@ -349,6 +364,7 @@ export type RestaurantQrAccessUncheckedUpdateInput = {
   distanceMeters?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   accuracyMeters?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  analyticsConsolidatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
 export type RestaurantQrAccessCreateManyInput = {
@@ -360,6 +376,7 @@ export type RestaurantQrAccessCreateManyInput = {
   distanceMeters?: number | null
   accuracyMeters?: number | null
   createdAt?: Date | string
+  analyticsConsolidatedAt?: Date | string | null
 }
 
 export type RestaurantQrAccessUpdateManyMutationInput = {
@@ -369,6 +386,7 @@ export type RestaurantQrAccessUpdateManyMutationInput = {
   distanceMeters?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   accuracyMeters?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  analyticsConsolidatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
 export type RestaurantQrAccessUncheckedUpdateManyInput = {
@@ -380,6 +398,7 @@ export type RestaurantQrAccessUncheckedUpdateManyInput = {
   distanceMeters?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   accuracyMeters?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  analyticsConsolidatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
 export type RestaurantQrAccessListRelationFilter = {
@@ -401,6 +420,7 @@ export type RestaurantQrAccessCountOrderByAggregateInput = {
   distanceMeters?: Prisma.SortOrder
   accuracyMeters?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
+  analyticsConsolidatedAt?: Prisma.SortOrder
 }
 
 export type RestaurantQrAccessAvgOrderByAggregateInput = {
@@ -417,6 +437,7 @@ export type RestaurantQrAccessMaxOrderByAggregateInput = {
   distanceMeters?: Prisma.SortOrder
   accuracyMeters?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
+  analyticsConsolidatedAt?: Prisma.SortOrder
 }
 
 export type RestaurantQrAccessMinOrderByAggregateInput = {
@@ -428,6 +449,7 @@ export type RestaurantQrAccessMinOrderByAggregateInput = {
   distanceMeters?: Prisma.SortOrder
   accuracyMeters?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
+  analyticsConsolidatedAt?: Prisma.SortOrder
 }
 
 export type RestaurantQrAccessSumOrderByAggregateInput = {
@@ -538,6 +560,7 @@ export type RestaurantQrAccessCreateWithoutOrganizationInput = {
   distanceMeters?: number | null
   accuracyMeters?: number | null
   createdAt?: Date | string
+  analyticsConsolidatedAt?: Date | string | null
   table: Prisma.RestaurantTableCreateNestedOneWithoutQrAccessesInput
 }
 
@@ -549,6 +572,7 @@ export type RestaurantQrAccessUncheckedCreateWithoutOrganizationInput = {
   distanceMeters?: number | null
   accuracyMeters?: number | null
   createdAt?: Date | string
+  analyticsConsolidatedAt?: Date | string | null
 }
 
 export type RestaurantQrAccessCreateOrConnectWithoutOrganizationInput = {
@@ -589,6 +613,7 @@ export type RestaurantQrAccessScalarWhereInput = {
   distanceMeters?: Prisma.IntNullableFilter<"RestaurantQrAccess"> | number | null
   accuracyMeters?: Prisma.IntNullableFilter<"RestaurantQrAccess"> | number | null
   createdAt?: Prisma.DateTimeFilter<"RestaurantQrAccess"> | Date | string
+  analyticsConsolidatedAt?: Prisma.DateTimeNullableFilter<"RestaurantQrAccess"> | Date | string | null
 }
 
 export type RestaurantQrAccessCreateWithoutTableInput = {
@@ -598,6 +623,7 @@ export type RestaurantQrAccessCreateWithoutTableInput = {
   distanceMeters?: number | null
   accuracyMeters?: number | null
   createdAt?: Date | string
+  analyticsConsolidatedAt?: Date | string | null
   organization: Prisma.OrganizationCreateNestedOneWithoutRestaurantQrAccessesInput
 }
 
@@ -609,6 +635,7 @@ export type RestaurantQrAccessUncheckedCreateWithoutTableInput = {
   distanceMeters?: number | null
   accuracyMeters?: number | null
   createdAt?: Date | string
+  analyticsConsolidatedAt?: Date | string | null
 }
 
 export type RestaurantQrAccessCreateOrConnectWithoutTableInput = {
@@ -645,6 +672,7 @@ export type RestaurantQrAccessCreateManyOrganizationInput = {
   distanceMeters?: number | null
   accuracyMeters?: number | null
   createdAt?: Date | string
+  analyticsConsolidatedAt?: Date | string | null
 }
 
 export type RestaurantQrAccessUpdateWithoutOrganizationInput = {
@@ -654,6 +682,7 @@ export type RestaurantQrAccessUpdateWithoutOrganizationInput = {
   distanceMeters?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   accuracyMeters?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  analyticsConsolidatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   table?: Prisma.RestaurantTableUpdateOneRequiredWithoutQrAccessesNestedInput
 }
 
@@ -665,6 +694,7 @@ export type RestaurantQrAccessUncheckedUpdateWithoutOrganizationInput = {
   distanceMeters?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   accuracyMeters?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  analyticsConsolidatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
 export type RestaurantQrAccessUncheckedUpdateManyWithoutOrganizationInput = {
@@ -675,6 +705,7 @@ export type RestaurantQrAccessUncheckedUpdateManyWithoutOrganizationInput = {
   distanceMeters?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   accuracyMeters?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  analyticsConsolidatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
 export type RestaurantQrAccessCreateManyTableInput = {
@@ -685,6 +716,7 @@ export type RestaurantQrAccessCreateManyTableInput = {
   distanceMeters?: number | null
   accuracyMeters?: number | null
   createdAt?: Date | string
+  analyticsConsolidatedAt?: Date | string | null
 }
 
 export type RestaurantQrAccessUpdateWithoutTableInput = {
@@ -694,6 +726,7 @@ export type RestaurantQrAccessUpdateWithoutTableInput = {
   distanceMeters?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   accuracyMeters?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  analyticsConsolidatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutRestaurantQrAccessesNestedInput
 }
 
@@ -705,6 +738,7 @@ export type RestaurantQrAccessUncheckedUpdateWithoutTableInput = {
   distanceMeters?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   accuracyMeters?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  analyticsConsolidatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
 export type RestaurantQrAccessUncheckedUpdateManyWithoutTableInput = {
@@ -715,6 +749,7 @@ export type RestaurantQrAccessUncheckedUpdateManyWithoutTableInput = {
   distanceMeters?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   accuracyMeters?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  analyticsConsolidatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
 
@@ -728,6 +763,7 @@ export type RestaurantQrAccessSelect<ExtArgs extends runtime.Types.Extensions.In
   distanceMeters?: boolean
   accuracyMeters?: boolean
   createdAt?: boolean
+  analyticsConsolidatedAt?: boolean
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
   table?: boolean | Prisma.RestaurantTableDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["restaurantQrAccess"]>
@@ -741,6 +777,7 @@ export type RestaurantQrAccessSelectCreateManyAndReturn<ExtArgs extends runtime.
   distanceMeters?: boolean
   accuracyMeters?: boolean
   createdAt?: boolean
+  analyticsConsolidatedAt?: boolean
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
   table?: boolean | Prisma.RestaurantTableDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["restaurantQrAccess"]>
@@ -754,6 +791,7 @@ export type RestaurantQrAccessSelectUpdateManyAndReturn<ExtArgs extends runtime.
   distanceMeters?: boolean
   accuracyMeters?: boolean
   createdAt?: boolean
+  analyticsConsolidatedAt?: boolean
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
   table?: boolean | Prisma.RestaurantTableDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["restaurantQrAccess"]>
@@ -767,9 +805,10 @@ export type RestaurantQrAccessSelectScalar = {
   distanceMeters?: boolean
   accuracyMeters?: boolean
   createdAt?: boolean
+  analyticsConsolidatedAt?: boolean
 }
 
-export type RestaurantQrAccessOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "organizationId" | "tableId" | "sessionKey" | "insideLocal" | "distanceMeters" | "accuracyMeters" | "createdAt", ExtArgs["result"]["restaurantQrAccess"]>
+export type RestaurantQrAccessOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "organizationId" | "tableId" | "sessionKey" | "insideLocal" | "distanceMeters" | "accuracyMeters" | "createdAt" | "analyticsConsolidatedAt", ExtArgs["result"]["restaurantQrAccess"]>
 export type RestaurantQrAccessInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
   table?: boolean | Prisma.RestaurantTableDefaultArgs<ExtArgs>
@@ -798,6 +837,7 @@ export type $RestaurantQrAccessPayload<ExtArgs extends runtime.Types.Extensions.
     distanceMeters: number | null
     accuracyMeters: number | null
     createdAt: Date
+    analyticsConsolidatedAt: Date | null
   }, ExtArgs["result"]["restaurantQrAccess"]>
   composites: {}
 }
@@ -1231,6 +1271,7 @@ export interface RestaurantQrAccessFieldRefs {
   readonly distanceMeters: Prisma.FieldRef<"RestaurantQrAccess", 'Int'>
   readonly accuracyMeters: Prisma.FieldRef<"RestaurantQrAccess", 'Int'>
   readonly createdAt: Prisma.FieldRef<"RestaurantQrAccess", 'DateTime'>
+  readonly analyticsConsolidatedAt: Prisma.FieldRef<"RestaurantQrAccess", 'DateTime'>
 }
     
 

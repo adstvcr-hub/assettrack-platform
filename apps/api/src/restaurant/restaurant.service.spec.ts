@@ -79,6 +79,12 @@ function createService() {
       create: vi.fn(),
       findMany: vi.fn().mockResolvedValue([]),
     },
+    restaurantAnalyticsDaily: {
+      findMany: vi.fn().mockResolvedValue([]),
+    },
+    restaurantAnalyticsProductDaily: {
+      groupBy: vi.fn().mockResolvedValue([]),
+    },
     restaurantVisit: {
       findFirst: vi.fn().mockResolvedValue(null),
       findUnique: vi.fn(),
@@ -269,45 +275,31 @@ describe("RestaurantService", () => {
 
   it("recognizes restaurant sales only from accounts closed in the period", async () => {
     const { prisma, service } = createService();
-    const closedAt = new Date("2026-09-20T18:00:00.000Z");
     prisma.organizationLocation.findFirst.mockResolvedValue({
       timezone: "UTC",
     });
-    prisma.restaurantQrAccess.findMany.mockResolvedValue([
+    prisma.restaurantAnalyticsDaily.findMany.mockResolvedValue([
       {
-        sessionKey: "4e042db9-2f69-466f-bc62-8f50c9044ceb",
-        createdAt: closedAt,
+        date: "2026-09-20",
+        qrAccesses: 1,
+        uniqueQrSessions: 1,
+        visitsOpened: 1,
+        visitsClosed: 1,
+        orders: 2,
+        grossSubtotal: 5000,
+        promotionCredit: 1000,
+        subtotal: 4000,
+        tax: 520,
+        service: 400,
+        total: 4920,
+        itemsSold: 2,
+        itemsCancelled: 0,
       },
     ]);
-    prisma.restaurantVisit.findMany
-      .mockResolvedValueOnce([{ openedAt: closedAt }])
-      .mockResolvedValueOnce([
-        {
-          closedAt,
-          taxRateBps: 1300,
-          taxIncluded: false,
-          serviceRateBps: 1000,
-          serviceChargeEnabled: true,
-          orders: [
-            {
-              promotionCredit: 1000,
-              items: [
-                {
-                  name: "Almuerzo",
-                  price: 2500,
-                  quantity: 2,
-                  status: "DELIVERED",
-                },
-              ],
-            },
-          ],
-        },
-      ]);
-    prisma.restaurantVisit.count.mockResolvedValue(3);
-    prisma.restaurantOrder.findMany.mockResolvedValue([
-      { createdAt: closedAt },
-      { createdAt: new Date("2026-09-21T18:00:00.000Z") },
+    prisma.restaurantAnalyticsProductDaily.groupBy.mockResolvedValue([
+      { productName: "Almuerzo", _sum: { quantity: 2 } },
     ]);
+    prisma.restaurantVisit.count.mockResolvedValue(3);
 
     const result = await service.analytics(
       {
@@ -543,6 +535,7 @@ describe("RestaurantService", () => {
             restaurantDisplayName: true,
             restaurantHeaderImageData: true,
             restaurantUseHeaderImage: true,
+            restaurantRetentionDays: true,
           },
         },
         table: {
@@ -556,6 +549,27 @@ describe("RestaurantService", () => {
         },
       }),
     });
+  });
+
+  it("does not expose a closed receipt after the operational retention window", async () => {
+    const { prisma, service } = createService();
+    prisma.restaurantVisit.findUnique.mockResolvedValue({
+      id: "visit-expired",
+      accessCode: "secret",
+      status: "CLOSED",
+      openedAt: new Date("2026-07-01T12:00:00.000Z"),
+      closedAt: new Date("2026-07-01T13:00:00.000Z"),
+      organization: {
+        name: "Café del Parque",
+        restaurantRetentionDays: 30,
+      },
+      table: { name: "Mesa 1", code: "table-code", waiter: null },
+      orders: [],
+    });
+
+    await expect(service.guestOrder("secret")).rejects.toThrow(
+      "Receipt retention period expired",
+    );
   });
 
   it("accumulates every order in the visit and calculates tax and table service", async () => {
@@ -949,10 +963,16 @@ describe("RestaurantService", () => {
 
     await service.closeVisit(bartender, "visit-a");
 
-    expect(prisma.restaurantVisit.update).toHaveBeenCalledWith({
-      where: { id: "visit-a" },
-      data: { status: "CLOSED", closedAt: expect.any(Date) },
-    });
+    expect(prisma.restaurantVisit.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { id: "visit-a" },
+        data: expect.objectContaining({
+          status: "CLOSED",
+          closedAt: expect.any(Date),
+          receiptNumber: expect.stringMatching(/^AT-/),
+        }),
+      }),
+    );
   });
 
   it("returns the existing order when the same request is retried", async () => {

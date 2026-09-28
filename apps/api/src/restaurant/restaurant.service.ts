@@ -4,6 +4,7 @@ import {
   ForbiddenException,
   Injectable,
   NotFoundException,
+  Optional,
 } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
 import * as QRCode from "qrcode";
@@ -47,6 +48,7 @@ import {
   getUtcDateRangeForLocalDate,
   normalizeTimezone,
 } from "../common/timezone-date-range";
+import { RestaurantDataLifecycleService } from "./restaurant-data-lifecycle.service";
 
 const transitions: Record<RestaurantItemStatus, RestaurantItemStatus[]> = {
   RECEIVED: [RestaurantItemStatus.ACCEPTED, RestaurantItemStatus.CANCELLED],
@@ -67,7 +69,17 @@ export type RestaurantActor = {
 
 @Injectable()
 export class RestaurantService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    @Optional() private readonly lifecycle?: RestaurantDataLifecycleService,
+  ) {}
+
+  private receiptNumber(visitId: string, closedAt: Date) {
+    return (
+      this.lifecycle?.receiptNumber(visitId, closedAt) ??
+      `AT-${closedAt.toISOString().slice(0, 10).replaceAll("-", "")}-${visitId.replaceAll("-", "").slice(0, 16).toUpperCase()}`
+    );
+  }
 
   private effectiveRole(actor: RestaurantActor) {
     if (actor.role === UserRole.OWNER || actor.role === UserRole.ADMIN) {
@@ -443,6 +455,7 @@ export class RestaurantService {
 
   async analytics(actor: RestaurantActor, from?: string, to?: string) {
     this.requireRestaurantAdmin(actor);
+    await this.lifecycle?.consolidatePending(actor.organizationId);
     const location = await this.prisma.organizationLocation.findFirst({
       where: { organizationId: actor.organizationId, active: true },
       select: { timezone: true },
@@ -472,36 +485,31 @@ export class RestaurantService {
     if (start >= end || end.getTime() - start.getTime() > 366 * 86400000) {
       throw new BadRequestException("Invalid analytics date range");
     }
-    const range = { gte: start, lt: end };
-    const [qrAccesses, openedVisits, closedVisits, openVisits, orders] =
-      await Promise.all([
-        this.prisma.restaurantQrAccess.findMany({
-          where: { organizationId: actor.organizationId, createdAt: range },
-          select: { sessionKey: true, createdAt: true },
-        }),
-        this.prisma.restaurantVisit.findMany({
-          where: { organizationId: actor.organizationId, openedAt: range },
-          select: { openedAt: true },
-        }),
-        this.prisma.restaurantVisit.findMany({
-          where: {
-            organizationId: actor.organizationId,
-            status: RestaurantVisitStatus.CLOSED,
-            closedAt: range,
-          },
-          include: { orders: { include: { items: true } } },
-        }),
-        this.prisma.restaurantVisit.count({
-          where: {
-            organizationId: actor.organizationId,
-            status: RestaurantVisitStatus.OPEN,
-          },
-        }),
-        this.prisma.restaurantOrder.findMany({
-          where: { organizationId: actor.organizationId, createdAt: range },
-          select: { createdAt: true },
-        }),
-      ]);
+    const [aggregates, popularItems, openVisits] = await Promise.all([
+      this.prisma.restaurantAnalyticsDaily.findMany({
+        where: {
+          organizationId: actor.organizationId,
+          date: { gte: fromDate, lte: toDate },
+        },
+        orderBy: { date: "asc" },
+      }),
+      this.prisma.restaurantAnalyticsProductDaily.groupBy({
+        by: ["productName"],
+        where: {
+          organizationId: actor.organizationId,
+          date: { gte: fromDate, lte: toDate },
+        },
+        _sum: { quantity: true },
+        orderBy: { _sum: { quantity: "desc" } },
+        take: 10,
+      }),
+      this.prisma.restaurantVisit.count({
+        where: {
+          organizationId: actor.organizationId,
+          status: RestaurantVisitStatus.OPEN,
+        },
+      }),
+    ]);
     const totals = {
       grossSubtotal: 0,
       promotionCredit: 0,
@@ -512,69 +520,252 @@ export class RestaurantService {
       itemsSold: 0,
       itemsCancelled: 0,
     };
-    const popular = new Map<string, number>();
-    const daily = new Map<
-      string,
-      { date: string; qrAccesses: number; orders: number; sales: number }
-    >();
-    const day = (date: Date) => {
-      const key = localDate(date);
-      const current = daily.get(key) ?? {
-        date: key,
-        qrAccesses: 0,
-        orders: 0,
-        sales: 0,
-      };
-      daily.set(key, current);
-      return current;
-    };
-    for (const access of qrAccesses) day(access.createdAt).qrAccesses += 1;
-    for (const order of orders) day(order.createdAt).orders += 1;
-    for (const visit of closedVisits) {
-      const items = visit.orders.flatMap((order) => order.items);
-      const billing = this.billingTotals(
-        items,
-        visit,
-        visit.serviceChargeEnabled,
-        visit.orders.reduce(
-          (sum, order) => sum + (order.promotionCredit ?? 0),
-          0,
-        ),
-      );
-      totals.grossSubtotal += billing.grossSubtotal;
-      totals.promotionCredit += billing.promotionCredit;
-      totals.subtotal += billing.subtotal;
-      totals.tax += billing.tax;
-      totals.service += billing.service;
-      totals.total += billing.total;
-      if (visit.closedAt) day(visit.closedAt).sales += billing.subtotal;
-      for (const item of items) {
-        if (item.status === RestaurantItemStatus.CANCELLED) {
-          totals.itemsCancelled += item.quantity;
-        } else {
-          totals.itemsSold += item.quantity;
-          popular.set(item.name, (popular.get(item.name) ?? 0) + item.quantity);
-        }
-      }
+    for (const aggregate of aggregates) {
+      totals.grossSubtotal += aggregate.grossSubtotal;
+      totals.promotionCredit += aggregate.promotionCredit;
+      totals.subtotal += aggregate.subtotal;
+      totals.tax += aggregate.tax;
+      totals.service += aggregate.service;
+      totals.total += aggregate.total;
+      totals.itemsSold += aggregate.itemsSold;
+      totals.itemsCancelled += aggregate.itemsCancelled;
     }
     return {
       range: { from: fromDate, to: toDate, timezone },
-      qrAccesses: qrAccesses.length,
-      uniqueQrSessions: new Set(qrAccesses.map((entry) => entry.sessionKey))
-        .size,
-      visitsOpened: openedVisits.length,
-      visitsClosed: closedVisits.length,
-      openVisits,
-      orders: orders.length,
-      ...totals,
-      daily: [...daily.values()].sort((left, right) =>
-        left.date.localeCompare(right.date),
+      qrAccesses: aggregates.reduce((sum, entry) => sum + entry.qrAccesses, 0),
+      uniqueQrSessions: aggregates.reduce(
+        (sum, entry) => sum + entry.uniqueQrSessions,
+        0,
       ),
-      popularItems: [...popular.entries()]
-        .map(([name, quantity]) => ({ name, quantity }))
-        .sort((left, right) => right.quantity - left.quantity)
-        .slice(0, 10),
+      visitsOpened: aggregates.reduce(
+        (sum, entry) => sum + entry.visitsOpened,
+        0,
+      ),
+      visitsClosed: aggregates.reduce(
+        (sum, entry) => sum + entry.visitsClosed,
+        0,
+      ),
+      openVisits,
+      orders: aggregates.reduce((sum, entry) => sum + entry.orders, 0),
+      ...totals,
+      daily: aggregates.map((entry) => ({
+        date: entry.date,
+        qrAccesses: entry.qrAccesses,
+        orders: entry.orders,
+        sales: entry.subtotal,
+      })),
+      popularItems: popularItems.map((entry) => ({
+        name: entry.productName,
+        quantity: entry._sum.quantity ?? 0,
+      })),
     };
+  }
+
+  async salesHistory(
+    actor: RestaurantActor,
+    search = "",
+    from?: string,
+    to?: string,
+    page = 1,
+    limit = 25,
+    maximumLimit = 100,
+  ) {
+    this.requireRestaurantAdmin(actor);
+    await this.lifecycle?.consolidatePending(actor.organizationId);
+    const organization = await this.prisma.organization.findUniqueOrThrow({
+      where: { id: actor.organizationId },
+      select: { restaurantRetentionDays: true },
+    });
+    const location = await this.prisma.organizationLocation.findFirst({
+      where: { organizationId: actor.organizationId, active: true },
+      select: { timezone: true },
+      orderBy: { createdAt: "asc" },
+    });
+    const timezone = normalizeTimezone(location?.timezone ?? "UTC");
+    const cutoff = new Date(
+      Date.now() - organization.restaurantRetentionDays * 86_400_000,
+    );
+    let start = cutoff;
+    let end = new Date();
+    if (from) {
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(from)) {
+        throw new BadRequestException("Use dates in YYYY-MM-DD format");
+      }
+      const requested = getUtcDateRangeForLocalDate(from, timezone).start;
+      if (requested > start) start = requested;
+    }
+    if (to) {
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(to)) {
+        throw new BadRequestException("Use dates in YYYY-MM-DD format");
+      }
+      end = getUtcDateRangeForLocalDate(to, timezone).end;
+    }
+    const safePage = Math.max(1, Math.floor(page) || 1);
+    const safeLimit = Math.min(
+      maximumLimit,
+      Math.max(1, Math.floor(limit) || 25),
+    );
+    const term = search.trim().slice(0, 160);
+    const where: Prisma.RestaurantVisitWhereInput = {
+      organizationId: actor.organizationId,
+      status: RestaurantVisitStatus.CLOSED,
+      closedAt: { gte: start, lt: end },
+      ...(term
+        ? {
+            OR: [
+              { receiptNumber: { contains: term, mode: "insensitive" } },
+              { table: { name: { contains: term, mode: "insensitive" } } },
+              {
+                responsibleStaff: {
+                  name: { contains: term, mode: "insensitive" },
+                },
+              },
+              { invoiceName: { contains: term, mode: "insensitive" } },
+              { invoiceEmail: { contains: term, mode: "insensitive" } },
+              { invoicePhone: { contains: term, mode: "insensitive" } },
+              { invoiceTaxId: { contains: term, mode: "insensitive" } },
+              { invoiceReference: { contains: term, mode: "insensitive" } },
+            ],
+          }
+        : {}),
+    };
+    const [visits, total] = await Promise.all([
+      this.prisma.restaurantVisit.findMany({
+        where,
+        include: {
+          table: { select: { name: true, kind: true } },
+          responsibleStaff: { select: { name: true } },
+          orders: {
+            orderBy: { createdAt: "asc" },
+            include: { items: { orderBy: { name: "asc" } } },
+          },
+        },
+        orderBy: { closedAt: "desc" },
+        skip: (safePage - 1) * safeLimit,
+        take: safeLimit,
+      }),
+      this.prisma.restaurantVisit.count({ where }),
+    ]);
+    return {
+      items: visits.map((visit) => {
+        const items = visit.orders.flatMap((order) =>
+          order.items.map((item) => ({
+            id: item.id,
+            orderCreatedAt: order.createdAt,
+            name: item.name,
+            quantity: item.quantity,
+            price: item.price,
+            unitPrice: item.price,
+            total: item.price * item.quantity,
+            status: item.status,
+            fulfillment: item.fulfillment,
+          })),
+        );
+        return {
+          id: visit.id,
+          receiptNumber:
+            visit.receiptNumber ??
+            (visit.closedAt
+              ? this.receiptNumber(visit.id, visit.closedAt)
+              : visit.id),
+          openedAt: visit.openedAt,
+          closedAt: visit.closedAt,
+          expiresAt: visit.closedAt
+            ? new Date(
+                visit.closedAt.getTime() +
+                  organization.restaurantRetentionDays * 86_400_000,
+              )
+            : null,
+          table: visit.table,
+          responsibleStaff: visit.responsibleStaff,
+          items,
+          billing: this.billingTotals(
+            items,
+            visit,
+            visit.serviceChargeEnabled,
+            visit.orders.reduce(
+              (sum, order) => sum + (order.promotionCredit ?? 0),
+              0,
+            ),
+          ),
+          invoice: {
+            status: visit.invoiceRequestStatus,
+            requestedAt: visit.invoiceRequestedAt,
+            name: visit.invoiceName,
+            email: visit.invoiceEmail,
+            phone: visit.invoicePhone,
+            taxId: visit.invoiceTaxId,
+            reference: visit.invoiceReference,
+          },
+        };
+      }),
+      total,
+      page: safePage,
+      limit: safeLimit,
+      totalPages: Math.max(1, Math.ceil(total / safeLimit)),
+      retentionDays: organization.restaurantRetentionDays,
+      maximumRetentionDays: 30,
+      cutoff,
+    };
+  }
+
+  async salesHistoryCsv(
+    actor: RestaurantActor,
+    search = "",
+    from?: string,
+    to?: string,
+  ) {
+    const history = await this.salesHistory(
+      actor,
+      search,
+      from,
+      to,
+      1,
+      5_000,
+      5_000,
+    );
+    const escape = (value: unknown) =>
+      `"${String(value ?? "").replaceAll('"', '""')}"`;
+    const rows: unknown[][] = [
+      [
+        "Comprobante",
+        "Cierre",
+        "Mesa/posición",
+        "Responsable",
+        "Producto",
+        "Cantidad",
+        "Precio unitario",
+        "Total producto",
+        "Subtotal",
+        "IVA",
+        "Servicio",
+        "Total cuenta",
+        "Estado factura electrónica",
+        "Referencia fiscal",
+      ],
+    ];
+    for (const visit of history.items) {
+      const items = visit.items.length ? visit.items : [null];
+      for (const item of items) {
+        rows.push([
+          visit.receiptNumber,
+          visit.closedAt?.toISOString() ?? "",
+          visit.table.name,
+          visit.responsibleStaff?.name ?? "",
+          item?.name ?? "",
+          item?.quantity ?? "",
+          item?.unitPrice ?? "",
+          item?.total ?? "",
+          visit.billing.subtotal,
+          visit.billing.tax,
+          visit.billing.service,
+          visit.billing.total,
+          visit.invoice.status,
+          visit.invoice.reference ?? "",
+        ]);
+      }
+    }
+    return `\uFEFF${rows.map((row) => row.map(escape).join(",")).join("\r\n")}`;
   }
 
   brandingSettings(actor: RestaurantActor) {
@@ -881,9 +1072,14 @@ export class RestaurantService {
     if (hasOpenItems) {
       throw new ConflictException("Deliver or cancel all items before closing");
     }
+    const closedAt = new Date();
     return this.prisma.restaurantVisit.update({
       where: { id: visitId },
-      data: { status: RestaurantVisitStatus.CLOSED, closedAt: new Date() },
+      data: {
+        status: RestaurantVisitStatus.CLOSED,
+        closedAt,
+        receiptNumber: this.receiptNumber(visitId, closedAt),
+      },
     });
   }
 
@@ -972,6 +1168,7 @@ export class RestaurantService {
         deliveryHandedOffById: actor.id,
         status: RestaurantVisitStatus.CLOSED,
         closedAt: now,
+        receiptNumber: this.receiptNumber(visitId, now),
       },
     });
   }
@@ -1462,11 +1659,22 @@ export class RestaurantService {
     });
   }
 
-  invoiceRequests(actor: RestaurantActor) {
+  async invoiceRequests(actor: RestaurantActor) {
     this.requireRestaurantAdmin(actor);
+    const organization = await this.prisma.organization.findUniqueOrThrow({
+      where: { id: actor.organizationId },
+      select: { restaurantRetentionDays: true },
+    });
+    const cutoff = new Date(
+      Date.now() - organization.restaurantRetentionDays * 86_400_000,
+    );
     return this.prisma.restaurantVisit.findMany({
       where: {
         organizationId: actor.organizationId,
+        OR: [
+          { status: RestaurantVisitStatus.OPEN },
+          { closedAt: { gte: cutoff } },
+        ],
         invoiceRequestStatus: {
           not: RestaurantInvoiceRequestStatus.NOT_REQUESTED,
         },
@@ -1523,6 +1731,7 @@ export class RestaurantService {
             restaurantDisplayName: true,
             restaurantHeaderImageData: true,
             restaurantUseHeaderImage: true,
+            restaurantRetentionDays: true,
             restaurantMenuBackgroundImageData: true,
             restaurantMenuBackgroundEnabled: true,
             restaurantMenuBackgroundPosition: true,
@@ -2155,6 +2364,7 @@ export class RestaurantService {
             restaurantDisplayName: true,
             restaurantHeaderImageData: true,
             restaurantUseHeaderImage: true,
+            restaurantRetentionDays: true,
           },
         },
         responsibleStaff: {
@@ -2176,6 +2386,14 @@ export class RestaurantService {
       },
     });
     if (!visit) throw new NotFoundException("Order not found");
+    if (
+      visit.status === RestaurantVisitStatus.CLOSED &&
+      visit.closedAt &&
+      visit.closedAt.getTime() <
+        Date.now() - visit.organization.restaurantRetentionDays * 86_400_000
+    ) {
+      throw new NotFoundException("Receipt retention period expired");
+    }
     const now = new Date();
     const [promotionRows, menu, availableStations] = await Promise.all([
       this.prisma.restaurantPromotion.findMany({
@@ -2216,6 +2434,7 @@ export class RestaurantService {
       status: visit.status,
       createdAt: visit.openedAt,
       closedAt: visit.closedAt,
+      receiptNumber: visit.receiptNumber,
       restaurant: visit.organization?.name ?? "Restaurante",
       branding: {
         displayName:
@@ -2252,7 +2471,7 @@ export class RestaurantService {
   async guestReceipt(accessCode: string) {
     const account = await this.guestOrder(accessCode);
     return {
-      receiptNumber: account.id,
+      receiptNumber: account.receiptNumber ?? account.id,
       restaurant: account.restaurant,
       table: account.table.name,
       openedAt: account.createdAt,

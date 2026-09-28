@@ -13,6 +13,7 @@ type Order = {
   status: "OPEN" | "CLOSED";
   createdAt: string;
   closedAt?: string | null;
+  receiptNumber?: string | null;
   occupiesTable?: boolean;
   deliveryPhone?: string | null;
   deliveryAddress?: string | null;
@@ -305,6 +306,7 @@ export default function RestaurantOrderPage() {
         : [`Subtotal: ₡${order.billing.subtotal.toLocaleString()}`];
     return [
       order.branding?.displayName ?? order.restaurant ?? "Restaurante",
+      ...(order.receiptNumber ? [`Comprobante: ${order.receiptNumber}`] : []),
       order.table.name,
       ...(order.deliveryAddress
         ? [`Entrega a domicilio: ${order.deliveryAddress}`]
@@ -357,6 +359,11 @@ export default function RestaurantOrderPage() {
     <main className="mx-auto max-w-2xl px-4 py-8 text-slate-900">
       <RestaurantBrandHeader order={order} />
       <h2 className="text-2xl font-bold">Su orden · {order?.table.name}</h2>
+      {order?.status === "CLOSED" && order.receiptNumber && (
+        <p className="mt-2 font-mono text-sm font-semibold text-slate-700">
+          Comprobante: {order.receiptNumber}
+        </p>
+      )}
       <section className="mt-4 rounded-2xl border border-sky-200 bg-gradient-to-r from-sky-50 via-cyan-50 to-violet-50 p-4 text-slate-800 shadow-sm">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>

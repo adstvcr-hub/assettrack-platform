@@ -60,6 +60,8 @@ export const ModelName = {
   RestaurantRewardProgram: 'RestaurantRewardProgram',
   RestaurantVisitTransfer: 'RestaurantVisitTransfer',
   PlatformAdminEvent: 'PlatformAdminEvent',
+  RestaurantAnalyticsDaily: 'RestaurantAnalyticsDaily',
+  RestaurantAnalyticsProductDaily: 'RestaurantAnalyticsProductDaily',
   UserManagementEvent: 'UserManagementEvent',
   RestaurantMenuItem: 'RestaurantMenuItem',
   RestaurantOrder: 'RestaurantOrder',
@@ -111,7 +113,8 @@ export const OrganizationScalarFieldEnum = {
   restaurantMenuBackgroundSize: 'restaurantMenuBackgroundSize',
   restaurantLatitude: 'restaurantLatitude',
   restaurantLongitude: 'restaurantLongitude',
-  restaurantOrderRadiusMeters: 'restaurantOrderRadiusMeters'
+  restaurantOrderRadiusMeters: 'restaurantOrderRadiusMeters',
+  restaurantRetentionDays: 'restaurantRetentionDays'
 } as const
 
 export type OrganizationScalarFieldEnum = (typeof OrganizationScalarFieldEnum)[keyof typeof OrganizationScalarFieldEnum]
@@ -160,7 +163,10 @@ export const RestaurantVisitScalarFieldEnum = {
   invoiceTaxId: 'invoiceTaxId',
   invoiceReference: 'invoiceReference',
   responsibleStaffId: 'responsibleStaffId',
-  fallbackStaffId: 'fallbackStaffId'
+  fallbackStaffId: 'fallbackStaffId',
+  receiptNumber: 'receiptNumber',
+  openedAnalyticsConsolidatedAt: 'openedAnalyticsConsolidatedAt',
+  closedAnalyticsConsolidatedAt: 'closedAnalyticsConsolidatedAt'
 } as const
 
 export type RestaurantVisitScalarFieldEnum = (typeof RestaurantVisitScalarFieldEnum)[keyof typeof RestaurantVisitScalarFieldEnum]
@@ -174,7 +180,8 @@ export const RestaurantQrAccessScalarFieldEnum = {
   insideLocal: 'insideLocal',
   distanceMeters: 'distanceMeters',
   accuracyMeters: 'accuracyMeters',
-  createdAt: 'createdAt'
+  createdAt: 'createdAt',
+  analyticsConsolidatedAt: 'analyticsConsolidatedAt'
 } as const
 
 export type RestaurantQrAccessScalarFieldEnum = (typeof RestaurantQrAccessScalarFieldEnum)[keyof typeof RestaurantQrAccessScalarFieldEnum]
@@ -258,6 +265,45 @@ export const PlatformAdminEventScalarFieldEnum = {
 export type PlatformAdminEventScalarFieldEnum = (typeof PlatformAdminEventScalarFieldEnum)[keyof typeof PlatformAdminEventScalarFieldEnum]
 
 
+export const RestaurantAnalyticsDailyScalarFieldEnum = {
+  id: 'id',
+  organizationId: 'organizationId',
+  date: 'date',
+  qrAccesses: 'qrAccesses',
+  uniqueQrSessions: 'uniqueQrSessions',
+  visitsOpened: 'visitsOpened',
+  visitsClosed: 'visitsClosed',
+  orders: 'orders',
+  grossSubtotal: 'grossSubtotal',
+  promotionCredit: 'promotionCredit',
+  subtotal: 'subtotal',
+  tax: 'tax',
+  service: 'service',
+  total: 'total',
+  itemsSold: 'itemsSold',
+  itemsCancelled: 'itemsCancelled',
+  dineInOrders: 'dineInOrders',
+  takeoutOrders: 'takeoutOrders',
+  deliveryOrders: 'deliveryOrders',
+  demandByHour: 'demandByHour',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type RestaurantAnalyticsDailyScalarFieldEnum = (typeof RestaurantAnalyticsDailyScalarFieldEnum)[keyof typeof RestaurantAnalyticsDailyScalarFieldEnum]
+
+
+export const RestaurantAnalyticsProductDailyScalarFieldEnum = {
+  id: 'id',
+  organizationId: 'organizationId',
+  date: 'date',
+  productName: 'productName',
+  quantity: 'quantity'
+} as const
+
+export type RestaurantAnalyticsProductDailyScalarFieldEnum = (typeof RestaurantAnalyticsProductDailyScalarFieldEnum)[keyof typeof RestaurantAnalyticsProductDailyScalarFieldEnum]
+
+
 export const UserManagementEventScalarFieldEnum = {
   id: 'id',
   organizationId: 'organizationId',
@@ -306,7 +352,8 @@ export const RestaurantOrderScalarFieldEnum = {
   promotionCredit: 'promotionCredit',
   expectedMinutes: 'expectedMinutes',
   thresholdMinutes: 'thresholdMinutes',
-  delayedAt: 'delayedAt'
+  delayedAt: 'delayedAt',
+  analyticsConsolidatedAt: 'analyticsConsolidatedAt'
 } as const
 
 export type RestaurantOrderScalarFieldEnum = (typeof RestaurantOrderScalarFieldEnum)[keyof typeof RestaurantOrderScalarFieldEnum]

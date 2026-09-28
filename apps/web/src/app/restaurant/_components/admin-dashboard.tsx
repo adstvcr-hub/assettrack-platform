@@ -178,6 +178,46 @@ type RestaurantAnalytics = {
   }>;
   popularItems: Array<{ name: string; quantity: number }>;
 };
+type ClosedSale = {
+  id: string;
+  receiptNumber: string;
+  openedAt: string;
+  closedAt: string;
+  expiresAt: string;
+  table: { name: string; kind: string };
+  responsibleStaff?: { name: string } | null;
+  items: Array<{
+    id: string;
+    orderCreatedAt: string;
+    name: string;
+    quantity: number;
+    unitPrice: number;
+    total: number;
+    status: string;
+    fulfillment: string;
+  }>;
+  billing: {
+    subtotal: number;
+    tax: number;
+    service: number;
+    total: number;
+  };
+  invoice: {
+    status: string;
+    requestedAt?: string | null;
+    name?: string | null;
+    email?: string | null;
+    phone?: string | null;
+    taxId?: string | null;
+    reference?: string | null;
+  };
+};
+type SalesHistory = {
+  items: ClosedSale[];
+  total: number;
+  retentionDays: number;
+  maximumRetentionDays: number;
+};
 const nextStatus: Record<string, string | null> = {
   RECEIVED: "ACCEPTED",
   ACCEPTED: "PREPARING",
@@ -273,6 +313,8 @@ export default function RestaurantAdminDashboard() {
   const [analyticsTo, setAnalyticsTo] = useState(() =>
     new Date().toISOString().slice(0, 10),
   );
+  const [salesHistory, setSalesHistory] = useState<SalesHistory | null>(null);
+  const [salesSearch, setSalesSearch] = useState("");
   const billingInitialized = useRef(false);
   const brandingInitialized = useRef(false);
   const orderingAreaInitialized = useRef(false);
@@ -403,6 +445,28 @@ export default function RestaurantAdminDashboard() {
     setAnalytics(await response.json());
   }, [analyticsFrom, analyticsTo, router]);
 
+  const loadSalesHistory = useCallback(async () => {
+    const query = new URLSearchParams({
+      from: analyticsFrom,
+      to: analyticsTo,
+      search: salesSearch,
+      limit: "50",
+    });
+    const response = await authenticatedFetch(
+      `${API_URL}/api/v1/restaurant/sales-history?${query}`,
+    );
+    if (response.status === 401) {
+      router.replace("/?next=/restaurant/admin");
+      return;
+    }
+    const body = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      setError(body.message ?? "No se pudo cargar el historial de ventas");
+      return;
+    }
+    setSalesHistory(body as SalesHistory);
+  }, [analyticsFrom, analyticsTo, router, salesSearch]);
+
   useEffect(() => {
     if (!sessionStorage.getItem("assettrack_token")) {
       router.replace("/?next=/restaurant/admin");
@@ -419,6 +483,33 @@ export default function RestaurantAdminDashboard() {
     if (!sessionStorage.getItem("assettrack_token")) return;
     void loadAnalytics();
   }, [loadAnalytics]);
+
+  useEffect(() => {
+    if (!sessionStorage.getItem("assettrack_token")) return;
+    void loadSalesHistory();
+  }, [loadSalesHistory]);
+
+  async function downloadSalesHistory() {
+    const query = new URLSearchParams({
+      from: analyticsFrom,
+      to: analyticsTo,
+      search: salesSearch,
+    });
+    const response = await authenticatedFetch(
+      `${API_URL}/api/v1/restaurant/sales-history/export?${query}`,
+    );
+    if (!response.ok) {
+      setError("No se pudo exportar el historial de ventas");
+      return;
+    }
+    const blob = await response.blob();
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = `historial-ventas-${analyticsFrom}-${analyticsTo}.csv`;
+    anchor.click();
+    URL.revokeObjectURL(url);
+  }
 
   async function post(path: string, payload: object, method = "POST") {
     setError("");
@@ -1243,6 +1334,135 @@ export default function RestaurantAdminDashboard() {
                 </div>
               </>
             )}
+          </section>
+          <section className="mt-8 rounded-xl border bg-white p-5">
+            <div className="flex flex-wrap items-start justify-between gap-4">
+              <div>
+                <h2 className="text-xl font-bold">
+                  Historial de ventas cerradas
+                </h2>
+                <p className="mt-1 text-sm text-slate-600">
+                  Consulte comprobantes recientes para atender aclaraciones del
+                  cliente. AssetTrack elimina automáticamente el detalle al
+                  vencer la retención operativa.
+                </p>
+              </div>
+              <button
+                type="button"
+                className="rounded bg-emerald-700 px-4 py-2 font-semibold text-white"
+                onClick={() => void downloadSalesHistory()}
+              >
+                Descargar CSV
+              </button>
+            </div>
+            <div className="mt-4 flex flex-wrap items-end gap-3">
+              <label className="min-w-64 flex-1 text-sm font-semibold">
+                Buscar comprobante, mesa, responsable o dato fiscal
+                <input
+                  className="mt-1 w-full rounded border p-2"
+                  value={salesSearch}
+                  onChange={(event) => setSalesSearch(event.target.value)}
+                  placeholder="Ej. AT-20260927, Mesa 2 o correo"
+                />
+              </label>
+              <button
+                type="button"
+                className="rounded bg-slate-900 px-4 py-2 font-semibold text-white"
+                onClick={() => void loadSalesHistory()}
+              >
+                Buscar
+              </button>
+            </div>
+            {salesHistory && (
+              <p className="mt-3 rounded bg-amber-50 p-3 text-sm text-amber-900">
+                Se muestran {salesHistory.total} cuentas. El detalle permanece
+                disponible durante {salesHistory.retentionDays} días; el máximo
+                de AssetTrack es {salesHistory.maximumRetentionDays} días.
+              </p>
+            )}
+            <div className="mt-4 space-y-4">
+              {salesHistory?.items.map((sale) => (
+                <details key={sale.id} className="rounded-lg border p-4">
+                  <summary className="cursor-pointer font-semibold">
+                    {sale.receiptNumber} · {sale.table.name} · ₡
+                    {sale.billing.total.toLocaleString()} ·{" "}
+                    {new Date(sale.closedAt).toLocaleString("es-CR")}
+                  </summary>
+                  <div className="mt-4 grid gap-2 text-sm sm:grid-cols-2">
+                    <p>
+                      Responsable:{" "}
+                      {sale.responsibleStaff?.name ?? "Sin asignar"}
+                    </p>
+                    <p>
+                      Disponible hasta:{" "}
+                      {new Date(sale.expiresAt).toLocaleString("es-CR")}
+                    </p>
+                  </div>
+                  <div className="mt-3 overflow-x-auto">
+                    <table className="w-full min-w-[560px] text-left text-sm">
+                      <thead className="bg-slate-100">
+                        <tr>
+                          <th className="p-2">Hora</th>
+                          <th className="p-2">Producto</th>
+                          <th className="p-2">Cantidad</th>
+                          <th className="p-2">Modalidad</th>
+                          <th className="p-2">Total</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {sale.items.map((item) => (
+                          <tr key={item.id} className="border-t">
+                            <td className="p-2">
+                              {new Date(item.orderCreatedAt).toLocaleTimeString(
+                                "es-CR",
+                              )}
+                            </td>
+                            <td className="p-2">{item.name}</td>
+                            <td className="p-2">{item.quantity}</td>
+                            <td className="p-2">{item.fulfillment}</td>
+                            <td className="p-2">
+                              ₡{item.total.toLocaleString()}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                  <div className="mt-3 grid gap-2 rounded bg-slate-50 p-3 text-sm sm:grid-cols-4">
+                    <span>
+                      Subtotal: ₡{sale.billing.subtotal.toLocaleString()}
+                    </span>
+                    <span>IVA: ₡{sale.billing.tax.toLocaleString()}</span>
+                    <span>
+                      Servicio: ₡{sale.billing.service.toLocaleString()}
+                    </span>
+                    <strong>
+                      Total: ₡{sale.billing.total.toLocaleString()}
+                    </strong>
+                  </div>
+                  {sale.invoice.status !== "NOT_REQUESTED" && (
+                    <div className="mt-3 rounded border border-indigo-200 bg-indigo-50 p-3 text-sm">
+                      <strong>
+                        Factura electrónica: {sale.invoice.status}
+                      </strong>
+                      <p>
+                        {sale.invoice.name} · {sale.invoice.email} ·{" "}
+                        {sale.invoice.phone} · ID {sale.invoice.taxId}
+                      </p>
+                      {sale.invoice.reference && (
+                        <p>Referencia: {sale.invoice.reference}</p>
+                      )}
+                    </div>
+                  )}
+                </details>
+              ))}
+              {salesHistory?.items.length === 0 && (
+                <p className="rounded bg-slate-50 p-4 text-slate-600">
+                  No se encontraron ventas cerradas dentro de la ventana de
+                  retención.
+                </p>
+              )}
+            </div>
           </section>
           <section className="mt-8 rounded-xl border bg-amber-50 p-5">
             <h2 className="text-xl font-bold">Alcance para pedidos por QR</h2>

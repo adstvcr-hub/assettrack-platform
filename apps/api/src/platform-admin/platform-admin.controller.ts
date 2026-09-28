@@ -1,4 +1,14 @@
-import { Body, Controller, Get, Param, Patch, Post, Query, Req, UseGuards } from "@nestjs/common";
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Query,
+  Req,
+  UseGuards,
+} from "@nestjs/common";
 import type { Request } from "express";
 import { JwtAuthGuard } from "../auth/jwt-auth.guard";
 import { PlatformAdminService, PlatformActor } from "./platform-admin.service";
@@ -6,6 +16,7 @@ import {
   CreateRestaurantOrganizationDto,
   ResetUserCredentialDto,
   UpdateRestaurantAccessDto,
+  UpdateRestaurantRetentionDto,
 } from "./dto/platform-admin.dto";
 import { CreateRewardProgramDto } from "../restaurant/dto/restaurant.dto";
 
@@ -55,6 +66,20 @@ export class PlatformAdminController {
     @Body() dto: UpdateRestaurantAccessDto,
   ) {
     return this.platform.setRestaurantAccess(req.user, id, dto.enabled);
+  }
+
+  @Patch("organizations/:id/retention")
+  setRetention(
+    @Req() req: PlatformRequest,
+    @Param("id") id: string,
+    @Body() dto: UpdateRestaurantRetentionDto,
+  ) {
+    return this.platform.setRestaurantRetention(req.user, id, dto.days);
+  }
+
+  @Post("data-maintenance")
+  runDataMaintenance(@Req() req: PlatformRequest) {
+    return this.platform.runDataMaintenance(req.user);
   }
 
   @Post("organizations/:organizationId/users/:userId/reset-password")
