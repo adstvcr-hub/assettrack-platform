@@ -116,6 +116,52 @@ export class RestaurantService {
     );
   }
 
+  private async assertOperationalStaffInsideRestaurant(
+    actor: RestaurantActor,
+    dto: UpdateStaffAvailabilityDto,
+  ) {
+    if (
+      dto.availability !== RestaurantStaffAvailability.AVAILABLE ||
+      (actor.restaurantRole !== RestaurantStaffRole.KITCHEN &&
+        actor.restaurantRole !== RestaurantStaffRole.BAR &&
+        actor.restaurantRole !== RestaurantStaffRole.WAITER)
+    ) {
+      return;
+    }
+    const organization = await this.prisma.organization.findUnique({
+      where: { id: actor.organizationId },
+      select: {
+        restaurantLatitude: true,
+        restaurantLongitude: true,
+        restaurantOrderRadiusMeters: true,
+      },
+    });
+    if (
+      !organization ||
+      organization.restaurantLatitude == null ||
+      organization.restaurantLongitude == null
+    ) {
+      return;
+    }
+    if (dto.latitude === undefined || dto.longitude === undefined) {
+      throw new ForbiddenException(
+        "Debe confirmar su ubicación para activar su puesto de trabajo",
+      );
+    }
+    const distance = this.distanceMeters(
+      Number(organization.restaurantLatitude),
+      Number(organization.restaurantLongitude),
+      dto.latitude,
+      dto.longitude,
+    );
+    const tolerance = Math.min(Math.round(dto.locationAccuracy ?? 0), 50);
+    if (distance > organization.restaurantOrderRadiusMeters + tolerance) {
+      throw new ForbiddenException(
+        "Estás fuera del alcance del local comercial",
+      );
+    }
+  }
+
   private async rebalanceWaiterTables(
     tx: Prisma.TransactionClient,
     organizationId: string,
@@ -1425,6 +1471,7 @@ export class RestaurantService {
     if (!actor.restaurantRole) {
       throw new ForbiddenException("Restaurant role required");
     }
+    await this.assertOperationalStaffInsideRestaurant(actor, dto);
     const reason = dto.reason?.trim() || null;
     if (dto.availability !== RestaurantStaffAvailability.AVAILABLE && !reason) {
       throw new BadRequestException(

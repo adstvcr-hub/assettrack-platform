@@ -9,6 +9,14 @@ type StaffAccessProfile = {
   restaurantName: string;
   staffName: string;
   staffRole: "RESTAURANT_ADMIN" | "KITCHEN" | "BAR" | "WAITER";
+  locationVerificationRequired: boolean;
+  locationVerified: boolean;
+};
+
+type StaffLocation = {
+  latitude: number;
+  longitude: number;
+  locationAccuracy: number;
 };
 
 const roleLabels: Record<StaffAccessProfile["staffRole"], string> = {
@@ -27,18 +35,61 @@ export default function StaffAccessPage() {
   const [loading, setLoading] = useState(true);
   const [signingIn, setSigningIn] = useState(false);
   const [error, setError] = useState("");
+  const [location, setLocation] = useState<StaffLocation | null>(null);
 
   useEffect(() => {
     let cancelled = false;
+    const getLocation = () =>
+      new Promise<StaffLocation>((resolve, reject) => {
+        if (!navigator.geolocation) {
+          reject(
+            new Error("Este dispositivo no permite verificar la ubicación."),
+          );
+          return;
+        }
+        navigator.geolocation.getCurrentPosition(
+          (position) =>
+            resolve({
+              latitude: position.coords.latitude,
+              longitude: position.coords.longitude,
+              locationAccuracy: position.coords.accuracy,
+            }),
+          () =>
+            reject(
+              new Error(
+                "Debe permitir el acceso a su ubicación para usar este puesto de trabajo.",
+              ),
+            ),
+          { enableHighAccuracy: true, timeout: 15000, maximumAge: 30000 },
+        );
+      });
     async function loadProfile() {
       try {
-        const response = await fetch(
-          `${API_URL}/api/v1/auth/staff-access/${encodeURIComponent(accessCode)}`,
-          { cache: "no-store" },
-        );
+        const profileUrl = `${API_URL}/api/v1/auth/staff-access/${encodeURIComponent(accessCode)}`;
+        let response = await fetch(profileUrl, { cache: "no-store" });
         if (!response.ok) throw new Error("Este código QR no está activo.");
-        const data = (await response.json()) as StaffAccessProfile;
-        if (!cancelled) setProfile(data);
+        let data = (await response.json()) as Partial<StaffAccessProfile> & {
+          message?: string;
+        };
+        if (data.locationVerificationRequired && !data.locationVerified) {
+          const verifiedLocation = await getLocation();
+          const query = new URLSearchParams({
+            latitude: String(verifiedLocation.latitude),
+            longitude: String(verifiedLocation.longitude),
+            locationAccuracy: String(verifiedLocation.locationAccuracy),
+          });
+          response = await fetch(`${profileUrl}?${query}`, {
+            cache: "no-store",
+          });
+          data = await response.json().catch(() => ({}));
+          if (!response.ok) {
+            throw new Error(
+              data.message ?? "No fue posible verificar su ubicación.",
+            );
+          }
+          if (!cancelled) setLocation(verifiedLocation);
+        }
+        if (!cancelled) setProfile(data as StaffAccessProfile);
       } catch (reason) {
         if (!cancelled) {
           setError(
@@ -68,7 +119,7 @@ export default function StaffAccessPage() {
           method: "POST",
           credentials: "include",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ accessCode, password }),
+          body: JSON.stringify({ accessCode, password, ...location }),
         },
       );
       const data = await response.json().catch(() => ({}));

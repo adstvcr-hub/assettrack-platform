@@ -5,6 +5,7 @@ import {
   Get,
   Param,
   Post,
+  Query,
   Req,
   Res,
   UnauthorizedException,
@@ -13,7 +14,10 @@ import type { Request, Response } from "express";
 import { AuthService } from "./auth.service";
 import { LoginDto } from "./dto/login.dto";
 import { Throttle } from "@nestjs/throttler";
-import { StaffAccessLoginDto } from "./dto/staff-access-login.dto";
+import {
+  StaffAccessLocationDto,
+  StaffAccessLoginDto,
+} from "./dto/staff-access-login.dto";
 
 @Controller("auth")
 export class AuthController {
@@ -59,8 +63,11 @@ export class AuthController {
 
   @Throttle({ default: { limit: 30, ttl: 60000 } })
   @Get("staff-access/:accessCode")
-  staffAccessProfile(@Param("accessCode") accessCode: string) {
-    return this.authService.staffAccessProfile(accessCode);
+  staffAccessProfile(
+    @Param("accessCode") accessCode: string,
+    @Query() location: StaffAccessLocationDto,
+  ) {
+    return this.authService.staffAccessProfile(accessCode, location);
   }
 
   @Throttle({ default: { limit: 5, ttl: 60000 } })
@@ -72,6 +79,7 @@ export class AuthController {
     const result = await this.authService.loginWithStaffAccess(
       dto.accessCode,
       dto.password,
+      dto,
     );
     this.setRefreshCookie(response, result.refreshToken);
     return { accessToken: result.accessToken, user: result.user };

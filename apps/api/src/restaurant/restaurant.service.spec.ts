@@ -1541,6 +1541,34 @@ describe("RestaurantService", () => {
     });
   });
 
+  it("blocks staff from becoming available outside the restaurant geofence", async () => {
+    const { prisma, service } = createService();
+    const waiter = {
+      id: "waiter-a",
+      organizationId: "org-a",
+      role: UserRole.USER,
+      restaurantRole: RestaurantStaffRole.WAITER,
+      restaurantAvailability:
+        RestaurantStaffAvailability.TEMPORARILY_UNAVAILABLE,
+    };
+    prisma.organization.findUnique.mockResolvedValue({
+      restaurantLatitude: 9.9281,
+      restaurantLongitude: -84.0907,
+      restaurantOrderRadiusMeters: 100,
+    });
+
+    await expect(
+      service.updateOwnStaffAvailability(waiter, {
+        availability: RestaurantStaffAvailability.AVAILABLE,
+        latitude: 10,
+        longitude: -84.2,
+        locationAccuracy: 5,
+      }),
+    ).rejects.toThrow("Estás fuera del alcance del local comercial");
+    expect(prisma.user.update).not.toHaveBeenCalled();
+    expect(prisma.restaurantStaffEvent.create).not.toHaveBeenCalled();
+  });
+
   it("reports tables that cannot be reassigned to an available waiter", async () => {
     const { prisma, service } = createService();
     const waiter = {

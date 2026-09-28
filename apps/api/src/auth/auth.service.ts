@@ -1,4 +1,5 @@
 import {
+  ForbiddenException,
   Injectable,
   NotFoundException,
   UnauthorizedException,
@@ -8,8 +9,10 @@ import { createHash, randomBytes } from "crypto";
 import * as bcrypt from "bcrypt";
 import { PrismaService } from "../prisma/prisma.service";
 import { LoginDto } from "./dto/login.dto";
+import type { StaffAccessLocationDto } from "./dto/staff-access-login.dto";
 import {
   RestaurantStaffAvailability,
+  RestaurantStaffRole,
   UserRole,
 } from "../generated/prisma/enums";
 
@@ -32,6 +35,78 @@ export class AuthService {
     const expiresAt = new Date();
     expiresAt.setDate(expiresAt.getDate() + 30);
     return expiresAt;
+  }
+
+  private distanceMeters(
+    latitudeA: number,
+    longitudeA: number,
+    latitudeB: number,
+    longitudeB: number,
+  ) {
+    const radians = (degrees: number) => (degrees * Math.PI) / 180;
+    const latitudeDelta = radians(latitudeB - latitudeA);
+    const longitudeDelta = radians(longitudeB - longitudeA);
+    const a =
+      Math.sin(latitudeDelta / 2) ** 2 +
+      Math.cos(radians(latitudeA)) *
+        Math.cos(radians(latitudeB)) *
+        Math.sin(longitudeDelta / 2) ** 2;
+    return 6371000 * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  }
+
+  private isOperationalRestaurantStaff(user: {
+    restaurantRole: string | null;
+  }) {
+    return (
+      user.restaurantRole === RestaurantStaffRole.KITCHEN ||
+      user.restaurantRole === RestaurantStaffRole.BAR ||
+      user.restaurantRole === RestaurantStaffRole.WAITER
+    );
+  }
+
+  private restaurantLocationRequired(user: {
+    restaurantRole: string | null;
+    organization: {
+      restaurantLatitude: unknown;
+      restaurantLongitude: unknown;
+    };
+  }) {
+    return (
+      this.isOperationalRestaurantStaff(user) &&
+      user.organization.restaurantLatitude != null &&
+      user.organization.restaurantLongitude != null
+    );
+  }
+
+  private assertStaffInsideRestaurant(
+    user: {
+      restaurantRole: string | null;
+      organization: {
+        restaurantLatitude: unknown;
+        restaurantLongitude: unknown;
+        restaurantOrderRadiusMeters: number;
+      };
+    },
+    location?: StaffAccessLocationDto,
+  ) {
+    if (!this.restaurantLocationRequired(user)) return;
+    if (location?.latitude === undefined || location.longitude === undefined) {
+      throw new ForbiddenException(
+        "Debe confirmar su ubicación para acceder al puesto de trabajo",
+      );
+    }
+    const distance = this.distanceMeters(
+      Number(user.organization.restaurantLatitude),
+      Number(user.organization.restaurantLongitude),
+      location.latitude,
+      location.longitude,
+    );
+    const tolerance = Math.min(Math.round(location.locationAccuracy ?? 0), 50);
+    if (distance > user.organization.restaurantOrderRadiusMeters + tolerance) {
+      throw new ForbiddenException(
+        "Estás fuera del alcance del local comercial",
+      );
+    }
   }
 
   private async createSession(user: {
@@ -122,6 +197,9 @@ export class AuthService {
                 name: true,
                 restaurantDisplayName: true,
                 restaurantAccessEnabled: true,
+                restaurantLatitude: true,
+                restaurantLongitude: true,
+                restaurantOrderRadiusMeters: true,
               },
             },
           },
@@ -141,10 +219,20 @@ export class AuthService {
     return access;
   }
 
-  async staffAccessProfile(accessCode: string) {
+  async staffAccessProfile(
+    accessCode: string,
+    location?: StaffAccessLocationDto,
+  ) {
     const access = await this.validStaffAccess(accessCode);
     if (!access)
       throw new NotFoundException("Staff access code is invalid or inactive");
+    if (
+      this.restaurantLocationRequired(access.user) &&
+      (location?.latitude === undefined || location.longitude === undefined)
+    ) {
+      return { locationVerificationRequired: true, locationVerified: false };
+    }
+    this.assertStaffInsideRestaurant(access.user, location);
     return {
       restaurantName:
         access.user.organization.restaurantDisplayName ??
@@ -156,10 +244,18 @@ export class AuthService {
         access.user.role === UserRole.ADMIN
           ? "RESTAURANT_ADMIN"
           : null),
+      locationVerificationRequired: this.restaurantLocationRequired(
+        access.user,
+      ),
+      locationVerified: true,
     };
   }
 
-  async loginWithStaffAccess(accessCode: string, password: string) {
+  async loginWithStaffAccess(
+    accessCode: string,
+    password: string,
+    location?: StaffAccessLocationDto,
+  ) {
     const access = await this.validStaffAccess(accessCode);
     if (
       !access ||
@@ -167,6 +263,7 @@ export class AuthService {
     ) {
       throw new UnauthorizedException("Invalid credentials");
     }
+    this.assertStaffInsideRestaurant(access.user, location);
     await this.prisma.staffAccessCode.update({
       where: { id: access.id },
       data: { lastUsedAt: new Date() },
@@ -183,6 +280,15 @@ export class AuthService {
           slug: dto.organizationSlug,
         },
       },
+      include: {
+        organization: {
+          select: {
+            restaurantLatitude: true,
+            restaurantLongitude: true,
+            restaurantOrderRadiusMeters: true,
+          },
+        },
+      },
     });
 
     if (!user) {
@@ -194,6 +300,8 @@ export class AuthService {
     if (!passwordValid) {
       throw new UnauthorizedException("Invalid credentials");
     }
+
+    this.assertStaffInsideRestaurant(user, dto);
 
     return this.createSession(user);
   }

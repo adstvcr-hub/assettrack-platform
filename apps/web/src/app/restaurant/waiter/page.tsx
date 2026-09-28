@@ -327,6 +327,47 @@ export default function WaiterPage() {
         : `${labels[availabilityChoice]}${
             availabilityDetails.trim() ? `: ${availabilityDetails.trim()}` : ""
           }`;
+    let location:
+      | {
+          latitude: number;
+          longitude: number;
+          locationAccuracy: number;
+        }
+      | undefined;
+    if (availabilityChoice === "AVAILABLE") {
+      try {
+        location = await new Promise((resolve, reject) => {
+          if (!navigator.geolocation) {
+            reject(
+              new Error("Este dispositivo no permite verificar la ubicación."),
+            );
+            return;
+          }
+          navigator.geolocation.getCurrentPosition(
+            (position) =>
+              resolve({
+                latitude: position.coords.latitude,
+                longitude: position.coords.longitude,
+                locationAccuracy: position.coords.accuracy,
+              }),
+            () =>
+              reject(
+                new Error(
+                  "Debe permitir la ubicación para activar su puesto de trabajo.",
+                ),
+              ),
+            { enableHighAccuracy: true, timeout: 15000, maximumAge: 30000 },
+          );
+        });
+      } catch (reason) {
+        setError(
+          reason instanceof Error
+            ? reason.message
+            : "No fue posible verificar su ubicación.",
+        );
+        return;
+      }
+    }
     setSavingAvailability(true);
     setError("");
     setAvailabilityMessage("");
@@ -338,6 +379,7 @@ export default function WaiterPage() {
         body: JSON.stringify({
           availability: availabilityChoice,
           reason,
+          ...location,
         }),
       },
     );

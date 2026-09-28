@@ -27,10 +27,14 @@ async function createService() {
         name: "Restaurante Demo",
         restaurantDisplayName: "Bar Mariposa",
         restaurantAccessEnabled: true,
+        restaurantLatitude: null as number | null,
+        restaurantLongitude: null as number | null,
+        restaurantOrderRadiusMeters: 150,
       },
     },
   };
   const prisma = {
+    user: { findFirst: vi.fn() },
     staffAccessCode: {
       findUnique: vi.fn().mockResolvedValue(access),
       update: vi.fn(),
@@ -50,6 +54,7 @@ async function createService() {
   };
   const jwt = { signAsync: vi.fn().mockResolvedValue("access-token") };
   return {
+    access,
     prisma,
     jwt,
     service: new AuthService(
@@ -67,7 +72,62 @@ describe("AuthService staff QR access", () => {
       restaurantName: "Bar Mariposa",
       staffName: "Mesero 1",
       staffRole: "WAITER",
+      locationVerificationRequired: false,
+      locationVerified: true,
     });
+  });
+
+  it("does not reveal the staff profile until a configured geofence is verified", async () => {
+    const { access, service } = await createService();
+    access.user.organization.restaurantLatitude = 9.9281;
+    access.user.organization.restaurantLongitude = -84.0907;
+
+    await expect(service.staffAccessProfile("a".repeat(43))).resolves.toEqual({
+      locationVerificationRequired: true,
+      locationVerified: false,
+    });
+    await expect(
+      service.staffAccessProfile("a".repeat(43), {
+        latitude: 10,
+        longitude: -84.2,
+        locationAccuracy: 5,
+      }),
+    ).rejects.toThrow("Estás fuera del alcance del local comercial");
+  });
+
+  it("blocks QR login outside the restaurant before opening a work session", async () => {
+    const { access, prisma, service } = await createService();
+    access.user.organization.restaurantLatitude = 9.9281;
+    access.user.organization.restaurantLongitude = -84.0907;
+
+    await expect(
+      service.loginWithStaffAccess("a".repeat(43), "password-123", {
+        latitude: 10,
+        longitude: -84.2,
+        locationAccuracy: 5,
+      }),
+    ).rejects.toThrow("Estás fuera del alcance del local comercial");
+    expect(prisma.refreshToken.create).not.toHaveBeenCalled();
+    expect(prisma.restaurantStaffSession.create).not.toHaveBeenCalled();
+  });
+
+  it("blocks conventional operational staff login outside the restaurant", async () => {
+    const { access, prisma, service } = await createService();
+    access.user.organization.restaurantLatitude = 9.9281;
+    access.user.organization.restaurantLongitude = -84.0907;
+    prisma.user.findFirst.mockResolvedValue(access.user);
+
+    await expect(
+      service.login({
+        organizationSlug: "restaurant-demo",
+        email: "waiter@example.com",
+        password: "password-123",
+        latitude: 10,
+        longitude: -84.2,
+        locationAccuracy: 5,
+      }),
+    ).rejects.toThrow("Estás fuera del alcance del local comercial");
+    expect(prisma.refreshToken.create).not.toHaveBeenCalled();
   });
 
   it("creates a normal session after validating the password", async () => {

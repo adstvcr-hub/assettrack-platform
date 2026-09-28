@@ -182,6 +182,10 @@ export class UpdateStaffAvailabilityDto {
   @IsString()
   @MaxLength(240)
   reason?: string;
+
+  @IsOptional() @IsNumber() @Min(-90) @Max(90) latitude?: number;
+  @IsOptional() @IsNumber() @Min(-180) @Max(180) longitude?: number;
+  @IsOptional() @IsNumber() @Min(0) @Max(10000) locationAccuracy?: number;
 }
 
 export class UpdateStaffPayrollDto {
