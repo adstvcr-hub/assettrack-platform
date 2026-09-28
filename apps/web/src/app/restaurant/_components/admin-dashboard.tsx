@@ -1,6 +1,7 @@
 "use client";
 
 import { API_URL, authenticatedFetch } from "@/lib/api";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -218,6 +219,75 @@ type SalesHistory = {
   retentionDays: number;
   maximumRetentionDays: number;
 };
+export type RestaurantAdminSection =
+  | "overview"
+  | "analytics"
+  | "sales-history"
+  | "branding"
+  | "tables"
+  | "menu"
+  | "promotions"
+  | "invoices"
+  | "loyalty"
+  | "staff";
+
+const adminSections: Array<{
+  section: RestaurantAdminSection;
+  label: string;
+  href: string;
+}> = [
+  { section: "overview", label: "Resumen", href: "/restaurant/admin" },
+  {
+    section: "analytics",
+    label: "Actividad y ventas",
+    href: "/restaurant/admin/analytics",
+  },
+  {
+    section: "sales-history",
+    label: "Historial de ventas",
+    href: "/restaurant/admin/sales-history",
+  },
+  {
+    section: "branding",
+    label: "Identidad visual",
+    href: "/restaurant/admin/branding",
+  },
+  { section: "tables", label: "Mesas y QR", href: "/restaurant/admin/tables" },
+  { section: "menu", label: "Menú", href: "/restaurant/admin/menu" },
+  {
+    section: "promotions",
+    label: "Promociones",
+    href: "/restaurant/admin/promotions",
+  },
+  {
+    section: "invoices",
+    label: "Factura electrónica",
+    href: "/restaurant/admin/invoices",
+  },
+  {
+    section: "loyalty",
+    label: "Fidelidad y premios",
+    href: "/restaurant/admin/loyalty",
+  },
+  {
+    section: "staff",
+    label: "Personal",
+    href: "/restaurant/admin/staff",
+  },
+];
+
+const sectionDataPaths: Record<RestaurantAdminSection, string[]> = {
+  overview: ["orders", "visits", "billing-settings", "ordering-area-settings"],
+  analytics: [],
+  "sales-history": [],
+  branding: ["branding-settings"],
+  tables: ["tables", "staff-users"],
+  menu: ["menu"],
+  promotions: ["promotions", "menu"],
+  invoices: ["invoice-requests"],
+  loyalty: ["loyalty/summary", "loyalty/rewards", "menu"],
+  staff: ["staff-users"],
+};
 const nextStatus: Record<string, string | null> = {
   RECEIVED: "ACCEPTED",
   ACCEPTED: "PREPARING",
@@ -227,7 +297,11 @@ const nextStatus: Record<string, string | null> = {
   CANCELLED: null,
 };
 
-export default function RestaurantAdminDashboard() {
+export default function RestaurantAdminDashboard({
+  section = "overview",
+}: {
+  section?: RestaurantAdminSection;
+}) {
   const router = useRouter();
   const [tables, setTables] = useState<Table[]>([]);
   const [menu, setMenu] = useState<MenuItem[]>([]);
@@ -321,20 +395,7 @@ export default function RestaurantAdminDashboard() {
 
   const load = useCallback(async () => {
     try {
-      const paths = [
-        "tables",
-        "menu",
-        "orders",
-        "visits",
-        "staff-users",
-        "billing-settings",
-        "branding-settings",
-        "promotions",
-        "invoice-requests",
-        "loyalty/summary",
-        "loyalty/rewards",
-        "ordering-area-settings",
-      ];
+      const paths = sectionDataPaths[section];
       const responses = await Promise.all(
         paths.map((path) =>
           authenticatedFetch(`${API_URL}/api/v1/restaurant/${path}`),
@@ -357,39 +418,49 @@ export default function RestaurantAdminDashboard() {
           `Unable to load restaurant workspace (${paths[failedResponseIndex]}: ${failedResponse.status})`,
         );
       }
-      const [
-        tableData,
-        menuData,
-        orderData,
-        visitData,
-        staffData,
-        billingData,
-        brandingData,
-        promotionData,
-        invoiceData,
-        loyaltyData,
-        rewardData,
-        orderingAreaData,
-      ] = await Promise.all(responses.map((response) => response.json()));
-      setTables(tableData);
-      setMenu(menuData);
-      setOrders(orderData);
-      setVisits(visitData);
-      setStaffUsers(staffData);
-      setBilling(billingData);
-      setBranding(brandingData);
-      setPromotions(promotionData);
-      setInvoiceRequests(invoiceData);
-      setLoyalty(loyaltyData);
-      setRewards(rewardData);
-      setOrderingArea(orderingAreaData);
-      if (!billingInitialized.current) {
+      const dataEntries = await Promise.all(
+        responses.map(
+          async (response, index) =>
+            [paths[index], await response.json()] as const,
+        ),
+      );
+      const data = Object.fromEntries(dataEntries) as Record<string, unknown>;
+      const tableData = data.tables as Table[] | undefined;
+      const menuData = data.menu as MenuItem[] | undefined;
+      const orderData = data.orders as Order[] | undefined;
+      const visitData = data.visits as ActiveVisit[] | undefined;
+      const staffData = data["staff-users"] as StaffUser[] | undefined;
+      const billingData = data["billing-settings"] as
+        BillingSettings | undefined;
+      const brandingData = data["branding-settings"] as
+        BrandingSettings | undefined;
+      const promotionData = data.promotions as Promotion[] | undefined;
+      const invoiceData = data["invoice-requests"] as
+        InvoiceRequest[] | undefined;
+      const loyaltyData = data["loyalty/summary"] as LoyaltySummary | undefined;
+      const rewardData = data["loyalty/rewards"] as RewardProgram[] | undefined;
+      const orderingAreaData = data["ordering-area-settings"] as
+        OrderingAreaSettings | undefined;
+
+      if (tableData) setTables(tableData);
+      if (menuData) setMenu(menuData);
+      if (orderData) setOrders(orderData);
+      if (visitData) setVisits(visitData);
+      if (staffData) setStaffUsers(staffData);
+      if (billingData) setBilling(billingData);
+      if (brandingData) setBranding(brandingData);
+      if (promotionData) setPromotions(promotionData);
+      if (invoiceData) setInvoiceRequests(invoiceData);
+      if (loyaltyData) setLoyalty(loyaltyData);
+      if (rewardData) setRewards(rewardData);
+      if (orderingAreaData) setOrderingArea(orderingAreaData);
+      if (billingData && !billingInitialized.current) {
         setTaxRate(String(billingData.restaurantTaxRateBps / 100));
         setServiceRate(String(billingData.restaurantServiceRateBps / 100));
         setTaxIncluded(billingData.restaurantTaxIncluded);
         billingInitialized.current = true;
       }
-      if (!brandingInitialized.current) {
+      if (brandingData && !brandingInitialized.current) {
         setDisplayName(brandingData.restaurantDisplayName ?? brandingData.name);
         setUseHeaderImage(brandingData.restaurantUseHeaderImage);
         setHeaderImageData(brandingData.restaurantHeaderImageData ?? null);
@@ -403,7 +474,7 @@ export default function RestaurantAdminDashboard() {
         setMenuBackgroundSize(brandingData.restaurantMenuBackgroundSize);
         brandingInitialized.current = true;
       }
-      if (!orderingAreaInitialized.current) {
+      if (orderingAreaData && !orderingAreaInitialized.current) {
         setRestaurantLatitude(
           orderingAreaData.restaurantLatitude == null
             ? ""
@@ -423,7 +494,7 @@ export default function RestaurantAdminDashboard() {
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unable to load orders");
     }
-  }, [router]);
+  }, [router, section]);
 
   const loadAnalytics = useCallback(async () => {
     const query = new URLSearchParams({
@@ -435,6 +506,10 @@ export default function RestaurantAdminDashboard() {
     );
     if (response.status === 401) {
       router.replace("/?next=/restaurant/admin");
+      return;
+    }
+    if (response.status === 403) {
+      router.replace("/restaurant/staff");
       return;
     }
     if (!response.ok) {
@@ -459,6 +534,10 @@ export default function RestaurantAdminDashboard() {
       router.replace("/?next=/restaurant/admin");
       return;
     }
+    if (response.status === 403) {
+      router.replace("/restaurant/staff");
+      return;
+    }
     const body = await response.json().catch(() => ({}));
     if (!response.ok) {
       setError(body.message ?? "No se pudo cargar el historial de ventas");
@@ -473,21 +552,24 @@ export default function RestaurantAdminDashboard() {
       return;
     }
     void load();
+    if (section !== "overview") return;
     const timer = setInterval(() => {
       void load();
     }, 5000);
     return () => clearInterval(timer);
-  }, [load, router]);
+  }, [load, router, section]);
 
   useEffect(() => {
+    if (section !== "analytics") return;
     if (!sessionStorage.getItem("assettrack_token")) return;
     void loadAnalytics();
-  }, [loadAnalytics]);
+  }, [loadAnalytics, section]);
 
   useEffect(() => {
+    if (section !== "sales-history") return;
     if (!sessionStorage.getItem("assettrack_token")) return;
     void loadSalesHistory();
-  }, [loadSalesHistory]);
+  }, [loadSalesHistory, section]);
 
   async function downloadSalesHistory() {
     const query = new URLSearchParams({
@@ -861,12 +943,36 @@ export default function RestaurantAdminDashboard() {
           <RestaurantSessionActions admin />
         </div>
       </header>
+      <nav
+        aria-label="Secciones de administración del restaurante"
+        className="mb-8 overflow-x-auto rounded-xl border bg-white p-2 shadow-sm"
+      >
+        <div className="flex min-w-max gap-2">
+          {adminSections.map((item) => {
+            const active = item.section === section;
+            return (
+              <Link
+                key={item.section}
+                href={item.href}
+                aria-current={active ? "page" : undefined}
+                className={`rounded-lg px-4 py-2.5 text-sm font-semibold transition-colors ${
+                  active
+                    ? "bg-slate-950 text-white"
+                    : "bg-slate-100 text-slate-700 hover:bg-emerald-100 hover:text-emerald-900"
+                }`}
+              >
+                {item.label}
+              </Link>
+            );
+          })}
+        </div>
+      </nav>
       {error && (
         <p role="alert" className="my-4 rounded bg-red-50 p-4 text-red-800">
           {error}
         </p>
       )}
-      {externalVisits.length > 0 && (
+      {section === "overview" && externalVisits.length > 0 && (
         <section
           className={`mb-8 rounded-xl border-4 p-5 shadow-lg ${pendingExternalVisits.length ? "border-red-500 bg-amber-50" : "border-violet-300 bg-violet-50"}`}
         >
@@ -1008,7 +1114,7 @@ export default function RestaurantAdminDashboard() {
           </div>
         </section>
       )}
-      <div className="mb-5 flex gap-2">
+      <div className={section === "overview" ? "mb-5 flex gap-2" : "hidden"}>
         {(["KITCHEN", "BAR"] as const).map((value) => (
           <button
             key={value}
@@ -1019,7 +1125,7 @@ export default function RestaurantAdminDashboard() {
           </button>
         ))}
       </div>
-      <section className="space-y-3">
+      <section className={section === "overview" ? "space-y-3" : "hidden"}>
         <h2 className="text-xl font-bold">
           {station === "KITCHEN" ? "Kitchen" : "Bar"} queue · {visible.length}{" "}
           items
@@ -1096,7 +1202,13 @@ export default function RestaurantAdminDashboard() {
       </section>
       {isAdmin && (
         <>
-          <section className="mt-12 rounded-xl border bg-slate-50 p-5">
+          <section
+            className={
+              section === "overview"
+                ? "mt-12 rounded-xl border bg-slate-50 p-5"
+                : "hidden"
+            }
+          >
             <h2 className="text-xl font-bold">Configuración de facturación</h2>
             <p className="mt-1 text-sm text-slate-600">
               Define cómo se calcula el IVA y el servicio para las cuentas
@@ -1181,7 +1293,13 @@ export default function RestaurantAdminDashboard() {
               </p>
             )}
           </section>
-          <section className="mt-8 rounded-xl border bg-white p-5">
+          <section
+            className={
+              section === "analytics"
+                ? "mt-8 rounded-xl border bg-white p-5"
+                : "hidden"
+            }
+          >
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div>
                 <h2 className="text-xl font-bold">Actividad y ventas</h2>
@@ -1335,7 +1453,13 @@ export default function RestaurantAdminDashboard() {
               </>
             )}
           </section>
-          <section className="mt-8 rounded-xl border bg-white p-5">
+          <section
+            className={
+              section === "sales-history"
+                ? "mt-8 rounded-xl border bg-white p-5"
+                : "hidden"
+            }
+          >
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div>
                 <h2 className="text-xl font-bold">
@@ -1464,7 +1588,13 @@ export default function RestaurantAdminDashboard() {
               )}
             </div>
           </section>
-          <section className="mt-8 rounded-xl border bg-amber-50 p-5">
+          <section
+            className={
+              section === "overview"
+                ? "mt-8 rounded-xl border bg-amber-50 p-5"
+                : "hidden"
+            }
+          >
             <h2 className="text-xl font-bold">Alcance para pedidos por QR</h2>
             <p className="mt-1 text-sm text-slate-700">
               Configure el centro del local y el radio permitido. Fuera de este
@@ -1545,7 +1675,13 @@ export default function RestaurantAdminDashboard() {
               </p>
             )}
           </section>
-          <section className="mt-8 rounded-xl border bg-slate-50 p-5">
+          <section
+            className={
+              section === "branding"
+                ? "mt-8 rounded-xl border bg-slate-50 p-5"
+                : "hidden"
+            }
+          >
             <h2 className="text-xl font-bold">
               Identidad visual del menú del cliente
             </h2>
@@ -1754,8 +1890,14 @@ export default function RestaurantAdminDashboard() {
               </button>
             </form>
           </section>
-          <section className="mt-12 grid gap-8 md:grid-cols-2">
-            <div>
+          <section
+            className={
+              section === "tables" || section === "menu"
+                ? "mt-12 grid gap-8"
+                : "hidden"
+            }
+          >
+            <div className={section === "tables" ? "block" : "hidden"}>
               <h2 className="text-xl font-bold">Tables & QR codes</h2>
               <form
                 className="my-3 flex gap-2"
@@ -1926,7 +2068,7 @@ export default function RestaurantAdminDashboard() {
                 </div>
               )}
             </div>
-            <div>
+            <div className={section === "menu" ? "block" : "hidden"}>
               <h2 className="text-xl font-bold">
                 {editingItemId ? "Editar producto" : "Menú"}
               </h2>
@@ -2142,8 +2284,20 @@ export default function RestaurantAdminDashboard() {
           </section>
         </>
       )}
-      <section className="mt-12 grid gap-8 lg:grid-cols-2">
-        <div className="rounded-xl border bg-white p-5">
+      <section
+        className={
+          section === "promotions" || section === "invoices"
+            ? "mt-12 grid gap-8"
+            : "hidden"
+        }
+      >
+        <div
+          className={
+            section === "promotions"
+              ? "rounded-xl border bg-white p-5"
+              : "hidden"
+          }
+        >
           <h2 className="text-xl font-bold">Promociones</h2>
           <p className="mt-1 text-sm text-slate-600">
             Una promoción vigente podrá mostrarse al iniciar una orden
@@ -2264,7 +2418,11 @@ export default function RestaurantAdminDashboard() {
             ))}
           </div>
         </div>
-        <div className="rounded-xl border bg-white p-5">
+        <div
+          className={
+            section === "invoices" ? "rounded-xl border bg-white p-5" : "hidden"
+          }
+        >
           <h2 className="text-xl font-bold">
             Solicitudes de factura electrónica
           </h2>
@@ -2325,7 +2483,7 @@ export default function RestaurantAdminDashboard() {
           </div>
         </div>
       </section>
-      <section className="mt-12">
+      <section className={section === "loyalty" ? "mt-12" : "hidden"}>
         <h2 className="text-xl font-bold">Fidelidad y premios</h2>
         <p className="mt-1 text-sm text-slate-600">
           Los datos visibles pertenecen únicamente a este restaurante.
@@ -2478,7 +2636,7 @@ export default function RestaurantAdminDashboard() {
           </div>
         </div>
       </section>
-      <section className="mt-12">
+      <section className={section === "staff" ? "mt-12" : "hidden"}>
         <div className="flex flex-wrap items-center justify-between gap-3">
           <h2 className="text-xl font-bold">Personal y estación de trabajo</h2>
           <a
