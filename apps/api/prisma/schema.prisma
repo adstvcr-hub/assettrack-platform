@@ -58,6 +58,12 @@ enum RestaurantStaffAvailability {
   OFF_SHIFT
 }
 
+enum RestaurantPayPeriod {
+  HOURLY
+  DAILY
+  MONTHLY
+}
+
 enum RestaurantCourse {
   DRINK
   STARTER
@@ -582,19 +588,25 @@ model OrganizationLocation {
 }
 
 model User {
-  id                     String                      @id @default(uuid())
-  organizationId         String
-  email                  String
-  name                   String
-  passwordHash           String
-  role                   UserRole                    @default(USER)
-  restaurantRole         RestaurantStaffRole?
-  restaurantAvailability RestaurantStaffAvailability @default(AVAILABLE)
-  active                 Boolean                     @default(true)
-  deactivatedAt          DateTime?
-  sessionVersion         Int                         @default(0)
-  createdAt              DateTime                    @default(now())
-  updatedAt              DateTime                    @updatedAt
+  id                              String                      @id @default(uuid())
+  organizationId                  String
+  email                           String
+  name                            String
+  passwordHash                    String
+  role                            UserRole                    @default(USER)
+  restaurantRole                  RestaurantStaffRole?
+  restaurantAvailability          RestaurantStaffAvailability @default(AVAILABLE)
+  restaurantPayPeriod             RestaurantPayPeriod?
+  restaurantPayRate               Int?
+  restaurantStandardMinutesPerDay Int                         @default(480)
+  restaurantWorkDaysPerMonth      Int                         @default(26)
+  restaurantCcssDeductionEnabled  Boolean                     @default(false)
+  restaurantCcssDeductionBps      Int                         @default(0)
+  active                          Boolean                     @default(true)
+  deactivatedAt                   DateTime?
+  sessionVersion                  Int                         @default(0)
+  createdAt                       DateTime                    @default(now())
+  updatedAt                       DateTime                    @updatedAt
 
   organization                Organization             @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   scanEvents                  ScanEvent[]

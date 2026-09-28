@@ -36,6 +36,7 @@ import {
   UpdateRestaurantBrandingDto,
   UpdateRestaurantOrderingAreaDto,
   UpdateStaffAvailabilityDto,
+  UpdateStaffPayrollDto,
   UpdateTableBillingDto,
   UpdateVisitPaymentDto,
   UpdatePromotionDto,
@@ -373,6 +374,15 @@ export class RestaurantStaffController {
     @Body() dto: UpdateStaffAvailabilityDto,
   ) {
     return this.restaurant.updateStaffAvailability(req.user, id, dto);
+  }
+
+  @Patch("staff-users/:id/payroll")
+  updateStaffPayroll(
+    @Req() req: StaffRequest,
+    @Param("id") id: string,
+    @Body() dto: UpdateStaffPayrollDto,
+  ) {
+    return this.restaurant.updateStaffPayroll(req.user, id, dto);
   }
 
   @Post("staff-users/:id/access-qr")

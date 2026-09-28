@@ -8,6 +8,7 @@ import { describe, expect, it, vi } from "vitest";
 import { PrismaService } from "../prisma/prisma.service";
 import { RestaurantService } from "./restaurant.service";
 import {
+  RestaurantPayPeriod,
   RestaurantStaffAvailability,
   RestaurantStaffRole,
   UserRole,
@@ -1281,6 +1282,12 @@ describe("RestaurantService", () => {
           email: "mesero1@example.com",
           restaurantRole: RestaurantStaffRole.WAITER,
           role: UserRole.USER,
+          restaurantPayPeriod: RestaurantPayPeriod.HOURLY,
+          restaurantPayRate: 2000,
+          restaurantStandardMinutesPerDay: 480,
+          restaurantWorkDaysPerMonth: 26,
+          restaurantCcssDeductionEnabled: true,
+          restaurantCcssDeductionBps: 1000,
         },
       },
     ]);
@@ -1324,18 +1331,32 @@ describe("RestaurantService", () => {
       "waiter-a",
     );
 
-    expect(result.summary).toEqual({
-      employees: 1,
-      sessions: 1,
-      activeMs: 7.5 * 60 * 60 * 1000,
-      outOfServiceMs: 1.5 * 60 * 60 * 1000,
-    });
+    expect(result.summary).toEqual(
+      expect.objectContaining({
+        employees: 1,
+        sessions: 1,
+        activeMs: 7.5 * 60 * 60 * 1000,
+        outOfServiceMs: 1.5 * 60 * 60 * 1000,
+        payableMs: 8.5 * 60 * 60 * 1000,
+        deductedMs: 0.5 * 60 * 60 * 1000,
+        grossPay: 17000,
+        ccssDeduction: 1700,
+        netPay: 15300,
+      }),
+    );
     expect(result.employees[0]).toEqual(
       expect.objectContaining({
         name: "Mesero 1",
         activeMs: 7.5 * 60 * 60 * 1000,
         breakMs: 60 * 60 * 1000,
         temporarilyUnavailableMs: 30 * 60 * 1000,
+        payroll: expect.objectContaining({
+          payableMs: 8.5 * 60 * 60 * 1000,
+          deductedMs: 30 * 60 * 1000,
+          grossPay: 17000,
+          ccssDeduction: 1700,
+          netPay: 15300,
+        }),
       }),
     );
     expect(result.sessions[0]).toEqual(
@@ -1343,6 +1364,124 @@ describe("RestaurantService", () => {
         entryAt: new Date("2026-09-27T08:00:00.000Z"),
         exitAt: new Date("2026-09-27T17:00:00.000Z"),
         status: "CLOSED",
+      }),
+    );
+  });
+
+  it("prorates daily and monthly salaries from payable hours", async () => {
+    const { prisma, service } = createService();
+    prisma.organizationLocation.findFirst.mockResolvedValue({
+      timezone: "UTC",
+    });
+    const session = (
+      id: string,
+      userId: string,
+      name: string,
+      payPeriod: RestaurantPayPeriod,
+      payRate: number,
+    ) => ({
+      id,
+      organizationId: "org-a",
+      userId,
+      initialAvailability: RestaurantStaffAvailability.AVAILABLE,
+      startedAt: new Date("2026-09-27T08:00:00.000Z"),
+      lastSeenAt: new Date("2026-09-27T16:00:00.000Z"),
+      endedAt: new Date("2026-09-27T16:00:00.000Z"),
+      user: {
+        id: userId,
+        name,
+        email: `${userId}@example.com`,
+        restaurantRole: RestaurantStaffRole.WAITER,
+        role: UserRole.USER,
+        restaurantPayPeriod: payPeriod,
+        restaurantPayRate: payRate,
+        restaurantStandardMinutesPerDay: 480,
+        restaurantWorkDaysPerMonth: 26,
+        restaurantCcssDeductionEnabled: false,
+        restaurantCcssDeductionBps: 0,
+      },
+    });
+    prisma.restaurantStaffSession.findMany.mockResolvedValue([
+      session(
+        "session-daily",
+        "waiter-daily",
+        "Mesero diario",
+        RestaurantPayPeriod.DAILY,
+        16000,
+      ),
+      session(
+        "session-monthly",
+        "waiter-monthly",
+        "Mesero mensual",
+        RestaurantPayPeriod.MONTHLY,
+        520000,
+      ),
+    ]);
+
+    const result = await service.staffHours(
+      {
+        id: "admin-a",
+        organizationId: "org-a",
+        role: UserRole.ADMIN,
+        restaurantRole: RestaurantStaffRole.RESTAURANT_ADMIN,
+        restaurantAvailability: RestaurantStaffAvailability.AVAILABLE,
+      },
+      "2026-09-27",
+      "2026-09-27",
+    );
+
+    expect(result.summary.grossPay).toBe(36000);
+    expect(
+      result.employees.find((employee) => employee.userId === "waiter-daily")
+        ?.payroll.grossPay,
+    ).toBe(16000);
+    expect(
+      result.employees.find((employee) => employee.userId === "waiter-monthly")
+        ?.payroll.grossPay,
+    ).toBe(20000);
+  });
+
+  it("updates payroll settings only for staff in the administrator organization", async () => {
+    const { prisma, service } = createService();
+    prisma.user.findFirst.mockResolvedValue({ id: "waiter-a" });
+    prisma.user.update.mockResolvedValue({
+      id: "waiter-a",
+      restaurantPayPeriod: RestaurantPayPeriod.DAILY,
+      restaurantPayRate: 18000,
+    });
+
+    await service.updateStaffPayroll(
+      {
+        id: "admin-a",
+        organizationId: "org-a",
+        role: UserRole.ADMIN,
+        restaurantRole: RestaurantStaffRole.RESTAURANT_ADMIN,
+        restaurantAvailability: RestaurantStaffAvailability.AVAILABLE,
+      },
+      "waiter-a",
+      {
+        payPeriod: RestaurantPayPeriod.DAILY,
+        payRate: 18000,
+        standardMinutesPerDay: 480,
+        workDaysPerMonth: 26,
+        ccssDeductionEnabled: true,
+        ccssDeductionBps: 1083,
+      },
+    );
+
+    expect(prisma.user.findFirst).toHaveBeenCalledWith({
+      where: { id: "waiter-a", organizationId: "org-a", active: true },
+      select: { id: true },
+    });
+    expect(prisma.user.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { id: "waiter-a" },
+        data: expect.objectContaining({
+          restaurantPayPeriod: RestaurantPayPeriod.DAILY,
+          restaurantPayRate: 18000,
+          restaurantCcssDeductionEnabled: true,
+          restaurantCcssDeductionBps: 1083,
+        }),
       }),
     );
   });

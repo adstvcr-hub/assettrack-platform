@@ -14,6 +14,7 @@ import {
   RestaurantItemStatus,
   RestaurantLoyaltyActivityType,
   RestaurantPaymentStatus,
+  RestaurantPayPeriod,
   RestaurantRewardSponsor,
   RestaurantRewardType,
   RestaurantStaffAvailability,
@@ -40,6 +41,7 @@ import {
   UpdateRestaurantBrandingDto,
   UpdateRestaurantOrderingAreaDto,
   UpdateStaffAvailabilityDto,
+  UpdateStaffPayrollDto,
   UpdateTableBillingDto,
   UpdatePromotionDto,
 } from "./dto/restaurant.dto";
@@ -944,6 +946,12 @@ export class RestaurantService {
         role: true,
         restaurantRole: true,
         restaurantAvailability: true,
+        restaurantPayPeriod: true,
+        restaurantPayRate: true,
+        restaurantStandardMinutesPerDay: true,
+        restaurantWorkDaysPerMonth: true,
+        restaurantCcssDeductionEnabled: true,
+        restaurantCcssDeductionBps: true,
         active: true,
         staffAccessCode: {
           select: { active: true, updatedAt: true, lastUsedAt: true },
@@ -1002,6 +1010,12 @@ export class RestaurantService {
             email: true,
             restaurantRole: true,
             role: true,
+            restaurantPayPeriod: true,
+            restaurantPayRate: true,
+            restaurantStandardMinutesPerDay: true,
+            restaurantWorkDaysPerMonth: true,
+            restaurantCcssDeductionEnabled: true,
+            restaurantCcssDeductionBps: true,
           },
         },
       },
@@ -1062,6 +1076,12 @@ export class RestaurantService {
         firstEntryAt: Date;
         lastExitAt: Date | null;
         openSessions: number;
+        restaurantPayPeriod: RestaurantPayPeriod | null;
+        restaurantPayRate: number | null;
+        restaurantStandardMinutesPerDay: number;
+        restaurantWorkDaysPerMonth: number;
+        restaurantCcssDeductionEnabled: boolean;
+        restaurantCcssDeductionBps: number;
       }
     >();
     const sessionRows = sessions
@@ -1145,6 +1165,14 @@ export class RestaurantService {
           firstEntryAt: session.startedAt,
           lastExitAt: null,
           openSessions: 0,
+          restaurantPayPeriod: session.user.restaurantPayPeriod,
+          restaurantPayRate: session.user.restaurantPayRate,
+          restaurantStandardMinutesPerDay:
+            session.user.restaurantStandardMinutesPerDay,
+          restaurantWorkDaysPerMonth: session.user.restaurantWorkDaysPerMonth,
+          restaurantCcssDeductionEnabled:
+            session.user.restaurantCcssDeductionEnabled,
+          restaurantCcssDeductionBps: session.user.restaurantCcssDeductionBps,
         };
         employee.sessions += 1;
         employee.activeMs += activeMs;
@@ -1179,8 +1207,56 @@ export class RestaurantService {
       .filter((session): session is NonNullable<typeof session> =>
         Boolean(session),
       );
-    const employees = [...employeeMap.values()].sort((left, right) =>
-      left.name.localeCompare(right.name),
+    const employees = [...employeeMap.values()]
+      .map((employee) => {
+        const payableMs = employee.activeMs + employee.breakMs;
+        const deductedMs =
+          employee.temporarilyUnavailableMs + employee.offShiftMs;
+        const standardHoursPerDay =
+          employee.restaurantStandardMinutesPerDay / 60;
+        const hourlyRate =
+          employee.restaurantPayRate == null ||
+          employee.restaurantPayPeriod == null
+            ? null
+            : employee.restaurantPayPeriod === RestaurantPayPeriod.HOURLY
+              ? employee.restaurantPayRate
+              : employee.restaurantPayPeriod === RestaurantPayPeriod.DAILY
+                ? employee.restaurantPayRate / standardHoursPerDay
+                : employee.restaurantPayRate /
+                  (standardHoursPerDay * employee.restaurantWorkDaysPerMonth);
+        const grossPay =
+          hourlyRate == null
+            ? null
+            : Math.round((payableMs / 3_600_000) * hourlyRate);
+        const ccssDeduction =
+          grossPay == null || !employee.restaurantCcssDeductionEnabled
+            ? 0
+            : Math.round(
+                (grossPay * employee.restaurantCcssDeductionBps) / 10_000,
+              );
+        return {
+          ...employee,
+          payroll: {
+            configured: hourlyRate != null,
+            payPeriod: employee.restaurantPayPeriod,
+            payRate: employee.restaurantPayRate,
+            standardMinutesPerDay: employee.restaurantStandardMinutesPerDay,
+            workDaysPerMonth: employee.restaurantWorkDaysPerMonth,
+            payableMs,
+            deductedMs,
+            hourlyRate: hourlyRate == null ? null : Math.round(hourlyRate),
+            grossPay,
+            ccssDeductionEnabled: employee.restaurantCcssDeductionEnabled,
+            ccssDeductionBps: employee.restaurantCcssDeductionBps,
+            ccssDeduction,
+            netPay:
+              grossPay == null ? null : Math.max(0, grossPay - ccssDeduction),
+          },
+        };
+      })
+      .sort((left, right) => left.name.localeCompare(right.name));
+    const payrollEmployees = employees.filter(
+      (employee) => employee.payroll.configured,
     );
     return {
       range: { from: fromDate, to: toDate, timezone },
@@ -1196,10 +1272,65 @@ export class RestaurantService {
           (sum, employee) => sum + employee.outOfServiceMs,
           0,
         ),
+        payableMs: employees.reduce(
+          (sum, employee) => sum + employee.payroll.payableMs,
+          0,
+        ),
+        deductedMs: employees.reduce(
+          (sum, employee) => sum + employee.payroll.deductedMs,
+          0,
+        ),
+        payrollConfiguredEmployees: payrollEmployees.length,
+        grossPay: payrollEmployees.reduce(
+          (sum, employee) => sum + (employee.payroll.grossPay ?? 0),
+          0,
+        ),
+        ccssDeduction: payrollEmployees.reduce(
+          (sum, employee) => sum + employee.payroll.ccssDeduction,
+          0,
+        ),
+        netPay: payrollEmployees.reduce(
+          (sum, employee) => sum + (employee.payroll.netPay ?? 0),
+          0,
+        ),
       },
       employees,
       sessions: sessionRows,
     };
+  }
+
+  async updateStaffPayroll(
+    actor: RestaurantActor,
+    userId: string,
+    dto: UpdateStaffPayrollDto,
+  ) {
+    this.requireRestaurantAdmin(actor);
+    const user = await this.prisma.user.findFirst({
+      where: { id: userId, organizationId: actor.organizationId, active: true },
+      select: { id: true },
+    });
+    if (!user) throw new NotFoundException("User not found");
+    return this.prisma.user.update({
+      where: { id: userId },
+      data: {
+        restaurantPayPeriod: dto.payPeriod,
+        restaurantPayRate: dto.payRate,
+        restaurantStandardMinutesPerDay: dto.standardMinutesPerDay,
+        restaurantWorkDaysPerMonth: dto.workDaysPerMonth,
+        restaurantCcssDeductionEnabled: dto.ccssDeductionEnabled,
+        restaurantCcssDeductionBps: dto.ccssDeductionBps,
+      },
+      select: {
+        id: true,
+        name: true,
+        restaurantPayPeriod: true,
+        restaurantPayRate: true,
+        restaurantStandardMinutesPerDay: true,
+        restaurantWorkDaysPerMonth: true,
+        restaurantCcssDeductionEnabled: true,
+        restaurantCcssDeductionBps: true,
+      },
+    });
   }
 
   async updateRestaurantRole(

@@ -27,10 +27,18 @@ export type AggregateUser = {
 }
 
 export type UserAvgAggregateOutputType = {
+  restaurantPayRate: number | null
+  restaurantStandardMinutesPerDay: number | null
+  restaurantWorkDaysPerMonth: number | null
+  restaurantCcssDeductionBps: number | null
   sessionVersion: number | null
 }
 
 export type UserSumAggregateOutputType = {
+  restaurantPayRate: number | null
+  restaurantStandardMinutesPerDay: number | null
+  restaurantWorkDaysPerMonth: number | null
+  restaurantCcssDeductionBps: number | null
   sessionVersion: number | null
 }
 
@@ -43,6 +51,12 @@ export type UserMinAggregateOutputType = {
   role: $Enums.UserRole | null
   restaurantRole: $Enums.RestaurantStaffRole | null
   restaurantAvailability: $Enums.RestaurantStaffAvailability | null
+  restaurantPayPeriod: $Enums.RestaurantPayPeriod | null
+  restaurantPayRate: number | null
+  restaurantStandardMinutesPerDay: number | null
+  restaurantWorkDaysPerMonth: number | null
+  restaurantCcssDeductionEnabled: boolean | null
+  restaurantCcssDeductionBps: number | null
   active: boolean | null
   deactivatedAt: Date | null
   sessionVersion: number | null
@@ -59,6 +73,12 @@ export type UserMaxAggregateOutputType = {
   role: $Enums.UserRole | null
   restaurantRole: $Enums.RestaurantStaffRole | null
   restaurantAvailability: $Enums.RestaurantStaffAvailability | null
+  restaurantPayPeriod: $Enums.RestaurantPayPeriod | null
+  restaurantPayRate: number | null
+  restaurantStandardMinutesPerDay: number | null
+  restaurantWorkDaysPerMonth: number | null
+  restaurantCcssDeductionEnabled: boolean | null
+  restaurantCcssDeductionBps: number | null
   active: boolean | null
   deactivatedAt: Date | null
   sessionVersion: number | null
@@ -75,6 +95,12 @@ export type UserCountAggregateOutputType = {
   role: number
   restaurantRole: number
   restaurantAvailability: number
+  restaurantPayPeriod: number
+  restaurantPayRate: number
+  restaurantStandardMinutesPerDay: number
+  restaurantWorkDaysPerMonth: number
+  restaurantCcssDeductionEnabled: number
+  restaurantCcssDeductionBps: number
   active: number
   deactivatedAt: number
   sessionVersion: number
@@ -85,10 +111,18 @@ export type UserCountAggregateOutputType = {
 
 
 export type UserAvgAggregateInputType = {
+  restaurantPayRate?: true
+  restaurantStandardMinutesPerDay?: true
+  restaurantWorkDaysPerMonth?: true
+  restaurantCcssDeductionBps?: true
   sessionVersion?: true
 }
 
 export type UserSumAggregateInputType = {
+  restaurantPayRate?: true
+  restaurantStandardMinutesPerDay?: true
+  restaurantWorkDaysPerMonth?: true
+  restaurantCcssDeductionBps?: true
   sessionVersion?: true
 }
 
@@ -101,6 +135,12 @@ export type UserMinAggregateInputType = {
   role?: true
   restaurantRole?: true
   restaurantAvailability?: true
+  restaurantPayPeriod?: true
+  restaurantPayRate?: true
+  restaurantStandardMinutesPerDay?: true
+  restaurantWorkDaysPerMonth?: true
+  restaurantCcssDeductionEnabled?: true
+  restaurantCcssDeductionBps?: true
   active?: true
   deactivatedAt?: true
   sessionVersion?: true
@@ -117,6 +157,12 @@ export type UserMaxAggregateInputType = {
   role?: true
   restaurantRole?: true
   restaurantAvailability?: true
+  restaurantPayPeriod?: true
+  restaurantPayRate?: true
+  restaurantStandardMinutesPerDay?: true
+  restaurantWorkDaysPerMonth?: true
+  restaurantCcssDeductionEnabled?: true
+  restaurantCcssDeductionBps?: true
   active?: true
   deactivatedAt?: true
   sessionVersion?: true
@@ -133,6 +179,12 @@ export type UserCountAggregateInputType = {
   role?: true
   restaurantRole?: true
   restaurantAvailability?: true
+  restaurantPayPeriod?: true
+  restaurantPayRate?: true
+  restaurantStandardMinutesPerDay?: true
+  restaurantWorkDaysPerMonth?: true
+  restaurantCcssDeductionEnabled?: true
+  restaurantCcssDeductionBps?: true
   active?: true
   deactivatedAt?: true
   sessionVersion?: true
@@ -236,6 +288,12 @@ export type UserGroupByOutputType = {
   role: $Enums.UserRole
   restaurantRole: $Enums.RestaurantStaffRole | null
   restaurantAvailability: $Enums.RestaurantStaffAvailability
+  restaurantPayPeriod: $Enums.RestaurantPayPeriod | null
+  restaurantPayRate: number | null
+  restaurantStandardMinutesPerDay: number
+  restaurantWorkDaysPerMonth: number
+  restaurantCcssDeductionEnabled: boolean
+  restaurantCcssDeductionBps: number
   active: boolean
   deactivatedAt: Date | null
   sessionVersion: number
@@ -275,6 +333,12 @@ export type UserWhereInput = {
   role?: Prisma.EnumUserRoleFilter<"User"> | $Enums.UserRole
   restaurantRole?: Prisma.EnumRestaurantStaffRoleNullableFilter<"User"> | $Enums.RestaurantStaffRole | null
   restaurantAvailability?: Prisma.EnumRestaurantStaffAvailabilityFilter<"User"> | $Enums.RestaurantStaffAvailability
+  restaurantPayPeriod?: Prisma.EnumRestaurantPayPeriodNullableFilter<"User"> | $Enums.RestaurantPayPeriod | null
+  restaurantPayRate?: Prisma.IntNullableFilter<"User"> | number | null
+  restaurantStandardMinutesPerDay?: Prisma.IntFilter<"User"> | number
+  restaurantWorkDaysPerMonth?: Prisma.IntFilter<"User"> | number
+  restaurantCcssDeductionEnabled?: Prisma.BoolFilter<"User"> | boolean
+  restaurantCcssDeductionBps?: Prisma.IntFilter<"User"> | number
   active?: Prisma.BoolFilter<"User"> | boolean
   deactivatedAt?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
   sessionVersion?: Prisma.IntFilter<"User"> | number
@@ -299,6 +363,12 @@ export type UserOrderByWithRelationInput = {
   role?: Prisma.SortOrder
   restaurantRole?: Prisma.SortOrderInput | Prisma.SortOrder
   restaurantAvailability?: Prisma.SortOrder
+  restaurantPayPeriod?: Prisma.SortOrderInput | Prisma.SortOrder
+  restaurantPayRate?: Prisma.SortOrderInput | Prisma.SortOrder
+  restaurantStandardMinutesPerDay?: Prisma.SortOrder
+  restaurantWorkDaysPerMonth?: Prisma.SortOrder
+  restaurantCcssDeductionEnabled?: Prisma.SortOrder
+  restaurantCcssDeductionBps?: Prisma.SortOrder
   active?: Prisma.SortOrder
   deactivatedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   sessionVersion?: Prisma.SortOrder
@@ -327,6 +397,12 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   role?: Prisma.EnumUserRoleFilter<"User"> | $Enums.UserRole
   restaurantRole?: Prisma.EnumRestaurantStaffRoleNullableFilter<"User"> | $Enums.RestaurantStaffRole | null
   restaurantAvailability?: Prisma.EnumRestaurantStaffAvailabilityFilter<"User"> | $Enums.RestaurantStaffAvailability
+  restaurantPayPeriod?: Prisma.EnumRestaurantPayPeriodNullableFilter<"User"> | $Enums.RestaurantPayPeriod | null
+  restaurantPayRate?: Prisma.IntNullableFilter<"User"> | number | null
+  restaurantStandardMinutesPerDay?: Prisma.IntFilter<"User"> | number
+  restaurantWorkDaysPerMonth?: Prisma.IntFilter<"User"> | number
+  restaurantCcssDeductionEnabled?: Prisma.BoolFilter<"User"> | boolean
+  restaurantCcssDeductionBps?: Prisma.IntFilter<"User"> | number
   active?: Prisma.BoolFilter<"User"> | boolean
   deactivatedAt?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
   sessionVersion?: Prisma.IntFilter<"User"> | number
@@ -351,6 +427,12 @@ export type UserOrderByWithAggregationInput = {
   role?: Prisma.SortOrder
   restaurantRole?: Prisma.SortOrderInput | Prisma.SortOrder
   restaurantAvailability?: Prisma.SortOrder
+  restaurantPayPeriod?: Prisma.SortOrderInput | Prisma.SortOrder
+  restaurantPayRate?: Prisma.SortOrderInput | Prisma.SortOrder
+  restaurantStandardMinutesPerDay?: Prisma.SortOrder
+  restaurantWorkDaysPerMonth?: Prisma.SortOrder
+  restaurantCcssDeductionEnabled?: Prisma.SortOrder
+  restaurantCcssDeductionBps?: Prisma.SortOrder
   active?: Prisma.SortOrder
   deactivatedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   sessionVersion?: Prisma.SortOrder
@@ -375,6 +457,12 @@ export type UserScalarWhereWithAggregatesInput = {
   role?: Prisma.EnumUserRoleWithAggregatesFilter<"User"> | $Enums.UserRole
   restaurantRole?: Prisma.EnumRestaurantStaffRoleNullableWithAggregatesFilter<"User"> | $Enums.RestaurantStaffRole | null
   restaurantAvailability?: Prisma.EnumRestaurantStaffAvailabilityWithAggregatesFilter<"User"> | $Enums.RestaurantStaffAvailability
+  restaurantPayPeriod?: Prisma.EnumRestaurantPayPeriodNullableWithAggregatesFilter<"User"> | $Enums.RestaurantPayPeriod | null
+  restaurantPayRate?: Prisma.IntNullableWithAggregatesFilter<"User"> | number | null
+  restaurantStandardMinutesPerDay?: Prisma.IntWithAggregatesFilter<"User"> | number
+  restaurantWorkDaysPerMonth?: Prisma.IntWithAggregatesFilter<"User"> | number
+  restaurantCcssDeductionEnabled?: Prisma.BoolWithAggregatesFilter<"User"> | boolean
+  restaurantCcssDeductionBps?: Prisma.IntWithAggregatesFilter<"User"> | number
   active?: Prisma.BoolWithAggregatesFilter<"User"> | boolean
   deactivatedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"User"> | Date | string | null
   sessionVersion?: Prisma.IntWithAggregatesFilter<"User"> | number
@@ -390,6 +478,12 @@ export type UserCreateInput = {
   role?: $Enums.UserRole
   restaurantRole?: $Enums.RestaurantStaffRole | null
   restaurantAvailability?: $Enums.RestaurantStaffAvailability
+  restaurantPayPeriod?: $Enums.RestaurantPayPeriod | null
+  restaurantPayRate?: number | null
+  restaurantStandardMinutesPerDay?: number
+  restaurantWorkDaysPerMonth?: number
+  restaurantCcssDeductionEnabled?: boolean
+  restaurantCcssDeductionBps?: number
   active?: boolean
   deactivatedAt?: Date | string | null
   sessionVersion?: number
@@ -414,6 +508,12 @@ export type UserUncheckedCreateInput = {
   role?: $Enums.UserRole
   restaurantRole?: $Enums.RestaurantStaffRole | null
   restaurantAvailability?: $Enums.RestaurantStaffAvailability
+  restaurantPayPeriod?: $Enums.RestaurantPayPeriod | null
+  restaurantPayRate?: number | null
+  restaurantStandardMinutesPerDay?: number
+  restaurantWorkDaysPerMonth?: number
+  restaurantCcssDeductionEnabled?: boolean
+  restaurantCcssDeductionBps?: number
   active?: boolean
   deactivatedAt?: Date | string | null
   sessionVersion?: number
@@ -436,6 +536,12 @@ export type UserUpdateInput = {
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
   restaurantRole?: Prisma.NullableEnumRestaurantStaffRoleFieldUpdateOperationsInput | $Enums.RestaurantStaffRole | null
   restaurantAvailability?: Prisma.EnumRestaurantStaffAvailabilityFieldUpdateOperationsInput | $Enums.RestaurantStaffAvailability
+  restaurantPayPeriod?: Prisma.NullableEnumRestaurantPayPeriodFieldUpdateOperationsInput | $Enums.RestaurantPayPeriod | null
+  restaurantPayRate?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  restaurantStandardMinutesPerDay?: Prisma.IntFieldUpdateOperationsInput | number
+  restaurantWorkDaysPerMonth?: Prisma.IntFieldUpdateOperationsInput | number
+  restaurantCcssDeductionEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  restaurantCcssDeductionBps?: Prisma.IntFieldUpdateOperationsInput | number
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   deactivatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sessionVersion?: Prisma.IntFieldUpdateOperationsInput | number
@@ -460,6 +566,12 @@ export type UserUncheckedUpdateInput = {
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
   restaurantRole?: Prisma.NullableEnumRestaurantStaffRoleFieldUpdateOperationsInput | $Enums.RestaurantStaffRole | null
   restaurantAvailability?: Prisma.EnumRestaurantStaffAvailabilityFieldUpdateOperationsInput | $Enums.RestaurantStaffAvailability
+  restaurantPayPeriod?: Prisma.NullableEnumRestaurantPayPeriodFieldUpdateOperationsInput | $Enums.RestaurantPayPeriod | null
+  restaurantPayRate?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  restaurantStandardMinutesPerDay?: Prisma.IntFieldUpdateOperationsInput | number
+  restaurantWorkDaysPerMonth?: Prisma.IntFieldUpdateOperationsInput | number
+  restaurantCcssDeductionEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  restaurantCcssDeductionBps?: Prisma.IntFieldUpdateOperationsInput | number
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   deactivatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sessionVersion?: Prisma.IntFieldUpdateOperationsInput | number
@@ -483,6 +595,12 @@ export type UserCreateManyInput = {
   role?: $Enums.UserRole
   restaurantRole?: $Enums.RestaurantStaffRole | null
   restaurantAvailability?: $Enums.RestaurantStaffAvailability
+  restaurantPayPeriod?: $Enums.RestaurantPayPeriod | null
+  restaurantPayRate?: number | null
+  restaurantStandardMinutesPerDay?: number
+  restaurantWorkDaysPerMonth?: number
+  restaurantCcssDeductionEnabled?: boolean
+  restaurantCcssDeductionBps?: number
   active?: boolean
   deactivatedAt?: Date | string | null
   sessionVersion?: number
@@ -498,6 +616,12 @@ export type UserUpdateManyMutationInput = {
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
   restaurantRole?: Prisma.NullableEnumRestaurantStaffRoleFieldUpdateOperationsInput | $Enums.RestaurantStaffRole | null
   restaurantAvailability?: Prisma.EnumRestaurantStaffAvailabilityFieldUpdateOperationsInput | $Enums.RestaurantStaffAvailability
+  restaurantPayPeriod?: Prisma.NullableEnumRestaurantPayPeriodFieldUpdateOperationsInput | $Enums.RestaurantPayPeriod | null
+  restaurantPayRate?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  restaurantStandardMinutesPerDay?: Prisma.IntFieldUpdateOperationsInput | number
+  restaurantWorkDaysPerMonth?: Prisma.IntFieldUpdateOperationsInput | number
+  restaurantCcssDeductionEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  restaurantCcssDeductionBps?: Prisma.IntFieldUpdateOperationsInput | number
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   deactivatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sessionVersion?: Prisma.IntFieldUpdateOperationsInput | number
@@ -514,6 +638,12 @@ export type UserUncheckedUpdateManyInput = {
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
   restaurantRole?: Prisma.NullableEnumRestaurantStaffRoleFieldUpdateOperationsInput | $Enums.RestaurantStaffRole | null
   restaurantAvailability?: Prisma.EnumRestaurantStaffAvailabilityFieldUpdateOperationsInput | $Enums.RestaurantStaffAvailability
+  restaurantPayPeriod?: Prisma.NullableEnumRestaurantPayPeriodFieldUpdateOperationsInput | $Enums.RestaurantPayPeriod | null
+  restaurantPayRate?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  restaurantStandardMinutesPerDay?: Prisma.IntFieldUpdateOperationsInput | number
+  restaurantWorkDaysPerMonth?: Prisma.IntFieldUpdateOperationsInput | number
+  restaurantCcssDeductionEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  restaurantCcssDeductionBps?: Prisma.IntFieldUpdateOperationsInput | number
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   deactivatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sessionVersion?: Prisma.IntFieldUpdateOperationsInput | number
@@ -555,6 +685,12 @@ export type UserCountOrderByAggregateInput = {
   role?: Prisma.SortOrder
   restaurantRole?: Prisma.SortOrder
   restaurantAvailability?: Prisma.SortOrder
+  restaurantPayPeriod?: Prisma.SortOrder
+  restaurantPayRate?: Prisma.SortOrder
+  restaurantStandardMinutesPerDay?: Prisma.SortOrder
+  restaurantWorkDaysPerMonth?: Prisma.SortOrder
+  restaurantCcssDeductionEnabled?: Prisma.SortOrder
+  restaurantCcssDeductionBps?: Prisma.SortOrder
   active?: Prisma.SortOrder
   deactivatedAt?: Prisma.SortOrder
   sessionVersion?: Prisma.SortOrder
@@ -563,6 +699,10 @@ export type UserCountOrderByAggregateInput = {
 }
 
 export type UserAvgOrderByAggregateInput = {
+  restaurantPayRate?: Prisma.SortOrder
+  restaurantStandardMinutesPerDay?: Prisma.SortOrder
+  restaurantWorkDaysPerMonth?: Prisma.SortOrder
+  restaurantCcssDeductionBps?: Prisma.SortOrder
   sessionVersion?: Prisma.SortOrder
 }
 
@@ -575,6 +715,12 @@ export type UserMaxOrderByAggregateInput = {
   role?: Prisma.SortOrder
   restaurantRole?: Prisma.SortOrder
   restaurantAvailability?: Prisma.SortOrder
+  restaurantPayPeriod?: Prisma.SortOrder
+  restaurantPayRate?: Prisma.SortOrder
+  restaurantStandardMinutesPerDay?: Prisma.SortOrder
+  restaurantWorkDaysPerMonth?: Prisma.SortOrder
+  restaurantCcssDeductionEnabled?: Prisma.SortOrder
+  restaurantCcssDeductionBps?: Prisma.SortOrder
   active?: Prisma.SortOrder
   deactivatedAt?: Prisma.SortOrder
   sessionVersion?: Prisma.SortOrder
@@ -591,6 +737,12 @@ export type UserMinOrderByAggregateInput = {
   role?: Prisma.SortOrder
   restaurantRole?: Prisma.SortOrder
   restaurantAvailability?: Prisma.SortOrder
+  restaurantPayPeriod?: Prisma.SortOrder
+  restaurantPayRate?: Prisma.SortOrder
+  restaurantStandardMinutesPerDay?: Prisma.SortOrder
+  restaurantWorkDaysPerMonth?: Prisma.SortOrder
+  restaurantCcssDeductionEnabled?: Prisma.SortOrder
+  restaurantCcssDeductionBps?: Prisma.SortOrder
   active?: Prisma.SortOrder
   deactivatedAt?: Prisma.SortOrder
   sessionVersion?: Prisma.SortOrder
@@ -599,6 +751,10 @@ export type UserMinOrderByAggregateInput = {
 }
 
 export type UserSumOrderByAggregateInput = {
+  restaurantPayRate?: Prisma.SortOrder
+  restaurantStandardMinutesPerDay?: Prisma.SortOrder
+  restaurantWorkDaysPerMonth?: Prisma.SortOrder
+  restaurantCcssDeductionBps?: Prisma.SortOrder
   sessionVersion?: Prisma.SortOrder
 }
 
@@ -714,6 +870,10 @@ export type NullableEnumRestaurantStaffRoleFieldUpdateOperationsInput = {
   set?: $Enums.RestaurantStaffRole | null
 }
 
+export type NullableEnumRestaurantPayPeriodFieldUpdateOperationsInput = {
+  set?: $Enums.RestaurantPayPeriod | null
+}
+
 export type UserCreateNestedOneWithoutStaffAccessCodeInput = {
   create?: Prisma.XOR<Prisma.UserCreateWithoutStaffAccessCodeInput, Prisma.UserUncheckedCreateWithoutStaffAccessCodeInput>
   connectOrCreate?: Prisma.UserCreateOrConnectWithoutStaffAccessCodeInput
@@ -766,6 +926,12 @@ export type UserCreateWithoutOrganizationInput = {
   role?: $Enums.UserRole
   restaurantRole?: $Enums.RestaurantStaffRole | null
   restaurantAvailability?: $Enums.RestaurantStaffAvailability
+  restaurantPayPeriod?: $Enums.RestaurantPayPeriod | null
+  restaurantPayRate?: number | null
+  restaurantStandardMinutesPerDay?: number
+  restaurantWorkDaysPerMonth?: number
+  restaurantCcssDeductionEnabled?: boolean
+  restaurantCcssDeductionBps?: number
   active?: boolean
   deactivatedAt?: Date | string | null
   sessionVersion?: number
@@ -788,6 +954,12 @@ export type UserUncheckedCreateWithoutOrganizationInput = {
   role?: $Enums.UserRole
   restaurantRole?: $Enums.RestaurantStaffRole | null
   restaurantAvailability?: $Enums.RestaurantStaffAvailability
+  restaurantPayPeriod?: $Enums.RestaurantPayPeriod | null
+  restaurantPayRate?: number | null
+  restaurantStandardMinutesPerDay?: number
+  restaurantWorkDaysPerMonth?: number
+  restaurantCcssDeductionEnabled?: boolean
+  restaurantCcssDeductionBps?: number
   active?: boolean
   deactivatedAt?: Date | string | null
   sessionVersion?: number
@@ -840,6 +1012,12 @@ export type UserScalarWhereInput = {
   role?: Prisma.EnumUserRoleFilter<"User"> | $Enums.UserRole
   restaurantRole?: Prisma.EnumRestaurantStaffRoleNullableFilter<"User"> | $Enums.RestaurantStaffRole | null
   restaurantAvailability?: Prisma.EnumRestaurantStaffAvailabilityFilter<"User"> | $Enums.RestaurantStaffAvailability
+  restaurantPayPeriod?: Prisma.EnumRestaurantPayPeriodNullableFilter<"User"> | $Enums.RestaurantPayPeriod | null
+  restaurantPayRate?: Prisma.IntNullableFilter<"User"> | number | null
+  restaurantStandardMinutesPerDay?: Prisma.IntFilter<"User"> | number
+  restaurantWorkDaysPerMonth?: Prisma.IntFilter<"User"> | number
+  restaurantCcssDeductionEnabled?: Prisma.BoolFilter<"User"> | boolean
+  restaurantCcssDeductionBps?: Prisma.IntFilter<"User"> | number
   active?: Prisma.BoolFilter<"User"> | boolean
   deactivatedAt?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
   sessionVersion?: Prisma.IntFilter<"User"> | number
@@ -855,6 +1033,12 @@ export type UserCreateWithoutRestaurantTablesInput = {
   role?: $Enums.UserRole
   restaurantRole?: $Enums.RestaurantStaffRole | null
   restaurantAvailability?: $Enums.RestaurantStaffAvailability
+  restaurantPayPeriod?: $Enums.RestaurantPayPeriod | null
+  restaurantPayRate?: number | null
+  restaurantStandardMinutesPerDay?: number
+  restaurantWorkDaysPerMonth?: number
+  restaurantCcssDeductionEnabled?: boolean
+  restaurantCcssDeductionBps?: number
   active?: boolean
   deactivatedAt?: Date | string | null
   sessionVersion?: number
@@ -878,6 +1062,12 @@ export type UserUncheckedCreateWithoutRestaurantTablesInput = {
   role?: $Enums.UserRole
   restaurantRole?: $Enums.RestaurantStaffRole | null
   restaurantAvailability?: $Enums.RestaurantStaffAvailability
+  restaurantPayPeriod?: $Enums.RestaurantPayPeriod | null
+  restaurantPayRate?: number | null
+  restaurantStandardMinutesPerDay?: number
+  restaurantWorkDaysPerMonth?: number
+  restaurantCcssDeductionEnabled?: boolean
+  restaurantCcssDeductionBps?: number
   active?: boolean
   deactivatedAt?: Date | string | null
   sessionVersion?: number
@@ -915,6 +1105,12 @@ export type UserUpdateWithoutRestaurantTablesInput = {
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
   restaurantRole?: Prisma.NullableEnumRestaurantStaffRoleFieldUpdateOperationsInput | $Enums.RestaurantStaffRole | null
   restaurantAvailability?: Prisma.EnumRestaurantStaffAvailabilityFieldUpdateOperationsInput | $Enums.RestaurantStaffAvailability
+  restaurantPayPeriod?: Prisma.NullableEnumRestaurantPayPeriodFieldUpdateOperationsInput | $Enums.RestaurantPayPeriod | null
+  restaurantPayRate?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  restaurantStandardMinutesPerDay?: Prisma.IntFieldUpdateOperationsInput | number
+  restaurantWorkDaysPerMonth?: Prisma.IntFieldUpdateOperationsInput | number
+  restaurantCcssDeductionEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  restaurantCcssDeductionBps?: Prisma.IntFieldUpdateOperationsInput | number
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   deactivatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sessionVersion?: Prisma.IntFieldUpdateOperationsInput | number
@@ -938,6 +1134,12 @@ export type UserUncheckedUpdateWithoutRestaurantTablesInput = {
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
   restaurantRole?: Prisma.NullableEnumRestaurantStaffRoleFieldUpdateOperationsInput | $Enums.RestaurantStaffRole | null
   restaurantAvailability?: Prisma.EnumRestaurantStaffAvailabilityFieldUpdateOperationsInput | $Enums.RestaurantStaffAvailability
+  restaurantPayPeriod?: Prisma.NullableEnumRestaurantPayPeriodFieldUpdateOperationsInput | $Enums.RestaurantPayPeriod | null
+  restaurantPayRate?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  restaurantStandardMinutesPerDay?: Prisma.IntFieldUpdateOperationsInput | number
+  restaurantWorkDaysPerMonth?: Prisma.IntFieldUpdateOperationsInput | number
+  restaurantCcssDeductionEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  restaurantCcssDeductionBps?: Prisma.IntFieldUpdateOperationsInput | number
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   deactivatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sessionVersion?: Prisma.IntFieldUpdateOperationsInput | number
@@ -959,6 +1161,12 @@ export type UserCreateWithoutResponsibleRestaurantVisitsInput = {
   role?: $Enums.UserRole
   restaurantRole?: $Enums.RestaurantStaffRole | null
   restaurantAvailability?: $Enums.RestaurantStaffAvailability
+  restaurantPayPeriod?: $Enums.RestaurantPayPeriod | null
+  restaurantPayRate?: number | null
+  restaurantStandardMinutesPerDay?: number
+  restaurantWorkDaysPerMonth?: number
+  restaurantCcssDeductionEnabled?: boolean
+  restaurantCcssDeductionBps?: number
   active?: boolean
   deactivatedAt?: Date | string | null
   sessionVersion?: number
@@ -982,6 +1190,12 @@ export type UserUncheckedCreateWithoutResponsibleRestaurantVisitsInput = {
   role?: $Enums.UserRole
   restaurantRole?: $Enums.RestaurantStaffRole | null
   restaurantAvailability?: $Enums.RestaurantStaffAvailability
+  restaurantPayPeriod?: $Enums.RestaurantPayPeriod | null
+  restaurantPayRate?: number | null
+  restaurantStandardMinutesPerDay?: number
+  restaurantWorkDaysPerMonth?: number
+  restaurantCcssDeductionEnabled?: boolean
+  restaurantCcssDeductionBps?: number
   active?: boolean
   deactivatedAt?: Date | string | null
   sessionVersion?: number
@@ -1008,6 +1222,12 @@ export type UserCreateWithoutFallbackRestaurantVisitsInput = {
   role?: $Enums.UserRole
   restaurantRole?: $Enums.RestaurantStaffRole | null
   restaurantAvailability?: $Enums.RestaurantStaffAvailability
+  restaurantPayPeriod?: $Enums.RestaurantPayPeriod | null
+  restaurantPayRate?: number | null
+  restaurantStandardMinutesPerDay?: number
+  restaurantWorkDaysPerMonth?: number
+  restaurantCcssDeductionEnabled?: boolean
+  restaurantCcssDeductionBps?: number
   active?: boolean
   deactivatedAt?: Date | string | null
   sessionVersion?: number
@@ -1031,6 +1251,12 @@ export type UserUncheckedCreateWithoutFallbackRestaurantVisitsInput = {
   role?: $Enums.UserRole
   restaurantRole?: $Enums.RestaurantStaffRole | null
   restaurantAvailability?: $Enums.RestaurantStaffAvailability
+  restaurantPayPeriod?: $Enums.RestaurantPayPeriod | null
+  restaurantPayRate?: number | null
+  restaurantStandardMinutesPerDay?: number
+  restaurantWorkDaysPerMonth?: number
+  restaurantCcssDeductionEnabled?: boolean
+  restaurantCcssDeductionBps?: number
   active?: boolean
   deactivatedAt?: Date | string | null
   sessionVersion?: number
@@ -1068,6 +1294,12 @@ export type UserUpdateWithoutResponsibleRestaurantVisitsInput = {
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
   restaurantRole?: Prisma.NullableEnumRestaurantStaffRoleFieldUpdateOperationsInput | $Enums.RestaurantStaffRole | null
   restaurantAvailability?: Prisma.EnumRestaurantStaffAvailabilityFieldUpdateOperationsInput | $Enums.RestaurantStaffAvailability
+  restaurantPayPeriod?: Prisma.NullableEnumRestaurantPayPeriodFieldUpdateOperationsInput | $Enums.RestaurantPayPeriod | null
+  restaurantPayRate?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  restaurantStandardMinutesPerDay?: Prisma.IntFieldUpdateOperationsInput | number
+  restaurantWorkDaysPerMonth?: Prisma.IntFieldUpdateOperationsInput | number
+  restaurantCcssDeductionEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  restaurantCcssDeductionBps?: Prisma.IntFieldUpdateOperationsInput | number
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   deactivatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sessionVersion?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1091,6 +1323,12 @@ export type UserUncheckedUpdateWithoutResponsibleRestaurantVisitsInput = {
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
   restaurantRole?: Prisma.NullableEnumRestaurantStaffRoleFieldUpdateOperationsInput | $Enums.RestaurantStaffRole | null
   restaurantAvailability?: Prisma.EnumRestaurantStaffAvailabilityFieldUpdateOperationsInput | $Enums.RestaurantStaffAvailability
+  restaurantPayPeriod?: Prisma.NullableEnumRestaurantPayPeriodFieldUpdateOperationsInput | $Enums.RestaurantPayPeriod | null
+  restaurantPayRate?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  restaurantStandardMinutesPerDay?: Prisma.IntFieldUpdateOperationsInput | number
+  restaurantWorkDaysPerMonth?: Prisma.IntFieldUpdateOperationsInput | number
+  restaurantCcssDeductionEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  restaurantCcssDeductionBps?: Prisma.IntFieldUpdateOperationsInput | number
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   deactivatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sessionVersion?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1123,6 +1361,12 @@ export type UserUpdateWithoutFallbackRestaurantVisitsInput = {
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
   restaurantRole?: Prisma.NullableEnumRestaurantStaffRoleFieldUpdateOperationsInput | $Enums.RestaurantStaffRole | null
   restaurantAvailability?: Prisma.EnumRestaurantStaffAvailabilityFieldUpdateOperationsInput | $Enums.RestaurantStaffAvailability
+  restaurantPayPeriod?: Prisma.NullableEnumRestaurantPayPeriodFieldUpdateOperationsInput | $Enums.RestaurantPayPeriod | null
+  restaurantPayRate?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  restaurantStandardMinutesPerDay?: Prisma.IntFieldUpdateOperationsInput | number
+  restaurantWorkDaysPerMonth?: Prisma.IntFieldUpdateOperationsInput | number
+  restaurantCcssDeductionEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  restaurantCcssDeductionBps?: Prisma.IntFieldUpdateOperationsInput | number
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   deactivatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sessionVersion?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1146,6 +1390,12 @@ export type UserUncheckedUpdateWithoutFallbackRestaurantVisitsInput = {
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
   restaurantRole?: Prisma.NullableEnumRestaurantStaffRoleFieldUpdateOperationsInput | $Enums.RestaurantStaffRole | null
   restaurantAvailability?: Prisma.EnumRestaurantStaffAvailabilityFieldUpdateOperationsInput | $Enums.RestaurantStaffAvailability
+  restaurantPayPeriod?: Prisma.NullableEnumRestaurantPayPeriodFieldUpdateOperationsInput | $Enums.RestaurantPayPeriod | null
+  restaurantPayRate?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  restaurantStandardMinutesPerDay?: Prisma.IntFieldUpdateOperationsInput | number
+  restaurantWorkDaysPerMonth?: Prisma.IntFieldUpdateOperationsInput | number
+  restaurantCcssDeductionEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  restaurantCcssDeductionBps?: Prisma.IntFieldUpdateOperationsInput | number
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   deactivatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sessionVersion?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1167,6 +1417,12 @@ export type UserCreateWithoutRestaurantStaffSessionsInput = {
   role?: $Enums.UserRole
   restaurantRole?: $Enums.RestaurantStaffRole | null
   restaurantAvailability?: $Enums.RestaurantStaffAvailability
+  restaurantPayPeriod?: $Enums.RestaurantPayPeriod | null
+  restaurantPayRate?: number | null
+  restaurantStandardMinutesPerDay?: number
+  restaurantWorkDaysPerMonth?: number
+  restaurantCcssDeductionEnabled?: boolean
+  restaurantCcssDeductionBps?: number
   active?: boolean
   deactivatedAt?: Date | string | null
   sessionVersion?: number
@@ -1190,6 +1446,12 @@ export type UserUncheckedCreateWithoutRestaurantStaffSessionsInput = {
   role?: $Enums.UserRole
   restaurantRole?: $Enums.RestaurantStaffRole | null
   restaurantAvailability?: $Enums.RestaurantStaffAvailability
+  restaurantPayPeriod?: $Enums.RestaurantPayPeriod | null
+  restaurantPayRate?: number | null
+  restaurantStandardMinutesPerDay?: number
+  restaurantWorkDaysPerMonth?: number
+  restaurantCcssDeductionEnabled?: boolean
+  restaurantCcssDeductionBps?: number
   active?: boolean
   deactivatedAt?: Date | string | null
   sessionVersion?: number
@@ -1227,6 +1489,12 @@ export type UserUpdateWithoutRestaurantStaffSessionsInput = {
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
   restaurantRole?: Prisma.NullableEnumRestaurantStaffRoleFieldUpdateOperationsInput | $Enums.RestaurantStaffRole | null
   restaurantAvailability?: Prisma.EnumRestaurantStaffAvailabilityFieldUpdateOperationsInput | $Enums.RestaurantStaffAvailability
+  restaurantPayPeriod?: Prisma.NullableEnumRestaurantPayPeriodFieldUpdateOperationsInput | $Enums.RestaurantPayPeriod | null
+  restaurantPayRate?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  restaurantStandardMinutesPerDay?: Prisma.IntFieldUpdateOperationsInput | number
+  restaurantWorkDaysPerMonth?: Prisma.IntFieldUpdateOperationsInput | number
+  restaurantCcssDeductionEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  restaurantCcssDeductionBps?: Prisma.IntFieldUpdateOperationsInput | number
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   deactivatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sessionVersion?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1250,6 +1518,12 @@ export type UserUncheckedUpdateWithoutRestaurantStaffSessionsInput = {
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
   restaurantRole?: Prisma.NullableEnumRestaurantStaffRoleFieldUpdateOperationsInput | $Enums.RestaurantStaffRole | null
   restaurantAvailability?: Prisma.EnumRestaurantStaffAvailabilityFieldUpdateOperationsInput | $Enums.RestaurantStaffAvailability
+  restaurantPayPeriod?: Prisma.NullableEnumRestaurantPayPeriodFieldUpdateOperationsInput | $Enums.RestaurantPayPeriod | null
+  restaurantPayRate?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  restaurantStandardMinutesPerDay?: Prisma.IntFieldUpdateOperationsInput | number
+  restaurantWorkDaysPerMonth?: Prisma.IntFieldUpdateOperationsInput | number
+  restaurantCcssDeductionEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  restaurantCcssDeductionBps?: Prisma.IntFieldUpdateOperationsInput | number
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   deactivatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sessionVersion?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1271,6 +1545,12 @@ export type UserCreateWithoutStaffAccessCodeInput = {
   role?: $Enums.UserRole
   restaurantRole?: $Enums.RestaurantStaffRole | null
   restaurantAvailability?: $Enums.RestaurantStaffAvailability
+  restaurantPayPeriod?: $Enums.RestaurantPayPeriod | null
+  restaurantPayRate?: number | null
+  restaurantStandardMinutesPerDay?: number
+  restaurantWorkDaysPerMonth?: number
+  restaurantCcssDeductionEnabled?: boolean
+  restaurantCcssDeductionBps?: number
   active?: boolean
   deactivatedAt?: Date | string | null
   sessionVersion?: number
@@ -1294,6 +1574,12 @@ export type UserUncheckedCreateWithoutStaffAccessCodeInput = {
   role?: $Enums.UserRole
   restaurantRole?: $Enums.RestaurantStaffRole | null
   restaurantAvailability?: $Enums.RestaurantStaffAvailability
+  restaurantPayPeriod?: $Enums.RestaurantPayPeriod | null
+  restaurantPayRate?: number | null
+  restaurantStandardMinutesPerDay?: number
+  restaurantWorkDaysPerMonth?: number
+  restaurantCcssDeductionEnabled?: boolean
+  restaurantCcssDeductionBps?: number
   active?: boolean
   deactivatedAt?: Date | string | null
   sessionVersion?: number
@@ -1331,6 +1617,12 @@ export type UserUpdateWithoutStaffAccessCodeInput = {
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
   restaurantRole?: Prisma.NullableEnumRestaurantStaffRoleFieldUpdateOperationsInput | $Enums.RestaurantStaffRole | null
   restaurantAvailability?: Prisma.EnumRestaurantStaffAvailabilityFieldUpdateOperationsInput | $Enums.RestaurantStaffAvailability
+  restaurantPayPeriod?: Prisma.NullableEnumRestaurantPayPeriodFieldUpdateOperationsInput | $Enums.RestaurantPayPeriod | null
+  restaurantPayRate?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  restaurantStandardMinutesPerDay?: Prisma.IntFieldUpdateOperationsInput | number
+  restaurantWorkDaysPerMonth?: Prisma.IntFieldUpdateOperationsInput | number
+  restaurantCcssDeductionEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  restaurantCcssDeductionBps?: Prisma.IntFieldUpdateOperationsInput | number
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   deactivatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sessionVersion?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1354,6 +1646,12 @@ export type UserUncheckedUpdateWithoutStaffAccessCodeInput = {
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
   restaurantRole?: Prisma.NullableEnumRestaurantStaffRoleFieldUpdateOperationsInput | $Enums.RestaurantStaffRole | null
   restaurantAvailability?: Prisma.EnumRestaurantStaffAvailabilityFieldUpdateOperationsInput | $Enums.RestaurantStaffAvailability
+  restaurantPayPeriod?: Prisma.NullableEnumRestaurantPayPeriodFieldUpdateOperationsInput | $Enums.RestaurantPayPeriod | null
+  restaurantPayRate?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  restaurantStandardMinutesPerDay?: Prisma.IntFieldUpdateOperationsInput | number
+  restaurantWorkDaysPerMonth?: Prisma.IntFieldUpdateOperationsInput | number
+  restaurantCcssDeductionEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  restaurantCcssDeductionBps?: Prisma.IntFieldUpdateOperationsInput | number
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   deactivatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sessionVersion?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1375,6 +1673,12 @@ export type UserCreateWithoutScanEventsInput = {
   role?: $Enums.UserRole
   restaurantRole?: $Enums.RestaurantStaffRole | null
   restaurantAvailability?: $Enums.RestaurantStaffAvailability
+  restaurantPayPeriod?: $Enums.RestaurantPayPeriod | null
+  restaurantPayRate?: number | null
+  restaurantStandardMinutesPerDay?: number
+  restaurantWorkDaysPerMonth?: number
+  restaurantCcssDeductionEnabled?: boolean
+  restaurantCcssDeductionBps?: number
   active?: boolean
   deactivatedAt?: Date | string | null
   sessionVersion?: number
@@ -1398,6 +1702,12 @@ export type UserUncheckedCreateWithoutScanEventsInput = {
   role?: $Enums.UserRole
   restaurantRole?: $Enums.RestaurantStaffRole | null
   restaurantAvailability?: $Enums.RestaurantStaffAvailability
+  restaurantPayPeriod?: $Enums.RestaurantPayPeriod | null
+  restaurantPayRate?: number | null
+  restaurantStandardMinutesPerDay?: number
+  restaurantWorkDaysPerMonth?: number
+  restaurantCcssDeductionEnabled?: boolean
+  restaurantCcssDeductionBps?: number
   active?: boolean
   deactivatedAt?: Date | string | null
   sessionVersion?: number
@@ -1435,6 +1745,12 @@ export type UserUpdateWithoutScanEventsInput = {
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
   restaurantRole?: Prisma.NullableEnumRestaurantStaffRoleFieldUpdateOperationsInput | $Enums.RestaurantStaffRole | null
   restaurantAvailability?: Prisma.EnumRestaurantStaffAvailabilityFieldUpdateOperationsInput | $Enums.RestaurantStaffAvailability
+  restaurantPayPeriod?: Prisma.NullableEnumRestaurantPayPeriodFieldUpdateOperationsInput | $Enums.RestaurantPayPeriod | null
+  restaurantPayRate?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  restaurantStandardMinutesPerDay?: Prisma.IntFieldUpdateOperationsInput | number
+  restaurantWorkDaysPerMonth?: Prisma.IntFieldUpdateOperationsInput | number
+  restaurantCcssDeductionEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  restaurantCcssDeductionBps?: Prisma.IntFieldUpdateOperationsInput | number
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   deactivatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sessionVersion?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1458,6 +1774,12 @@ export type UserUncheckedUpdateWithoutScanEventsInput = {
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
   restaurantRole?: Prisma.NullableEnumRestaurantStaffRoleFieldUpdateOperationsInput | $Enums.RestaurantStaffRole | null
   restaurantAvailability?: Prisma.EnumRestaurantStaffAvailabilityFieldUpdateOperationsInput | $Enums.RestaurantStaffAvailability
+  restaurantPayPeriod?: Prisma.NullableEnumRestaurantPayPeriodFieldUpdateOperationsInput | $Enums.RestaurantPayPeriod | null
+  restaurantPayRate?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  restaurantStandardMinutesPerDay?: Prisma.IntFieldUpdateOperationsInput | number
+  restaurantWorkDaysPerMonth?: Prisma.IntFieldUpdateOperationsInput | number
+  restaurantCcssDeductionEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  restaurantCcssDeductionBps?: Prisma.IntFieldUpdateOperationsInput | number
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   deactivatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sessionVersion?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1479,6 +1801,12 @@ export type UserCreateWithoutRefreshTokensInput = {
   role?: $Enums.UserRole
   restaurantRole?: $Enums.RestaurantStaffRole | null
   restaurantAvailability?: $Enums.RestaurantStaffAvailability
+  restaurantPayPeriod?: $Enums.RestaurantPayPeriod | null
+  restaurantPayRate?: number | null
+  restaurantStandardMinutesPerDay?: number
+  restaurantWorkDaysPerMonth?: number
+  restaurantCcssDeductionEnabled?: boolean
+  restaurantCcssDeductionBps?: number
   active?: boolean
   deactivatedAt?: Date | string | null
   sessionVersion?: number
@@ -1502,6 +1830,12 @@ export type UserUncheckedCreateWithoutRefreshTokensInput = {
   role?: $Enums.UserRole
   restaurantRole?: $Enums.RestaurantStaffRole | null
   restaurantAvailability?: $Enums.RestaurantStaffAvailability
+  restaurantPayPeriod?: $Enums.RestaurantPayPeriod | null
+  restaurantPayRate?: number | null
+  restaurantStandardMinutesPerDay?: number
+  restaurantWorkDaysPerMonth?: number
+  restaurantCcssDeductionEnabled?: boolean
+  restaurantCcssDeductionBps?: number
   active?: boolean
   deactivatedAt?: Date | string | null
   sessionVersion?: number
@@ -1539,6 +1873,12 @@ export type UserUpdateWithoutRefreshTokensInput = {
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
   restaurantRole?: Prisma.NullableEnumRestaurantStaffRoleFieldUpdateOperationsInput | $Enums.RestaurantStaffRole | null
   restaurantAvailability?: Prisma.EnumRestaurantStaffAvailabilityFieldUpdateOperationsInput | $Enums.RestaurantStaffAvailability
+  restaurantPayPeriod?: Prisma.NullableEnumRestaurantPayPeriodFieldUpdateOperationsInput | $Enums.RestaurantPayPeriod | null
+  restaurantPayRate?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  restaurantStandardMinutesPerDay?: Prisma.IntFieldUpdateOperationsInput | number
+  restaurantWorkDaysPerMonth?: Prisma.IntFieldUpdateOperationsInput | number
+  restaurantCcssDeductionEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  restaurantCcssDeductionBps?: Prisma.IntFieldUpdateOperationsInput | number
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   deactivatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sessionVersion?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1562,6 +1902,12 @@ export type UserUncheckedUpdateWithoutRefreshTokensInput = {
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
   restaurantRole?: Prisma.NullableEnumRestaurantStaffRoleFieldUpdateOperationsInput | $Enums.RestaurantStaffRole | null
   restaurantAvailability?: Prisma.EnumRestaurantStaffAvailabilityFieldUpdateOperationsInput | $Enums.RestaurantStaffAvailability
+  restaurantPayPeriod?: Prisma.NullableEnumRestaurantPayPeriodFieldUpdateOperationsInput | $Enums.RestaurantPayPeriod | null
+  restaurantPayRate?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  restaurantStandardMinutesPerDay?: Prisma.IntFieldUpdateOperationsInput | number
+  restaurantWorkDaysPerMonth?: Prisma.IntFieldUpdateOperationsInput | number
+  restaurantCcssDeductionEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  restaurantCcssDeductionBps?: Prisma.IntFieldUpdateOperationsInput | number
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   deactivatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sessionVersion?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1583,6 +1929,12 @@ export type UserCreateManyOrganizationInput = {
   role?: $Enums.UserRole
   restaurantRole?: $Enums.RestaurantStaffRole | null
   restaurantAvailability?: $Enums.RestaurantStaffAvailability
+  restaurantPayPeriod?: $Enums.RestaurantPayPeriod | null
+  restaurantPayRate?: number | null
+  restaurantStandardMinutesPerDay?: number
+  restaurantWorkDaysPerMonth?: number
+  restaurantCcssDeductionEnabled?: boolean
+  restaurantCcssDeductionBps?: number
   active?: boolean
   deactivatedAt?: Date | string | null
   sessionVersion?: number
@@ -1598,6 +1950,12 @@ export type UserUpdateWithoutOrganizationInput = {
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
   restaurantRole?: Prisma.NullableEnumRestaurantStaffRoleFieldUpdateOperationsInput | $Enums.RestaurantStaffRole | null
   restaurantAvailability?: Prisma.EnumRestaurantStaffAvailabilityFieldUpdateOperationsInput | $Enums.RestaurantStaffAvailability
+  restaurantPayPeriod?: Prisma.NullableEnumRestaurantPayPeriodFieldUpdateOperationsInput | $Enums.RestaurantPayPeriod | null
+  restaurantPayRate?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  restaurantStandardMinutesPerDay?: Prisma.IntFieldUpdateOperationsInput | number
+  restaurantWorkDaysPerMonth?: Prisma.IntFieldUpdateOperationsInput | number
+  restaurantCcssDeductionEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  restaurantCcssDeductionBps?: Prisma.IntFieldUpdateOperationsInput | number
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   deactivatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sessionVersion?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1620,6 +1978,12 @@ export type UserUncheckedUpdateWithoutOrganizationInput = {
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
   restaurantRole?: Prisma.NullableEnumRestaurantStaffRoleFieldUpdateOperationsInput | $Enums.RestaurantStaffRole | null
   restaurantAvailability?: Prisma.EnumRestaurantStaffAvailabilityFieldUpdateOperationsInput | $Enums.RestaurantStaffAvailability
+  restaurantPayPeriod?: Prisma.NullableEnumRestaurantPayPeriodFieldUpdateOperationsInput | $Enums.RestaurantPayPeriod | null
+  restaurantPayRate?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  restaurantStandardMinutesPerDay?: Prisma.IntFieldUpdateOperationsInput | number
+  restaurantWorkDaysPerMonth?: Prisma.IntFieldUpdateOperationsInput | number
+  restaurantCcssDeductionEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  restaurantCcssDeductionBps?: Prisma.IntFieldUpdateOperationsInput | number
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   deactivatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sessionVersion?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1642,6 +2006,12 @@ export type UserUncheckedUpdateManyWithoutOrganizationInput = {
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
   restaurantRole?: Prisma.NullableEnumRestaurantStaffRoleFieldUpdateOperationsInput | $Enums.RestaurantStaffRole | null
   restaurantAvailability?: Prisma.EnumRestaurantStaffAvailabilityFieldUpdateOperationsInput | $Enums.RestaurantStaffAvailability
+  restaurantPayPeriod?: Prisma.NullableEnumRestaurantPayPeriodFieldUpdateOperationsInput | $Enums.RestaurantPayPeriod | null
+  restaurantPayRate?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  restaurantStandardMinutesPerDay?: Prisma.IntFieldUpdateOperationsInput | number
+  restaurantWorkDaysPerMonth?: Prisma.IntFieldUpdateOperationsInput | number
+  restaurantCcssDeductionEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  restaurantCcssDeductionBps?: Prisma.IntFieldUpdateOperationsInput | number
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   deactivatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sessionVersion?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1734,6 +2104,12 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   role?: boolean
   restaurantRole?: boolean
   restaurantAvailability?: boolean
+  restaurantPayPeriod?: boolean
+  restaurantPayRate?: boolean
+  restaurantStandardMinutesPerDay?: boolean
+  restaurantWorkDaysPerMonth?: boolean
+  restaurantCcssDeductionEnabled?: boolean
+  restaurantCcssDeductionBps?: boolean
   active?: boolean
   deactivatedAt?: boolean
   sessionVersion?: boolean
@@ -1759,6 +2135,12 @@ export type UserSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   role?: boolean
   restaurantRole?: boolean
   restaurantAvailability?: boolean
+  restaurantPayPeriod?: boolean
+  restaurantPayRate?: boolean
+  restaurantStandardMinutesPerDay?: boolean
+  restaurantWorkDaysPerMonth?: boolean
+  restaurantCcssDeductionEnabled?: boolean
+  restaurantCcssDeductionBps?: boolean
   active?: boolean
   deactivatedAt?: boolean
   sessionVersion?: boolean
@@ -1776,6 +2158,12 @@ export type UserSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   role?: boolean
   restaurantRole?: boolean
   restaurantAvailability?: boolean
+  restaurantPayPeriod?: boolean
+  restaurantPayRate?: boolean
+  restaurantStandardMinutesPerDay?: boolean
+  restaurantWorkDaysPerMonth?: boolean
+  restaurantCcssDeductionEnabled?: boolean
+  restaurantCcssDeductionBps?: boolean
   active?: boolean
   deactivatedAt?: boolean
   sessionVersion?: boolean
@@ -1793,6 +2181,12 @@ export type UserSelectScalar = {
   role?: boolean
   restaurantRole?: boolean
   restaurantAvailability?: boolean
+  restaurantPayPeriod?: boolean
+  restaurantPayRate?: boolean
+  restaurantStandardMinutesPerDay?: boolean
+  restaurantWorkDaysPerMonth?: boolean
+  restaurantCcssDeductionEnabled?: boolean
+  restaurantCcssDeductionBps?: boolean
   active?: boolean
   deactivatedAt?: boolean
   sessionVersion?: boolean
@@ -1800,7 +2194,7 @@ export type UserSelectScalar = {
   updatedAt?: boolean
 }
 
-export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "organizationId" | "email" | "name" | "passwordHash" | "role" | "restaurantRole" | "restaurantAvailability" | "active" | "deactivatedAt" | "sessionVersion" | "createdAt" | "updatedAt", ExtArgs["result"]["user"]>
+export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "organizationId" | "email" | "name" | "passwordHash" | "role" | "restaurantRole" | "restaurantAvailability" | "restaurantPayPeriod" | "restaurantPayRate" | "restaurantStandardMinutesPerDay" | "restaurantWorkDaysPerMonth" | "restaurantCcssDeductionEnabled" | "restaurantCcssDeductionBps" | "active" | "deactivatedAt" | "sessionVersion" | "createdAt" | "updatedAt", ExtArgs["result"]["user"]>
 export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
   scanEvents?: boolean | Prisma.User$scanEventsArgs<ExtArgs>
@@ -1840,6 +2234,12 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     role: $Enums.UserRole
     restaurantRole: $Enums.RestaurantStaffRole | null
     restaurantAvailability: $Enums.RestaurantStaffAvailability
+    restaurantPayPeriod: $Enums.RestaurantPayPeriod | null
+    restaurantPayRate: number | null
+    restaurantStandardMinutesPerDay: number
+    restaurantWorkDaysPerMonth: number
+    restaurantCcssDeductionEnabled: boolean
+    restaurantCcssDeductionBps: number
     active: boolean
     deactivatedAt: Date | null
     sessionVersion: number
@@ -2284,6 +2684,12 @@ export interface UserFieldRefs {
   readonly role: Prisma.FieldRef<"User", 'UserRole'>
   readonly restaurantRole: Prisma.FieldRef<"User", 'RestaurantStaffRole'>
   readonly restaurantAvailability: Prisma.FieldRef<"User", 'RestaurantStaffAvailability'>
+  readonly restaurantPayPeriod: Prisma.FieldRef<"User", 'RestaurantPayPeriod'>
+  readonly restaurantPayRate: Prisma.FieldRef<"User", 'Int'>
+  readonly restaurantStandardMinutesPerDay: Prisma.FieldRef<"User", 'Int'>
+  readonly restaurantWorkDaysPerMonth: Prisma.FieldRef<"User", 'Int'>
+  readonly restaurantCcssDeductionEnabled: Prisma.FieldRef<"User", 'Boolean'>
+  readonly restaurantCcssDeductionBps: Prisma.FieldRef<"User", 'Int'>
   readonly active: Prisma.FieldRef<"User", 'Boolean'>
   readonly deactivatedAt: Prisma.FieldRef<"User", 'DateTime'>
   readonly sessionVersion: Prisma.FieldRef<"User", 'Int'>

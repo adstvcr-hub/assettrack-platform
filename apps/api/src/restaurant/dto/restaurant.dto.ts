@@ -24,6 +24,7 @@ import {
   RestaurantFulfillment,
   RestaurantInvoiceRequestStatus,
   RestaurantProductOrigin,
+  RestaurantPayPeriod,
   RestaurantStaffAvailability,
   RestaurantStaffRole,
   RestaurantStation,
@@ -181,6 +182,17 @@ export class UpdateStaffAvailabilityDto {
   @IsString()
   @MaxLength(240)
   reason?: string;
+}
+
+export class UpdateStaffPayrollDto {
+  @IsEnum(RestaurantPayPeriod)
+  payPeriod!: RestaurantPayPeriod;
+
+  @IsInt() @Min(0) @Max(100000000) payRate!: number;
+  @IsInt() @Min(60) @Max(1440) standardMinutesPerDay!: number;
+  @IsInt() @Min(1) @Max(31) workDaysPerMonth!: number;
+  @IsBoolean() ccssDeductionEnabled!: boolean;
+  @IsInt() @Min(0) @Max(10000) ccssDeductionBps!: number;
 }
 
 export class CancelOrderDto {

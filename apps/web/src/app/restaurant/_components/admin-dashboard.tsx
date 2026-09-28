@@ -17,6 +17,7 @@ type Table = {
   kind: "DINING" | "BAR_SEAT" | "TAKEOUT_STATION";
 };
 type RestaurantRole = "RESTAURANT_ADMIN" | "KITCHEN" | "BAR" | "WAITER";
+type RestaurantPayPeriod = "HOURLY" | "DAILY" | "MONTHLY";
 type StaffUser = {
   id: string;
   name: string;
@@ -26,6 +27,12 @@ type StaffUser = {
   restaurantAvailability:
     "AVAILABLE" | "BREAK" | "TEMPORARILY_UNAVAILABLE" | "OFF_SHIFT";
   active: boolean;
+  restaurantPayPeriod?: RestaurantPayPeriod | null;
+  restaurantPayRate?: number | null;
+  restaurantStandardMinutesPerDay: number;
+  restaurantWorkDaysPerMonth: number;
+  restaurantCcssDeductionEnabled: boolean;
+  restaurantCcssDeductionBps: number;
   staffAccessCode?: {
     active: boolean;
     updatedAt: string;
@@ -44,6 +51,12 @@ type StaffHoursReport = {
     sessions: number;
     activeMs: number;
     outOfServiceMs: number;
+    payableMs: number;
+    deductedMs: number;
+    payrollConfiguredEmployees: number;
+    grossPay: number;
+    ccssDeduction: number;
+    netPay: number;
   };
   employees: Array<{
     userId: string;
@@ -59,6 +72,21 @@ type StaffHoursReport = {
     firstEntryAt: string;
     lastExitAt?: string | null;
     openSessions: number;
+    payroll: {
+      configured: boolean;
+      payPeriod?: RestaurantPayPeriod | null;
+      payRate?: number | null;
+      standardMinutesPerDay: number;
+      workDaysPerMonth: number;
+      payableMs: number;
+      deductedMs: number;
+      hourlyRate?: number | null;
+      grossPay?: number | null;
+      ccssDeductionEnabled: boolean;
+      ccssDeductionBps: number;
+      ccssDeduction: number;
+      netPay?: number | null;
+    };
   }>;
   sessions: Array<{
     id: string;
@@ -372,6 +400,14 @@ function formatStaffDuration(milliseconds: number) {
   return `${hours} h ${minutes.toString().padStart(2, "0")} min`;
 }
 
+function formatColones(value: number) {
+  return new Intl.NumberFormat("es-CR", {
+    style: "currency",
+    currency: "CRC",
+    maximumFractionDigits: 0,
+  }).format(value);
+}
+
 function restaurantRoleLabel(role: RestaurantRole | null) {
   if (role === "RESTAURANT_ADMIN") return "Administración";
   if (role === "KITCHEN") return "Cocina";
@@ -482,6 +518,14 @@ export default function RestaurantAdminDashboard({
     new Date().toISOString().slice(0, 10),
   );
   const [staffHoursUserId, setStaffHoursUserId] = useState("");
+  const [payrollUserId, setPayrollUserId] = useState("");
+  const [payrollPeriod, setPayrollPeriod] =
+    useState<RestaurantPayPeriod>("HOURLY");
+  const [payrollRate, setPayrollRate] = useState("");
+  const [payrollHoursPerDay, setPayrollHoursPerDay] = useState("8");
+  const [payrollWorkDaysPerMonth, setPayrollWorkDaysPerMonth] = useState("26");
+  const [payrollCcssEnabled, setPayrollCcssEnabled] = useState(false);
+  const [payrollCcssPercent, setPayrollCcssPercent] = useState("0");
   const billingInitialized = useRef(false);
   const brandingInitialized = useRef(false);
   const orderingAreaInitialized = useRef(false);
@@ -752,6 +796,59 @@ export default function RestaurantAdminDashboard({
       setError(err instanceof Error ? err.message : "Update failed");
       return false;
     }
+  }
+
+  function selectPayrollUser(userId: string) {
+    setPayrollUserId(userId);
+    const user = staffUsers.find((candidate) => candidate.id === userId);
+    if (!user) return;
+    setPayrollPeriod(user.restaurantPayPeriod ?? "HOURLY");
+    setPayrollRate(
+      user.restaurantPayRate == null ? "" : String(user.restaurantPayRate),
+    );
+    setPayrollHoursPerDay(
+      String((user.restaurantStandardMinutesPerDay || 480) / 60),
+    );
+    setPayrollWorkDaysPerMonth(String(user.restaurantWorkDaysPerMonth || 26));
+    setPayrollCcssEnabled(user.restaurantCcssDeductionEnabled);
+    setPayrollCcssPercent(String(user.restaurantCcssDeductionBps / 100));
+  }
+
+  async function savePayrollSettings() {
+    const rate = Number(payrollRate);
+    const hoursPerDay = Number(payrollHoursPerDay);
+    const workDaysPerMonth = Number(payrollWorkDaysPerMonth);
+    const ccssPercent = Number(payrollCcssPercent);
+    if (
+      !payrollUserId ||
+      !Number.isFinite(rate) ||
+      rate < 0 ||
+      !Number.isFinite(hoursPerDay) ||
+      hoursPerDay < 1 ||
+      hoursPerDay > 24 ||
+      !Number.isInteger(workDaysPerMonth) ||
+      workDaysPerMonth < 1 ||
+      workDaysPerMonth > 31 ||
+      !Number.isFinite(ccssPercent) ||
+      ccssPercent < 0 ||
+      ccssPercent > 100
+    ) {
+      setError("Revise los valores de la configuración salarial");
+      return;
+    }
+    const saved = await post(
+      `staff-users/${payrollUserId}/payroll`,
+      {
+        payPeriod: payrollPeriod,
+        payRate: Math.round(rate),
+        standardMinutesPerDay: Math.round(hoursPerDay * 60),
+        workDaysPerMonth,
+        ccssDeductionEnabled: payrollCcssEnabled,
+        ccssDeductionBps: Math.round(ccssPercent * 100),
+      },
+      "PATCH",
+    );
+    if (saved) void loadStaffHours();
   }
 
   async function remove(path: string) {
@@ -2947,8 +3044,9 @@ export default function RestaurantAdminDashboard({
                 Consulta de horas del personal
               </h3>
               <p className="mt-1 text-sm text-slate-600">
-                Calcula la jornada desde el inicio de sesión y descuenta
-                descansos, indisponibilidad temporal y tiempo fuera de turno.
+                Calcula la jornada desde el inicio de sesión. Los descansos son
+                pagados; la indisponibilidad temporal y el tiempo fuera de turno
+                no se incluyen en el salario.
               </p>
             </div>
             {staffHours && (
@@ -2956,6 +3054,134 @@ export default function RestaurantAdminDashboard({
                 Zona horaria: {staffHours.range.timezone}
               </span>
             )}
+          </div>
+          <div className="mt-5 rounded-xl border border-emerald-200 bg-emerald-50 p-4">
+            <h4 className="font-bold text-emerald-950">
+              Configuración salarial por empleado
+            </h4>
+            <p className="mt-1 text-sm text-emerald-900">
+              El salario diario y mensual se convierten a una tarifa por hora
+              mediante la jornada diaria y los días laborables configurados.
+            </p>
+            <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+              <label className="text-sm font-semibold">
+                Empleado
+                <select
+                  className="mt-1 w-full rounded border bg-white p-2"
+                  value={payrollUserId}
+                  onChange={(event) => selectPayrollUser(event.target.value)}
+                >
+                  <option value="">Seleccione un empleado</option>
+                  {staffUsers
+                    .filter((user) => user.active)
+                    .map((user) => (
+                      <option key={user.id} value={user.id}>
+                        {user.name} · {restaurantRoleLabel(user.restaurantRole)}
+                      </option>
+                    ))}
+                </select>
+              </label>
+              <label className="text-sm font-semibold">
+                Modalidad
+                <select
+                  className="mt-1 w-full rounded border bg-white p-2"
+                  value={payrollPeriod}
+                  onChange={(event) =>
+                    setPayrollPeriod(event.target.value as RestaurantPayPeriod)
+                  }
+                  disabled={!payrollUserId}
+                >
+                  <option value="HOURLY">Por hora</option>
+                  <option value="DAILY">Por día</option>
+                  <option value="MONTHLY">Mensual</option>
+                </select>
+              </label>
+              <label className="text-sm font-semibold">
+                {payrollPeriod === "HOURLY"
+                  ? "Salario por hora (₡)"
+                  : payrollPeriod === "DAILY"
+                    ? "Salario por día (₡)"
+                    : "Salario mensual (₡)"}
+                <input
+                  type="number"
+                  min="0"
+                  step="1"
+                  className="mt-1 w-full rounded border bg-white p-2"
+                  value={payrollRate}
+                  onChange={(event) => setPayrollRate(event.target.value)}
+                  disabled={!payrollUserId}
+                />
+              </label>
+              <label className="text-sm font-semibold">
+                Horas de jornada diaria
+                <input
+                  type="number"
+                  min="1"
+                  max="24"
+                  step="0.25"
+                  className="mt-1 w-full rounded border bg-white p-2"
+                  value={payrollHoursPerDay}
+                  onChange={(event) =>
+                    setPayrollHoursPerDay(event.target.value)
+                  }
+                  disabled={!payrollUserId}
+                />
+              </label>
+              <label className="text-sm font-semibold">
+                Días laborables por mes
+                <input
+                  type="number"
+                  min="1"
+                  max="31"
+                  step="1"
+                  className="mt-1 w-full rounded border bg-white p-2"
+                  value={payrollWorkDaysPerMonth}
+                  onChange={(event) =>
+                    setPayrollWorkDaysPerMonth(event.target.value)
+                  }
+                  disabled={!payrollUserId}
+                />
+              </label>
+              <label className="flex items-center gap-2 self-end rounded border bg-white p-2.5 text-sm font-semibold">
+                <input
+                  type="checkbox"
+                  checked={payrollCcssEnabled}
+                  onChange={(event) =>
+                    setPayrollCcssEnabled(event.target.checked)
+                  }
+                  disabled={!payrollUserId}
+                />
+                Aplicar rebajo CCSS
+              </label>
+              <label className="text-sm font-semibold">
+                Rebajo CCSS (%)
+                <input
+                  type="number"
+                  min="0"
+                  max="100"
+                  step="0.01"
+                  className="mt-1 w-full rounded border bg-white p-2"
+                  value={payrollCcssPercent}
+                  onChange={(event) =>
+                    setPayrollCcssPercent(event.target.value)
+                  }
+                  disabled={!payrollUserId || !payrollCcssEnabled}
+                />
+              </label>
+              <button
+                type="button"
+                className="self-end rounded bg-emerald-800 px-4 py-2.5 font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50"
+                onClick={() => void savePayrollSettings()}
+                disabled={!payrollUserId}
+              >
+                Guardar salario
+              </button>
+            </div>
+            <p className="mt-3 text-xs text-emerald-900">
+              La tasa CCSS queda desactivada por defecto. Verifique el
+              porcentaje aplicable con su profesional contable y la normativa
+              vigente.
+            </p>
           </div>
           <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-[180px_180px_1fr_auto] lg:items-end">
             <label className="text-sm font-semibold">
@@ -3018,7 +3244,7 @@ export default function RestaurantAdminDashboard({
                     formatStaffDuration(staffHours.summary.activeMs),
                   ],
                   [
-                    "Fuera de servicio",
+                    "Fuera de servicio (incluye descanso)",
                     formatStaffDuration(staffHours.summary.outOfServiceMs),
                   ],
                 ].map(([label, value]) => (
@@ -3031,10 +3257,39 @@ export default function RestaurantAdminDashboard({
                   </div>
                 ))}
               </div>
+              <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                {[
+                  [
+                    "Tiempo pagable",
+                    formatStaffDuration(staffHours.summary.payableMs),
+                  ],
+                  [
+                    "Tiempo no pagado",
+                    formatStaffDuration(staffHours.summary.deductedMs),
+                  ],
+                  ["Salario bruto", formatColones(staffHours.summary.grossPay)],
+                  ["Neto estimado", formatColones(staffHours.summary.netPay)],
+                ].map(([label, value]) => (
+                  <div
+                    key={label}
+                    className="rounded-lg border border-emerald-100 bg-emerald-50 p-4"
+                  >
+                    <p className="text-sm text-emerald-900">{label}</p>
+                    <strong className="text-xl text-emerald-950">
+                      {value}
+                    </strong>
+                  </div>
+                ))}
+              </div>
+              <p className="mt-2 text-xs text-slate-500">
+                CCSS estimada: {formatColones(staffHours.summary.ccssDeduction)}{" "}
+                · empleados con salario configurado:{" "}
+                {staffHours.summary.payrollConfiguredEmployees}
+              </p>
 
               {staffHours.employees.length > 0 ? (
                 <div className="mt-5 overflow-x-auto rounded-xl border bg-white">
-                  <table className="w-full min-w-[900px] text-left text-sm">
+                  <table className="w-full min-w-[1180px] text-left text-sm">
                     <thead className="bg-slate-100">
                       <tr>
                         <th className="p-3">Funcionario</th>
@@ -3043,6 +3298,8 @@ export default function RestaurantAdminDashboard({
                         <th className="p-3">Última salida</th>
                         <th className="p-3">Tiempo activo</th>
                         <th className="p-3">Fuera de servicio</th>
+                        <th className="p-3">Tiempo pagable</th>
+                        <th className="p-3">Pago estimado</th>
                         <th className="p-3">Jornadas</th>
                       </tr>
                     </thead>
@@ -3091,6 +3348,36 @@ export default function RestaurantAdminDashboard({
                               · turno finalizado{" "}
                               {formatStaffDuration(employee.offShiftMs)}
                             </span>
+                          </td>
+                          <td className="p-3 font-semibold">
+                            {formatStaffDuration(employee.payroll.payableMs)}
+                            <span className="mt-1 block text-xs font-normal text-slate-500">
+                              No pagado{" "}
+                              {formatStaffDuration(employee.payroll.deductedMs)}
+                            </span>
+                          </td>
+                          <td className="p-3">
+                            {employee.payroll.configured ? (
+                              <>
+                                <strong className="text-emerald-800">
+                                  Neto{" "}
+                                  {formatColones(employee.payroll.netPay ?? 0)}
+                                </strong>
+                                <span className="mt-1 block text-xs text-slate-500">
+                                  Bruto{" "}
+                                  {formatColones(
+                                    employee.payroll.grossPay ?? 0,
+                                  )}
+                                  {employee.payroll.ccssDeductionEnabled
+                                    ? ` · CCSS ${formatColones(employee.payroll.ccssDeduction)}`
+                                    : " · sin rebajo CCSS"}
+                                </span>
+                              </>
+                            ) : (
+                              <span className="text-slate-500">
+                                Sin salario configurado
+                              </span>
+                            )}
                           </td>
                           <td className="p-3">{employee.sessions}</td>
                         </tr>

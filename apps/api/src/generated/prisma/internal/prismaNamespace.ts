@@ -2777,6 +2777,12 @@ export const UserScalarFieldEnum = {
   role: 'role',
   restaurantRole: 'restaurantRole',
   restaurantAvailability: 'restaurantAvailability',
+  restaurantPayPeriod: 'restaurantPayPeriod',
+  restaurantPayRate: 'restaurantPayRate',
+  restaurantStandardMinutesPerDay: 'restaurantStandardMinutesPerDay',
+  restaurantWorkDaysPerMonth: 'restaurantWorkDaysPerMonth',
+  restaurantCcssDeductionEnabled: 'restaurantCcssDeductionEnabled',
+  restaurantCcssDeductionBps: 'restaurantCcssDeductionBps',
   active: 'active',
   deactivatedAt: 'deactivatedAt',
   sessionVersion: 'sessionVersion',
@@ -3208,6 +3214,20 @@ export type EnumRestaurantStaffRoleFieldRefInput<$PrismaModel> = FieldRefInputTy
  * Reference to a field of type 'RestaurantStaffRole[]'
  */
 export type ListEnumRestaurantStaffRoleFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'RestaurantStaffRole[]'>
+
+
+
+/**
+ * Reference to a field of type 'RestaurantPayPeriod'
+ */
+export type EnumRestaurantPayPeriodFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'RestaurantPayPeriod'>
+
+
+
+/**
+ * Reference to a field of type 'RestaurantPayPeriod[]'
+ */
+export type ListEnumRestaurantPayPeriodFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'RestaurantPayPeriod[]'>
 
 
 
