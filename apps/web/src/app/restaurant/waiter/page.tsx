@@ -37,6 +37,11 @@ type Visit = {
   deliveryPhone?: string | null;
   deliveryAddress?: string | null;
   paymentStatus: "NOT_REQUIRED" | "PENDING" | "CONFIRMED" | "REJECTED";
+  correctionRequest?: {
+    orderId: string;
+    requestedAt: string;
+    note?: string | null;
+  } | null;
   transferDestinations: Array<{
     id: string;
     name: string;
@@ -210,6 +215,19 @@ export default function WaiterPage() {
     if (!response.ok) {
       const body = await response.json().catch(() => ({}));
       setError(body.message ?? "No se pudo cerrar la cuenta");
+      return;
+    }
+    await load();
+  }
+
+  async function acknowledgeCorrectionRequest(orderId: string) {
+    const response = await authenticatedFetch(
+      `${API_URL}/api/v1/restaurant/orders/${orderId}/correction-request/acknowledge`,
+      { method: "PATCH" },
+    );
+    if (!response.ok) {
+      const body = await response.json().catch(() => ({}));
+      setError(body.message ?? "No se pudo cerrar la solicitud de corrección");
       return;
     }
     await load();
@@ -526,6 +544,34 @@ export default function WaiterPage() {
             <div className="mt-3 space-y-3">
               {visits.map((visit) => (
                 <div key={visit.id} className="rounded-lg border p-4">
+                  {visit.correctionRequest && (
+                    <div
+                      role="alert"
+                      className="mb-4 animate-pulse rounded-xl border-2 border-amber-500 bg-amber-100 p-4 text-amber-950"
+                    >
+                      <p className="text-lg font-black">
+                        El cliente solicita corregir su pedido
+                      </p>
+                      <p>{visit.correctionRequest.note}</p>
+                      <p className="mt-1 text-sm font-semibold">
+                        Solicitud recibida a las{" "}
+                        {new Date(
+                          visit.correctionRequest.requestedAt,
+                        ).toLocaleTimeString()}
+                      </p>
+                      <button
+                        type="button"
+                        className="mt-3 rounded-lg bg-amber-800 px-4 py-2 font-bold text-white"
+                        onClick={() =>
+                          void acknowledgeCorrectionRequest(
+                            visit.correctionRequest!.orderId,
+                          )
+                        }
+                      >
+                        Marcar solicitud como atendida
+                      </button>
+                    </div>
+                  )}
                   <div className="flex flex-wrap items-center justify-between gap-3">
                     <div>
                       <p className="font-bold">{visit.table.name}</p>

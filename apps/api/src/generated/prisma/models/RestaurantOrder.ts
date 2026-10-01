@@ -30,12 +30,14 @@ export type RestaurantOrderAvgAggregateOutputType = {
   promotionCredit: number | null
   expectedMinutes: number | null
   thresholdMinutes: number | null
+  correctionCount: number | null
 }
 
 export type RestaurantOrderSumAggregateOutputType = {
   promotionCredit: number | null
   expectedMinutes: number | null
   thresholdMinutes: number | null
+  correctionCount: number | null
 }
 
 export type RestaurantOrderMinAggregateOutputType = {
@@ -54,6 +56,10 @@ export type RestaurantOrderMinAggregateOutputType = {
   thresholdMinutes: number | null
   delayedAt: Date | null
   analyticsConsolidatedAt: Date | null
+  correctionCount: number | null
+  lastCorrectionRequestId: string | null
+  correctionRequestedAt: Date | null
+  correctionRequestNote: string | null
 }
 
 export type RestaurantOrderMaxAggregateOutputType = {
@@ -72,6 +78,10 @@ export type RestaurantOrderMaxAggregateOutputType = {
   thresholdMinutes: number | null
   delayedAt: Date | null
   analyticsConsolidatedAt: Date | null
+  correctionCount: number | null
+  lastCorrectionRequestId: string | null
+  correctionRequestedAt: Date | null
+  correctionRequestNote: string | null
 }
 
 export type RestaurantOrderCountAggregateOutputType = {
@@ -90,6 +100,10 @@ export type RestaurantOrderCountAggregateOutputType = {
   thresholdMinutes: number
   delayedAt: number
   analyticsConsolidatedAt: number
+  correctionCount: number
+  lastCorrectionRequestId: number
+  correctionRequestedAt: number
+  correctionRequestNote: number
   _all: number
 }
 
@@ -98,12 +112,14 @@ export type RestaurantOrderAvgAggregateInputType = {
   promotionCredit?: true
   expectedMinutes?: true
   thresholdMinutes?: true
+  correctionCount?: true
 }
 
 export type RestaurantOrderSumAggregateInputType = {
   promotionCredit?: true
   expectedMinutes?: true
   thresholdMinutes?: true
+  correctionCount?: true
 }
 
 export type RestaurantOrderMinAggregateInputType = {
@@ -122,6 +138,10 @@ export type RestaurantOrderMinAggregateInputType = {
   thresholdMinutes?: true
   delayedAt?: true
   analyticsConsolidatedAt?: true
+  correctionCount?: true
+  lastCorrectionRequestId?: true
+  correctionRequestedAt?: true
+  correctionRequestNote?: true
 }
 
 export type RestaurantOrderMaxAggregateInputType = {
@@ -140,6 +160,10 @@ export type RestaurantOrderMaxAggregateInputType = {
   thresholdMinutes?: true
   delayedAt?: true
   analyticsConsolidatedAt?: true
+  correctionCount?: true
+  lastCorrectionRequestId?: true
+  correctionRequestedAt?: true
+  correctionRequestNote?: true
 }
 
 export type RestaurantOrderCountAggregateInputType = {
@@ -158,6 +182,10 @@ export type RestaurantOrderCountAggregateInputType = {
   thresholdMinutes?: true
   delayedAt?: true
   analyticsConsolidatedAt?: true
+  correctionCount?: true
+  lastCorrectionRequestId?: true
+  correctionRequestedAt?: true
+  correctionRequestNote?: true
   _all?: true
 }
 
@@ -263,6 +291,10 @@ export type RestaurantOrderGroupByOutputType = {
   thresholdMinutes: number | null
   delayedAt: Date | null
   analyticsConsolidatedAt: Date | null
+  correctionCount: number
+  lastCorrectionRequestId: string | null
+  correctionRequestedAt: Date | null
+  correctionRequestNote: string | null
   _count: RestaurantOrderCountAggregateOutputType | null
   _avg: RestaurantOrderAvgAggregateOutputType | null
   _sum: RestaurantOrderSumAggregateOutputType | null
@@ -304,6 +336,10 @@ export type RestaurantOrderWhereInput = {
   thresholdMinutes?: Prisma.IntNullableFilter<"RestaurantOrder"> | number | null
   delayedAt?: Prisma.DateTimeNullableFilter<"RestaurantOrder"> | Date | string | null
   analyticsConsolidatedAt?: Prisma.DateTimeNullableFilter<"RestaurantOrder"> | Date | string | null
+  correctionCount?: Prisma.IntFilter<"RestaurantOrder"> | number
+  lastCorrectionRequestId?: Prisma.StringNullableFilter<"RestaurantOrder"> | string | null
+  correctionRequestedAt?: Prisma.DateTimeNullableFilter<"RestaurantOrder"> | Date | string | null
+  correctionRequestNote?: Prisma.StringNullableFilter<"RestaurantOrder"> | string | null
   organization?: Prisma.XOR<Prisma.OrganizationScalarRelationFilter, Prisma.OrganizationWhereInput>
   table?: Prisma.XOR<Prisma.RestaurantTableScalarRelationFilter, Prisma.RestaurantTableWhereInput>
   visit?: Prisma.XOR<Prisma.RestaurantVisitNullableScalarRelationFilter, Prisma.RestaurantVisitWhereInput> | null
@@ -326,6 +362,10 @@ export type RestaurantOrderOrderByWithRelationInput = {
   thresholdMinutes?: Prisma.SortOrderInput | Prisma.SortOrder
   delayedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   analyticsConsolidatedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  correctionCount?: Prisma.SortOrder
+  lastCorrectionRequestId?: Prisma.SortOrderInput | Prisma.SortOrder
+  correctionRequestedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  correctionRequestNote?: Prisma.SortOrderInput | Prisma.SortOrder
   organization?: Prisma.OrganizationOrderByWithRelationInput
   table?: Prisma.RestaurantTableOrderByWithRelationInput
   visit?: Prisma.RestaurantVisitOrderByWithRelationInput
@@ -336,6 +376,7 @@ export type RestaurantOrderWhereUniqueInput = Prisma.AtLeast<{
   id?: string
   accessCode?: string
   requestId?: string
+  lastCorrectionRequestId?: string
   AND?: Prisma.RestaurantOrderWhereInput | Prisma.RestaurantOrderWhereInput[]
   OR?: Prisma.RestaurantOrderWhereInput[]
   NOT?: Prisma.RestaurantOrderWhereInput | Prisma.RestaurantOrderWhereInput[]
@@ -351,11 +392,14 @@ export type RestaurantOrderWhereUniqueInput = Prisma.AtLeast<{
   thresholdMinutes?: Prisma.IntNullableFilter<"RestaurantOrder"> | number | null
   delayedAt?: Prisma.DateTimeNullableFilter<"RestaurantOrder"> | Date | string | null
   analyticsConsolidatedAt?: Prisma.DateTimeNullableFilter<"RestaurantOrder"> | Date | string | null
+  correctionCount?: Prisma.IntFilter<"RestaurantOrder"> | number
+  correctionRequestedAt?: Prisma.DateTimeNullableFilter<"RestaurantOrder"> | Date | string | null
+  correctionRequestNote?: Prisma.StringNullableFilter<"RestaurantOrder"> | string | null
   organization?: Prisma.XOR<Prisma.OrganizationScalarRelationFilter, Prisma.OrganizationWhereInput>
   table?: Prisma.XOR<Prisma.RestaurantTableScalarRelationFilter, Prisma.RestaurantTableWhereInput>
   visit?: Prisma.XOR<Prisma.RestaurantVisitNullableScalarRelationFilter, Prisma.RestaurantVisitWhereInput> | null
   items?: Prisma.RestaurantOrderItemListRelationFilter
-}, "id" | "accessCode" | "requestId">
+}, "id" | "accessCode" | "requestId" | "lastCorrectionRequestId">
 
 export type RestaurantOrderOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
@@ -373,6 +417,10 @@ export type RestaurantOrderOrderByWithAggregationInput = {
   thresholdMinutes?: Prisma.SortOrderInput | Prisma.SortOrder
   delayedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   analyticsConsolidatedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  correctionCount?: Prisma.SortOrder
+  lastCorrectionRequestId?: Prisma.SortOrderInput | Prisma.SortOrder
+  correctionRequestedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  correctionRequestNote?: Prisma.SortOrderInput | Prisma.SortOrder
   _count?: Prisma.RestaurantOrderCountOrderByAggregateInput
   _avg?: Prisma.RestaurantOrderAvgOrderByAggregateInput
   _max?: Prisma.RestaurantOrderMaxOrderByAggregateInput
@@ -399,6 +447,10 @@ export type RestaurantOrderScalarWhereWithAggregatesInput = {
   thresholdMinutes?: Prisma.IntNullableWithAggregatesFilter<"RestaurantOrder"> | number | null
   delayedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"RestaurantOrder"> | Date | string | null
   analyticsConsolidatedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"RestaurantOrder"> | Date | string | null
+  correctionCount?: Prisma.IntWithAggregatesFilter<"RestaurantOrder"> | number
+  lastCorrectionRequestId?: Prisma.StringNullableWithAggregatesFilter<"RestaurantOrder"> | string | null
+  correctionRequestedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"RestaurantOrder"> | Date | string | null
+  correctionRequestNote?: Prisma.StringNullableWithAggregatesFilter<"RestaurantOrder"> | string | null
 }
 
 export type RestaurantOrderCreateInput = {
@@ -414,6 +466,10 @@ export type RestaurantOrderCreateInput = {
   thresholdMinutes?: number | null
   delayedAt?: Date | string | null
   analyticsConsolidatedAt?: Date | string | null
+  correctionCount?: number
+  lastCorrectionRequestId?: string | null
+  correctionRequestedAt?: Date | string | null
+  correctionRequestNote?: string | null
   organization: Prisma.OrganizationCreateNestedOneWithoutRestaurantOrdersInput
   table: Prisma.RestaurantTableCreateNestedOneWithoutOrdersInput
   visit?: Prisma.RestaurantVisitCreateNestedOneWithoutOrdersInput
@@ -436,6 +492,10 @@ export type RestaurantOrderUncheckedCreateInput = {
   thresholdMinutes?: number | null
   delayedAt?: Date | string | null
   analyticsConsolidatedAt?: Date | string | null
+  correctionCount?: number
+  lastCorrectionRequestId?: string | null
+  correctionRequestedAt?: Date | string | null
+  correctionRequestNote?: string | null
   items?: Prisma.RestaurantOrderItemUncheckedCreateNestedManyWithoutOrderInput
 }
 
@@ -452,6 +512,10 @@ export type RestaurantOrderUpdateInput = {
   thresholdMinutes?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   delayedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   analyticsConsolidatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  correctionCount?: Prisma.IntFieldUpdateOperationsInput | number
+  lastCorrectionRequestId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  correctionRequestedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  correctionRequestNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutRestaurantOrdersNestedInput
   table?: Prisma.RestaurantTableUpdateOneRequiredWithoutOrdersNestedInput
   visit?: Prisma.RestaurantVisitUpdateOneWithoutOrdersNestedInput
@@ -474,6 +538,10 @@ export type RestaurantOrderUncheckedUpdateInput = {
   thresholdMinutes?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   delayedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   analyticsConsolidatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  correctionCount?: Prisma.IntFieldUpdateOperationsInput | number
+  lastCorrectionRequestId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  correctionRequestedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  correctionRequestNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   items?: Prisma.RestaurantOrderItemUncheckedUpdateManyWithoutOrderNestedInput
 }
 
@@ -493,6 +561,10 @@ export type RestaurantOrderCreateManyInput = {
   thresholdMinutes?: number | null
   delayedAt?: Date | string | null
   analyticsConsolidatedAt?: Date | string | null
+  correctionCount?: number
+  lastCorrectionRequestId?: string | null
+  correctionRequestedAt?: Date | string | null
+  correctionRequestNote?: string | null
 }
 
 export type RestaurantOrderUpdateManyMutationInput = {
@@ -508,6 +580,10 @@ export type RestaurantOrderUpdateManyMutationInput = {
   thresholdMinutes?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   delayedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   analyticsConsolidatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  correctionCount?: Prisma.IntFieldUpdateOperationsInput | number
+  lastCorrectionRequestId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  correctionRequestedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  correctionRequestNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type RestaurantOrderUncheckedUpdateManyInput = {
@@ -526,6 +602,10 @@ export type RestaurantOrderUncheckedUpdateManyInput = {
   thresholdMinutes?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   delayedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   analyticsConsolidatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  correctionCount?: Prisma.IntFieldUpdateOperationsInput | number
+  lastCorrectionRequestId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  correctionRequestedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  correctionRequestNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type RestaurantOrderListRelationFilter = {
@@ -554,12 +634,17 @@ export type RestaurantOrderCountOrderByAggregateInput = {
   thresholdMinutes?: Prisma.SortOrder
   delayedAt?: Prisma.SortOrder
   analyticsConsolidatedAt?: Prisma.SortOrder
+  correctionCount?: Prisma.SortOrder
+  lastCorrectionRequestId?: Prisma.SortOrder
+  correctionRequestedAt?: Prisma.SortOrder
+  correctionRequestNote?: Prisma.SortOrder
 }
 
 export type RestaurantOrderAvgOrderByAggregateInput = {
   promotionCredit?: Prisma.SortOrder
   expectedMinutes?: Prisma.SortOrder
   thresholdMinutes?: Prisma.SortOrder
+  correctionCount?: Prisma.SortOrder
 }
 
 export type RestaurantOrderMaxOrderByAggregateInput = {
@@ -578,6 +663,10 @@ export type RestaurantOrderMaxOrderByAggregateInput = {
   thresholdMinutes?: Prisma.SortOrder
   delayedAt?: Prisma.SortOrder
   analyticsConsolidatedAt?: Prisma.SortOrder
+  correctionCount?: Prisma.SortOrder
+  lastCorrectionRequestId?: Prisma.SortOrder
+  correctionRequestedAt?: Prisma.SortOrder
+  correctionRequestNote?: Prisma.SortOrder
 }
 
 export type RestaurantOrderMinOrderByAggregateInput = {
@@ -596,12 +685,17 @@ export type RestaurantOrderMinOrderByAggregateInput = {
   thresholdMinutes?: Prisma.SortOrder
   delayedAt?: Prisma.SortOrder
   analyticsConsolidatedAt?: Prisma.SortOrder
+  correctionCount?: Prisma.SortOrder
+  lastCorrectionRequestId?: Prisma.SortOrder
+  correctionRequestedAt?: Prisma.SortOrder
+  correctionRequestNote?: Prisma.SortOrder
 }
 
 export type RestaurantOrderSumOrderByAggregateInput = {
   promotionCredit?: Prisma.SortOrder
   expectedMinutes?: Prisma.SortOrder
   thresholdMinutes?: Prisma.SortOrder
+  correctionCount?: Prisma.SortOrder
 }
 
 export type RestaurantOrderScalarRelationFilter = {
@@ -766,6 +860,10 @@ export type RestaurantOrderCreateWithoutOrganizationInput = {
   thresholdMinutes?: number | null
   delayedAt?: Date | string | null
   analyticsConsolidatedAt?: Date | string | null
+  correctionCount?: number
+  lastCorrectionRequestId?: string | null
+  correctionRequestedAt?: Date | string | null
+  correctionRequestNote?: string | null
   table: Prisma.RestaurantTableCreateNestedOneWithoutOrdersInput
   visit?: Prisma.RestaurantVisitCreateNestedOneWithoutOrdersInput
   items?: Prisma.RestaurantOrderItemCreateNestedManyWithoutOrderInput
@@ -786,6 +884,10 @@ export type RestaurantOrderUncheckedCreateWithoutOrganizationInput = {
   thresholdMinutes?: number | null
   delayedAt?: Date | string | null
   analyticsConsolidatedAt?: Date | string | null
+  correctionCount?: number
+  lastCorrectionRequestId?: string | null
+  correctionRequestedAt?: Date | string | null
+  correctionRequestNote?: string | null
   items?: Prisma.RestaurantOrderItemUncheckedCreateNestedManyWithoutOrderInput
 }
 
@@ -834,6 +936,10 @@ export type RestaurantOrderScalarWhereInput = {
   thresholdMinutes?: Prisma.IntNullableFilter<"RestaurantOrder"> | number | null
   delayedAt?: Prisma.DateTimeNullableFilter<"RestaurantOrder"> | Date | string | null
   analyticsConsolidatedAt?: Prisma.DateTimeNullableFilter<"RestaurantOrder"> | Date | string | null
+  correctionCount?: Prisma.IntFilter<"RestaurantOrder"> | number
+  lastCorrectionRequestId?: Prisma.StringNullableFilter<"RestaurantOrder"> | string | null
+  correctionRequestedAt?: Prisma.DateTimeNullableFilter<"RestaurantOrder"> | Date | string | null
+  correctionRequestNote?: Prisma.StringNullableFilter<"RestaurantOrder"> | string | null
 }
 
 export type RestaurantOrderCreateWithoutTableInput = {
@@ -849,6 +955,10 @@ export type RestaurantOrderCreateWithoutTableInput = {
   thresholdMinutes?: number | null
   delayedAt?: Date | string | null
   analyticsConsolidatedAt?: Date | string | null
+  correctionCount?: number
+  lastCorrectionRequestId?: string | null
+  correctionRequestedAt?: Date | string | null
+  correctionRequestNote?: string | null
   organization: Prisma.OrganizationCreateNestedOneWithoutRestaurantOrdersInput
   visit?: Prisma.RestaurantVisitCreateNestedOneWithoutOrdersInput
   items?: Prisma.RestaurantOrderItemCreateNestedManyWithoutOrderInput
@@ -869,6 +979,10 @@ export type RestaurantOrderUncheckedCreateWithoutTableInput = {
   thresholdMinutes?: number | null
   delayedAt?: Date | string | null
   analyticsConsolidatedAt?: Date | string | null
+  correctionCount?: number
+  lastCorrectionRequestId?: string | null
+  correctionRequestedAt?: Date | string | null
+  correctionRequestNote?: string | null
   items?: Prisma.RestaurantOrderItemUncheckedCreateNestedManyWithoutOrderInput
 }
 
@@ -911,6 +1025,10 @@ export type RestaurantOrderCreateWithoutVisitInput = {
   thresholdMinutes?: number | null
   delayedAt?: Date | string | null
   analyticsConsolidatedAt?: Date | string | null
+  correctionCount?: number
+  lastCorrectionRequestId?: string | null
+  correctionRequestedAt?: Date | string | null
+  correctionRequestNote?: string | null
   organization: Prisma.OrganizationCreateNestedOneWithoutRestaurantOrdersInput
   table: Prisma.RestaurantTableCreateNestedOneWithoutOrdersInput
   items?: Prisma.RestaurantOrderItemCreateNestedManyWithoutOrderInput
@@ -931,6 +1049,10 @@ export type RestaurantOrderUncheckedCreateWithoutVisitInput = {
   thresholdMinutes?: number | null
   delayedAt?: Date | string | null
   analyticsConsolidatedAt?: Date | string | null
+  correctionCount?: number
+  lastCorrectionRequestId?: string | null
+  correctionRequestedAt?: Date | string | null
+  correctionRequestNote?: string | null
   items?: Prisma.RestaurantOrderItemUncheckedCreateNestedManyWithoutOrderInput
 }
 
@@ -973,6 +1095,10 @@ export type RestaurantOrderCreateWithoutItemsInput = {
   thresholdMinutes?: number | null
   delayedAt?: Date | string | null
   analyticsConsolidatedAt?: Date | string | null
+  correctionCount?: number
+  lastCorrectionRequestId?: string | null
+  correctionRequestedAt?: Date | string | null
+  correctionRequestNote?: string | null
   organization: Prisma.OrganizationCreateNestedOneWithoutRestaurantOrdersInput
   table: Prisma.RestaurantTableCreateNestedOneWithoutOrdersInput
   visit?: Prisma.RestaurantVisitCreateNestedOneWithoutOrdersInput
@@ -994,6 +1120,10 @@ export type RestaurantOrderUncheckedCreateWithoutItemsInput = {
   thresholdMinutes?: number | null
   delayedAt?: Date | string | null
   analyticsConsolidatedAt?: Date | string | null
+  correctionCount?: number
+  lastCorrectionRequestId?: string | null
+  correctionRequestedAt?: Date | string | null
+  correctionRequestNote?: string | null
 }
 
 export type RestaurantOrderCreateOrConnectWithoutItemsInput = {
@@ -1025,6 +1155,10 @@ export type RestaurantOrderUpdateWithoutItemsInput = {
   thresholdMinutes?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   delayedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   analyticsConsolidatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  correctionCount?: Prisma.IntFieldUpdateOperationsInput | number
+  lastCorrectionRequestId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  correctionRequestedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  correctionRequestNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutRestaurantOrdersNestedInput
   table?: Prisma.RestaurantTableUpdateOneRequiredWithoutOrdersNestedInput
   visit?: Prisma.RestaurantVisitUpdateOneWithoutOrdersNestedInput
@@ -1046,6 +1180,10 @@ export type RestaurantOrderUncheckedUpdateWithoutItemsInput = {
   thresholdMinutes?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   delayedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   analyticsConsolidatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  correctionCount?: Prisma.IntFieldUpdateOperationsInput | number
+  lastCorrectionRequestId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  correctionRequestedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  correctionRequestNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type RestaurantOrderCreateManyOrganizationInput = {
@@ -1063,6 +1201,10 @@ export type RestaurantOrderCreateManyOrganizationInput = {
   thresholdMinutes?: number | null
   delayedAt?: Date | string | null
   analyticsConsolidatedAt?: Date | string | null
+  correctionCount?: number
+  lastCorrectionRequestId?: string | null
+  correctionRequestedAt?: Date | string | null
+  correctionRequestNote?: string | null
 }
 
 export type RestaurantOrderUpdateWithoutOrganizationInput = {
@@ -1078,6 +1220,10 @@ export type RestaurantOrderUpdateWithoutOrganizationInput = {
   thresholdMinutes?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   delayedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   analyticsConsolidatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  correctionCount?: Prisma.IntFieldUpdateOperationsInput | number
+  lastCorrectionRequestId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  correctionRequestedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  correctionRequestNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   table?: Prisma.RestaurantTableUpdateOneRequiredWithoutOrdersNestedInput
   visit?: Prisma.RestaurantVisitUpdateOneWithoutOrdersNestedInput
   items?: Prisma.RestaurantOrderItemUpdateManyWithoutOrderNestedInput
@@ -1098,6 +1244,10 @@ export type RestaurantOrderUncheckedUpdateWithoutOrganizationInput = {
   thresholdMinutes?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   delayedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   analyticsConsolidatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  correctionCount?: Prisma.IntFieldUpdateOperationsInput | number
+  lastCorrectionRequestId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  correctionRequestedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  correctionRequestNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   items?: Prisma.RestaurantOrderItemUncheckedUpdateManyWithoutOrderNestedInput
 }
 
@@ -1116,6 +1266,10 @@ export type RestaurantOrderUncheckedUpdateManyWithoutOrganizationInput = {
   thresholdMinutes?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   delayedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   analyticsConsolidatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  correctionCount?: Prisma.IntFieldUpdateOperationsInput | number
+  lastCorrectionRequestId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  correctionRequestedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  correctionRequestNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type RestaurantOrderCreateManyTableInput = {
@@ -1133,6 +1287,10 @@ export type RestaurantOrderCreateManyTableInput = {
   thresholdMinutes?: number | null
   delayedAt?: Date | string | null
   analyticsConsolidatedAt?: Date | string | null
+  correctionCount?: number
+  lastCorrectionRequestId?: string | null
+  correctionRequestedAt?: Date | string | null
+  correctionRequestNote?: string | null
 }
 
 export type RestaurantOrderUpdateWithoutTableInput = {
@@ -1148,6 +1306,10 @@ export type RestaurantOrderUpdateWithoutTableInput = {
   thresholdMinutes?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   delayedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   analyticsConsolidatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  correctionCount?: Prisma.IntFieldUpdateOperationsInput | number
+  lastCorrectionRequestId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  correctionRequestedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  correctionRequestNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutRestaurantOrdersNestedInput
   visit?: Prisma.RestaurantVisitUpdateOneWithoutOrdersNestedInput
   items?: Prisma.RestaurantOrderItemUpdateManyWithoutOrderNestedInput
@@ -1168,6 +1330,10 @@ export type RestaurantOrderUncheckedUpdateWithoutTableInput = {
   thresholdMinutes?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   delayedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   analyticsConsolidatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  correctionCount?: Prisma.IntFieldUpdateOperationsInput | number
+  lastCorrectionRequestId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  correctionRequestedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  correctionRequestNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   items?: Prisma.RestaurantOrderItemUncheckedUpdateManyWithoutOrderNestedInput
 }
 
@@ -1186,6 +1352,10 @@ export type RestaurantOrderUncheckedUpdateManyWithoutTableInput = {
   thresholdMinutes?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   delayedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   analyticsConsolidatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  correctionCount?: Prisma.IntFieldUpdateOperationsInput | number
+  lastCorrectionRequestId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  correctionRequestedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  correctionRequestNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type RestaurantOrderCreateManyVisitInput = {
@@ -1203,6 +1373,10 @@ export type RestaurantOrderCreateManyVisitInput = {
   thresholdMinutes?: number | null
   delayedAt?: Date | string | null
   analyticsConsolidatedAt?: Date | string | null
+  correctionCount?: number
+  lastCorrectionRequestId?: string | null
+  correctionRequestedAt?: Date | string | null
+  correctionRequestNote?: string | null
 }
 
 export type RestaurantOrderUpdateWithoutVisitInput = {
@@ -1218,6 +1392,10 @@ export type RestaurantOrderUpdateWithoutVisitInput = {
   thresholdMinutes?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   delayedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   analyticsConsolidatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  correctionCount?: Prisma.IntFieldUpdateOperationsInput | number
+  lastCorrectionRequestId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  correctionRequestedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  correctionRequestNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutRestaurantOrdersNestedInput
   table?: Prisma.RestaurantTableUpdateOneRequiredWithoutOrdersNestedInput
   items?: Prisma.RestaurantOrderItemUpdateManyWithoutOrderNestedInput
@@ -1238,6 +1416,10 @@ export type RestaurantOrderUncheckedUpdateWithoutVisitInput = {
   thresholdMinutes?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   delayedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   analyticsConsolidatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  correctionCount?: Prisma.IntFieldUpdateOperationsInput | number
+  lastCorrectionRequestId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  correctionRequestedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  correctionRequestNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   items?: Prisma.RestaurantOrderItemUncheckedUpdateManyWithoutOrderNestedInput
 }
 
@@ -1256,6 +1438,10 @@ export type RestaurantOrderUncheckedUpdateManyWithoutVisitInput = {
   thresholdMinutes?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   delayedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   analyticsConsolidatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  correctionCount?: Prisma.IntFieldUpdateOperationsInput | number
+  lastCorrectionRequestId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  correctionRequestedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  correctionRequestNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 
@@ -1305,6 +1491,10 @@ export type RestaurantOrderSelect<ExtArgs extends runtime.Types.Extensions.Inter
   thresholdMinutes?: boolean
   delayedAt?: boolean
   analyticsConsolidatedAt?: boolean
+  correctionCount?: boolean
+  lastCorrectionRequestId?: boolean
+  correctionRequestedAt?: boolean
+  correctionRequestNote?: boolean
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
   table?: boolean | Prisma.RestaurantTableDefaultArgs<ExtArgs>
   visit?: boolean | Prisma.RestaurantOrder$visitArgs<ExtArgs>
@@ -1328,6 +1518,10 @@ export type RestaurantOrderSelectCreateManyAndReturn<ExtArgs extends runtime.Typ
   thresholdMinutes?: boolean
   delayedAt?: boolean
   analyticsConsolidatedAt?: boolean
+  correctionCount?: boolean
+  lastCorrectionRequestId?: boolean
+  correctionRequestedAt?: boolean
+  correctionRequestNote?: boolean
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
   table?: boolean | Prisma.RestaurantTableDefaultArgs<ExtArgs>
   visit?: boolean | Prisma.RestaurantOrder$visitArgs<ExtArgs>
@@ -1349,6 +1543,10 @@ export type RestaurantOrderSelectUpdateManyAndReturn<ExtArgs extends runtime.Typ
   thresholdMinutes?: boolean
   delayedAt?: boolean
   analyticsConsolidatedAt?: boolean
+  correctionCount?: boolean
+  lastCorrectionRequestId?: boolean
+  correctionRequestedAt?: boolean
+  correctionRequestNote?: boolean
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
   table?: boolean | Prisma.RestaurantTableDefaultArgs<ExtArgs>
   visit?: boolean | Prisma.RestaurantOrder$visitArgs<ExtArgs>
@@ -1370,9 +1568,13 @@ export type RestaurantOrderSelectScalar = {
   thresholdMinutes?: boolean
   delayedAt?: boolean
   analyticsConsolidatedAt?: boolean
+  correctionCount?: boolean
+  lastCorrectionRequestId?: boolean
+  correctionRequestedAt?: boolean
+  correctionRequestNote?: boolean
 }
 
-export type RestaurantOrderOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "organizationId" | "tableId" | "visitId" | "accessCode" | "requestId" | "createdAt" | "fulfillment" | "promotionId" | "promotionTitle" | "promotionCredit" | "expectedMinutes" | "thresholdMinutes" | "delayedAt" | "analyticsConsolidatedAt", ExtArgs["result"]["restaurantOrder"]>
+export type RestaurantOrderOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "organizationId" | "tableId" | "visitId" | "accessCode" | "requestId" | "createdAt" | "fulfillment" | "promotionId" | "promotionTitle" | "promotionCredit" | "expectedMinutes" | "thresholdMinutes" | "delayedAt" | "analyticsConsolidatedAt" | "correctionCount" | "lastCorrectionRequestId" | "correctionRequestedAt" | "correctionRequestNote", ExtArgs["result"]["restaurantOrder"]>
 export type RestaurantOrderInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
   table?: boolean | Prisma.RestaurantTableDefaultArgs<ExtArgs>
@@ -1415,6 +1617,10 @@ export type $RestaurantOrderPayload<ExtArgs extends runtime.Types.Extensions.Int
     thresholdMinutes: number | null
     delayedAt: Date | null
     analyticsConsolidatedAt: Date | null
+    correctionCount: number
+    lastCorrectionRequestId: string | null
+    correctionRequestedAt: Date | null
+    correctionRequestNote: string | null
   }, ExtArgs["result"]["restaurantOrder"]>
   composites: {}
 }
@@ -1857,6 +2063,10 @@ export interface RestaurantOrderFieldRefs {
   readonly thresholdMinutes: Prisma.FieldRef<"RestaurantOrder", 'Int'>
   readonly delayedAt: Prisma.FieldRef<"RestaurantOrder", 'DateTime'>
   readonly analyticsConsolidatedAt: Prisma.FieldRef<"RestaurantOrder", 'DateTime'>
+  readonly correctionCount: Prisma.FieldRef<"RestaurantOrder", 'Int'>
+  readonly lastCorrectionRequestId: Prisma.FieldRef<"RestaurantOrder", 'String'>
+  readonly correctionRequestedAt: Prisma.FieldRef<"RestaurantOrder", 'DateTime'>
+  readonly correctionRequestNote: Prisma.FieldRef<"RestaurantOrder", 'String'>
 }
     
 

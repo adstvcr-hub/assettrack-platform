@@ -185,6 +185,7 @@ type BillingSettings = {
   restaurantTaxRateBps: number;
   restaurantTaxIncluded: boolean;
   restaurantServiceRateBps: number;
+  restaurantOrderCorrectionMinutes: number;
 };
 type BrandingSettings = {
   name: string;
@@ -466,6 +467,7 @@ export default function RestaurantAdminDashboard({
   const [billing, setBilling] = useState<BillingSettings | null>(null);
   const [taxRate, setTaxRate] = useState("13");
   const [serviceRate, setServiceRate] = useState("10");
+  const [orderCorrectionMinutes, setOrderCorrectionMinutes] = useState("2");
   const [taxIncluded, setTaxIncluded] = useState(false);
   const [branding, setBranding] = useState<BrandingSettings | null>(null);
   const [displayName, setDisplayName] = useState("");
@@ -595,6 +597,9 @@ export default function RestaurantAdminDashboard({
         setTaxRate(String(billingData.restaurantTaxRateBps / 100));
         setServiceRate(String(billingData.restaurantServiceRateBps / 100));
         setTaxIncluded(billingData.restaurantTaxIncluded);
+        setOrderCorrectionMinutes(
+          String(billingData.restaurantOrderCorrectionMinutes),
+        );
         billingInitialized.current = true;
       }
       if (brandingData && !brandingInitialized.current) {
@@ -1446,23 +1451,32 @@ export default function RestaurantAdminDashboard({
               abiertas.
             </p>
             <form
-              className="mt-4 grid gap-4 md:grid-cols-4 md:items-end"
+              className="mt-4 grid gap-4 md:grid-cols-5 md:items-end"
               onSubmit={(event) => {
                 event.preventDefault();
                 const taxRateBps = Math.round(Number(taxRate) * 100);
                 const serviceRateBps = Math.round(Number(serviceRate) * 100);
+                const correctionMinutes = Number(orderCorrectionMinutes);
                 if (
                   !Number.isFinite(taxRateBps) ||
                   !Number.isFinite(serviceRateBps) ||
                   taxRateBps < 0 ||
-                  serviceRateBps < 0
+                  serviceRateBps < 0 ||
+                  !Number.isInteger(correctionMinutes) ||
+                  correctionMinutes < 0 ||
+                  correctionMinutes > 5
                 ) {
                   setError("Ingrese porcentajes válidos");
                   return;
                 }
                 void post(
                   "billing-settings",
-                  { taxRateBps, taxIncluded, serviceRateBps },
+                  {
+                    taxRateBps,
+                    taxIncluded,
+                    serviceRateBps,
+                    orderCorrectionMinutes: correctionMinutes,
+                  },
                   "PATCH",
                 );
               }}
@@ -1508,6 +1522,28 @@ export default function RestaurantAdminDashboard({
                   onChange={(event) => setServiceRate(event.target.value)}
                 />
               </label>
+              <label className="font-semibold">
+                Corrección del cliente
+                <select
+                  className="mt-1 w-full rounded border bg-white p-2"
+                  value={orderCorrectionMinutes}
+                  onChange={(event) =>
+                    setOrderCorrectionMinutes(event.target.value)
+                  }
+                >
+                  <option value="0">Desactivada</option>
+                  {Array.from({ length: 5 }, (_, index) => index + 1).map(
+                    (minutes) => (
+                      <option key={minutes} value={minutes}>
+                        {minutes} min
+                      </option>
+                    ),
+                  )}
+                </select>
+                <span className="mt-1 block text-xs font-normal text-slate-500">
+                  Se bloquea antes si el personal acepta un artículo.
+                </span>
+              </label>
               <button className="rounded bg-slate-900 px-4 py-3 font-semibold text-white">
                 Guardar configuración
               </button>
@@ -1521,6 +1557,9 @@ export default function RestaurantAdminDashboard({
                       billing.restaurantTaxIncluded ? "incluido" : "agregado"
                     }`}
                 ; servicio {billing.restaurantServiceRateBps / 100}%.
+                {" "}Corrección: {billing.restaurantOrderCorrectionMinutes
+                  ? `${billing.restaurantOrderCorrectionMinutes} min o hasta la aceptación`
+                  : "desactivada"}.
               </p>
             )}
           </section>

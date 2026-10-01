@@ -54,6 +54,7 @@ export type RestaurantOrderItemMinAggregateOutputType = {
   readyAt: Date | null
   deliveredAt: Date | null
   handedOffAt: Date | null
+  cancelledByGuestCorrection: boolean | null
 }
 
 export type RestaurantOrderItemMaxAggregateOutputType = {
@@ -72,6 +73,7 @@ export type RestaurantOrderItemMaxAggregateOutputType = {
   readyAt: Date | null
   deliveredAt: Date | null
   handedOffAt: Date | null
+  cancelledByGuestCorrection: boolean | null
 }
 
 export type RestaurantOrderItemCountAggregateOutputType = {
@@ -90,6 +92,7 @@ export type RestaurantOrderItemCountAggregateOutputType = {
   readyAt: number
   deliveredAt: number
   handedOffAt: number
+  cancelledByGuestCorrection: number
   _all: number
 }
 
@@ -122,6 +125,7 @@ export type RestaurantOrderItemMinAggregateInputType = {
   readyAt?: true
   deliveredAt?: true
   handedOffAt?: true
+  cancelledByGuestCorrection?: true
 }
 
 export type RestaurantOrderItemMaxAggregateInputType = {
@@ -140,6 +144,7 @@ export type RestaurantOrderItemMaxAggregateInputType = {
   readyAt?: true
   deliveredAt?: true
   handedOffAt?: true
+  cancelledByGuestCorrection?: true
 }
 
 export type RestaurantOrderItemCountAggregateInputType = {
@@ -158,6 +163,7 @@ export type RestaurantOrderItemCountAggregateInputType = {
   readyAt?: true
   deliveredAt?: true
   handedOffAt?: true
+  cancelledByGuestCorrection?: true
   _all?: true
 }
 
@@ -263,6 +269,7 @@ export type RestaurantOrderItemGroupByOutputType = {
   readyAt: Date | null
   deliveredAt: Date | null
   handedOffAt: Date | null
+  cancelledByGuestCorrection: boolean
   _count: RestaurantOrderItemCountAggregateOutputType | null
   _avg: RestaurantOrderItemAvgAggregateOutputType | null
   _sum: RestaurantOrderItemSumAggregateOutputType | null
@@ -304,6 +311,7 @@ export type RestaurantOrderItemWhereInput = {
   readyAt?: Prisma.DateTimeNullableFilter<"RestaurantOrderItem"> | Date | string | null
   deliveredAt?: Prisma.DateTimeNullableFilter<"RestaurantOrderItem"> | Date | string | null
   handedOffAt?: Prisma.DateTimeNullableFilter<"RestaurantOrderItem"> | Date | string | null
+  cancelledByGuestCorrection?: Prisma.BoolFilter<"RestaurantOrderItem"> | boolean
   order?: Prisma.XOR<Prisma.RestaurantOrderScalarRelationFilter, Prisma.RestaurantOrderWhereInput>
   menuItem?: Prisma.XOR<Prisma.RestaurantMenuItemScalarRelationFilter, Prisma.RestaurantMenuItemWhereInput>
   events?: Prisma.RestaurantItemEventListRelationFilter
@@ -325,6 +333,7 @@ export type RestaurantOrderItemOrderByWithRelationInput = {
   readyAt?: Prisma.SortOrderInput | Prisma.SortOrder
   deliveredAt?: Prisma.SortOrderInput | Prisma.SortOrder
   handedOffAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  cancelledByGuestCorrection?: Prisma.SortOrder
   order?: Prisma.RestaurantOrderOrderByWithRelationInput
   menuItem?: Prisma.RestaurantMenuItemOrderByWithRelationInput
   events?: Prisma.RestaurantItemEventOrderByRelationAggregateInput
@@ -349,6 +358,7 @@ export type RestaurantOrderItemWhereUniqueInput = Prisma.AtLeast<{
   readyAt?: Prisma.DateTimeNullableFilter<"RestaurantOrderItem"> | Date | string | null
   deliveredAt?: Prisma.DateTimeNullableFilter<"RestaurantOrderItem"> | Date | string | null
   handedOffAt?: Prisma.DateTimeNullableFilter<"RestaurantOrderItem"> | Date | string | null
+  cancelledByGuestCorrection?: Prisma.BoolFilter<"RestaurantOrderItem"> | boolean
   order?: Prisma.XOR<Prisma.RestaurantOrderScalarRelationFilter, Prisma.RestaurantOrderWhereInput>
   menuItem?: Prisma.XOR<Prisma.RestaurantMenuItemScalarRelationFilter, Prisma.RestaurantMenuItemWhereInput>
   events?: Prisma.RestaurantItemEventListRelationFilter
@@ -370,6 +380,7 @@ export type RestaurantOrderItemOrderByWithAggregationInput = {
   readyAt?: Prisma.SortOrderInput | Prisma.SortOrder
   deliveredAt?: Prisma.SortOrderInput | Prisma.SortOrder
   handedOffAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  cancelledByGuestCorrection?: Prisma.SortOrder
   _count?: Prisma.RestaurantOrderItemCountOrderByAggregateInput
   _avg?: Prisma.RestaurantOrderItemAvgOrderByAggregateInput
   _max?: Prisma.RestaurantOrderItemMaxOrderByAggregateInput
@@ -396,6 +407,7 @@ export type RestaurantOrderItemScalarWhereWithAggregatesInput = {
   readyAt?: Prisma.DateTimeNullableWithAggregatesFilter<"RestaurantOrderItem"> | Date | string | null
   deliveredAt?: Prisma.DateTimeNullableWithAggregatesFilter<"RestaurantOrderItem"> | Date | string | null
   handedOffAt?: Prisma.DateTimeNullableWithAggregatesFilter<"RestaurantOrderItem"> | Date | string | null
+  cancelledByGuestCorrection?: Prisma.BoolWithAggregatesFilter<"RestaurantOrderItem"> | boolean
 }
 
 export type RestaurantOrderItemCreateInput = {
@@ -412,6 +424,7 @@ export type RestaurantOrderItemCreateInput = {
   readyAt?: Date | string | null
   deliveredAt?: Date | string | null
   handedOffAt?: Date | string | null
+  cancelledByGuestCorrection?: boolean
   order: Prisma.RestaurantOrderCreateNestedOneWithoutItemsInput
   menuItem: Prisma.RestaurantMenuItemCreateNestedOneWithoutOrderItemsInput
   events?: Prisma.RestaurantItemEventCreateNestedManyWithoutItemInput
@@ -433,6 +446,7 @@ export type RestaurantOrderItemUncheckedCreateInput = {
   readyAt?: Date | string | null
   deliveredAt?: Date | string | null
   handedOffAt?: Date | string | null
+  cancelledByGuestCorrection?: boolean
   events?: Prisma.RestaurantItemEventUncheckedCreateNestedManyWithoutItemInput
 }
 
@@ -450,6 +464,7 @@ export type RestaurantOrderItemUpdateInput = {
   readyAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   deliveredAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   handedOffAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  cancelledByGuestCorrection?: Prisma.BoolFieldUpdateOperationsInput | boolean
   order?: Prisma.RestaurantOrderUpdateOneRequiredWithoutItemsNestedInput
   menuItem?: Prisma.RestaurantMenuItemUpdateOneRequiredWithoutOrderItemsNestedInput
   events?: Prisma.RestaurantItemEventUpdateManyWithoutItemNestedInput
@@ -471,6 +486,7 @@ export type RestaurantOrderItemUncheckedUpdateInput = {
   readyAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   deliveredAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   handedOffAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  cancelledByGuestCorrection?: Prisma.BoolFieldUpdateOperationsInput | boolean
   events?: Prisma.RestaurantItemEventUncheckedUpdateManyWithoutItemNestedInput
 }
 
@@ -490,6 +506,7 @@ export type RestaurantOrderItemCreateManyInput = {
   readyAt?: Date | string | null
   deliveredAt?: Date | string | null
   handedOffAt?: Date | string | null
+  cancelledByGuestCorrection?: boolean
 }
 
 export type RestaurantOrderItemUpdateManyMutationInput = {
@@ -506,6 +523,7 @@ export type RestaurantOrderItemUpdateManyMutationInput = {
   readyAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   deliveredAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   handedOffAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  cancelledByGuestCorrection?: Prisma.BoolFieldUpdateOperationsInput | boolean
 }
 
 export type RestaurantOrderItemUncheckedUpdateManyInput = {
@@ -524,6 +542,7 @@ export type RestaurantOrderItemUncheckedUpdateManyInput = {
   readyAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   deliveredAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   handedOffAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  cancelledByGuestCorrection?: Prisma.BoolFieldUpdateOperationsInput | boolean
 }
 
 export type RestaurantOrderItemListRelationFilter = {
@@ -552,6 +571,7 @@ export type RestaurantOrderItemCountOrderByAggregateInput = {
   readyAt?: Prisma.SortOrder
   deliveredAt?: Prisma.SortOrder
   handedOffAt?: Prisma.SortOrder
+  cancelledByGuestCorrection?: Prisma.SortOrder
 }
 
 export type RestaurantOrderItemAvgOrderByAggregateInput = {
@@ -576,6 +596,7 @@ export type RestaurantOrderItemMaxOrderByAggregateInput = {
   readyAt?: Prisma.SortOrder
   deliveredAt?: Prisma.SortOrder
   handedOffAt?: Prisma.SortOrder
+  cancelledByGuestCorrection?: Prisma.SortOrder
 }
 
 export type RestaurantOrderItemMinOrderByAggregateInput = {
@@ -594,6 +615,7 @@ export type RestaurantOrderItemMinOrderByAggregateInput = {
   readyAt?: Prisma.SortOrder
   deliveredAt?: Prisma.SortOrder
   handedOffAt?: Prisma.SortOrder
+  cancelledByGuestCorrection?: Prisma.SortOrder
 }
 
 export type RestaurantOrderItemSumOrderByAggregateInput = {
@@ -723,6 +745,7 @@ export type RestaurantOrderItemCreateWithoutMenuItemInput = {
   readyAt?: Date | string | null
   deliveredAt?: Date | string | null
   handedOffAt?: Date | string | null
+  cancelledByGuestCorrection?: boolean
   order: Prisma.RestaurantOrderCreateNestedOneWithoutItemsInput
   events?: Prisma.RestaurantItemEventCreateNestedManyWithoutItemInput
 }
@@ -742,6 +765,7 @@ export type RestaurantOrderItemUncheckedCreateWithoutMenuItemInput = {
   readyAt?: Date | string | null
   deliveredAt?: Date | string | null
   handedOffAt?: Date | string | null
+  cancelledByGuestCorrection?: boolean
   events?: Prisma.RestaurantItemEventUncheckedCreateNestedManyWithoutItemInput
 }
 
@@ -790,6 +814,7 @@ export type RestaurantOrderItemScalarWhereInput = {
   readyAt?: Prisma.DateTimeNullableFilter<"RestaurantOrderItem"> | Date | string | null
   deliveredAt?: Prisma.DateTimeNullableFilter<"RestaurantOrderItem"> | Date | string | null
   handedOffAt?: Prisma.DateTimeNullableFilter<"RestaurantOrderItem"> | Date | string | null
+  cancelledByGuestCorrection?: Prisma.BoolFilter<"RestaurantOrderItem"> | boolean
 }
 
 export type RestaurantOrderItemCreateWithoutOrderInput = {
@@ -806,6 +831,7 @@ export type RestaurantOrderItemCreateWithoutOrderInput = {
   readyAt?: Date | string | null
   deliveredAt?: Date | string | null
   handedOffAt?: Date | string | null
+  cancelledByGuestCorrection?: boolean
   menuItem: Prisma.RestaurantMenuItemCreateNestedOneWithoutOrderItemsInput
   events?: Prisma.RestaurantItemEventCreateNestedManyWithoutItemInput
 }
@@ -825,6 +851,7 @@ export type RestaurantOrderItemUncheckedCreateWithoutOrderInput = {
   readyAt?: Date | string | null
   deliveredAt?: Date | string | null
   handedOffAt?: Date | string | null
+  cancelledByGuestCorrection?: boolean
   events?: Prisma.RestaurantItemEventUncheckedCreateNestedManyWithoutItemInput
 }
 
@@ -868,6 +895,7 @@ export type RestaurantOrderItemCreateWithoutEventsInput = {
   readyAt?: Date | string | null
   deliveredAt?: Date | string | null
   handedOffAt?: Date | string | null
+  cancelledByGuestCorrection?: boolean
   order: Prisma.RestaurantOrderCreateNestedOneWithoutItemsInput
   menuItem: Prisma.RestaurantMenuItemCreateNestedOneWithoutOrderItemsInput
 }
@@ -888,6 +916,7 @@ export type RestaurantOrderItemUncheckedCreateWithoutEventsInput = {
   readyAt?: Date | string | null
   deliveredAt?: Date | string | null
   handedOffAt?: Date | string | null
+  cancelledByGuestCorrection?: boolean
 }
 
 export type RestaurantOrderItemCreateOrConnectWithoutEventsInput = {
@@ -920,6 +949,7 @@ export type RestaurantOrderItemUpdateWithoutEventsInput = {
   readyAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   deliveredAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   handedOffAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  cancelledByGuestCorrection?: Prisma.BoolFieldUpdateOperationsInput | boolean
   order?: Prisma.RestaurantOrderUpdateOneRequiredWithoutItemsNestedInput
   menuItem?: Prisma.RestaurantMenuItemUpdateOneRequiredWithoutOrderItemsNestedInput
 }
@@ -940,6 +970,7 @@ export type RestaurantOrderItemUncheckedUpdateWithoutEventsInput = {
   readyAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   deliveredAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   handedOffAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  cancelledByGuestCorrection?: Prisma.BoolFieldUpdateOperationsInput | boolean
 }
 
 export type RestaurantOrderItemCreateManyMenuItemInput = {
@@ -957,6 +988,7 @@ export type RestaurantOrderItemCreateManyMenuItemInput = {
   readyAt?: Date | string | null
   deliveredAt?: Date | string | null
   handedOffAt?: Date | string | null
+  cancelledByGuestCorrection?: boolean
 }
 
 export type RestaurantOrderItemUpdateWithoutMenuItemInput = {
@@ -973,6 +1005,7 @@ export type RestaurantOrderItemUpdateWithoutMenuItemInput = {
   readyAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   deliveredAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   handedOffAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  cancelledByGuestCorrection?: Prisma.BoolFieldUpdateOperationsInput | boolean
   order?: Prisma.RestaurantOrderUpdateOneRequiredWithoutItemsNestedInput
   events?: Prisma.RestaurantItemEventUpdateManyWithoutItemNestedInput
 }
@@ -992,6 +1025,7 @@ export type RestaurantOrderItemUncheckedUpdateWithoutMenuItemInput = {
   readyAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   deliveredAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   handedOffAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  cancelledByGuestCorrection?: Prisma.BoolFieldUpdateOperationsInput | boolean
   events?: Prisma.RestaurantItemEventUncheckedUpdateManyWithoutItemNestedInput
 }
 
@@ -1010,6 +1044,7 @@ export type RestaurantOrderItemUncheckedUpdateManyWithoutMenuItemInput = {
   readyAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   deliveredAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   handedOffAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  cancelledByGuestCorrection?: Prisma.BoolFieldUpdateOperationsInput | boolean
 }
 
 export type RestaurantOrderItemCreateManyOrderInput = {
@@ -1027,6 +1062,7 @@ export type RestaurantOrderItemCreateManyOrderInput = {
   readyAt?: Date | string | null
   deliveredAt?: Date | string | null
   handedOffAt?: Date | string | null
+  cancelledByGuestCorrection?: boolean
 }
 
 export type RestaurantOrderItemUpdateWithoutOrderInput = {
@@ -1043,6 +1079,7 @@ export type RestaurantOrderItemUpdateWithoutOrderInput = {
   readyAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   deliveredAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   handedOffAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  cancelledByGuestCorrection?: Prisma.BoolFieldUpdateOperationsInput | boolean
   menuItem?: Prisma.RestaurantMenuItemUpdateOneRequiredWithoutOrderItemsNestedInput
   events?: Prisma.RestaurantItemEventUpdateManyWithoutItemNestedInput
 }
@@ -1062,6 +1099,7 @@ export type RestaurantOrderItemUncheckedUpdateWithoutOrderInput = {
   readyAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   deliveredAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   handedOffAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  cancelledByGuestCorrection?: Prisma.BoolFieldUpdateOperationsInput | boolean
   events?: Prisma.RestaurantItemEventUncheckedUpdateManyWithoutItemNestedInput
 }
 
@@ -1080,6 +1118,7 @@ export type RestaurantOrderItemUncheckedUpdateManyWithoutOrderInput = {
   readyAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   deliveredAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   handedOffAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  cancelledByGuestCorrection?: Prisma.BoolFieldUpdateOperationsInput | boolean
 }
 
 
@@ -1129,6 +1168,7 @@ export type RestaurantOrderItemSelect<ExtArgs extends runtime.Types.Extensions.I
   readyAt?: boolean
   deliveredAt?: boolean
   handedOffAt?: boolean
+  cancelledByGuestCorrection?: boolean
   order?: boolean | Prisma.RestaurantOrderDefaultArgs<ExtArgs>
   menuItem?: boolean | Prisma.RestaurantMenuItemDefaultArgs<ExtArgs>
   events?: boolean | Prisma.RestaurantOrderItem$eventsArgs<ExtArgs>
@@ -1151,6 +1191,7 @@ export type RestaurantOrderItemSelectCreateManyAndReturn<ExtArgs extends runtime
   readyAt?: boolean
   deliveredAt?: boolean
   handedOffAt?: boolean
+  cancelledByGuestCorrection?: boolean
   order?: boolean | Prisma.RestaurantOrderDefaultArgs<ExtArgs>
   menuItem?: boolean | Prisma.RestaurantMenuItemDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["restaurantOrderItem"]>
@@ -1171,6 +1212,7 @@ export type RestaurantOrderItemSelectUpdateManyAndReturn<ExtArgs extends runtime
   readyAt?: boolean
   deliveredAt?: boolean
   handedOffAt?: boolean
+  cancelledByGuestCorrection?: boolean
   order?: boolean | Prisma.RestaurantOrderDefaultArgs<ExtArgs>
   menuItem?: boolean | Prisma.RestaurantMenuItemDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["restaurantOrderItem"]>
@@ -1191,9 +1233,10 @@ export type RestaurantOrderItemSelectScalar = {
   readyAt?: boolean
   deliveredAt?: boolean
   handedOffAt?: boolean
+  cancelledByGuestCorrection?: boolean
 }
 
-export type RestaurantOrderItemOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "orderId" | "menuItemId" | "name" | "price" | "station" | "course" | "quantity" | "fulfillment" | "prepMinutes" | "status" | "acceptedAt" | "readyAt" | "deliveredAt" | "handedOffAt", ExtArgs["result"]["restaurantOrderItem"]>
+export type RestaurantOrderItemOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "orderId" | "menuItemId" | "name" | "price" | "station" | "course" | "quantity" | "fulfillment" | "prepMinutes" | "status" | "acceptedAt" | "readyAt" | "deliveredAt" | "handedOffAt" | "cancelledByGuestCorrection", ExtArgs["result"]["restaurantOrderItem"]>
 export type RestaurantOrderItemInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   order?: boolean | Prisma.RestaurantOrderDefaultArgs<ExtArgs>
   menuItem?: boolean | Prisma.RestaurantMenuItemDefaultArgs<ExtArgs>
@@ -1232,6 +1275,7 @@ export type $RestaurantOrderItemPayload<ExtArgs extends runtime.Types.Extensions
     readyAt: Date | null
     deliveredAt: Date | null
     handedOffAt: Date | null
+    cancelledByGuestCorrection: boolean
   }, ExtArgs["result"]["restaurantOrderItem"]>
   composites: {}
 }
@@ -1673,6 +1717,7 @@ export interface RestaurantOrderItemFieldRefs {
   readonly readyAt: Prisma.FieldRef<"RestaurantOrderItem", 'DateTime'>
   readonly deliveredAt: Prisma.FieldRef<"RestaurantOrderItem", 'DateTime'>
   readonly handedOffAt: Prisma.FieldRef<"RestaurantOrderItem", 'DateTime'>
+  readonly cancelledByGuestCorrection: Prisma.FieldRef<"RestaurantOrderItem", 'Boolean'>
 }
     
 

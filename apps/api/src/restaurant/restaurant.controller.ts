@@ -22,11 +22,13 @@ import {
   CreateRewardProgramDto,
   CreatePromotionDto,
   CreateMenuItemDto,
+  CorrectGuestOrderDto,
   CreateTableDto,
   JoinLoyaltyDto,
   PlaceOrderDto,
   RecordQrAccessDto,
   RequestInvoiceDto,
+  RequestGuestOrderCorrectionDto,
   UpdateItemStatusDto,
   UpdateItemFulfillmentDto,
   UpdateInvoiceRequestDto,
@@ -74,6 +76,24 @@ export class RestaurantGuestController {
   @Get("orders/:accessCode")
   order(@Param("accessCode") accessCode: string) {
     return this.restaurant.guestOrder(accessCode);
+  }
+
+  @Throttle({ default: { limit: 6, ttl: 60000 } })
+  @Patch("orders/:accessCode/correction")
+  correctOrder(
+    @Param("accessCode") accessCode: string,
+    @Body() dto: CorrectGuestOrderDto,
+  ) {
+    return this.restaurant.correctGuestOrder(accessCode, dto);
+  }
+
+  @Throttle({ default: { limit: 3, ttl: 60000 } })
+  @Post("orders/:accessCode/correction-request")
+  requestOrderCorrection(
+    @Param("accessCode") accessCode: string,
+    @Body() dto: RequestGuestOrderCorrectionDto,
+  ) {
+    return this.restaurant.requestGuestOrderCorrection(accessCode, dto);
   }
 
   @Throttle({ default: { limit: 3, ttl: 60000 } })
@@ -332,6 +352,14 @@ export class RestaurantStaffController {
   @Patch("items/:id/handoff")
   handoff(@Req() req: StaffRequest, @Param("id") id: string) {
     return this.restaurant.handoffItem(req.user, id);
+  }
+
+  @Patch("orders/:id/correction-request/acknowledge")
+  acknowledgeCorrectionRequest(
+    @Req() req: StaffRequest,
+    @Param("id") id: string,
+  ) {
+    return this.restaurant.acknowledgeCorrectionRequest(req.user, id);
   }
 
   @Patch("items/:id/fulfillment")

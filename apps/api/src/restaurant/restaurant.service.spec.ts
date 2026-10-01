@@ -112,10 +112,12 @@ function createService() {
       update: vi.fn(),
     },
     restaurantOrder: {
+      findFirst: vi.fn(),
       findUnique: vi.fn().mockResolvedValue(null),
       findMany: vi.fn().mockResolvedValue([]),
       count: vi.fn().mockResolvedValue(0),
       create: vi.fn().mockResolvedValue(order),
+      update: vi.fn(),
       updateMany: vi.fn(),
     },
     restaurantOrderItem: {
@@ -124,8 +126,9 @@ function createService() {
       updateMany: vi.fn(),
       findUnique: vi.fn(),
       count: vi.fn().mockResolvedValue(0),
+      create: vi.fn(),
     },
-    restaurantItemEvent: { create: vi.fn() },
+    restaurantItemEvent: { create: vi.fn(), createMany: vi.fn() },
     restaurantStaffEvent: {
       create: vi.fn(),
       findMany: vi.fn().mockResolvedValue([]),
@@ -642,6 +645,7 @@ describe("RestaurantService", () => {
             restaurantHeaderImageData: true,
             restaurantUseHeaderImage: true,
             restaurantRetentionDays: true,
+            restaurantOrderCorrectionMinutes: true,
           },
         },
         table: {
@@ -655,6 +659,170 @@ describe("RestaurantService", () => {
         },
       }),
     });
+  });
+
+  it("replaces the latest received order during the correction window", async () => {
+    const { prisma, service } = createService();
+    const createdAt = new Date(Date.now() - 30_000);
+    const currentOrder = {
+      id: "order-latest",
+      visitId: "visit-a",
+      createdAt,
+      fulfillment: "DINE_IN",
+      promotionId: null,
+      promotionCredit: 0,
+      correctionRequestedAt: null,
+      correctionRequestNote: null,
+      lastCorrectionRequestId: null,
+      items: [
+        {
+          id: "old-item",
+          menuItemId: itemId,
+          name: "Coffee",
+          price: 1200,
+          quantity: 1,
+          status: "RECEIVED",
+          fulfillment: "DINE_IN",
+          cancelledByGuestCorrection: false,
+        },
+      ],
+    };
+    prisma.restaurantVisit.findUnique.mockResolvedValue({
+      id: "visit-a",
+      organizationId: "org-a",
+      accessCode: "secret",
+      status: "OPEN",
+      openedAt: createdAt,
+      occupiesTable: true,
+      organization: {
+        name: "Café",
+        restaurantRetentionDays: 30,
+        restaurantOrderCorrectionMinutes: 2,
+      },
+      table: {
+        name: "Mesa 1",
+        code: "table-code",
+        kind: "DINING",
+        serviceChargeEnabled: true,
+        waiter: null,
+      },
+      taxRateBps: 1300,
+      taxIncluded: false,
+      serviceRateBps: 1000,
+      serviceChargeEnabled: true,
+      orders: [currentOrder],
+    });
+    prisma.restaurantOrder.findFirst.mockResolvedValue(currentOrder);
+    prisma.restaurantOrderItem.updateMany.mockResolvedValue({ count: 1 });
+    prisma.restaurantOrderItem.create.mockResolvedValue({});
+    prisma.restaurantItemEvent.createMany.mockResolvedValue({ count: 1 });
+    prisma.restaurantOrder.update.mockResolvedValue({});
+
+    await service.correctGuestOrder("secret", {
+      orderId: "order-latest",
+      requestId: "870a42c2-e90f-4ca1-93ae-7ba8972ca17f",
+      items: [{ menuItemId: itemId, quantity: 2 }],
+    });
+
+    expect(prisma.restaurantOrderItem.updateMany).toHaveBeenCalledWith({
+      where: { id: { in: ["old-item"] }, status: "RECEIVED" },
+      data: {
+        status: "CANCELLED",
+        cancelledByGuestCorrection: true,
+      },
+    });
+    expect(prisma.restaurantItemEvent.createMany).toHaveBeenCalledWith({
+      data: [
+        expect.objectContaining({
+          itemId: "old-item",
+          note: "Cancelado por corrección del cliente",
+        }),
+      ],
+    });
+    expect(prisma.restaurantOrderItem.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({
+        orderId: "order-latest",
+        menuItemId: itemId,
+        quantity: 2,
+      }),
+    });
+    expect(prisma.restaurantOrder.update).toHaveBeenCalledWith({
+      where: { id: "order-latest" },
+      data: expect.objectContaining({
+        correctionCount: { increment: 1 },
+        lastCorrectionRequestId: "870a42c2-e90f-4ca1-93ae-7ba8972ca17f",
+      }),
+    });
+  });
+
+  it("rejects guest correction after its configured deadline", async () => {
+    const { prisma, service } = createService();
+    prisma.restaurantVisit.findUnique.mockResolvedValue({
+      id: "visit-a",
+      organizationId: "org-a",
+      status: "OPEN",
+      occupiesTable: true,
+      organization: { restaurantOrderCorrectionMinutes: 2 },
+      table: { kind: "DINING" },
+      orders: [
+        {
+          id: "order-latest",
+          createdAt: new Date(Date.now() - 121_000),
+          items: [
+            { id: "old-item", status: "RECEIVED", menuItemId: itemId },
+          ],
+        },
+      ],
+    });
+
+    await expect(
+      service.correctGuestOrder("secret", {
+        orderId: "order-latest",
+        requestId: "a768fecd-c5ae-44a1-b5d7-2b51fbb3c2e1",
+        items: [{ menuItemId: itemId, quantity: 1 }],
+      }),
+    ).rejects.toThrow("El tiempo para corregir el pedido ya terminó");
+    expect(prisma.restaurantOrderItem.updateMany).not.toHaveBeenCalled();
+  });
+
+  it("rolls back correction when staff accepts an item concurrently", async () => {
+    const { prisma, service } = createService();
+    const currentOrder = {
+      id: "order-latest",
+      visitId: "visit-a",
+      createdAt: new Date(),
+      fulfillment: "DINE_IN",
+      promotionId: null,
+      lastCorrectionRequestId: null,
+      items: [
+        {
+          id: "old-item",
+          menuItemId: itemId,
+          status: "RECEIVED",
+          fulfillment: "DINE_IN",
+        },
+      ],
+    };
+    prisma.restaurantVisit.findUnique.mockResolvedValue({
+      id: "visit-a",
+      organizationId: "org-a",
+      status: "OPEN",
+      occupiesTable: true,
+      organization: { restaurantOrderCorrectionMinutes: 2 },
+      table: { kind: "DINING" },
+      orders: [currentOrder],
+    });
+    prisma.restaurantOrder.findFirst.mockResolvedValue(currentOrder);
+    prisma.restaurantOrderItem.updateMany.mockResolvedValue({ count: 0 });
+
+    await expect(
+      service.correctGuestOrder("secret", {
+        orderId: "order-latest",
+        requestId: "be4fbd88-bab2-4cd9-a7f4-70b9f6a0ff6b",
+        items: [{ menuItemId: itemId, quantity: 1 }],
+      }),
+    ).rejects.toThrow("fue aceptado mientras se corregía");
+    expect(prisma.restaurantOrderItem.create).not.toHaveBeenCalled();
   });
 
   it("does not expose a closed receipt after the operational retention window", async () => {

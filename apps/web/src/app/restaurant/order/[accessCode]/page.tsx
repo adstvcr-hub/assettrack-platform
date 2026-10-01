@@ -69,6 +69,40 @@ type Order = {
       productType: string;
     };
   }>;
+  correction: {
+    orderId: string | null;
+    deadline: string | null;
+    minutes: number;
+    canCorrect: boolean;
+    blockedReason:
+      | "NO_ORDER"
+      | "CLOSED"
+      | "DELIVERY"
+      | "DISABLED"
+      | "ACCEPTED"
+      | "TIME_EXPIRED"
+      | null;
+    canRequestHelp: boolean;
+    requestedAt?: string | null;
+    items: Array<{
+      menuItemId: string;
+      quantity: number;
+      fulfillment: "DINE_IN" | "TAKEOUT" | "DELIVERY";
+    }>;
+    menu: Array<{
+      id: string;
+      name: string;
+      price: number;
+      station: string;
+      course: string;
+    }>;
+  };
+};
+
+type CorrectionLine = {
+  menuItemId: string;
+  quantity: number;
+  fulfillment: "DINE_IN" | "TAKEOUT" | "DELIVERY";
 };
 const labels: Record<string, string> = {
   RECEIVED: "Received",
@@ -123,6 +157,11 @@ export default function RestaurantOrderPage() {
     marketingOptIn: false,
   });
   const [loyaltyMessage, setLoyaltyMessage] = useState("");
+  const [showCorrection, setShowCorrection] = useState(false);
+  const [correctionDraft, setCorrectionDraft] = useState<CorrectionLine[]>([]);
+  const [savingCorrection, setSavingCorrection] = useState(false);
+  const [correctionMessage, setCorrectionMessage] = useState("");
+  const [clock, setClock] = useState(() => Date.now());
   const guestEventKey = order
     ? `${order.status}:${order.items.map((item) => `${item.id}:${item.status}`).join("|")}`
     : "";
@@ -186,6 +225,16 @@ export default function RestaurantOrderPage() {
     }, 5000);
     return () => clearInterval(timer);
   }, [load]);
+  useEffect(() => {
+    const timer = setInterval(() => setClock(Date.now()), 1000);
+    return () => clearInterval(timer);
+  }, []);
+  const correctionSeconds = order?.correction.deadline
+    ? Math.max(
+        0,
+        Math.ceil((new Date(order.correction.deadline).getTime() - clock) / 1000),
+      )
+    : 0;
   const allFinished =
     order?.items.length &&
     order.items.every(
@@ -225,6 +274,61 @@ export default function RestaurantOrderPage() {
       "Solicitud registrada. La administración del restaurante preparará la factura electrónica.",
     );
     setInvoiceRequested(false);
+    await load();
+  }
+
+  function openCorrection() {
+    if (!order?.correction.canCorrect) return;
+    setCorrectionDraft(order.correction.items.map((item) => ({ ...item })));
+    setCorrectionMessage("");
+    setShowCorrection(true);
+  }
+
+  async function saveCorrection(event: FormEvent) {
+    event.preventDefault();
+    if (!order?.correction.orderId || correctionDraft.length === 0) return;
+    setSavingCorrection(true);
+    setError("");
+    const response = await fetch(
+      `${API_URL}/api/v1/restaurant/guest/orders/${encodeURIComponent(accessCode)}/correction`,
+      {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          orderId: order.correction.orderId,
+          requestId: crypto.randomUUID(),
+          items: correctionDraft,
+        }),
+      },
+    );
+    const body = await response.json().catch(() => ({}));
+    setSavingCorrection(false);
+    if (!response.ok) {
+      setError(body.message ?? "No se pudo corregir el pedido");
+      await load();
+      return;
+    }
+    setShowCorrection(false);
+    setCorrectionMessage("Pedido corregido y cuenta actualizada.");
+    await load();
+  }
+
+  async function requestCorrectionHelp() {
+    if (!order?.correction.orderId) return;
+    const response = await fetch(
+      `${API_URL}/api/v1/restaurant/guest/orders/${encodeURIComponent(accessCode)}/correction-request`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ orderId: order.correction.orderId }),
+      },
+    );
+    const body = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      setError(body.message ?? "No se pudo avisar al mesero");
+      return;
+    }
+    setCorrectionMessage("Solicitud enviada al mesero.");
     await load();
   }
 
@@ -580,6 +684,184 @@ export default function RestaurantOrderPage() {
           Ordenar algo más
         </Link>
       )}
+      {order?.status === "OPEN" && order.correction.orderId && (
+        <section className="mb-6 rounded-2xl border-2 border-amber-300 bg-amber-50 p-5 shadow-sm">
+          <h2 className="text-xl font-black text-amber-950">
+            ¿Necesita corregir el último pedido?
+          </h2>
+          {order.correction.canCorrect && correctionSeconds > 0 ? (
+            <>
+              <p className="mt-1 text-sm text-amber-900">
+                Puede cambiar productos o cantidades durante los próximos{" "}
+                <strong>{correctionSeconds} segundos</strong>. La opción se
+                bloquea si el personal acepta un artículo primero.
+              </p>
+              {!showCorrection && (
+                <button
+                  type="button"
+                  className="mt-3 rounded-lg bg-amber-700 px-5 py-3 font-bold text-white"
+                  onClick={openCorrection}
+                >
+                  Corregir pedido
+                </button>
+              )}
+            </>
+          ) : (
+            <>
+              <p className="mt-1 text-sm text-amber-900">
+                {order.correction.blockedReason === "ACCEPTED"
+                  ? "El personal ya aceptó el pedido."
+                  : order.correction.blockedReason === "DISABLED"
+                    ? "La corrección directa no está habilitada."
+                    : "El tiempo de corrección directa finalizó."}{" "}
+                El mesero puede ayudarle sin duplicar la preparación.
+              </p>
+              {order.correction.canRequestHelp &&
+                !order.correction.requestedAt && (
+                  <button
+                    type="button"
+                    className="mt-3 rounded-lg bg-slate-900 px-5 py-3 font-bold text-white"
+                    onClick={() => void requestCorrectionHelp()}
+                  >
+                    Solicitar corrección al mesero
+                  </button>
+                )}
+            </>
+          )}
+          {(order.correction.requestedAt || correctionMessage) && (
+            <p className="mt-3 rounded-lg bg-white p-3 font-semibold text-emerald-800">
+              {correctionMessage || "El mesero recibió su solicitud de ayuda."}
+            </p>
+          )}
+          {showCorrection &&
+            order.correction.canCorrect &&
+            correctionSeconds > 0 && (
+            <form className="mt-4 space-y-3" onSubmit={saveCorrection}>
+              {correctionDraft.map((line, index) => (
+                <div
+                  key={`${index}-${line.menuItemId}`}
+                  className="grid gap-2 rounded-xl bg-white p-3 sm:grid-cols-[1fr_6rem_auto]"
+                >
+                  <select
+                    aria-label={`Producto ${index + 1}`}
+                    className="rounded border p-2"
+                    value={line.menuItemId}
+                    onChange={(event) =>
+                      setCorrectionDraft((current) =>
+                        current.map((candidate, candidateIndex) =>
+                          candidateIndex === index
+                            ? {
+                                ...candidate,
+                                menuItemId: event.target.value,
+                              }
+                            : candidate,
+                        ),
+                      )
+                    }
+                  >
+                    {order.correction.menu.map((item) => (
+                      <option
+                        key={item.id}
+                        value={item.id}
+                        disabled={correctionDraft.some(
+                          (candidate, candidateIndex) =>
+                            candidateIndex !== index &&
+                            candidate.menuItemId === item.id,
+                        )}
+                      >
+                        {item.name} · ₡{item.price.toLocaleString()}
+                      </option>
+                    ))}
+                  </select>
+                  <select
+                    aria-label={`Cantidad ${index + 1}`}
+                    className="rounded border p-2"
+                    value={line.quantity}
+                    onChange={(event) =>
+                      setCorrectionDraft((current) =>
+                        current.map((candidate, candidateIndex) =>
+                          candidateIndex === index
+                            ? {
+                                ...candidate,
+                                quantity: Number(event.target.value),
+                              }
+                            : candidate,
+                        ),
+                      )
+                    }
+                  >
+                    {Array.from({ length: 10 }, (_, quantity) => quantity + 1).map(
+                      (quantity) => (
+                        <option key={quantity} value={quantity}>
+                          {quantity}
+                        </option>
+                      ),
+                    )}
+                  </select>
+                  <button
+                    type="button"
+                    disabled={correctionDraft.length === 1}
+                    className="rounded border border-red-300 px-3 py-2 font-semibold text-red-700 disabled:opacity-40"
+                    onClick={() =>
+                      setCorrectionDraft((current) =>
+                        current.filter((_, candidateIndex) => candidateIndex !== index),
+                      )
+                    }
+                  >
+                    Quitar
+                  </button>
+                </div>
+              ))}
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  disabled={
+                    correctionDraft.length >= 20 ||
+                    correctionDraft.length >= order.correction.menu.length
+                  }
+                  className="rounded border border-amber-700 px-4 py-2 font-semibold text-amber-900 disabled:opacity-40"
+                  onClick={() => {
+                    const next = order.correction.menu.find(
+                      (item) =>
+                        !correctionDraft.some(
+                          (line) => line.menuItemId === item.id,
+                        ),
+                    );
+                    if (next) {
+                      setCorrectionDraft((current) => [
+                        ...current,
+                        {
+                          menuItemId: next.id,
+                          quantity: 1,
+                          fulfillment:
+                            order.table.kind === "TAKEOUT_STATION"
+                              ? "TAKEOUT"
+                              : "DINE_IN",
+                        },
+                      ]);
+                    }
+                  }}
+                >
+                  Agregar otro producto
+                </button>
+                <button
+                  disabled={savingCorrection || correctionSeconds === 0}
+                  className="rounded bg-emerald-700 px-4 py-2 font-bold text-white disabled:opacity-40"
+                >
+                  {savingCorrection ? "Guardando…" : "Confirmar corrección"}
+                </button>
+                <button
+                  type="button"
+                  className="rounded bg-slate-200 px-4 py-2 font-semibold"
+                  onClick={() => setShowCorrection(false)}
+                >
+                  Mantener pedido original
+                </button>
+              </div>
+            </form>
+          )}
+        </section>
+      )}
       {error && (
         <p role="alert" className="rounded bg-red-50 p-4 text-red-800">
           {error}
@@ -790,7 +1072,7 @@ export default function RestaurantOrderPage() {
         </section>
       )}
       <p className="mt-6 text-sm text-slate-500">
-        If you need to change your order, please ask a staff member.
+        Si necesita otro cambio, solicite ayuda al personal.
       </p>
     </main>
   );

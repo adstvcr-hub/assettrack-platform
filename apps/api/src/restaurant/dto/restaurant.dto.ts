@@ -106,6 +106,23 @@ export class PlaceOrderDto {
   items!: OrderLineDto[];
 }
 
+export class CorrectGuestOrderDto {
+  @IsUUID() orderId!: string;
+  @IsUUID() requestId!: string;
+
+  @IsArray()
+  @ArrayMinSize(1)
+  @ArrayMaxSize(20)
+  @ValidateNested({ each: true })
+  @Type(() => OrderLineDto)
+  items!: OrderLineDto[];
+}
+
+export class RequestGuestOrderCorrectionDto {
+  @IsUUID() orderId!: string;
+  @IsOptional() @IsString() @MaxLength(240) note?: string;
+}
+
 export class RecordQrAccessDto {
   @IsUUID() sessionKey!: string;
   @IsOptional() @IsNumber() @Min(-90) @Max(90) latitude?: number;
@@ -143,6 +160,7 @@ export class UpdateRestaurantBillingDto {
   @IsInt() @Min(0) @Max(10000) taxRateBps!: number;
   @IsBoolean() taxIncluded!: boolean;
   @IsInt() @Min(0) @Max(10000) serviceRateBps!: number;
+  @IsInt() @Min(0) @Max(5) orderCorrectionMinutes!: number;
 }
 
 export class UpdateRestaurantOrderingAreaDto {

@@ -26,6 +26,7 @@ import {
 } from "../generated/prisma/enums";
 import {
   CreateMenuItemDto,
+  CorrectGuestOrderDto,
   CreatePromotionDto,
   CreateRewardProgramDto,
   CreateTableDto,
@@ -33,6 +34,7 @@ import {
   RecordQrAccessDto,
   JoinLoyaltyDto,
   RequestInvoiceDto,
+  RequestGuestOrderCorrectionDto,
   UpdateItemStatusDto,
   UpdateItemFulfillmentDto,
   UpdateInvoiceRequestDto,
@@ -445,6 +447,7 @@ export class RestaurantService {
         restaurantTaxRateBps: true,
         restaurantTaxIncluded: true,
         restaurantServiceRateBps: true,
+        restaurantOrderCorrectionMinutes: true,
       },
     });
   }
@@ -460,11 +463,13 @@ export class RestaurantService {
         restaurantTaxRateBps: dto.taxRateBps,
         restaurantTaxIncluded: dto.taxIncluded,
         restaurantServiceRateBps: dto.serviceRateBps,
+        restaurantOrderCorrectionMinutes: dto.orderCorrectionMinutes,
       },
       select: {
         restaurantTaxRateBps: true,
         restaurantTaxIncluded: true,
         restaurantServiceRateBps: true,
+        restaurantOrderCorrectionMinutes: true,
       },
     });
   }
@@ -2262,6 +2267,7 @@ export class RestaurantService {
             restaurantHeaderImageData: true,
             restaurantUseHeaderImage: true,
             restaurantRetentionDays: true,
+            restaurantOrderCorrectionMinutes: true,
             restaurantMenuBackgroundImageData: true,
             restaurantMenuBackgroundEnabled: true,
             restaurantMenuBackgroundPosition: true,
@@ -2844,6 +2850,240 @@ export class RestaurantService {
     }
   }
 
+  async correctGuestOrder(accessCode: string, dto: CorrectGuestOrderDto) {
+    const ids = dto.items.map((item) => item.menuItemId);
+    if (new Set(ids).size !== ids.length) {
+      throw new BadRequestException("No repita productos en la corrección");
+    }
+    const visit = await this.prisma.restaurantVisit.findUnique({
+      where: { accessCode },
+      include: {
+        organization: {
+          select: { restaurantOrderCorrectionMinutes: true },
+        },
+        table: { select: { kind: true } },
+        orders: {
+          orderBy: { createdAt: "desc" },
+          take: 1,
+          include: { items: true },
+        },
+      },
+    });
+    if (!visit) throw new NotFoundException("Cuenta no encontrada");
+    const latest = visit.orders[0];
+    if (!latest || latest.id !== dto.orderId) {
+      throw new ConflictException("Solo puede corregir el pedido más reciente");
+    }
+    if (latest.lastCorrectionRequestId === dto.requestId) {
+      return this.guestOrder(accessCode);
+    }
+    if (
+      visit.status !== RestaurantVisitStatus.OPEN ||
+      visit.occupiesTable === false
+    ) {
+      throw new ConflictException(
+        "Este pedido solo puede ser corregido con ayuda del personal",
+      );
+    }
+    const correctionMinutes =
+      visit.organization?.restaurantOrderCorrectionMinutes ?? 2;
+    const deadline =
+      latest.createdAt.getTime() + correctionMinutes * 60_000;
+    if (correctionMinutes === 0 || Date.now() >= deadline) {
+      throw new ConflictException(
+        "El tiempo para corregir el pedido ya terminó",
+      );
+    }
+    const activeItems = latest.items.filter(
+      (item) => item.status !== RestaurantItemStatus.CANCELLED,
+    );
+    if (
+      activeItems.length === 0 ||
+      activeItems.some((item) => item.status !== RestaurantItemStatus.RECEIVED)
+    ) {
+      throw new ConflictException(
+        "El pedido ya fue aceptado; solicite ayuda al mesero",
+      );
+    }
+    const availableStations = await this.availableStations(
+      visit.organizationId,
+    );
+    const stations = [
+      ...(availableStations.has(RestaurantStaffRole.KITCHEN)
+        ? [RestaurantStation.KITCHEN]
+        : []),
+      ...(availableStations.has(RestaurantStaffRole.BAR)
+        ? [RestaurantStation.BAR]
+        : []),
+    ];
+    const menu = await this.prisma.restaurantMenuItem.findMany({
+      where: {
+        id: { in: ids },
+        organizationId: visit.organizationId,
+        active: true,
+        station: { in: stations },
+      },
+    });
+    if (menu.length !== ids.length) {
+      throw new BadRequestException("Uno de los productos ya no está disponible");
+    }
+    const byId = new Map(menu.map((item) => [item.id, item]));
+
+    await this.prisma.$transaction(async (tx) => {
+      const current = await tx.restaurantOrder.findFirst({
+        where: { id: latest.id, visitId: visit.id },
+        include: { items: true },
+      });
+      if (!current) throw new NotFoundException("Pedido no encontrado");
+      if (current.lastCorrectionRequestId === dto.requestId) return;
+      const currentActive = current.items.filter(
+        (item) => item.status !== RestaurantItemStatus.CANCELLED,
+      );
+      if (
+        currentActive.length === 0 ||
+        currentActive.some(
+          (item) => item.status !== RestaurantItemStatus.RECEIVED,
+        )
+      ) {
+        throw new ConflictException(
+          "El pedido ya fue aceptado; solicite ayuda al mesero",
+        );
+      }
+      const cancelled = await tx.restaurantOrderItem.updateMany({
+        where: {
+          id: { in: currentActive.map((item) => item.id) },
+          status: RestaurantItemStatus.RECEIVED,
+        },
+        data: {
+          status: RestaurantItemStatus.CANCELLED,
+          cancelledByGuestCorrection: true,
+        },
+      });
+      if (cancelled.count !== currentActive.length) {
+        throw new ConflictException(
+          "El pedido fue aceptado mientras se corregía; solicite ayuda al mesero",
+        );
+      }
+      await tx.restaurantItemEvent.createMany({
+        data: currentActive.map((item) => ({
+          itemId: item.id,
+          status: RestaurantItemStatus.CANCELLED,
+          note: "Cancelado por corrección del cliente",
+        })),
+      });
+      const defaultFulfillment =
+        visit.table.kind === RestaurantTableKind.TAKEOUT_STATION
+          ? RestaurantFulfillment.TAKEOUT
+          : current.fulfillment;
+      const selectedItems = dto.items.map(
+        ({ menuItemId, quantity, fulfillment }) => ({
+          item: byId.get(menuItemId)!,
+          menuItemId,
+          quantity,
+          fulfillment:
+            visit.table.kind === RestaurantTableKind.TAKEOUT_STATION
+              ? RestaurantFulfillment.TAKEOUT
+              : (fulfillment ?? defaultFulfillment),
+        }),
+      );
+      for (const selected of selectedItems) {
+        await tx.restaurantOrderItem.create({
+          data: {
+            orderId: current.id,
+            menuItemId: selected.menuItemId,
+            quantity: selected.quantity,
+            name: selected.item.name,
+            price: selected.item.price,
+            station: selected.item.station,
+            course: selected.item.course,
+            fulfillment: selected.fulfillment,
+            prepMinutes: selected.item.prepMinutes,
+            events: {
+              create: {
+                status: RestaurantItemStatus.RECEIVED,
+                note: "Producto agregado por corrección del cliente",
+              },
+            },
+          },
+        });
+      }
+      const promotion = current.promotionId
+        ? await tx.restaurantPromotion.findFirst({
+            where: {
+              id: current.promotionId,
+              organizationId: visit.organizationId,
+            },
+          })
+        : null;
+      const eligibleSubtotal = promotion
+        ? selectedItems
+            .filter(
+              ({ item }) =>
+                (!promotion.menuItemId || promotion.menuItemId === item.id) &&
+                (!promotion.productType ||
+                  promotion.productType === item.productType),
+            )
+            .reduce(
+              (sum, { item, quantity }) => sum + item.price * quantity,
+              0,
+            )
+        : 0;
+      const promotionCredit = promotion
+        ? Math.min(promotion.creditAmount, eligibleSubtotal)
+        : 0;
+      const baseMinutes = Math.max(
+        5,
+        ...selectedItems.map(({ item }) => item.prepMinutes ?? 5),
+      );
+      await tx.restaurantOrder.update({
+        where: { id: current.id },
+        data: {
+          promotionCredit,
+          expectedMinutes: baseMinutes,
+          thresholdMinutes: Math.max(baseMinutes + 5, Math.round(baseMinutes * 1.35)),
+          correctionCount: { increment: 1 },
+          lastCorrectionRequestId: dto.requestId,
+          correctionRequestedAt: null,
+          correctionRequestNote: null,
+        },
+      });
+    });
+    return this.guestOrder(accessCode);
+  }
+
+  async requestGuestOrderCorrection(
+    accessCode: string,
+    dto: RequestGuestOrderCorrectionDto,
+  ) {
+    const visit = await this.prisma.restaurantVisit.findUnique({
+      where: { accessCode },
+      include: {
+        orders: { orderBy: { createdAt: "desc" }, take: 1 },
+      },
+    });
+    if (!visit || visit.status !== RestaurantVisitStatus.OPEN) {
+      throw new NotFoundException("Cuenta abierta no encontrada");
+    }
+    const latest = visit.orders[0];
+    if (!latest || latest.id !== dto.orderId) {
+      throw new ConflictException("Solo puede solicitar cambios al pedido más reciente");
+    }
+    if (visit.occupiesTable === false) {
+      throw new ConflictException(
+        "Los cambios de entrega a domicilio requieren contacto directo con el restaurante",
+      );
+    }
+    return this.prisma.restaurantOrder.update({
+      where: { id: latest.id },
+      data: {
+        correctionRequestedAt: new Date(),
+        correctionRequestNote:
+          dto.note?.trim() || "El cliente solicita ayuda para corregir su pedido",
+      },
+      select: { id: true, correctionRequestedAt: true },
+    });
+  }
+
   private billingTotals(
     items: Array<{ price: number; quantity: number; status: string }>,
     settings: {
@@ -2895,6 +3135,7 @@ export class RestaurantService {
             restaurantHeaderImageData: true,
             restaurantUseHeaderImage: true,
             restaurantRetentionDays: true,
+            restaurantOrderCorrectionMinutes: true,
           },
         },
         responsibleStaff: {
@@ -2955,9 +3196,56 @@ export class RestaurantService {
           ) ?? null,
       }))
       .filter((promotion) => promotion.menuItem !== null);
-    const items = visit.orders.flatMap((order) =>
+    const publicOrders = visit.orders.map((order) => ({
+      ...order,
+      items: order.items.filter(
+        (item) => !item.cancelledByGuestCorrection,
+      ),
+    }));
+    const items = publicOrders.flatMap((order) =>
       order.items.map((item) => ({ ...item, orderCreatedAt: order.createdAt })),
     );
+    const latestOrder = visit.orders.at(-1) ?? null;
+    const latestActiveItems =
+      latestOrder?.items.filter(
+        (item) => item.status !== RestaurantItemStatus.CANCELLED,
+      ) ?? [];
+    const correctionMinutes =
+      visit.organization?.restaurantOrderCorrectionMinutes ?? 2;
+    const correctionDeadline = latestOrder
+      ? new Date(
+          latestOrder.createdAt.getTime() + correctionMinutes * 60_000,
+        )
+      : null;
+    const correctionBlockedReason = !latestOrder
+      ? "NO_ORDER"
+      : visit.status !== RestaurantVisitStatus.OPEN
+        ? "CLOSED"
+        : visit.occupiesTable === false
+          ? "DELIVERY"
+          : correctionMinutes === 0
+            ? "DISABLED"
+            : latestActiveItems.length === 0 ||
+                latestActiveItems.some(
+                  (item) => item.status !== RestaurantItemStatus.RECEIVED,
+                )
+              ? "ACCEPTED"
+              : correctionDeadline && correctionDeadline <= now
+                ? "TIME_EXPIRED"
+                : null;
+    const correctionMenu = menu
+      .filter((item) =>
+        item.station === RestaurantStation.KITCHEN
+          ? availableStations.has(RestaurantStaffRole.KITCHEN)
+          : availableStations.has(RestaurantStaffRole.BAR),
+      )
+      .map((item) => ({
+        id: item.id,
+        name: item.name,
+        price: item.price,
+        station: item.station,
+        course: item.course,
+      }));
     return {
       id: visit.id,
       accessCode: visit.accessCode,
@@ -2982,10 +3270,36 @@ export class RestaurantService {
       paymentConfirmedAt: visit.paymentConfirmedAt,
       deliveryHandedOffAt: visit.deliveryHandedOffAt,
       responsibleStaff: visit.responsibleStaff,
-      orders: visit.orders,
+      orders: publicOrders,
       items,
       invoiceRequestStatus: visit.invoiceRequestStatus,
       promotions,
+      correction: {
+        orderId: latestOrder?.id ?? null,
+        deadline: correctionDeadline,
+        minutes: correctionMinutes,
+        canCorrect: correctionBlockedReason === null,
+        blockedReason: correctionBlockedReason,
+        canRequestHelp:
+          Boolean(latestOrder) &&
+          visit.status === RestaurantVisitStatus.OPEN &&
+          visit.occupiesTable !== false &&
+          correctionBlockedReason !== null,
+        requestedAt: latestOrder?.correctionRequestedAt ?? null,
+        items:
+          latestOrder?.items
+            .filter(
+              (item) =>
+                item.status !== RestaurantItemStatus.CANCELLED &&
+                !item.cancelledByGuestCorrection,
+            )
+            .map((item) => ({
+              menuItemId: item.menuItemId,
+              quantity: item.quantity,
+              fulfillment: item.fulfillment,
+            })) ?? [],
+        menu: correctionMenu,
+      },
       billing: this.billingTotals(
         items,
         visit,
@@ -3449,6 +3763,13 @@ export class RestaurantService {
           orderCreatedAt: order.createdAt,
         })),
       );
+      const correctionRequest = visit.orders
+        .filter((order) => order.correctionRequestedAt)
+        .sort(
+          (left, right) =>
+            (right.correctionRequestedAt?.getTime() ?? 0) -
+            (left.correctionRequestedAt?.getTime() ?? 0),
+        )[0];
       return {
         id: visit.id,
         openedAt: visit.openedAt,
@@ -3460,6 +3781,13 @@ export class RestaurantService {
         deliveryHandedOffAt: visit.deliveryHandedOffAt,
         table: visit.table,
         responsibleStaff: visit.responsibleStaff,
+        correctionRequest: correctionRequest
+          ? {
+              orderId: correctionRequest.id,
+              requestedAt: correctionRequest.correctionRequestedAt,
+              note: correctionRequest.correctionRequestNote,
+            }
+          : null,
         items,
         billing: this.billingTotals(
           items,
@@ -3582,6 +3910,39 @@ export class RestaurantService {
         data: { itemId: id, actorId: actor.id, status: dto.status },
       });
       return tx.restaurantOrderItem.findUnique({ where: { id } });
+    });
+  }
+
+  async acknowledgeCorrectionRequest(actor: RestaurantActor, id: string) {
+    const order = await this.prisma.restaurantOrder.findFirst({
+      where: { id, organizationId: actor.organizationId },
+      select: {
+        id: true,
+        visit: { select: { responsibleStaffId: true } },
+        table: { select: { waiterId: true } },
+      },
+    });
+    if (!order) throw new NotFoundException("Pedido no encontrado");
+    const role = this.effectiveRole(actor);
+    const isAdmin = role === RestaurantStaffRole.RESTAURANT_ADMIN;
+    const isResponsible =
+      (role === RestaurantStaffRole.WAITER ||
+        role === RestaurantStaffRole.BAR) &&
+      (order.visit?.responsibleStaffId === actor.id ||
+        (!order.visit?.responsibleStaffId &&
+          order.table.waiterId === actor.id));
+    if (!isAdmin && !isResponsible) {
+      throw new ForbiddenException(
+        "Solo el responsable de la cuenta puede atender esta solicitud",
+      );
+    }
+    return this.prisma.restaurantOrder.update({
+      where: { id },
+      data: {
+        correctionRequestedAt: null,
+        correctionRequestNote: null,
+      },
+      select: { id: true },
     });
   }
 

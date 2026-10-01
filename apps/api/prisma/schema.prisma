@@ -171,6 +171,7 @@ model Organization {
   restaurantLatitude                Decimal?             @db.Decimal(10, 7)
   restaurantLongitude               Decimal?             @db.Decimal(10, 7)
   restaurantOrderRadiusMeters       Int                  @default(150)
+  restaurantOrderCorrectionMinutes Int                  @default(2)
   restaurantRetentionDays           Int                  @default(30)
   restaurantQrAccesses              RestaurantQrAccess[]
 
@@ -458,6 +459,10 @@ model RestaurantOrder {
   thresholdMinutes        Int?
   delayedAt               DateTime?
   analyticsConsolidatedAt DateTime?
+  correctionCount         Int                   @default(0)
+  lastCorrectionRequestId String?               @unique
+  correctionRequestedAt   DateTime?
+  correctionRequestNote   String?
   organization            Organization          @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   table                   RestaurantTable       @relation(fields: [tableId], references: [id])
   visit                   RestaurantVisit?      @relation(fields: [visitId], references: [id], onDelete: Cascade)
@@ -485,6 +490,7 @@ model RestaurantOrderItem {
   readyAt     DateTime?
   deliveredAt DateTime?
   handedOffAt DateTime?
+  cancelledByGuestCorrection Boolean @default(false)
   order       RestaurantOrder       @relation(fields: [orderId], references: [id], onDelete: Cascade)
   menuItem    RestaurantMenuItem    @relation(fields: [menuItemId], references: [id])
   events      RestaurantItemEvent[]

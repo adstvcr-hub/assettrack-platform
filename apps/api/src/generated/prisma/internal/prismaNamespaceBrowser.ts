@@ -115,6 +115,7 @@ export const OrganizationScalarFieldEnum = {
   restaurantLatitude: 'restaurantLatitude',
   restaurantLongitude: 'restaurantLongitude',
   restaurantOrderRadiusMeters: 'restaurantOrderRadiusMeters',
+  restaurantOrderCorrectionMinutes: 'restaurantOrderCorrectionMinutes',
   restaurantRetentionDays: 'restaurantRetentionDays'
 } as const
 
@@ -354,7 +355,11 @@ export const RestaurantOrderScalarFieldEnum = {
   expectedMinutes: 'expectedMinutes',
   thresholdMinutes: 'thresholdMinutes',
   delayedAt: 'delayedAt',
-  analyticsConsolidatedAt: 'analyticsConsolidatedAt'
+  analyticsConsolidatedAt: 'analyticsConsolidatedAt',
+  correctionCount: 'correctionCount',
+  lastCorrectionRequestId: 'lastCorrectionRequestId',
+  correctionRequestedAt: 'correctionRequestedAt',
+  correctionRequestNote: 'correctionRequestNote'
 } as const
 
 export type RestaurantOrderScalarFieldEnum = (typeof RestaurantOrderScalarFieldEnum)[keyof typeof RestaurantOrderScalarFieldEnum]
@@ -375,7 +380,8 @@ export const RestaurantOrderItemScalarFieldEnum = {
   acceptedAt: 'acceptedAt',
   readyAt: 'readyAt',
   deliveredAt: 'deliveredAt',
-  handedOffAt: 'handedOffAt'
+  handedOffAt: 'handedOffAt',
+  cancelledByGuestCorrection: 'cancelledByGuestCorrection'
 } as const
 
 export type RestaurantOrderItemScalarFieldEnum = (typeof RestaurantOrderItemScalarFieldEnum)[keyof typeof RestaurantOrderItemScalarFieldEnum]
