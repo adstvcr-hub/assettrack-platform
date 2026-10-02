@@ -34,9 +34,11 @@ type DraftLine = {
 export function StaffOrderCorrection({
   correction,
   onSaved,
+  requestedAt,
 }: {
   correction?: StaffCorrection | null;
   onSaved: () => Promise<void> | void;
+  requestedAt?: string | null;
 }) {
   const [open, setOpen] = useState(false);
   const [lines, setLines] = useState<DraftLine[]>([]);
@@ -56,6 +58,10 @@ export function StaffOrderCorrection({
       })) ?? [],
     );
   }, [correction?.orderId, correction?.correctionCount]);
+
+  useEffect(() => {
+    if (requestedAt && correction?.canCorrect) setOpen(true);
+  }, [requestedAt, correction?.canCorrect]);
 
   if (!correction) return null;
 
@@ -99,6 +105,15 @@ export function StaffOrderCorrection({
 
   return (
     <div className="mt-4 rounded-xl border border-sky-300 bg-sky-50 p-3">
+      {requestedAt && (
+        <div role="alert" className="mb-3 rounded-lg border-2 border-amber-500 bg-amber-100 p-3 text-amber-950">
+          <p className="text-lg font-black">El cliente solicita corregir su pedido</p>
+          <p className="text-sm font-semibold">Solicitud: {new Date(requestedAt).toLocaleString("es-CR")}</p>
+          <p className="mt-1 text-sm">{correction.canCorrect
+            ? "Revise el cambio con el cliente y confirme los productos en el editor."
+            : "Contacte al cliente y coordine con cocina o bar antes de resolver la solicitud."}</p>
+        </div>
+      )}
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div>
           <p className="font-black text-sky-950">Control de cambios del pedido</p>

@@ -46,6 +46,11 @@ type Visit = {
   canClose: boolean;
   canHandoffDelivery: boolean;
   staffCorrection?: StaffCorrection | null;
+  correctionRequest?: {
+    orderId: string;
+    requestedAt: string;
+    note?: string | null;
+  } | null;
   billing: {
     grossSubtotal: number;
     promotionCredit: number;
@@ -296,6 +301,9 @@ export function OperationalDashboard({ station }: { station: Station }) {
               !item.handedOffAt),
         )
         .map(({ item }) => item.id),
+      ...visits
+        .filter((visit) => Boolean(visit.correctionRequest))
+        .map((visit) => `correction-${visit.correctionRequest!.orderId}-${visit.correctionRequest!.requestedAt}`),
       ...pendingDeliveryVisits.map((visit) => `payment-${visit.id}`),
     ],
     { maxAttempts: 3 },
@@ -430,6 +438,7 @@ export function OperationalDashboard({ station }: { station: Station }) {
                   </div>
                   <StaffOrderCorrection
                     correction={visit.staffCorrection}
+                      requestedAt={visit.correctionRequest?.requestedAt}
                     onSaved={load}
                   />
                   <div className="mt-4 flex flex-wrap gap-2">
@@ -495,6 +504,7 @@ export function OperationalDashboard({ station }: { station: Station }) {
                     <p>Total: ₡{visit.billing.total.toLocaleString()}</p>
                     <StaffOrderCorrection
                       correction={visit.staffCorrection}
+                      requestedAt={visit.correctionRequest?.requestedAt}
                       onSaved={load}
                     />
                     <button

@@ -442,6 +442,9 @@ export default function WaiterPage() {
           .map((item) => item.id),
       ),
       ...visits
+        .filter((visit) => Boolean(visit.correctionRequest))
+        .map((visit) => `correction-${visit.correctionRequest!.orderId}-${visit.correctionRequest!.requestedAt}`),
+      ...visits
         .filter(
           (visit) => !visit.occupiesTable && visit.paymentStatus === "PENDING",
         )
@@ -579,6 +582,7 @@ export default function WaiterPage() {
                   )}
                   <StaffOrderCorrection
                     correction={visit.staffCorrection}
+                    requestedAt={visit.correctionRequest?.requestedAt}
                     onSaved={load}
                   />
                   <div className="flex flex-wrap items-center justify-between gap-3">
