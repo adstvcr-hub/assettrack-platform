@@ -1,5 +1,8 @@
 "use client";
 
+import { getSessionValue } from "@/lib/session";
+
+
 import { API_URL, authenticatedFetch } from "@/lib/api";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
@@ -142,7 +145,7 @@ export function OperationalDashboard({ station }: { station: Station }) {
   }, [router, station]);
 
   useEffect(() => {
-    if (!sessionStorage.getItem("assettrack_token")) {
+    if (!getSessionValue("assettrack_token")) {
       router.replace(`/?next=/restaurant/${station.toLowerCase()}`);
       return;
     }

@@ -1,5 +1,8 @@
 "use client";
 
+import { getSessionValue } from "@/lib/session";
+
+
 import { API_URL, authenticatedFetch } from "@/lib/api";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -753,7 +756,7 @@ export default function RestaurantAdminDashboard({
   }, [router, staffHoursFrom, staffHoursTo, staffHoursUserId]);
 
   useEffect(() => {
-    if (!sessionStorage.getItem("assettrack_token")) {
+    if (!getSessionValue("assettrack_token")) {
       router.replace("/?next=/restaurant/admin");
       return;
     }
@@ -767,19 +770,19 @@ export default function RestaurantAdminDashboard({
 
   useEffect(() => {
     if (section !== "analytics") return;
-    if (!sessionStorage.getItem("assettrack_token")) return;
+    if (!getSessionValue("assettrack_token")) return;
     void loadAnalytics();
   }, [loadAnalytics, section]);
 
   useEffect(() => {
     if (section !== "sales-history") return;
-    if (!sessionStorage.getItem("assettrack_token")) return;
+    if (!getSessionValue("assettrack_token")) return;
     void loadSalesHistory();
   }, [loadSalesHistory, section]);
 
   useEffect(() => {
     if (section !== "staff") return;
-    if (!sessionStorage.getItem("assettrack_token")) return;
+    if (!getSessionValue("assettrack_token")) return;
     void loadStaffHours();
   }, [loadStaffHours, section]);
 

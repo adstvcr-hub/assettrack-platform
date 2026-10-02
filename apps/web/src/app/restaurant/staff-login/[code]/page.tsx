@@ -1,5 +1,8 @@
 "use client";
 
+import { setSessionValue } from "@/lib/session";
+
+
 import { API_URL } from "@/lib/api";
 import { FormEvent, useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
@@ -130,8 +133,8 @@ export default function StaffAccessPage() {
             : (data.message ?? "Contraseña incorrecta."),
         );
       }
-      sessionStorage.setItem("assettrack_token", data.accessToken);
-      sessionStorage.setItem("assettrack_user", JSON.stringify(data.user));
+      setSessionValue("assettrack_token", data.accessToken);
+      setSessionValue("assettrack_user", JSON.stringify(data.user));
       router.replace("/restaurant/staff");
     } catch (reason) {
       setError(

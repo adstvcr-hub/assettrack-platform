@@ -1,5 +1,8 @@
 "use client";
 
+import { removeSessionValue } from "@/lib/session";
+
+
 import { API_URL } from "@/lib/api";
 import { useRouter } from "next/navigation";
 
@@ -17,8 +20,8 @@ export function RestaurantSessionActions({
         credentials: "include",
       });
     } finally {
-      sessionStorage.removeItem("assettrack_token");
-      sessionStorage.removeItem("assettrack_user");
+      removeSessionValue("assettrack_token");
+      removeSessionValue("assettrack_user");
       router.replace("/");
     }
   }

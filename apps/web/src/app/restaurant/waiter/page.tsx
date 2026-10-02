@@ -1,5 +1,8 @@
 "use client";
 
+import { getSessionValue } from "@/lib/session";
+
+
 import { API_URL, authenticatedFetch } from "@/lib/api";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -143,7 +146,7 @@ export default function WaiterPage() {
   }, [router]);
 
   useEffect(() => {
-    if (!sessionStorage.getItem("assettrack_token")) {
+    if (!getSessionValue("assettrack_token")) {
       router.replace("/?next=/restaurant/waiter");
       return;
     }

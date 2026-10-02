@@ -1,4 +1,7 @@
-﻿"use client";
+"use client";
+
+import { getSessionValue, removeSessionValue } from "@/lib/session";
+
 
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -62,8 +65,8 @@ export default function DashboardPage() {
   const [isPlatformAdmin, setIsPlatformAdmin] = useState(false);
 
   useEffect(() => {
-    const token = sessionStorage.getItem("assettrack_token");
-    const storedUser = sessionStorage.getItem("assettrack_user");
+    const token = getSessionValue("assettrack_token");
+    const storedUser = getSessionValue("assettrack_user");
 
     if (!token || !storedUser) {
       router.replace("/");
@@ -159,8 +162,8 @@ export default function DashboardPage() {
         credentials: "include",
       });
     } finally {
-      sessionStorage.removeItem("assettrack_token");
-      sessionStorage.removeItem("assettrack_user");
+      removeSessionValue("assettrack_token");
+      removeSessionValue("assettrack_user");
       router.replace("/");
     }
   }

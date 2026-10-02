@@ -1,4 +1,7 @@
-﻿"use client";
+"use client";
+
+import { getSessionValue } from "@/lib/session";
+
 import { API_URL, authenticatedFetch } from "@/lib/api";
 import { FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -56,7 +59,7 @@ export default function UsersPage() {
   const [totalPages, setTotalPages] = useState(1);
 
   function getToken() {
-    const token = sessionStorage.getItem("assettrack_token");
+    const token = getSessionValue("assettrack_token");
 
     if (!token) {
       router.replace("/?next=/users");
@@ -107,7 +110,7 @@ export default function UsersPage() {
   }
 
   useEffect(() => {
-    const storedUser = sessionStorage.getItem("assettrack_user");
+    const storedUser = getSessionValue("assettrack_user");
 
     if (storedUser) {
       setCurrentUser(JSON.parse(storedUser));

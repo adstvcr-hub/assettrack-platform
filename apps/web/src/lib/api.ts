@@ -1,3 +1,4 @@
+import { getSessionValue, setSessionValue, removeSessionValue } from "@/lib/session";
 export const API_URL =
   process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3000';
 
@@ -9,8 +10,9 @@ async function performRefresh() {
     credentials: 'include',
   });
 
+  if (response.status === 401) return null;
   if (!response.ok) {
-    return null;
+    throw new Error("No fue posible renovar la sesión. Reintente cuando haya conexión.");
   }
 
   const data = await response.json();
@@ -19,7 +21,7 @@ async function performRefresh() {
     return null;
   }
 
-  sessionStorage.setItem('assettrack_token', data.accessToken);
+  setSessionValue('assettrack_token', data.accessToken);
 
   return data.accessToken as string;
 }
@@ -38,7 +40,7 @@ export async function authenticatedFetch(
   input: string,
   init: RequestInit = {},
 ) {
-  const token = sessionStorage.getItem('assettrack_token');
+  const token = getSessionValue('assettrack_token');
 
   const headers = new Headers(init.headers);
 
@@ -57,11 +59,16 @@ export async function authenticatedFetch(
     return response;
   }
 
-  const newToken = await refreshAccessToken();
+  // Another request may already have renewed the token while this one
+  // was waiting for its response after the browser resumed.
+  const latestToken = getSessionValue('assettrack_token');
+  const newToken = latestToken && latestToken !== token
+    ? latestToken
+    : await refreshAccessToken();
 
   if (!newToken) {
-    sessionStorage.removeItem('assettrack_token');
-    sessionStorage.removeItem('assettrack_user');
+    removeSessionValue('assettrack_token');
+    removeSessionValue('assettrack_user');
     return response;
   }
 

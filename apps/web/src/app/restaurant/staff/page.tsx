@@ -1,5 +1,8 @@
 "use client";
 
+import { getSessionValue } from "@/lib/session";
+
+
 import { API_URL, authenticatedFetch } from "@/lib/api";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
@@ -16,7 +19,7 @@ export default function RestaurantStaffPage() {
 
   useEffect(() => {
     async function redirect() {
-      if (!sessionStorage.getItem("assettrack_token")) {
+      if (!getSessionValue("assettrack_token")) {
         router.replace("/?next=/restaurant/staff");
         return;
       }

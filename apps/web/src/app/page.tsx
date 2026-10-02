@@ -1,4 +1,7 @@
-﻿"use client";
+"use client";
+
+import { setSessionValue } from "@/lib/session";
+
 
 import { FormEvent, useState } from "react";
 import { API_URL } from "@/lib/api";
@@ -81,8 +84,8 @@ export default function Home() {
         return;
       }
 
-      sessionStorage.setItem("assettrack_token", data.accessToken);
-      sessionStorage.setItem("assettrack_user", JSON.stringify(data.user));
+      setSessionValue("assettrack_token", data.accessToken);
+      setSessionValue("assettrack_user", JSON.stringify(data.user));
 
       const next =
         typeof window !== "undefined"
