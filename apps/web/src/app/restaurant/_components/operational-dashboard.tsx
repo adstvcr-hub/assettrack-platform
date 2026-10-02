@@ -5,6 +5,10 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { RestaurantSessionActions } from "./restaurant-session-actions";
 import { useOperationalAlerts } from "./use-operational-alerts";
+import {
+  StaffOrderCorrection,
+  type StaffCorrection,
+} from "./staff-order-correction";
 
 type Station = "KITCHEN" | "BAR";
 type OrderItem = {
@@ -41,6 +45,7 @@ type Visit = {
   paymentConfirmedAt?: string | null;
   canClose: boolean;
   canHandoffDelivery: boolean;
+  staffCorrection?: StaffCorrection | null;
   billing: {
     grossSubtotal: number;
     promotionCredit: number;
@@ -423,6 +428,10 @@ export function OperationalDashboard({ station }: { station: Station }) {
                       <span>₡{visit.billing.total.toLocaleString()}</span>
                     </p>
                   </div>
+                  <StaffOrderCorrection
+                    correction={visit.staffCorrection}
+                    onSaved={load}
+                  />
                   <div className="mt-4 flex flex-wrap gap-2">
                     {visit.paymentStatus !== "CONFIRMED" && (
                       <button
@@ -484,6 +493,10 @@ export function OperationalDashboard({ station }: { station: Station }) {
                       </p>
                     )}
                     <p>Total: ₡{visit.billing.total.toLocaleString()}</p>
+                    <StaffOrderCorrection
+                      correction={visit.staffCorrection}
+                      onSaved={load}
+                    />
                     <button
                       disabled={!visit.canClose}
                       className="mt-3 rounded bg-violet-800 px-4 py-2 font-bold text-white disabled:opacity-40"

@@ -5,6 +5,10 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { RestaurantSessionActions } from "../_components/restaurant-session-actions";
 import { useOperationalAlerts } from "../_components/use-operational-alerts";
+import {
+  StaffOrderCorrection,
+  type StaffCorrection,
+} from "../_components/staff-order-correction";
 
 type Item = {
   id: string;
@@ -42,6 +46,7 @@ type Visit = {
     requestedAt: string;
     note?: string | null;
   } | null;
+  staffCorrection?: StaffCorrection | null;
   transferDestinations: Array<{
     id: string;
     name: string;
@@ -572,6 +577,10 @@ export default function WaiterPage() {
                       </button>
                     </div>
                   )}
+                  <StaffOrderCorrection
+                    correction={visit.staffCorrection}
+                    onSaved={load}
+                  />
                   <div className="flex flex-wrap items-center justify-between gap-3">
                     <div>
                       <p className="font-bold">{visit.table.name}</p>

@@ -23,6 +23,7 @@ import {
   CreatePromotionDto,
   CreateMenuItemDto,
   CorrectGuestOrderDto,
+  CorrectStaffOrderDto,
   CreateTableDto,
   JoinLoyaltyDto,
   PlaceOrderDto,
@@ -360,6 +361,15 @@ export class RestaurantStaffController {
     @Param("id") id: string,
   ) {
     return this.restaurant.acknowledgeCorrectionRequest(req.user, id);
+  }
+
+  @Patch("orders/:id/correction")
+  correctOrder(
+    @Req() req: StaffRequest,
+    @Param("id") id: string,
+    @Body() dto: CorrectStaffOrderDto,
+  ) {
+    return this.restaurant.correctStaffOrder(req.user, id, dto);
   }
 
   @Patch("items/:id/fulfillment")

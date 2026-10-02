@@ -154,6 +154,8 @@ type Order = {
   createdAt: string;
   table: { name: string };
   items: OrderItem[];
+  correctionCount: number;
+  correctionSource?: "CUSTOMER" | "EMPLOYEE" | null;
 };
 type ActiveVisit = {
   id: string;
@@ -268,6 +270,29 @@ type ClosedSale = {
     total: number;
     status: string;
     fulfillment: string;
+  }>;
+  corrections: Array<{
+    orderId: string;
+    orderCreatedAt: string;
+    correctionCount: number;
+    correctedAt?: string | null;
+    source: "CUSTOMER" | "EMPLOYEE";
+    correctedBy?: { id: string; name: string } | null;
+    reason?: string | null;
+    originalItems: Array<{
+      id: string;
+      name: string;
+      quantity: number;
+      unitPrice: number;
+      total: number;
+    }>;
+    finalItems: Array<{
+      id: string;
+      name: string;
+      quantity: number;
+      unitPrice: number;
+      total: number;
+    }>;
   }>;
   billing: {
     subtotal: number;
@@ -1453,6 +1478,14 @@ export default function RestaurantAdminDashboard({
                 <strong>
                   {order.table.name} · {item.quantity} × {item.name}
                 </strong>
+                {order.correctionCount > 0 && (
+                  <span className="ml-2 inline-flex rounded-full bg-fuchsia-100 px-2 py-1 text-xs font-black text-fuchsia-900 ring-1 ring-fuchsia-300">
+                    {order.correctionSource === "EMPLOYEE"
+                      ? "CORREGIDA POR EL PERSONAL"
+                      : "CORREGIDA POR EL CLIENTE"}{" "}
+                    · {order.correctionCount}
+                  </span>
+                )}
                 <p className="text-sm text-slate-600">
                   {item.course.toLowerCase()} · {item.status.toLowerCase()} ·
                   received {new Date(order.createdAt).toLocaleTimeString()}
@@ -2008,6 +2041,11 @@ export default function RestaurantAdminDashboard({
                     {sale.receiptNumber} · {sale.table.name} · ₡
                     {sale.billing.total.toLocaleString()} ·{" "}
                     {new Date(sale.closedAt).toLocaleString("es-CR")}
+                    {sale.corrections.length > 0 && (
+                      <span className="ml-2 inline-flex rounded-full bg-fuchsia-100 px-2 py-1 text-xs font-black text-fuchsia-900 ring-1 ring-fuchsia-300">
+                        PEDIDO CORREGIDO
+                      </span>
+                    )}
                   </summary>
                   <div className="mt-4 grid gap-2 text-sm sm:grid-cols-2">
                     <p>
@@ -2049,6 +2087,75 @@ export default function RestaurantAdminDashboard({
                       </tbody>
                     </table>
                   </div>
+                  {sale.corrections.length > 0 && (
+                    <div className="mt-4 rounded-xl border-2 border-fuchsia-300 bg-fuchsia-50 p-4">
+                      <h4 className="font-black text-fuchsia-950">
+                        Auditoría de correcciones
+                      </h4>
+                      <p className="text-sm text-fuchsia-900">
+                        El consumo y el total anteriores muestran únicamente los
+                        productos efectivos. Los reemplazados se conservan aquí
+                        como evidencia durante la retención operativa.
+                      </p>
+                      <div className="mt-3 space-y-3">
+                        {sale.corrections.map((correction) => (
+                          <details
+                            key={correction.orderId}
+                            className="rounded-lg border border-fuchsia-200 bg-white p-3"
+                          >
+                            <summary className="cursor-pointer font-bold">
+                              Orden de las{" "}
+                              {new Date(
+                                correction.orderCreatedAt,
+                              ).toLocaleTimeString("es-CR")} ·{" "}
+                              {correction.correctionCount} cambio(s)
+                            </summary>
+                            <p className="mt-2 text-sm">
+                              Último cambio:{" "}
+                              {correction.correctedAt
+                                ? new Date(
+                                    correction.correctedAt,
+                                  ).toLocaleString("es-CR")
+                                : "fecha no disponible"}
+                              {" · "}
+                              {correction.source === "CUSTOMER"
+                                ? "Cliente"
+                                : correction.correctedBy?.name ?? "Empleado"}
+                            </p>
+                            {correction.reason && (
+                              <p className="text-sm">
+                                Nota: {correction.reason}
+                              </p>
+                            )}
+                            <div className="mt-3 grid gap-3 md:grid-cols-2">
+                              <div className="rounded bg-red-50 p-3">
+                                <p className="font-bold text-red-900">
+                                  Productos reemplazados
+                                </p>
+                                {correction.originalItems.map((item) => (
+                                  <p key={item.id} className="text-sm">
+                                    {item.quantity} × {item.name} · ₡
+                                    {item.total.toLocaleString()}
+                                  </p>
+                                ))}
+                              </div>
+                              <div className="rounded bg-emerald-50 p-3">
+                                <p className="font-bold text-emerald-900">
+                                  Pedido final
+                                </p>
+                                {correction.finalItems.map((item) => (
+                                  <p key={item.id} className="text-sm">
+                                    {item.quantity} × {item.name} · ₡
+                                    {item.total.toLocaleString()}
+                                  </p>
+                                ))}
+                              </div>
+                            </div>
+                          </details>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                   <div className="mt-3 grid gap-2 rounded bg-slate-50 p-3 text-sm sm:grid-cols-4">
                     <span>
                       Subtotal: ₡{sale.billing.subtotal.toLocaleString()}

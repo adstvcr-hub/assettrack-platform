@@ -39,6 +39,13 @@ const kitchenActor = {
   restaurantRole: RestaurantStaffRole.KITCHEN,
   restaurantAvailability: RestaurantStaffAvailability.AVAILABLE,
 };
+const waiterActor = {
+  id: "waiter-a",
+  organizationId: "org-a",
+  role: UserRole.USER,
+  restaurantRole: RestaurantStaffRole.WAITER,
+  restaurantAvailability: RestaurantStaffAvailability.AVAILABLE,
+};
 function createService() {
   const prisma = {
     user: {
@@ -952,6 +959,97 @@ describe("RestaurantService", () => {
     expect(prisma.restaurantOrderItem.create).not.toHaveBeenCalled();
   });
 
+  it("lets the responsible employee replace an order before preparation", async () => {
+    const { prisma, service } = createService();
+    const currentOrder = {
+      id: "order-staff",
+      visitId: "visit-a",
+      fulfillment: "DINE_IN",
+      promotionId: null,
+      correctionCount: 0,
+      lastCorrectionRequestId: null,
+      table: { waiterId: waiterActor.id, kind: "DINING" },
+      visit: {
+        id: "visit-a",
+        status: "OPEN",
+        responsibleStaffId: waiterActor.id,
+      },
+      items: [
+        {
+          id: "old-item",
+          menuItemId: itemId,
+          status: "ACCEPTED",
+          fulfillment: "DINE_IN",
+        },
+      ],
+    };
+    prisma.restaurantOrder.findFirst.mockResolvedValue(currentOrder);
+    prisma.restaurantOrderItem.updateMany.mockResolvedValue({ count: 1 });
+    prisma.restaurantItemEvent.createMany.mockResolvedValue({ count: 1 });
+    prisma.restaurantOrderItem.create.mockResolvedValue({});
+    prisma.restaurantOrder.update.mockResolvedValue({
+      id: "order-staff",
+      correctionCount: 1,
+    });
+
+    await service.correctStaffOrder(waiterActor, "order-staff", {
+      requestId: "581c2054-59ac-4cec-829f-682994d78454",
+      reason: "El cliente cambió la bebida",
+      items: [{ menuItemId: itemId, quantity: 2 }],
+    });
+
+    expect(prisma.restaurantOrderItem.updateMany).toHaveBeenCalledWith({
+      where: {
+        id: { in: ["old-item"] },
+        status: { in: ["RECEIVED", "ACCEPTED"] },
+      },
+      data: {
+        status: "CANCELLED",
+        cancelledByGuestCorrection: true,
+      },
+    });
+    expect(prisma.restaurantItemEvent.createMany).toHaveBeenCalledWith({
+      data: [
+        expect.objectContaining({
+          actorId: waiterActor.id,
+          note: expect.stringContaining("El cliente cambió la bebida"),
+        }),
+      ],
+    });
+    expect(prisma.restaurantOrder.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          correctionCount: { increment: 1 },
+        }),
+      }),
+    );
+  });
+
+  it("blocks staff correction after preparation begins", async () => {
+    const { prisma, service } = createService();
+    prisma.restaurantOrder.findFirst.mockResolvedValue({
+      id: "order-staff",
+      visitId: "visit-a",
+      correctionCount: 0,
+      lastCorrectionRequestId: null,
+      table: { waiterId: waiterActor.id, kind: "DINING" },
+      visit: {
+        id: "visit-a",
+        status: "OPEN",
+        responsibleStaffId: waiterActor.id,
+      },
+      items: [{ id: "old-item", status: "PREPARING" }],
+    });
+
+    await expect(
+      service.correctStaffOrder(waiterActor, "order-staff", {
+        requestId: "f1b73563-3fb0-43fa-8fba-d7fb41222a16",
+        items: [{ menuItemId: itemId, quantity: 1 }],
+      }),
+    ).rejects.toThrow("La preparación ya comenzó");
+    expect(prisma.restaurantOrderItem.updateMany).not.toHaveBeenCalled();
+  });
+
   it("does not expose a closed receipt after the operational retention window", async () => {
     const { prisma, service } = createService();
     prisma.restaurantVisit.findUnique.mockResolvedValue({
@@ -1468,9 +1566,9 @@ describe("RestaurantService", () => {
           },
         }),
         include: expect.objectContaining({
-          items: {
+          items: expect.objectContaining({
             where: expect.objectContaining({ station: "KITCHEN" }),
-          },
+          }),
         }),
       }),
     );

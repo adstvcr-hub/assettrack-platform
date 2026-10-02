@@ -118,6 +118,18 @@ export class CorrectGuestOrderDto {
   items!: OrderLineDto[];
 }
 
+export class CorrectStaffOrderDto {
+  @IsUUID() requestId!: string;
+  @IsOptional() @IsString() @MaxLength(240) reason?: string;
+
+  @IsArray()
+  @ArrayMinSize(1)
+  @ArrayMaxSize(20)
+  @ValidateNested({ each: true })
+  @Type(() => OrderLineDto)
+  items!: OrderLineDto[];
+}
+
 export class RequestGuestOrderCorrectionDto {
   @IsUUID() orderId!: string;
   @IsOptional() @IsString() @MaxLength(240) note?: string;
