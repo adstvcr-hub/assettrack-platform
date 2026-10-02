@@ -229,6 +229,133 @@ describe("RestaurantService", () => {
     );
   });
 
+  it("assigns dining service to the bartender when no waiter is available", async () => {
+    const { prisma, service } = createService();
+    prisma.restaurantTable.findUnique.mockResolvedValue({
+      ...table,
+      kind: "DINING",
+      waiterId: null,
+      organization: {
+        restaurantAccessEnabled: true,
+        restaurantLatitude: null,
+        restaurantLongitude: null,
+        restaurantOrderRadiusMeters: 150,
+      },
+    });
+    prisma.user.findMany
+      .mockResolvedValueOnce([
+        { restaurantRole: RestaurantStaffRole.KITCHEN },
+        { restaurantRole: RestaurantStaffRole.BAR },
+      ])
+      .mockResolvedValueOnce([])
+      .mockResolvedValueOnce([
+        {
+          id: "bar-a",
+          role: UserRole.USER,
+          restaurantRole: RestaurantStaffRole.BAR,
+        },
+      ]);
+
+    await service.placeOrder("table-code", payload);
+
+    expect(prisma.restaurantVisit.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          occupiesTable: true,
+          responsibleStaffId: "bar-a",
+        }),
+      }),
+    );
+  });
+
+  it("recovers an orphaned delivered dining account for the bartender", async () => {
+    const { prisma, service } = createService();
+    const bartender = {
+      id: "bar-a",
+      organizationId: "org-a",
+      role: UserRole.USER,
+      restaurantRole: RestaurantStaffRole.BAR,
+      restaurantAvailability: RestaurantStaffAvailability.AVAILABLE,
+    };
+    const deliveredVisit = {
+      id: "visit-lost",
+      organizationId: "org-a",
+      tableId: "table-a",
+      openedAt: new Date(),
+      occupiesTable: true,
+      responsibleStaffId: "bar-a",
+      responsibleStaff: {
+        id: "bar-a",
+        name: "Bartender",
+        restaurantRole: RestaurantStaffRole.BAR,
+      },
+      table: {
+        id: "table-a",
+        name: "Mesa 2",
+        kind: "DINING",
+        waiterId: null,
+        serviceChargeEnabled: true,
+      },
+      taxRateBps: 1300,
+      taxIncluded: false,
+      serviceRateBps: 1000,
+      serviceChargeEnabled: true,
+      paymentStatus: "NOT_REQUIRED",
+      orders: [
+        {
+          id: "order-a",
+          createdAt: new Date(),
+          promotionCredit: 0,
+          correctionRequestedAt: null,
+          items: [
+            {
+              id: "item-a",
+              name: "Pizza",
+              price: 6000,
+              quantity: 1,
+              status: "DELIVERED",
+            },
+          ],
+        },
+      ],
+    };
+    prisma.restaurantVisit.findMany
+      .mockResolvedValueOnce([
+        {
+          id: "visit-lost",
+          responsibleStaffId: null,
+          responsibleStaff: null,
+          table: { kind: "DINING" },
+        },
+      ])
+      .mockResolvedValueOnce([deliveredVisit]);
+    prisma.user.findMany
+      .mockResolvedValueOnce([])
+      .mockResolvedValueOnce([
+        {
+          id: "bar-a",
+          role: UserRole.USER,
+          restaurantRole: RestaurantStaffRole.BAR,
+        },
+      ]);
+    prisma.restaurantVisit.update.mockResolvedValue({});
+    prisma.restaurantTable.findMany.mockResolvedValue([]);
+
+    const result = await service.visits(bartender);
+
+    expect(prisma.restaurantVisit.update).toHaveBeenCalledWith({
+      where: { id: "visit-lost" },
+      data: { responsibleStaffId: "bar-a" },
+    });
+    expect(result[0]).toEqual(
+      expect.objectContaining({
+        id: "visit-lost",
+        canClose: true,
+        responsibleStaff: expect.objectContaining({ id: "bar-a" }),
+      }),
+    );
+  });
+
   it("keeps an unassigned delivery visible for administrative intervention", async () => {
     const { prisma, service } = createService();
     prisma.user.findMany
@@ -1243,6 +1370,8 @@ describe("RestaurantService", () => {
         data: expect.objectContaining({
           status: "CLOSED",
           closedAt: expect.any(Date),
+          closedById: "bartender-a",
+          closedByRole: RestaurantStaffRole.BAR,
           receiptNumber: expect.stringMatching(/^AT-/),
         }),
       }),

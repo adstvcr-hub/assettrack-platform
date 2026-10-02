@@ -44,6 +44,8 @@ export type RestaurantVisitMinAggregateOutputType = {
   status: $Enums.RestaurantVisitStatus | null
   openedAt: Date | null
   closedAt: Date | null
+  closedById: string | null
+  closedByRole: $Enums.RestaurantStaffRole | null
   taxRateBps: number | null
   taxIncluded: boolean | null
   serviceRateBps: number | null
@@ -78,6 +80,8 @@ export type RestaurantVisitMaxAggregateOutputType = {
   status: $Enums.RestaurantVisitStatus | null
   openedAt: Date | null
   closedAt: Date | null
+  closedById: string | null
+  closedByRole: $Enums.RestaurantStaffRole | null
   taxRateBps: number | null
   taxIncluded: boolean | null
   serviceRateBps: number | null
@@ -112,6 +116,8 @@ export type RestaurantVisitCountAggregateOutputType = {
   status: number
   openedAt: number
   closedAt: number
+  closedById: number
+  closedByRole: number
   taxRateBps: number
   taxIncluded: number
   serviceRateBps: number
@@ -158,6 +164,8 @@ export type RestaurantVisitMinAggregateInputType = {
   status?: true
   openedAt?: true
   closedAt?: true
+  closedById?: true
+  closedByRole?: true
   taxRateBps?: true
   taxIncluded?: true
   serviceRateBps?: true
@@ -192,6 +200,8 @@ export type RestaurantVisitMaxAggregateInputType = {
   status?: true
   openedAt?: true
   closedAt?: true
+  closedById?: true
+  closedByRole?: true
   taxRateBps?: true
   taxIncluded?: true
   serviceRateBps?: true
@@ -226,6 +236,8 @@ export type RestaurantVisitCountAggregateInputType = {
   status?: true
   openedAt?: true
   closedAt?: true
+  closedById?: true
+  closedByRole?: true
   taxRateBps?: true
   taxIncluded?: true
   serviceRateBps?: true
@@ -347,6 +359,8 @@ export type RestaurantVisitGroupByOutputType = {
   status: $Enums.RestaurantVisitStatus
   openedAt: Date
   closedAt: Date | null
+  closedById: string | null
+  closedByRole: $Enums.RestaurantStaffRole | null
   taxRateBps: number
   taxIncluded: boolean
   serviceRateBps: number
@@ -404,6 +418,8 @@ export type RestaurantVisitWhereInput = {
   status?: Prisma.EnumRestaurantVisitStatusFilter<"RestaurantVisit"> | $Enums.RestaurantVisitStatus
   openedAt?: Prisma.DateTimeFilter<"RestaurantVisit"> | Date | string
   closedAt?: Prisma.DateTimeNullableFilter<"RestaurantVisit"> | Date | string | null
+  closedById?: Prisma.StringNullableFilter<"RestaurantVisit"> | string | null
+  closedByRole?: Prisma.EnumRestaurantStaffRoleNullableFilter<"RestaurantVisit"> | $Enums.RestaurantStaffRole | null
   taxRateBps?: Prisma.IntFilter<"RestaurantVisit"> | number
   taxIncluded?: Prisma.BoolFilter<"RestaurantVisit"> | boolean
   serviceRateBps?: Prisma.IntFilter<"RestaurantVisit"> | number
@@ -445,6 +461,8 @@ export type RestaurantVisitOrderByWithRelationInput = {
   status?: Prisma.SortOrder
   openedAt?: Prisma.SortOrder
   closedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  closedById?: Prisma.SortOrderInput | Prisma.SortOrder
+  closedByRole?: Prisma.SortOrderInput | Prisma.SortOrder
   taxRateBps?: Prisma.SortOrder
   taxIncluded?: Prisma.SortOrder
   serviceRateBps?: Prisma.SortOrder
@@ -490,6 +508,8 @@ export type RestaurantVisitWhereUniqueInput = Prisma.AtLeast<{
   status?: Prisma.EnumRestaurantVisitStatusFilter<"RestaurantVisit"> | $Enums.RestaurantVisitStatus
   openedAt?: Prisma.DateTimeFilter<"RestaurantVisit"> | Date | string
   closedAt?: Prisma.DateTimeNullableFilter<"RestaurantVisit"> | Date | string | null
+  closedById?: Prisma.StringNullableFilter<"RestaurantVisit"> | string | null
+  closedByRole?: Prisma.EnumRestaurantStaffRoleNullableFilter<"RestaurantVisit"> | $Enums.RestaurantStaffRole | null
   taxRateBps?: Prisma.IntFilter<"RestaurantVisit"> | number
   taxIncluded?: Prisma.BoolFilter<"RestaurantVisit"> | boolean
   serviceRateBps?: Prisma.IntFilter<"RestaurantVisit"> | number
@@ -530,6 +550,8 @@ export type RestaurantVisitOrderByWithAggregationInput = {
   status?: Prisma.SortOrder
   openedAt?: Prisma.SortOrder
   closedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  closedById?: Prisma.SortOrderInput | Prisma.SortOrder
+  closedByRole?: Prisma.SortOrderInput | Prisma.SortOrder
   taxRateBps?: Prisma.SortOrder
   taxIncluded?: Prisma.SortOrder
   serviceRateBps?: Prisma.SortOrder
@@ -572,6 +594,8 @@ export type RestaurantVisitScalarWhereWithAggregatesInput = {
   status?: Prisma.EnumRestaurantVisitStatusWithAggregatesFilter<"RestaurantVisit"> | $Enums.RestaurantVisitStatus
   openedAt?: Prisma.DateTimeWithAggregatesFilter<"RestaurantVisit"> | Date | string
   closedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"RestaurantVisit"> | Date | string | null
+  closedById?: Prisma.StringNullableWithAggregatesFilter<"RestaurantVisit"> | string | null
+  closedByRole?: Prisma.EnumRestaurantStaffRoleNullableWithAggregatesFilter<"RestaurantVisit"> | $Enums.RestaurantStaffRole | null
   taxRateBps?: Prisma.IntWithAggregatesFilter<"RestaurantVisit"> | number
   taxIncluded?: Prisma.BoolWithAggregatesFilter<"RestaurantVisit"> | boolean
   serviceRateBps?: Prisma.IntWithAggregatesFilter<"RestaurantVisit"> | number
@@ -604,6 +628,8 @@ export type RestaurantVisitCreateInput = {
   status?: $Enums.RestaurantVisitStatus
   openedAt?: Date | string
   closedAt?: Date | string | null
+  closedById?: string | null
+  closedByRole?: $Enums.RestaurantStaffRole | null
   taxRateBps?: number
   taxIncluded?: boolean
   serviceRateBps?: number
@@ -643,6 +669,8 @@ export type RestaurantVisitUncheckedCreateInput = {
   status?: $Enums.RestaurantVisitStatus
   openedAt?: Date | string
   closedAt?: Date | string | null
+  closedById?: string | null
+  closedByRole?: $Enums.RestaurantStaffRole | null
   taxRateBps?: number
   taxIncluded?: boolean
   serviceRateBps?: number
@@ -678,6 +706,8 @@ export type RestaurantVisitUpdateInput = {
   status?: Prisma.EnumRestaurantVisitStatusFieldUpdateOperationsInput | $Enums.RestaurantVisitStatus
   openedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   closedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  closedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  closedByRole?: Prisma.NullableEnumRestaurantStaffRoleFieldUpdateOperationsInput | $Enums.RestaurantStaffRole | null
   taxRateBps?: Prisma.IntFieldUpdateOperationsInput | number
   taxIncluded?: Prisma.BoolFieldUpdateOperationsInput | boolean
   serviceRateBps?: Prisma.IntFieldUpdateOperationsInput | number
@@ -717,6 +747,8 @@ export type RestaurantVisitUncheckedUpdateInput = {
   status?: Prisma.EnumRestaurantVisitStatusFieldUpdateOperationsInput | $Enums.RestaurantVisitStatus
   openedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   closedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  closedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  closedByRole?: Prisma.NullableEnumRestaurantStaffRoleFieldUpdateOperationsInput | $Enums.RestaurantStaffRole | null
   taxRateBps?: Prisma.IntFieldUpdateOperationsInput | number
   taxIncluded?: Prisma.BoolFieldUpdateOperationsInput | boolean
   serviceRateBps?: Prisma.IntFieldUpdateOperationsInput | number
@@ -754,6 +786,8 @@ export type RestaurantVisitCreateManyInput = {
   status?: $Enums.RestaurantVisitStatus
   openedAt?: Date | string
   closedAt?: Date | string | null
+  closedById?: string | null
+  closedByRole?: $Enums.RestaurantStaffRole | null
   taxRateBps?: number
   taxIncluded?: boolean
   serviceRateBps?: number
@@ -786,6 +820,8 @@ export type RestaurantVisitUpdateManyMutationInput = {
   status?: Prisma.EnumRestaurantVisitStatusFieldUpdateOperationsInput | $Enums.RestaurantVisitStatus
   openedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   closedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  closedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  closedByRole?: Prisma.NullableEnumRestaurantStaffRoleFieldUpdateOperationsInput | $Enums.RestaurantStaffRole | null
   taxRateBps?: Prisma.IntFieldUpdateOperationsInput | number
   taxIncluded?: Prisma.BoolFieldUpdateOperationsInput | boolean
   serviceRateBps?: Prisma.IntFieldUpdateOperationsInput | number
@@ -818,6 +854,8 @@ export type RestaurantVisitUncheckedUpdateManyInput = {
   status?: Prisma.EnumRestaurantVisitStatusFieldUpdateOperationsInput | $Enums.RestaurantVisitStatus
   openedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   closedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  closedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  closedByRole?: Prisma.NullableEnumRestaurantStaffRoleFieldUpdateOperationsInput | $Enums.RestaurantStaffRole | null
   taxRateBps?: Prisma.IntFieldUpdateOperationsInput | number
   taxIncluded?: Prisma.BoolFieldUpdateOperationsInput | boolean
   serviceRateBps?: Prisma.IntFieldUpdateOperationsInput | number
@@ -862,6 +900,8 @@ export type RestaurantVisitCountOrderByAggregateInput = {
   status?: Prisma.SortOrder
   openedAt?: Prisma.SortOrder
   closedAt?: Prisma.SortOrder
+  closedById?: Prisma.SortOrder
+  closedByRole?: Prisma.SortOrder
   taxRateBps?: Prisma.SortOrder
   taxIncluded?: Prisma.SortOrder
   serviceRateBps?: Prisma.SortOrder
@@ -901,6 +941,8 @@ export type RestaurantVisitMaxOrderByAggregateInput = {
   status?: Prisma.SortOrder
   openedAt?: Prisma.SortOrder
   closedAt?: Prisma.SortOrder
+  closedById?: Prisma.SortOrder
+  closedByRole?: Prisma.SortOrder
   taxRateBps?: Prisma.SortOrder
   taxIncluded?: Prisma.SortOrder
   serviceRateBps?: Prisma.SortOrder
@@ -935,6 +977,8 @@ export type RestaurantVisitMinOrderByAggregateInput = {
   status?: Prisma.SortOrder
   openedAt?: Prisma.SortOrder
   closedAt?: Prisma.SortOrder
+  closedById?: Prisma.SortOrder
+  closedByRole?: Prisma.SortOrder
   taxRateBps?: Prisma.SortOrder
   taxIncluded?: Prisma.SortOrder
   serviceRateBps?: Prisma.SortOrder
@@ -1066,6 +1110,10 @@ export type EnumRestaurantVisitStatusFieldUpdateOperationsInput = {
 
 export type NullableDateTimeFieldUpdateOperationsInput = {
   set?: Date | string | null
+}
+
+export type NullableEnumRestaurantStaffRoleFieldUpdateOperationsInput = {
+  set?: $Enums.RestaurantStaffRole | null
 }
 
 export type EnumRestaurantPaymentStatusFieldUpdateOperationsInput = {
@@ -1212,6 +1260,8 @@ export type RestaurantVisitCreateWithoutOrganizationInput = {
   status?: $Enums.RestaurantVisitStatus
   openedAt?: Date | string
   closedAt?: Date | string | null
+  closedById?: string | null
+  closedByRole?: $Enums.RestaurantStaffRole | null
   taxRateBps?: number
   taxIncluded?: boolean
   serviceRateBps?: number
@@ -1249,6 +1299,8 @@ export type RestaurantVisitUncheckedCreateWithoutOrganizationInput = {
   status?: $Enums.RestaurantVisitStatus
   openedAt?: Date | string
   closedAt?: Date | string | null
+  closedById?: string | null
+  closedByRole?: $Enums.RestaurantStaffRole | null
   taxRateBps?: number
   taxIncluded?: boolean
   serviceRateBps?: number
@@ -1315,6 +1367,8 @@ export type RestaurantVisitScalarWhereInput = {
   status?: Prisma.EnumRestaurantVisitStatusFilter<"RestaurantVisit"> | $Enums.RestaurantVisitStatus
   openedAt?: Prisma.DateTimeFilter<"RestaurantVisit"> | Date | string
   closedAt?: Prisma.DateTimeNullableFilter<"RestaurantVisit"> | Date | string | null
+  closedById?: Prisma.StringNullableFilter<"RestaurantVisit"> | string | null
+  closedByRole?: Prisma.EnumRestaurantStaffRoleNullableFilter<"RestaurantVisit"> | $Enums.RestaurantStaffRole | null
   taxRateBps?: Prisma.IntFilter<"RestaurantVisit"> | number
   taxIncluded?: Prisma.BoolFilter<"RestaurantVisit"> | boolean
   serviceRateBps?: Prisma.IntFilter<"RestaurantVisit"> | number
@@ -1347,6 +1401,8 @@ export type RestaurantVisitCreateWithoutTableInput = {
   status?: $Enums.RestaurantVisitStatus
   openedAt?: Date | string
   closedAt?: Date | string | null
+  closedById?: string | null
+  closedByRole?: $Enums.RestaurantStaffRole | null
   taxRateBps?: number
   taxIncluded?: boolean
   serviceRateBps?: number
@@ -1384,6 +1440,8 @@ export type RestaurantVisitUncheckedCreateWithoutTableInput = {
   status?: $Enums.RestaurantVisitStatus
   openedAt?: Date | string
   closedAt?: Date | string | null
+  closedById?: string | null
+  closedByRole?: $Enums.RestaurantStaffRole | null
   taxRateBps?: number
   taxIncluded?: boolean
   serviceRateBps?: number
@@ -1445,6 +1503,8 @@ export type RestaurantVisitCreateWithoutLoyaltyActivitiesInput = {
   status?: $Enums.RestaurantVisitStatus
   openedAt?: Date | string
   closedAt?: Date | string | null
+  closedById?: string | null
+  closedByRole?: $Enums.RestaurantStaffRole | null
   taxRateBps?: number
   taxIncluded?: boolean
   serviceRateBps?: number
@@ -1483,6 +1543,8 @@ export type RestaurantVisitUncheckedCreateWithoutLoyaltyActivitiesInput = {
   status?: $Enums.RestaurantVisitStatus
   openedAt?: Date | string
   closedAt?: Date | string | null
+  closedById?: string | null
+  closedByRole?: $Enums.RestaurantStaffRole | null
   taxRateBps?: number
   taxIncluded?: boolean
   serviceRateBps?: number
@@ -1533,6 +1595,8 @@ export type RestaurantVisitUpdateWithoutLoyaltyActivitiesInput = {
   status?: Prisma.EnumRestaurantVisitStatusFieldUpdateOperationsInput | $Enums.RestaurantVisitStatus
   openedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   closedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  closedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  closedByRole?: Prisma.NullableEnumRestaurantStaffRoleFieldUpdateOperationsInput | $Enums.RestaurantStaffRole | null
   taxRateBps?: Prisma.IntFieldUpdateOperationsInput | number
   taxIncluded?: Prisma.BoolFieldUpdateOperationsInput | boolean
   serviceRateBps?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1571,6 +1635,8 @@ export type RestaurantVisitUncheckedUpdateWithoutLoyaltyActivitiesInput = {
   status?: Prisma.EnumRestaurantVisitStatusFieldUpdateOperationsInput | $Enums.RestaurantVisitStatus
   openedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   closedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  closedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  closedByRole?: Prisma.NullableEnumRestaurantStaffRoleFieldUpdateOperationsInput | $Enums.RestaurantStaffRole | null
   taxRateBps?: Prisma.IntFieldUpdateOperationsInput | number
   taxIncluded?: Prisma.BoolFieldUpdateOperationsInput | boolean
   serviceRateBps?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1605,6 +1671,8 @@ export type RestaurantVisitCreateWithoutTransfersInput = {
   status?: $Enums.RestaurantVisitStatus
   openedAt?: Date | string
   closedAt?: Date | string | null
+  closedById?: string | null
+  closedByRole?: $Enums.RestaurantStaffRole | null
   taxRateBps?: number
   taxIncluded?: boolean
   serviceRateBps?: number
@@ -1643,6 +1711,8 @@ export type RestaurantVisitUncheckedCreateWithoutTransfersInput = {
   status?: $Enums.RestaurantVisitStatus
   openedAt?: Date | string
   closedAt?: Date | string | null
+  closedById?: string | null
+  closedByRole?: $Enums.RestaurantStaffRole | null
   taxRateBps?: number
   taxIncluded?: boolean
   serviceRateBps?: number
@@ -1693,6 +1763,8 @@ export type RestaurantVisitUpdateWithoutTransfersInput = {
   status?: Prisma.EnumRestaurantVisitStatusFieldUpdateOperationsInput | $Enums.RestaurantVisitStatus
   openedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   closedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  closedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  closedByRole?: Prisma.NullableEnumRestaurantStaffRoleFieldUpdateOperationsInput | $Enums.RestaurantStaffRole | null
   taxRateBps?: Prisma.IntFieldUpdateOperationsInput | number
   taxIncluded?: Prisma.BoolFieldUpdateOperationsInput | boolean
   serviceRateBps?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1731,6 +1803,8 @@ export type RestaurantVisitUncheckedUpdateWithoutTransfersInput = {
   status?: Prisma.EnumRestaurantVisitStatusFieldUpdateOperationsInput | $Enums.RestaurantVisitStatus
   openedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   closedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  closedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  closedByRole?: Prisma.NullableEnumRestaurantStaffRoleFieldUpdateOperationsInput | $Enums.RestaurantStaffRole | null
   taxRateBps?: Prisma.IntFieldUpdateOperationsInput | number
   taxIncluded?: Prisma.BoolFieldUpdateOperationsInput | boolean
   serviceRateBps?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1765,6 +1839,8 @@ export type RestaurantVisitCreateWithoutOrdersInput = {
   status?: $Enums.RestaurantVisitStatus
   openedAt?: Date | string
   closedAt?: Date | string | null
+  closedById?: string | null
+  closedByRole?: $Enums.RestaurantStaffRole | null
   taxRateBps?: number
   taxIncluded?: boolean
   serviceRateBps?: number
@@ -1803,6 +1879,8 @@ export type RestaurantVisitUncheckedCreateWithoutOrdersInput = {
   status?: $Enums.RestaurantVisitStatus
   openedAt?: Date | string
   closedAt?: Date | string | null
+  closedById?: string | null
+  closedByRole?: $Enums.RestaurantStaffRole | null
   taxRateBps?: number
   taxIncluded?: boolean
   serviceRateBps?: number
@@ -1853,6 +1931,8 @@ export type RestaurantVisitUpdateWithoutOrdersInput = {
   status?: Prisma.EnumRestaurantVisitStatusFieldUpdateOperationsInput | $Enums.RestaurantVisitStatus
   openedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   closedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  closedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  closedByRole?: Prisma.NullableEnumRestaurantStaffRoleFieldUpdateOperationsInput | $Enums.RestaurantStaffRole | null
   taxRateBps?: Prisma.IntFieldUpdateOperationsInput | number
   taxIncluded?: Prisma.BoolFieldUpdateOperationsInput | boolean
   serviceRateBps?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1891,6 +1971,8 @@ export type RestaurantVisitUncheckedUpdateWithoutOrdersInput = {
   status?: Prisma.EnumRestaurantVisitStatusFieldUpdateOperationsInput | $Enums.RestaurantVisitStatus
   openedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   closedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  closedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  closedByRole?: Prisma.NullableEnumRestaurantStaffRoleFieldUpdateOperationsInput | $Enums.RestaurantStaffRole | null
   taxRateBps?: Prisma.IntFieldUpdateOperationsInput | number
   taxIncluded?: Prisma.BoolFieldUpdateOperationsInput | boolean
   serviceRateBps?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1925,6 +2007,8 @@ export type RestaurantVisitCreateWithoutResponsibleStaffInput = {
   status?: $Enums.RestaurantVisitStatus
   openedAt?: Date | string
   closedAt?: Date | string | null
+  closedById?: string | null
+  closedByRole?: $Enums.RestaurantStaffRole | null
   taxRateBps?: number
   taxIncluded?: boolean
   serviceRateBps?: number
@@ -1963,6 +2047,8 @@ export type RestaurantVisitUncheckedCreateWithoutResponsibleStaffInput = {
   status?: $Enums.RestaurantVisitStatus
   openedAt?: Date | string
   closedAt?: Date | string | null
+  closedById?: string | null
+  closedByRole?: $Enums.RestaurantStaffRole | null
   taxRateBps?: number
   taxIncluded?: boolean
   serviceRateBps?: number
@@ -2007,6 +2093,8 @@ export type RestaurantVisitCreateWithoutFallbackStaffInput = {
   status?: $Enums.RestaurantVisitStatus
   openedAt?: Date | string
   closedAt?: Date | string | null
+  closedById?: string | null
+  closedByRole?: $Enums.RestaurantStaffRole | null
   taxRateBps?: number
   taxIncluded?: boolean
   serviceRateBps?: number
@@ -2045,6 +2133,8 @@ export type RestaurantVisitUncheckedCreateWithoutFallbackStaffInput = {
   status?: $Enums.RestaurantVisitStatus
   openedAt?: Date | string
   closedAt?: Date | string | null
+  closedById?: string | null
+  closedByRole?: $Enums.RestaurantStaffRole | null
   taxRateBps?: number
   taxIncluded?: boolean
   serviceRateBps?: number
@@ -2122,6 +2212,8 @@ export type RestaurantVisitCreateManyOrganizationInput = {
   status?: $Enums.RestaurantVisitStatus
   openedAt?: Date | string
   closedAt?: Date | string | null
+  closedById?: string | null
+  closedByRole?: $Enums.RestaurantStaffRole | null
   taxRateBps?: number
   taxIncluded?: boolean
   serviceRateBps?: number
@@ -2154,6 +2246,8 @@ export type RestaurantVisitUpdateWithoutOrganizationInput = {
   status?: Prisma.EnumRestaurantVisitStatusFieldUpdateOperationsInput | $Enums.RestaurantVisitStatus
   openedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   closedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  closedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  closedByRole?: Prisma.NullableEnumRestaurantStaffRoleFieldUpdateOperationsInput | $Enums.RestaurantStaffRole | null
   taxRateBps?: Prisma.IntFieldUpdateOperationsInput | number
   taxIncluded?: Prisma.BoolFieldUpdateOperationsInput | boolean
   serviceRateBps?: Prisma.IntFieldUpdateOperationsInput | number
@@ -2191,6 +2285,8 @@ export type RestaurantVisitUncheckedUpdateWithoutOrganizationInput = {
   status?: Prisma.EnumRestaurantVisitStatusFieldUpdateOperationsInput | $Enums.RestaurantVisitStatus
   openedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   closedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  closedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  closedByRole?: Prisma.NullableEnumRestaurantStaffRoleFieldUpdateOperationsInput | $Enums.RestaurantStaffRole | null
   taxRateBps?: Prisma.IntFieldUpdateOperationsInput | number
   taxIncluded?: Prisma.BoolFieldUpdateOperationsInput | boolean
   serviceRateBps?: Prisma.IntFieldUpdateOperationsInput | number
@@ -2227,6 +2323,8 @@ export type RestaurantVisitUncheckedUpdateManyWithoutOrganizationInput = {
   status?: Prisma.EnumRestaurantVisitStatusFieldUpdateOperationsInput | $Enums.RestaurantVisitStatus
   openedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   closedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  closedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  closedByRole?: Prisma.NullableEnumRestaurantStaffRoleFieldUpdateOperationsInput | $Enums.RestaurantStaffRole | null
   taxRateBps?: Prisma.IntFieldUpdateOperationsInput | number
   taxIncluded?: Prisma.BoolFieldUpdateOperationsInput | boolean
   serviceRateBps?: Prisma.IntFieldUpdateOperationsInput | number
@@ -2260,6 +2358,8 @@ export type RestaurantVisitCreateManyTableInput = {
   status?: $Enums.RestaurantVisitStatus
   openedAt?: Date | string
   closedAt?: Date | string | null
+  closedById?: string | null
+  closedByRole?: $Enums.RestaurantStaffRole | null
   taxRateBps?: number
   taxIncluded?: boolean
   serviceRateBps?: number
@@ -2292,6 +2392,8 @@ export type RestaurantVisitUpdateWithoutTableInput = {
   status?: Prisma.EnumRestaurantVisitStatusFieldUpdateOperationsInput | $Enums.RestaurantVisitStatus
   openedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   closedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  closedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  closedByRole?: Prisma.NullableEnumRestaurantStaffRoleFieldUpdateOperationsInput | $Enums.RestaurantStaffRole | null
   taxRateBps?: Prisma.IntFieldUpdateOperationsInput | number
   taxIncluded?: Prisma.BoolFieldUpdateOperationsInput | boolean
   serviceRateBps?: Prisma.IntFieldUpdateOperationsInput | number
@@ -2329,6 +2431,8 @@ export type RestaurantVisitUncheckedUpdateWithoutTableInput = {
   status?: Prisma.EnumRestaurantVisitStatusFieldUpdateOperationsInput | $Enums.RestaurantVisitStatus
   openedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   closedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  closedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  closedByRole?: Prisma.NullableEnumRestaurantStaffRoleFieldUpdateOperationsInput | $Enums.RestaurantStaffRole | null
   taxRateBps?: Prisma.IntFieldUpdateOperationsInput | number
   taxIncluded?: Prisma.BoolFieldUpdateOperationsInput | boolean
   serviceRateBps?: Prisma.IntFieldUpdateOperationsInput | number
@@ -2365,6 +2469,8 @@ export type RestaurantVisitUncheckedUpdateManyWithoutTableInput = {
   status?: Prisma.EnumRestaurantVisitStatusFieldUpdateOperationsInput | $Enums.RestaurantVisitStatus
   openedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   closedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  closedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  closedByRole?: Prisma.NullableEnumRestaurantStaffRoleFieldUpdateOperationsInput | $Enums.RestaurantStaffRole | null
   taxRateBps?: Prisma.IntFieldUpdateOperationsInput | number
   taxIncluded?: Prisma.BoolFieldUpdateOperationsInput | boolean
   serviceRateBps?: Prisma.IntFieldUpdateOperationsInput | number
@@ -2399,6 +2505,8 @@ export type RestaurantVisitCreateManyResponsibleStaffInput = {
   status?: $Enums.RestaurantVisitStatus
   openedAt?: Date | string
   closedAt?: Date | string | null
+  closedById?: string | null
+  closedByRole?: $Enums.RestaurantStaffRole | null
   taxRateBps?: number
   taxIncluded?: boolean
   serviceRateBps?: number
@@ -2432,6 +2540,8 @@ export type RestaurantVisitCreateManyFallbackStaffInput = {
   status?: $Enums.RestaurantVisitStatus
   openedAt?: Date | string
   closedAt?: Date | string | null
+  closedById?: string | null
+  closedByRole?: $Enums.RestaurantStaffRole | null
   taxRateBps?: number
   taxIncluded?: boolean
   serviceRateBps?: number
@@ -2463,6 +2573,8 @@ export type RestaurantVisitUpdateWithoutResponsibleStaffInput = {
   status?: Prisma.EnumRestaurantVisitStatusFieldUpdateOperationsInput | $Enums.RestaurantVisitStatus
   openedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   closedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  closedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  closedByRole?: Prisma.NullableEnumRestaurantStaffRoleFieldUpdateOperationsInput | $Enums.RestaurantStaffRole | null
   taxRateBps?: Prisma.IntFieldUpdateOperationsInput | number
   taxIncluded?: Prisma.BoolFieldUpdateOperationsInput | boolean
   serviceRateBps?: Prisma.IntFieldUpdateOperationsInput | number
@@ -2501,6 +2613,8 @@ export type RestaurantVisitUncheckedUpdateWithoutResponsibleStaffInput = {
   status?: Prisma.EnumRestaurantVisitStatusFieldUpdateOperationsInput | $Enums.RestaurantVisitStatus
   openedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   closedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  closedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  closedByRole?: Prisma.NullableEnumRestaurantStaffRoleFieldUpdateOperationsInput | $Enums.RestaurantStaffRole | null
   taxRateBps?: Prisma.IntFieldUpdateOperationsInput | number
   taxIncluded?: Prisma.BoolFieldUpdateOperationsInput | boolean
   serviceRateBps?: Prisma.IntFieldUpdateOperationsInput | number
@@ -2537,6 +2651,8 @@ export type RestaurantVisitUncheckedUpdateManyWithoutResponsibleStaffInput = {
   status?: Prisma.EnumRestaurantVisitStatusFieldUpdateOperationsInput | $Enums.RestaurantVisitStatus
   openedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   closedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  closedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  closedByRole?: Prisma.NullableEnumRestaurantStaffRoleFieldUpdateOperationsInput | $Enums.RestaurantStaffRole | null
   taxRateBps?: Prisma.IntFieldUpdateOperationsInput | number
   taxIncluded?: Prisma.BoolFieldUpdateOperationsInput | boolean
   serviceRateBps?: Prisma.IntFieldUpdateOperationsInput | number
@@ -2568,6 +2684,8 @@ export type RestaurantVisitUpdateWithoutFallbackStaffInput = {
   status?: Prisma.EnumRestaurantVisitStatusFieldUpdateOperationsInput | $Enums.RestaurantVisitStatus
   openedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   closedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  closedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  closedByRole?: Prisma.NullableEnumRestaurantStaffRoleFieldUpdateOperationsInput | $Enums.RestaurantStaffRole | null
   taxRateBps?: Prisma.IntFieldUpdateOperationsInput | number
   taxIncluded?: Prisma.BoolFieldUpdateOperationsInput | boolean
   serviceRateBps?: Prisma.IntFieldUpdateOperationsInput | number
@@ -2606,6 +2724,8 @@ export type RestaurantVisitUncheckedUpdateWithoutFallbackStaffInput = {
   status?: Prisma.EnumRestaurantVisitStatusFieldUpdateOperationsInput | $Enums.RestaurantVisitStatus
   openedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   closedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  closedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  closedByRole?: Prisma.NullableEnumRestaurantStaffRoleFieldUpdateOperationsInput | $Enums.RestaurantStaffRole | null
   taxRateBps?: Prisma.IntFieldUpdateOperationsInput | number
   taxIncluded?: Prisma.BoolFieldUpdateOperationsInput | boolean
   serviceRateBps?: Prisma.IntFieldUpdateOperationsInput | number
@@ -2642,6 +2762,8 @@ export type RestaurantVisitUncheckedUpdateManyWithoutFallbackStaffInput = {
   status?: Prisma.EnumRestaurantVisitStatusFieldUpdateOperationsInput | $Enums.RestaurantVisitStatus
   openedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   closedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  closedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  closedByRole?: Prisma.NullableEnumRestaurantStaffRoleFieldUpdateOperationsInput | $Enums.RestaurantStaffRole | null
   taxRateBps?: Prisma.IntFieldUpdateOperationsInput | number
   taxIncluded?: Prisma.BoolFieldUpdateOperationsInput | boolean
   serviceRateBps?: Prisma.IntFieldUpdateOperationsInput | number
@@ -2724,6 +2846,8 @@ export type RestaurantVisitSelect<ExtArgs extends runtime.Types.Extensions.Inter
   status?: boolean
   openedAt?: boolean
   closedAt?: boolean
+  closedById?: boolean
+  closedByRole?: boolean
   taxRateBps?: boolean
   taxIncluded?: boolean
   serviceRateBps?: boolean
@@ -2766,6 +2890,8 @@ export type RestaurantVisitSelectCreateManyAndReturn<ExtArgs extends runtime.Typ
   status?: boolean
   openedAt?: boolean
   closedAt?: boolean
+  closedById?: boolean
+  closedByRole?: boolean
   taxRateBps?: boolean
   taxIncluded?: boolean
   serviceRateBps?: boolean
@@ -2804,6 +2930,8 @@ export type RestaurantVisitSelectUpdateManyAndReturn<ExtArgs extends runtime.Typ
   status?: boolean
   openedAt?: boolean
   closedAt?: boolean
+  closedById?: boolean
+  closedByRole?: boolean
   taxRateBps?: boolean
   taxIncluded?: boolean
   serviceRateBps?: boolean
@@ -2842,6 +2970,8 @@ export type RestaurantVisitSelectScalar = {
   status?: boolean
   openedAt?: boolean
   closedAt?: boolean
+  closedById?: boolean
+  closedByRole?: boolean
   taxRateBps?: boolean
   taxIncluded?: boolean
   serviceRateBps?: boolean
@@ -2868,7 +2998,7 @@ export type RestaurantVisitSelectScalar = {
   closedAnalyticsConsolidatedAt?: boolean
 }
 
-export type RestaurantVisitOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "organizationId" | "tableId" | "accessCode" | "status" | "openedAt" | "closedAt" | "taxRateBps" | "taxIncluded" | "serviceRateBps" | "serviceChargeEnabled" | "occupiesTable" | "deliveryPhone" | "deliveryAddress" | "paymentStatus" | "paymentConfirmedAt" | "paymentConfirmedById" | "deliveryHandedOffAt" | "deliveryHandedOffById" | "invoiceRequestStatus" | "invoiceRequestedAt" | "invoiceName" | "invoiceEmail" | "invoicePhone" | "invoiceTaxId" | "invoiceReference" | "responsibleStaffId" | "fallbackStaffId" | "receiptNumber" | "openedAnalyticsConsolidatedAt" | "closedAnalyticsConsolidatedAt", ExtArgs["result"]["restaurantVisit"]>
+export type RestaurantVisitOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "organizationId" | "tableId" | "accessCode" | "status" | "openedAt" | "closedAt" | "closedById" | "closedByRole" | "taxRateBps" | "taxIncluded" | "serviceRateBps" | "serviceChargeEnabled" | "occupiesTable" | "deliveryPhone" | "deliveryAddress" | "paymentStatus" | "paymentConfirmedAt" | "paymentConfirmedById" | "deliveryHandedOffAt" | "deliveryHandedOffById" | "invoiceRequestStatus" | "invoiceRequestedAt" | "invoiceName" | "invoiceEmail" | "invoicePhone" | "invoiceTaxId" | "invoiceReference" | "responsibleStaffId" | "fallbackStaffId" | "receiptNumber" | "openedAnalyticsConsolidatedAt" | "closedAnalyticsConsolidatedAt", ExtArgs["result"]["restaurantVisit"]>
 export type RestaurantVisitInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
   table?: boolean | Prisma.RestaurantTableDefaultArgs<ExtArgs>
@@ -2911,6 +3041,8 @@ export type $RestaurantVisitPayload<ExtArgs extends runtime.Types.Extensions.Int
     status: $Enums.RestaurantVisitStatus
     openedAt: Date
     closedAt: Date | null
+    closedById: string | null
+    closedByRole: $Enums.RestaurantStaffRole | null
     taxRateBps: number
     taxIncluded: boolean
     serviceRateBps: number
@@ -3372,6 +3504,8 @@ export interface RestaurantVisitFieldRefs {
   readonly status: Prisma.FieldRef<"RestaurantVisit", 'RestaurantVisitStatus'>
   readonly openedAt: Prisma.FieldRef<"RestaurantVisit", 'DateTime'>
   readonly closedAt: Prisma.FieldRef<"RestaurantVisit", 'DateTime'>
+  readonly closedById: Prisma.FieldRef<"RestaurantVisit", 'String'>
+  readonly closedByRole: Prisma.FieldRef<"RestaurantVisit", 'RestaurantStaffRole'>
   readonly taxRateBps: Prisma.FieldRef<"RestaurantVisit", 'Int'>
   readonly taxIncluded: Prisma.FieldRef<"RestaurantVisit", 'Boolean'>
   readonly serviceRateBps: Prisma.FieldRef<"RestaurantVisit", 'Int'>

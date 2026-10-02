@@ -250,100 +250,145 @@ export class RestaurantService {
     return { reassignments, unassignedTables: [] };
   }
 
-  private async reassignOpenAccounts(
+  private async selectAccountCoverageStaff(
     tx: Prisma.TransactionClient,
     organizationId: string,
-    unavailableUserId: string,
+    tableKind: RestaurantTableKind,
+    excludeId?: string,
+  ) {
+    const roleGroups: RestaurantStaffRole[][] =
+      tableKind === RestaurantTableKind.DINING
+        ? [
+            [RestaurantStaffRole.WAITER],
+            [RestaurantStaffRole.BAR],
+            [RestaurantStaffRole.RESTAURANT_ADMIN],
+          ]
+        : tableKind === RestaurantTableKind.BAR_SEAT
+          ? [
+              [RestaurantStaffRole.BAR],
+              [RestaurantStaffRole.RESTAURANT_ADMIN],
+            ]
+          : [
+              [RestaurantStaffRole.BAR, RestaurantStaffRole.WAITER],
+              [RestaurantStaffRole.RESTAURANT_ADMIN],
+            ];
+
+    for (const roles of roleGroups) {
+      const administratorGroup = roles.includes(
+        RestaurantStaffRole.RESTAURANT_ADMIN,
+      );
+      const candidates = await tx.user.findMany({
+        where: {
+          organizationId,
+          active: true,
+          restaurantAvailability: RestaurantStaffAvailability.AVAILABLE,
+          ...(administratorGroup
+            ? {
+                OR: [
+                  { restaurantRole: RestaurantStaffRole.RESTAURANT_ADMIN },
+                  { role: { in: [UserRole.OWNER, UserRole.ADMIN] } },
+                ],
+              }
+            : { restaurantRole: { in: roles } }),
+          ...(excludeId ? { id: { not: excludeId } } : {}),
+        },
+        select: { id: true, restaurantRole: true, role: true },
+        orderBy: [{ updatedAt: "asc" }, { id: "asc" }],
+      });
+      const eligible = candidates.filter(
+        (candidate) =>
+          Boolean(candidate.id) &&
+          (administratorGroup ||
+            (candidate.restaurantRole !== null &&
+              roles.includes(candidate.restaurantRole))),
+      );
+      if (!eligible.length) continue;
+      const loads = await Promise.all(
+        eligible.map(async (candidate) => ({
+          ...candidate,
+          coverageRole:
+            candidate.restaurantRole ?? RestaurantStaffRole.RESTAURANT_ADMIN,
+          load: await tx.restaurantVisit.count({
+            where: {
+              organizationId,
+              responsibleStaffId: candidate.id,
+              status: RestaurantVisitStatus.OPEN,
+            },
+          }),
+        })),
+      );
+      loads.sort((left, right) => left.load - right.load);
+      return loads[0] ?? null;
+    }
+    return null;
+  }
+
+  private async recoverOpenAccountAssignments(
+    tx: Prisma.TransactionClient,
+    organizationId: string,
   ) {
     const visits =
       (await tx.restaurantVisit.findMany({
-        where: {
-          organizationId,
-          status: RestaurantVisitStatus.OPEN,
-          responsibleStaffId: unavailableUserId,
-        },
-        include: {
-          table: { select: { waiterId: true, kind: true } },
-          fallbackStaff: {
-            select: {
-              id: true,
-              restaurantAvailability: true,
-              restaurantRole: true,
-            },
+      where: { organizationId, status: RestaurantVisitStatus.OPEN },
+      include: {
+        table: { select: { kind: true } },
+        responsibleStaff: {
+          select: {
+            id: true,
+            active: true,
+            restaurantRole: true,
+            restaurantAvailability: true,
           },
         },
-      })) ?? [];
+      },
+    })) ?? [];
     const accountReassignments: Array<{
       visitId: string;
       responsibleStaffId: string;
+      coverageRole: RestaurantStaffRole;
     }> = [];
     const unassignedAccounts: string[] = [];
+
     for (const visit of visits) {
-      let candidateId: string | null = null;
-      if (visit.table.kind === RestaurantTableKind.BAR_SEAT) {
-        const bartender = await tx.user.findFirst({
-          where: {
-            organizationId,
-            active: true,
-            restaurantRole: RestaurantStaffRole.BAR,
-            restaurantAvailability: RestaurantStaffAvailability.AVAILABLE,
-            id: { not: unavailableUserId },
-          },
-          select: { id: true },
-          orderBy: [{ updatedAt: "asc" }, { id: "asc" }],
-        });
-        candidateId = bartender?.id ?? null;
-        if (!candidateId) {
-          const administrator = await tx.user.findFirst({
-            where: {
-              organizationId,
-              active: true,
-              OR: [
-                { role: { in: [UserRole.OWNER, UserRole.ADMIN] } },
-                { restaurantRole: RestaurantStaffRole.RESTAURANT_ADMIN },
-              ],
-              restaurantAvailability: RestaurantStaffAvailability.AVAILABLE,
-              id: { not: unavailableUserId },
-            },
-            select: { id: true },
-            orderBy: [{ updatedAt: "asc" }, { id: "asc" }],
-          });
-          candidateId = administrator?.id ?? null;
-        }
-      } else {
-        candidateId =
-          visit.fallbackStaff?.restaurantAvailability ===
-          RestaurantStaffAvailability.AVAILABLE
-            ? visit.fallbackStaff.id
-            : null;
-      }
-      if (
-        !candidateId &&
-        visit.table.kind !== RestaurantTableKind.BAR_SEAT &&
-        visit.table.waiterId
-      ) {
-        const waiter = await tx.user.findFirst({
-          where: {
-            id: visit.table.waiterId,
-            organizationId,
-            active: true,
-            restaurantAvailability: RestaurantStaffAvailability.AVAILABLE,
-          },
-          select: { id: true },
-        });
-        candidateId = waiter?.id ?? null;
-      }
-      if (!candidateId) {
-        unassignedAccounts.push(visit.id);
+      const current = visit.responsibleStaff;
+      const currentAvailable =
+        current?.active === true &&
+        current.restaurantAvailability ===
+          RestaurantStaffAvailability.AVAILABLE;
+      const currentIsPreferred =
+        currentAvailable &&
+        ((visit.table.kind === RestaurantTableKind.DINING &&
+          current.restaurantRole === RestaurantStaffRole.WAITER) ||
+          (visit.table.kind === RestaurantTableKind.BAR_SEAT &&
+            current.restaurantRole === RestaurantStaffRole.BAR) ||
+          (visit.table.kind === RestaurantTableKind.TAKEOUT_STATION &&
+            (current.restaurantRole === RestaurantStaffRole.BAR ||
+              current.restaurantRole === RestaurantStaffRole.WAITER)));
+      if (currentIsPreferred) continue;
+
+      const candidate = await this.selectAccountCoverageStaff(
+        tx,
+        organizationId,
+        visit.table.kind,
+      );
+      if (!candidate) {
+        if (!currentAvailable) unassignedAccounts.push(visit.id);
         continue;
       }
+      if (candidate.id === visit.responsibleStaffId) continue;
       await tx.restaurantVisit.update({
         where: { id: visit.id },
-        data: { responsibleStaffId: candidateId },
+        data: {
+          responsibleStaffId: candidate.id,
+          ...(current?.restaurantRole === RestaurantStaffRole.WAITER
+            ? { fallbackStaffId: current.id }
+            : {}),
+        },
       });
       accountReassignments.push({
         visitId: visit.id,
-        responsibleStaffId: candidateId,
+        responsibleStaffId: candidate.id,
+        coverageRole: candidate.coverageRole,
       });
     }
     return { accountReassignments, unassignedAccounts };
@@ -1461,10 +1506,10 @@ export class RestaurantService {
         tx,
         actor.organizationId,
       );
-      const accounts =
-        dto.availability === RestaurantStaffAvailability.AVAILABLE
-          ? { accountReassignments: [], unassignedAccounts: [] }
-          : await this.reassignOpenAccounts(tx, actor.organizationId, userId);
+      const accounts = await this.recoverOpenAccountAssignments(
+        tx,
+        actor.organizationId,
+      );
       return { staff: updated, ...balance, ...accounts };
     });
   }
@@ -1522,10 +1567,10 @@ export class RestaurantService {
         user.restaurantRole === RestaurantStaffRole.WAITER
           ? await this.rebalanceWaiterTables(tx, actor.organizationId)
           : { reassignments: [], unassignedTables: [] };
-      const accounts =
-        dto.availability === RestaurantStaffAvailability.AVAILABLE
-          ? { accountReassignments: [], unassignedAccounts: [] }
-          : await this.reassignOpenAccounts(tx, actor.organizationId, actor.id);
+      const accounts = await this.recoverOpenAccountAssignments(
+        tx,
+        actor.organizationId,
+      );
 
       return { staff: updated, ...balance, ...accounts };
     });
@@ -1613,6 +1658,8 @@ export class RestaurantService {
       data: {
         status: RestaurantVisitStatus.CLOSED,
         closedAt,
+        closedById: actor.id,
+        closedByRole: role,
         receiptNumber: this.receiptNumber(visitId, closedAt),
       },
     });
@@ -1703,6 +1750,8 @@ export class RestaurantService {
         deliveryHandedOffById: actor.id,
         status: RestaurantVisitStatus.CLOSED,
         closedAt: now,
+        closedById: actor.id,
+        closedByRole: role,
         receiptNumber: this.receiptNumber(visitId, now),
       },
     });
@@ -2646,6 +2695,34 @@ export class RestaurantService {
             );
             loads.sort((left, right) => left.load - right.load);
             responsibleStaffId = loads[0]?.id ?? null;
+          } else if (table.kind === RestaurantTableKind.DINING) {
+            const assignedWaiter = table.waiterId
+              ? await tx.user.findFirst({
+                  where: {
+                    id: table.waiterId,
+                    organizationId: table.organizationId,
+                    active: true,
+                    restaurantRole: RestaurantStaffRole.WAITER,
+                    restaurantAvailability:
+                      RestaurantStaffAvailability.AVAILABLE,
+                  },
+                  select: { id: true },
+                })
+              : null;
+            responsibleStaffId = assignedWaiter?.id ?? null;
+            if (!responsibleStaffId) {
+              const coverage = await this.selectAccountCoverageStaff(
+                tx,
+                table.organizationId,
+                table.kind,
+              );
+              responsibleStaffId = coverage?.id ?? null;
+            }
+            if (!responsibleStaffId) {
+              throw new ConflictException(
+                "No hay personal disponible para atender esta mesa",
+              );
+            }
           } else if (
             table.kind === RestaurantTableKind.BAR_SEAT ||
             table.kind === RestaurantTableKind.TAKEOUT_STATION
@@ -3702,6 +3779,9 @@ export class RestaurantService {
     ) {
       throw new ForbiddenException("Waiter access required");
     }
+    await this.prisma.$transaction((tx) =>
+      this.recoverOpenAccountAssignments(tx, actor.organizationId),
+    );
     const visits = await this.prisma.restaurantVisit.findMany({
       where: {
         organizationId: actor.organizationId,

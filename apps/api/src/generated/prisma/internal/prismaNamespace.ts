@@ -2455,6 +2455,8 @@ export const RestaurantVisitScalarFieldEnum = {
   status: 'status',
   openedAt: 'openedAt',
   closedAt: 'closedAt',
+  closedById: 'closedById',
+  closedByRole: 'closedByRole',
   taxRateBps: 'taxRateBps',
   taxIncluded: 'taxIncluded',
   serviceRateBps: 'serviceRateBps',
@@ -3014,6 +3016,20 @@ export type ListEnumRestaurantVisitStatusFieldRefInput<$PrismaModel> = FieldRefI
 
 
 /**
+ * Reference to a field of type 'RestaurantStaffRole'
+ */
+export type EnumRestaurantStaffRoleFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'RestaurantStaffRole'>
+
+
+
+/**
+ * Reference to a field of type 'RestaurantStaffRole[]'
+ */
+export type ListEnumRestaurantStaffRoleFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'RestaurantStaffRole[]'>
+
+
+
+/**
  * Reference to a field of type 'RestaurantPaymentStatus'
  */
 export type EnumRestaurantPaymentStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'RestaurantPaymentStatus'>
@@ -3206,20 +3222,6 @@ export type EnumUserRoleFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaM
  * Reference to a field of type 'UserRole[]'
  */
 export type ListEnumUserRoleFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'UserRole[]'>
-
-
-
-/**
- * Reference to a field of type 'RestaurantStaffRole'
- */
-export type EnumRestaurantStaffRoleFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'RestaurantStaffRole'>
-
-
-
-/**
- * Reference to a field of type 'RestaurantStaffRole[]'
- */
-export type ListEnumRestaurantStaffRoleFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'RestaurantStaffRole[]'>
 
 
 

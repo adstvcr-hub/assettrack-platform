@@ -866,10 +866,6 @@ export type EnumUserRoleFieldUpdateOperationsInput = {
   set?: $Enums.UserRole
 }
 
-export type NullableEnumRestaurantStaffRoleFieldUpdateOperationsInput = {
-  set?: $Enums.RestaurantStaffRole | null
-}
-
 export type NullableEnumRestaurantPayPeriodFieldUpdateOperationsInput = {
   set?: $Enums.RestaurantPayPeriod | null
 }

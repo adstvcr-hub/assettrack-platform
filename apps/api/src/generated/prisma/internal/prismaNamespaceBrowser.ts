@@ -145,6 +145,8 @@ export const RestaurantVisitScalarFieldEnum = {
   status: 'status',
   openedAt: 'openedAt',
   closedAt: 'closedAt',
+  closedById: 'closedById',
+  closedByRole: 'closedByRole',
   taxRateBps: 'taxRateBps',
   taxIncluded: 'taxIncluded',
   serviceRateBps: 'serviceRateBps',

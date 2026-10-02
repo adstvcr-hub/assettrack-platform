@@ -212,6 +212,13 @@ export type DateTimeNullableFilter<$PrismaModel = never> = {
   not?: Prisma.NestedDateTimeNullableFilter<$PrismaModel> | Date | string | null
 }
 
+export type EnumRestaurantStaffRoleNullableFilter<$PrismaModel = never> = {
+  equals?: $Enums.RestaurantStaffRole | Prisma.EnumRestaurantStaffRoleFieldRefInput<$PrismaModel> | null
+  in?: $Enums.RestaurantStaffRole[] | Prisma.ListEnumRestaurantStaffRoleFieldRefInput<$PrismaModel> | null
+  notIn?: $Enums.RestaurantStaffRole[] | Prisma.ListEnumRestaurantStaffRoleFieldRefInput<$PrismaModel> | null
+  not?: Prisma.NestedEnumRestaurantStaffRoleNullableFilter<$PrismaModel> | $Enums.RestaurantStaffRole | null
+}
+
 export type EnumRestaurantPaymentStatusFilter<$PrismaModel = never> = {
   equals?: $Enums.RestaurantPaymentStatus | Prisma.EnumRestaurantPaymentStatusFieldRefInput<$PrismaModel>
   in?: $Enums.RestaurantPaymentStatus[] | Prisma.ListEnumRestaurantPaymentStatusFieldRefInput<$PrismaModel>
@@ -248,6 +255,16 @@ export type DateTimeNullableWithAggregatesFilter<$PrismaModel = never> = {
   _count?: Prisma.NestedIntNullableFilter<$PrismaModel>
   _min?: Prisma.NestedDateTimeNullableFilter<$PrismaModel>
   _max?: Prisma.NestedDateTimeNullableFilter<$PrismaModel>
+}
+
+export type EnumRestaurantStaffRoleNullableWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.RestaurantStaffRole | Prisma.EnumRestaurantStaffRoleFieldRefInput<$PrismaModel> | null
+  in?: $Enums.RestaurantStaffRole[] | Prisma.ListEnumRestaurantStaffRoleFieldRefInput<$PrismaModel> | null
+  notIn?: $Enums.RestaurantStaffRole[] | Prisma.ListEnumRestaurantStaffRoleFieldRefInput<$PrismaModel> | null
+  not?: Prisma.NestedEnumRestaurantStaffRoleNullableWithAggregatesFilter<$PrismaModel> | $Enums.RestaurantStaffRole | null
+  _count?: Prisma.NestedIntNullableFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumRestaurantStaffRoleNullableFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumRestaurantStaffRoleNullableFilter<$PrismaModel>
 }
 
 export type EnumRestaurantPaymentStatusWithAggregatesFilter<$PrismaModel = never> = {
@@ -538,13 +555,6 @@ export type EnumUserRoleFilter<$PrismaModel = never> = {
   not?: Prisma.NestedEnumUserRoleFilter<$PrismaModel> | $Enums.UserRole
 }
 
-export type EnumRestaurantStaffRoleNullableFilter<$PrismaModel = never> = {
-  equals?: $Enums.RestaurantStaffRole | Prisma.EnumRestaurantStaffRoleFieldRefInput<$PrismaModel> | null
-  in?: $Enums.RestaurantStaffRole[] | Prisma.ListEnumRestaurantStaffRoleFieldRefInput<$PrismaModel> | null
-  notIn?: $Enums.RestaurantStaffRole[] | Prisma.ListEnumRestaurantStaffRoleFieldRefInput<$PrismaModel> | null
-  not?: Prisma.NestedEnumRestaurantStaffRoleNullableFilter<$PrismaModel> | $Enums.RestaurantStaffRole | null
-}
-
 export type EnumRestaurantPayPeriodNullableFilter<$PrismaModel = never> = {
   equals?: $Enums.RestaurantPayPeriod | Prisma.EnumRestaurantPayPeriodFieldRefInput<$PrismaModel> | null
   in?: $Enums.RestaurantPayPeriod[] | Prisma.ListEnumRestaurantPayPeriodFieldRefInput<$PrismaModel> | null
@@ -560,16 +570,6 @@ export type EnumUserRoleWithAggregatesFilter<$PrismaModel = never> = {
   _count?: Prisma.NestedIntFilter<$PrismaModel>
   _min?: Prisma.NestedEnumUserRoleFilter<$PrismaModel>
   _max?: Prisma.NestedEnumUserRoleFilter<$PrismaModel>
-}
-
-export type EnumRestaurantStaffRoleNullableWithAggregatesFilter<$PrismaModel = never> = {
-  equals?: $Enums.RestaurantStaffRole | Prisma.EnumRestaurantStaffRoleFieldRefInput<$PrismaModel> | null
-  in?: $Enums.RestaurantStaffRole[] | Prisma.ListEnumRestaurantStaffRoleFieldRefInput<$PrismaModel> | null
-  notIn?: $Enums.RestaurantStaffRole[] | Prisma.ListEnumRestaurantStaffRoleFieldRefInput<$PrismaModel> | null
-  not?: Prisma.NestedEnumRestaurantStaffRoleNullableWithAggregatesFilter<$PrismaModel> | $Enums.RestaurantStaffRole | null
-  _count?: Prisma.NestedIntNullableFilter<$PrismaModel>
-  _min?: Prisma.NestedEnumRestaurantStaffRoleNullableFilter<$PrismaModel>
-  _max?: Prisma.NestedEnumRestaurantStaffRoleNullableFilter<$PrismaModel>
 }
 
 export type EnumRestaurantPayPeriodNullableWithAggregatesFilter<$PrismaModel = never> = {
@@ -827,6 +827,13 @@ export type NestedDateTimeNullableFilter<$PrismaModel = never> = {
   not?: Prisma.NestedDateTimeNullableFilter<$PrismaModel> | Date | string | null
 }
 
+export type NestedEnumRestaurantStaffRoleNullableFilter<$PrismaModel = never> = {
+  equals?: $Enums.RestaurantStaffRole | Prisma.EnumRestaurantStaffRoleFieldRefInput<$PrismaModel> | null
+  in?: $Enums.RestaurantStaffRole[] | Prisma.ListEnumRestaurantStaffRoleFieldRefInput<$PrismaModel> | null
+  notIn?: $Enums.RestaurantStaffRole[] | Prisma.ListEnumRestaurantStaffRoleFieldRefInput<$PrismaModel> | null
+  not?: Prisma.NestedEnumRestaurantStaffRoleNullableFilter<$PrismaModel> | $Enums.RestaurantStaffRole | null
+}
+
 export type NestedEnumRestaurantPaymentStatusFilter<$PrismaModel = never> = {
   equals?: $Enums.RestaurantPaymentStatus | Prisma.EnumRestaurantPaymentStatusFieldRefInput<$PrismaModel>
   in?: $Enums.RestaurantPaymentStatus[] | Prisma.ListEnumRestaurantPaymentStatusFieldRefInput<$PrismaModel>
@@ -863,6 +870,16 @@ export type NestedDateTimeNullableWithAggregatesFilter<$PrismaModel = never> = {
   _count?: Prisma.NestedIntNullableFilter<$PrismaModel>
   _min?: Prisma.NestedDateTimeNullableFilter<$PrismaModel>
   _max?: Prisma.NestedDateTimeNullableFilter<$PrismaModel>
+}
+
+export type NestedEnumRestaurantStaffRoleNullableWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.RestaurantStaffRole | Prisma.EnumRestaurantStaffRoleFieldRefInput<$PrismaModel> | null
+  in?: $Enums.RestaurantStaffRole[] | Prisma.ListEnumRestaurantStaffRoleFieldRefInput<$PrismaModel> | null
+  notIn?: $Enums.RestaurantStaffRole[] | Prisma.ListEnumRestaurantStaffRoleFieldRefInput<$PrismaModel> | null
+  not?: Prisma.NestedEnumRestaurantStaffRoleNullableWithAggregatesFilter<$PrismaModel> | $Enums.RestaurantStaffRole | null
+  _count?: Prisma.NestedIntNullableFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumRestaurantStaffRoleNullableFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumRestaurantStaffRoleNullableFilter<$PrismaModel>
 }
 
 export type NestedEnumRestaurantPaymentStatusWithAggregatesFilter<$PrismaModel = never> = {
@@ -1126,13 +1143,6 @@ export type NestedEnumUserRoleFilter<$PrismaModel = never> = {
   not?: Prisma.NestedEnumUserRoleFilter<$PrismaModel> | $Enums.UserRole
 }
 
-export type NestedEnumRestaurantStaffRoleNullableFilter<$PrismaModel = never> = {
-  equals?: $Enums.RestaurantStaffRole | Prisma.EnumRestaurantStaffRoleFieldRefInput<$PrismaModel> | null
-  in?: $Enums.RestaurantStaffRole[] | Prisma.ListEnumRestaurantStaffRoleFieldRefInput<$PrismaModel> | null
-  notIn?: $Enums.RestaurantStaffRole[] | Prisma.ListEnumRestaurantStaffRoleFieldRefInput<$PrismaModel> | null
-  not?: Prisma.NestedEnumRestaurantStaffRoleNullableFilter<$PrismaModel> | $Enums.RestaurantStaffRole | null
-}
-
 export type NestedEnumRestaurantPayPeriodNullableFilter<$PrismaModel = never> = {
   equals?: $Enums.RestaurantPayPeriod | Prisma.EnumRestaurantPayPeriodFieldRefInput<$PrismaModel> | null
   in?: $Enums.RestaurantPayPeriod[] | Prisma.ListEnumRestaurantPayPeriodFieldRefInput<$PrismaModel> | null
@@ -1148,16 +1158,6 @@ export type NestedEnumUserRoleWithAggregatesFilter<$PrismaModel = never> = {
   _count?: Prisma.NestedIntFilter<$PrismaModel>
   _min?: Prisma.NestedEnumUserRoleFilter<$PrismaModel>
   _max?: Prisma.NestedEnumUserRoleFilter<$PrismaModel>
-}
-
-export type NestedEnumRestaurantStaffRoleNullableWithAggregatesFilter<$PrismaModel = never> = {
-  equals?: $Enums.RestaurantStaffRole | Prisma.EnumRestaurantStaffRoleFieldRefInput<$PrismaModel> | null
-  in?: $Enums.RestaurantStaffRole[] | Prisma.ListEnumRestaurantStaffRoleFieldRefInput<$PrismaModel> | null
-  notIn?: $Enums.RestaurantStaffRole[] | Prisma.ListEnumRestaurantStaffRoleFieldRefInput<$PrismaModel> | null
-  not?: Prisma.NestedEnumRestaurantStaffRoleNullableWithAggregatesFilter<$PrismaModel> | $Enums.RestaurantStaffRole | null
-  _count?: Prisma.NestedIntNullableFilter<$PrismaModel>
-  _min?: Prisma.NestedEnumRestaurantStaffRoleNullableFilter<$PrismaModel>
-  _max?: Prisma.NestedEnumRestaurantStaffRoleNullableFilter<$PrismaModel>
 }
 
 export type NestedEnumRestaurantPayPeriodNullableWithAggregatesFilter<$PrismaModel = never> = {

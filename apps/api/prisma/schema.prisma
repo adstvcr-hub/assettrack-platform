@@ -210,6 +210,8 @@ model RestaurantVisit {
   status                        RestaurantVisitStatus          @default(OPEN)
   openedAt                      DateTime                       @default(now())
   closedAt                      DateTime?
+  closedById                    String?
+  closedByRole                  RestaurantStaffRole?
   taxRateBps                    Int                            @default(1300)
   taxIncluded                   Boolean                        @default(false)
   serviceRateBps                Int                            @default(1000)

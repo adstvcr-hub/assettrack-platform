@@ -158,12 +158,16 @@ type Order = {
 type ActiveVisit = {
   id: string;
   occupiesTable: boolean;
-  table: { name: string };
+  table: {
+    name: string;
+    kind: "DINING" | "BAR_SEAT" | "TAKEOUT_STATION";
+  };
   responsibleStaff?: { name: string; restaurantRole: string } | null;
   deliveryPhone?: string | null;
   deliveryAddress?: string | null;
   paymentStatus: "NOT_REQUIRED" | "PENDING" | "CONFIRMED" | "REJECTED";
   canHandoffDelivery: boolean;
+  canClose: boolean;
   items: Array<{
     id: string;
     name: string;
@@ -1158,6 +1162,7 @@ export default function RestaurantAdminDashboard({
       .map((item) => ({ order, item })),
   );
   const externalVisits = visits.filter((visit) => !visit.occupiesTable);
+  const onsiteVisits = visits.filter((visit) => visit.occupiesTable);
   const pendingExternalVisits = externalVisits.filter(
     (visit) => visit.paymentStatus === "PENDING",
   );
@@ -1345,6 +1350,71 @@ export default function RestaurantAdminDashboard({
                     </button>
                   )}
                 </div>
+              </article>
+            ))}
+          </div>
+        </section>
+      )}
+      {section === "overview" && onsiteVisits.length > 0 && (
+        <section className="mb-8 rounded-xl border-2 border-sky-300 bg-sky-50 p-5 shadow-sm">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <h2 className="text-2xl font-black text-sky-950">
+                Cuentas presenciales abiertas
+              </h2>
+              <p className="mt-1 text-sm text-slate-700">
+                Respaldo administrativo para cuentas entregadas que todavía no
+                han sido cerradas por su responsable.
+              </p>
+            </div>
+            <span className="rounded-full bg-sky-800 px-4 py-2 font-black text-white">
+              {onsiteVisits.length} abiertas
+            </span>
+          </div>
+          <div className="mt-4 grid gap-3 lg:grid-cols-2">
+            {onsiteVisits.map((visit) => (
+              <article key={visit.id} className="rounded-xl bg-white p-4 shadow">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <p className="text-lg font-black">{visit.table.name}</p>
+                    <p className="text-sm text-slate-600">
+                      Responsable: {visit.responsibleStaff?.name ?? "Sin asignar"}
+                    </p>
+                    {visit.table.kind === "DINING" &&
+                      visit.responsibleStaff?.restaurantRole === "BAR" && (
+                        <p className="mt-1 inline-flex rounded-full bg-amber-100 px-3 py-1 text-xs font-black text-amber-900">
+                          COBERTURA TEMPORAL DE SALÓN
+                        </p>
+                      )}
+                  </div>
+                  <p className="text-lg font-black">
+                    ₡{visit.billing.total.toLocaleString()}
+                  </p>
+                </div>
+                <p className="mt-3 text-sm font-semibold">
+                  {visit.canClose
+                    ? "Todos los productos fueron entregados."
+                    : "Todavía existen entregas pendientes."}
+                </p>
+                <button
+                  type="button"
+                  disabled={!visit.canClose}
+                  className="mt-3 rounded-lg bg-slate-900 px-4 py-3 font-bold text-white disabled:cursor-not-allowed disabled:opacity-40"
+                  onClick={() => {
+                    if (
+                      visit.canClose &&
+                      window.confirm(
+                        `¿Confirma el cierre administrativo de ${visit.table.name}?`,
+                      )
+                    ) {
+                      void post(`visits/${visit.id}/close`, {}, "PATCH");
+                    }
+                  }}
+                >
+                  {visit.canClose
+                    ? "Cerrar cuenta"
+                    : "Entregas pendientes"}
+                </button>
               </article>
             ))}
           </div>

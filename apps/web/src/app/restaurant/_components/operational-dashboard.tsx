@@ -29,6 +29,11 @@ type Order = {
 type Visit = {
   id: string;
   table: { name: string; kind: "DINING" | "BAR_SEAT" | "TAKEOUT_STATION" };
+  responsibleStaff?: {
+    id: string;
+    name: string;
+    restaurantRole: string;
+  } | null;
   occupiesTable: boolean;
   deliveryPhone?: string | null;
   deliveryAddress?: string | null;
@@ -462,7 +467,7 @@ export function OperationalDashboard({ station }: { station: Station }) {
         {station === "BAR" && visits.some((visit) => visit.occupiesTable) && (
           <section className="rounded-xl border-2 border-violet-400 bg-violet-50 p-5">
             <h2 className="text-xl font-black text-violet-950">
-              Cuentas de barra bajo mi responsabilidad
+              Cuentas bajo mi responsabilidad
             </h2>
             <div className="mt-3 grid gap-3 md:grid-cols-2">
               {visits
@@ -473,6 +478,11 @@ export function OperationalDashboard({ station }: { station: Station }) {
                     className="rounded-lg bg-white p-4 shadow-sm"
                   >
                     <p className="font-bold">{visit.table.name}</p>
+                    {visit.table.kind === "DINING" && (
+                      <p className="mt-1 inline-flex rounded-full bg-amber-100 px-3 py-1 text-xs font-black text-amber-950 ring-1 ring-amber-300">
+                        COBERTURA TEMPORAL DE SALÓN
+                      </p>
+                    )}
                     <p>Total: ₡{visit.billing.total.toLocaleString()}</p>
                     <button
                       disabled={!visit.canClose}
