@@ -1025,6 +1025,27 @@ describe("RestaurantService", () => {
     );
   });
 
+  it("lets the responsible bartender change product, quantity and fulfillment", async () => {
+    const { prisma, service } = createService();
+    const bartender = { ...waiterActor, restaurantRole: RestaurantStaffRole.BAR };
+    const current = {
+      id: "bar-order", visitId: "visit-a", fulfillment: "DINE_IN",
+      promotionId: null, correctionCount: 0, lastCorrectionRequestId: null,
+      table: { waiterId: null, kind: "BAR_SEAT" },
+      visit: { id: "visit-a", status: "OPEN", responsibleStaffId: bartender.id },
+      items: [{ id: "old", menuItemId: "old-product", status: "RECEIVED" }],
+    };
+    prisma.restaurantOrder.findFirst.mockResolvedValue(current);
+    prisma.restaurantOrderItem.updateMany.mockResolvedValue({ count: 1 });
+    prisma.restaurantOrder.update.mockResolvedValue({ id: current.id, correctionCount: 1 });
+    await service.correctStaffOrder(bartender, current.id, {
+      requestId, items: [{ menuItemId: itemId, quantity: 3, fulfillment: "TAKEOUT" }],
+    });
+    expect(prisma.restaurantOrderItem.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({ menuItemId: itemId, quantity: 3, fulfillment: "TAKEOUT" }),
+    });
+  });
+
   it("blocks staff correction after preparation begins", async () => {
     const { prisma, service } = createService();
     prisma.restaurantOrder.findFirst.mockResolvedValue({

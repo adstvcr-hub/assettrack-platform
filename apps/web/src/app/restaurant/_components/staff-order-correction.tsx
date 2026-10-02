@@ -116,7 +116,7 @@ export function StaffOrderCorrection({
       )}
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div>
-          <p className="font-black text-sky-950">Control de cambios del pedido</p>
+          <p className="font-black text-sky-950">Cambiar producto, cantidad y modalidad</p>
           {correction.correctionCount > 0 && (
             <p className="text-xs font-semibold text-sky-800">
               CORREGIDA {correction.correctionCount} vez/veces
@@ -132,7 +132,7 @@ export function StaffOrderCorrection({
           className="rounded-lg bg-sky-800 px-4 py-2 font-bold text-white disabled:cursor-not-allowed disabled:opacity-40"
           onClick={() => setOpen((value) => !value)}
         >
-          {open ? "Cerrar editor" : "Modificar último pedido"}
+          {open ? "Cerrar editor" : "Modificar productos y cantidades"}
         </button>
       </div>
       {!correction.canCorrect && correction.blockedReason && (
@@ -145,9 +145,10 @@ export function StaffOrderCorrection({
           {lines.map((line, index) => (
             <div
               key={`${line.menuItemId}-${index}`}
-              className="grid gap-2 rounded-lg bg-white p-3 sm:grid-cols-[1fr_90px_auto]"
+              className="grid gap-2 rounded-lg bg-white p-3 sm:grid-cols-[1fr_90px_150px_auto]"
             >
               <select
+                aria-label="Producto"
                 className="rounded border p-2"
                 value={line.menuItemId}
                 onChange={(event) =>
@@ -196,6 +197,23 @@ export function StaffOrderCorrection({
                   )
                 }
               />
+              <select
+                aria-label="Modalidad del producto"
+                className="rounded border p-2"
+                value={line.fulfillment}
+                disabled={line.fulfillment === "DELIVERY"}
+                onChange={(event) =>
+                  setLines((current) => current.map((entry, position) =>
+                    position === index
+                      ? { ...entry, fulfillment: event.target.value as Fulfillment }
+                      : entry,
+                  ))
+                }
+              >
+                <option value="DINE_IN">En el local</option>
+                <option value="TAKEOUT">Para llevar</option>
+                {line.fulfillment === "DELIVERY" && <option value="DELIVERY">A domicilio</option>}
+              </select>
               <button
                 type="button"
                 className="rounded border border-red-400 px-3 py-2 font-bold text-red-700"
