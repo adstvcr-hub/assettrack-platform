@@ -9,6 +9,7 @@ import { createHash, randomBytes } from "crypto";
 import * as bcrypt from "bcrypt";
 import { PrismaService } from "../prisma/prisma.service";
 import { LoginDto } from "./dto/login.dto";
+import { RestaurantService } from "../restaurant/restaurant.service";
 import type { StaffAccessLocationDto } from "./dto/staff-access-login.dto";
 import {
   RestaurantStaffAvailability,
@@ -21,6 +22,7 @@ export class AuthService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly jwtService: JwtService,
+    private readonly restaurant: RestaurantService,
   ) {}
 
   private hashToken(token: string) {
@@ -136,6 +138,13 @@ export class AuthService {
     await this.prisma.$transaction(async (tx) => {
       let restaurantStaffSessionId: string | undefined;
       if (tracksRestaurantWork) {
+        if (this.isOperationalRestaurantStaff(user)) {
+          await this.restaurant.activateStaffOnLogin(tx, {
+            id: user.id,
+            organizationId: user.organizationId,
+            restaurantRole: user.restaurantRole as RestaurantStaffRole,
+          });
+        }
         await tx.restaurantStaffSession.updateMany({
           where: { userId: user.id, endedAt: null },
           data: { endedAt: now },
@@ -144,7 +153,9 @@ export class AuthService {
           data: {
             organizationId: user.organizationId,
             userId: user.id,
-            initialAvailability: user.restaurantAvailability,
+            initialAvailability: this.isOperationalRestaurantStaff(user)
+              ? RestaurantStaffAvailability.AVAILABLE
+              : user.restaurantAvailability,
             startedAt: now,
             lastSeenAt: now,
           },

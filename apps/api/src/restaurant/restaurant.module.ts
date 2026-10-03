@@ -11,5 +11,6 @@ import { UsersModule } from "../users/users.module";
   imports: [UsersModule],
   controllers: [RestaurantGuestController, RestaurantStaffController],
   providers: [RestaurantService, RestaurantAccessGuard],
+  exports: [RestaurantService],
 })
 export class RestaurantModule {}

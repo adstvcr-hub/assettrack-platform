@@ -1644,6 +1644,29 @@ export class RestaurantService {
     });
   }
 
+  async activateStaffOnLogin(
+    tx: Prisma.TransactionClient,
+    user: { id: string; organizationId: string; restaurantRole: RestaurantStaffRole },
+  ) {
+    await tx.user.update({
+      where: { id: user.id },
+      data: { restaurantAvailability: RestaurantStaffAvailability.AVAILABLE },
+    });
+    await tx.restaurantStaffEvent.create({
+      data: {
+        organizationId: user.organizationId,
+        userId: user.id,
+        actorId: user.id,
+        availability: RestaurantStaffAvailability.AVAILABLE,
+        reason: "Inicio de sesión: entrada a labores",
+      },
+    });
+    if (user.restaurantRole === RestaurantStaffRole.WAITER) {
+      await this.rebalanceWaiterTables(tx, user.organizationId);
+    }
+    await this.recoverOpenAccountAssignments(tx, user.organizationId);
+  }
+
   async updateOwnStaffAvailability(
     actor: RestaurantActor,
     dto: UpdateStaffAvailabilityDto,

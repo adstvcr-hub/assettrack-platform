@@ -7,6 +7,7 @@ import {
 } from "../generated/prisma/enums";
 import { PrismaService } from "../prisma/prisma.service";
 import { AuthService } from "./auth.service";
+import { RestaurantService } from "../restaurant/restaurant.service";
 
 async function createService() {
   const access = {
@@ -20,7 +21,7 @@ async function createService() {
       passwordHash: await bcrypt.hash("password-123", 4),
       role: UserRole.USER,
       restaurantRole: "WAITER",
-      restaurantAvailability: RestaurantStaffAvailability.AVAILABLE,
+      restaurantAvailability: RestaurantStaffAvailability.AVAILABLE as RestaurantStaffAvailability,
       active: true,
       sessionVersion: 0,
       organization: {
@@ -53,18 +54,38 @@ async function createService() {
     ),
   };
   const jwt = { signAsync: vi.fn().mockResolvedValue("access-token") };
+  const restaurant = { activateStaffOnLogin: vi.fn() };
   return {
     access,
     prisma,
     jwt,
+    restaurant,
     service: new AuthService(
       prisma as unknown as PrismaService,
       jwt as unknown as JwtService,
+      restaurant as unknown as RestaurantService,
     ),
   };
 }
 
 describe("AuthService staff QR access", () => {
+  it("activates staff on password login after a break", async () => {
+    const { access, prisma, restaurant, service } = await createService();
+    access.user.restaurantAvailability = RestaurantStaffAvailability.BREAK;
+    prisma.user.findFirst.mockResolvedValue(access.user);
+    await service.login({
+      organizationSlug: "restaurant-demo",
+      email: access.user.email,
+      password: "password-123",
+    });
+    expect(restaurant.activateStaffOnLogin).toHaveBeenCalledWith(
+      prisma,
+      { id: access.user.id, organizationId: "org-a", restaurantRole: "WAITER" },
+    );
+    expect(prisma.restaurantStaffSession.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({ initialAvailability: "AVAILABLE" }),
+    });
+  });
   it("returns only safe staff identity data for a valid QR", async () => {
     const { service } = await createService();
 
