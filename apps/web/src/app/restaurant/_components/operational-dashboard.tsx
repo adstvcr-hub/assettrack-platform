@@ -84,13 +84,6 @@ type Visit = {
   }>;
 };
 
-const nextStatus: Record<string, string | null> = {
-  RECEIVED: "ACCEPTED",
-  ACCEPTED: "PREPARING",
-  PREPARING: "READY",
-  READY: null,
-};
-
 const labels: Record<string, string> = {
   RECEIVED: "Recibido",
   ACCEPTED: "Aceptado",
@@ -167,38 +160,6 @@ export function OperationalDashboard({ station }: { station: Station }) {
     const timer = window.setInterval(() => setNow(Date.now()), 1000);
     return () => window.clearInterval(timer);
   }, [station]);
-
-  async function advance(item: OrderItem) {
-    const status = nextStatus[item.status];
-    if (!status) return;
-    const response = await authenticatedFetch(
-      `${API_URL}/api/v1/restaurant/items/${item.id}/status`,
-      {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status }),
-      },
-    );
-    if (!response.ok) {
-      const body = await response.json().catch(() => ({}));
-      setError(body.message ?? "No se pudo actualizar el pedido");
-      return;
-    }
-    await load();
-  }
-
-  async function handoff(itemId: string) {
-    const response = await authenticatedFetch(
-      `${API_URL}/api/v1/restaurant/items/${itemId}/handoff`,
-      { method: "PATCH" },
-    );
-    if (!response.ok) {
-      const body = await response.json().catch(() => ({}));
-      setError(body.message ?? "No se pudo confirmar la recepción");
-      return;
-    }
-    await load();
-  }
 
   async function deliver(itemId: string) {
     const response = await authenticatedFetch(
@@ -306,9 +267,7 @@ export function OperationalDashboard({ station }: { station: Station }) {
         .filter(
           ({ item }) =>
             (item.station === station && item.status === "RECEIVED") ||
-            (item.serviceAction &&
-              item.status === "READY" &&
-              !item.handedOffAt),
+            Boolean(item.serviceAction),
         )
         .map(({ item }) => item.id),
       ...visits
@@ -603,35 +562,18 @@ export function OperationalDashboard({ station }: { station: Station }) {
                   </p>
                 )}
               </div>
-              {item.station === station && nextStatus[item.status] && (
-                <button
-                  className="min-w-40 rounded-lg bg-emerald-600 px-5 py-4 text-lg font-bold text-white"
-                  onClick={() => void advance(item)}
-                >
-                  {item.status === "RECEIVED"
-                    ? "Aceptar"
-                    : item.status === "ACCEPTED"
-                      ? "Iniciar"
-                      : "Marcar listo"}
-                </button>
-              )}
-              {item.status === "READY" && item.serviceAction && (
+              {item.serviceAction ? (
                 <button
                   className="rounded-lg bg-violet-700 px-5 py-4 font-bold text-white"
-                  onClick={() =>
-                    void (item.handedOffAt
-                      ? deliver(item.id)
-                      : handoff(item.id))
-                  }
+                  onClick={() => {
+                    if (window.confirm(`¿Confirma la entrega de ${item.quantity} × ${item.name}?`)) void deliver(item.id);
+                  }}
                 >
-                  {item.handedOffAt
-                    ? "Confirmar entrega al cliente"
-                    : "Recibido para entregar"}
+                  Confirmar entregado
                 </button>
-              )}
-              {item.status === "READY" && !item.serviceAction && (
+              ) : (
                 <span className="rounded-lg bg-amber-100 px-5 py-4 font-bold text-amber-900">
-                  Esperando al responsable de la cuenta
+                  Pendiente de entrega por el responsable de la cuenta
                 </span>
               )}
             </div>

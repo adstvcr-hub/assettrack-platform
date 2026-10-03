@@ -173,19 +173,6 @@ export default function WaiterPage() {
     await load();
   }
 
-  async function handoff(itemId: string) {
-    const response = await authenticatedFetch(
-      `${API_URL}/api/v1/restaurant/items/${itemId}/handoff`,
-      { method: "PATCH" },
-    );
-    if (!response.ok) {
-      const body = await response.json().catch(() => ({}));
-      setError(body.message ?? "No se pudo confirmar la recepción");
-      return;
-    }
-    await load();
-  }
-
   async function correctFulfillment(item: Item) {
     if (item.fulfillment === "DELIVERY") return;
     const next = item.fulfillment === "TAKEOUT" ? "DINE_IN" : "TAKEOUT";
@@ -435,14 +422,13 @@ export default function WaiterPage() {
 
   const readyCount = orders
     .flatMap((order) => order.items)
-    .filter((item) => item.status === "READY" && !item.handedOffAt).length;
+    .filter((item) => ["RECEIVED", "ACCEPTED", "PREPARING", "READY"].includes(item.status)).length;
   const alerts = useOperationalAlerts(
     "waiter",
     [
       ...orders.flatMap((order) =>
         order.items
-          .filter((item) => item.status === "READY")
-          .filter((item) => !item.handedOffAt)
+          .filter((item) => ["RECEIVED", "ACCEPTED", "PREPARING", "READY"].includes(item.status))
           .map((item) => item.id),
       ),
       ...visits
@@ -473,7 +459,7 @@ export default function WaiterPage() {
           </div>
           <div className="flex flex-wrap items-center gap-3">
             <span className="rounded-full bg-amber-400 px-4 py-2 font-bold text-slate-950">
-              {readyCount} listos
+              {readyCount} pendientes
             </span>
             <RestaurantSessionActions />
           </div>
@@ -763,18 +749,14 @@ export default function WaiterPage() {
                         Corregir modalidad
                       </button>
                     )}
-                    {item.status === "READY" && (
+                    {["RECEIVED", "ACCEPTED", "PREPARING", "READY"].includes(item.status) && (
                       <button
                         className="rounded-lg bg-sky-700 px-5 py-3 font-bold text-white"
-                        onClick={() =>
-                          void (item.handedOffAt
-                            ? deliver(item.id)
-                            : handoff(item.id))
-                        }
+                        onClick={() => {
+                          if (window.confirm(`¿Confirma la entrega de ${item.quantity} × ${item.name}?`)) void deliver(item.id);
+                        }}
                       >
-                        {item.handedOffAt
-                          ? "Confirmar entrega al cliente"
-                          : "Recibido de cocina o bar"}
+                        Confirmar entregado
                       </button>
                     )}
                   </div>

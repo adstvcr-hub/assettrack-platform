@@ -1539,7 +1539,7 @@ describe("RestaurantService", () => {
         order: {
           select: {
             table: { select: { waiterId: true } },
-            visit: { select: { responsibleStaffId: true } },
+            visit: { select: { responsibleStaffId: true, status: true, paymentStatus: true } },
           },
         },
       },
@@ -1596,6 +1596,41 @@ describe("RestaurantService", () => {
         }),
       }),
     );
+  });
+
+  it.each([RestaurantStaffRole.WAITER, RestaurantStaffRole.BAR])(
+    "lets the responsible %s deliver directly from received",
+    async (role) => {
+      const { prisma, service } = createService();
+      prisma.restaurantOrderItem.findFirst.mockResolvedValue({
+        status: "RECEIVED", station: "KITCHEN", handedOffAt: null,
+        order: { table: { waiterId: null }, visit: {
+          responsibleStaffId: waiterActor.id, status: "OPEN", paymentStatus: "NOT_REQUIRED",
+        } },
+      });
+      prisma.restaurantOrderItem.updateMany.mockResolvedValue({ count: 1 });
+      await service.updateStatus({ ...waiterActor, restaurantRole: role }, "item", { status: "DELIVERED" });
+      expect(prisma.restaurantOrderItem.updateMany).toHaveBeenCalledWith({
+        where: { id: "item", status: "RECEIVED" },
+        data: { status: "DELIVERED", deliveredAt: expect.any(Date) },
+      });
+      await expect(service.updateStatus({ ...waiterActor, id: "other", restaurantRole: role }, "item", {
+        status: "DELIVERED",
+      })).rejects.toBeInstanceOf(ForbiddenException);
+    },
+  );
+
+  it("blocks direct delivery until payment is confirmed", async () => {
+    const { prisma, service } = createService();
+    prisma.restaurantOrderItem.findFirst.mockResolvedValue({
+      status: "RECEIVED", station: "BAR",
+      order: { table: { waiterId: null }, visit: {
+        responsibleStaffId: waiterActor.id, status: "OPEN", paymentStatus: "PENDING",
+      } },
+    });
+    await expect(service.updateStatus(waiterActor, "item", { status: "DELIVERED" }))
+      .rejects.toThrow("Confirme el pago");
+    expect(prisma.restaurantOrderItem.updateMany).not.toHaveBeenCalled();
   });
 
   it("allows only the assigned waiter to deliver ready items", async () => {

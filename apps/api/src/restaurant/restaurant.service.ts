@@ -56,9 +56,9 @@ import {
 import { RestaurantDataLifecycleService } from "./restaurant-data-lifecycle.service";
 
 const transitions: Record<RestaurantItemStatus, RestaurantItemStatus[]> = {
-  RECEIVED: [RestaurantItemStatus.ACCEPTED, RestaurantItemStatus.CANCELLED],
-  ACCEPTED: [RestaurantItemStatus.PREPARING, RestaurantItemStatus.CANCELLED],
-  PREPARING: [RestaurantItemStatus.READY, RestaurantItemStatus.CANCELLED],
+  RECEIVED: [RestaurantItemStatus.ACCEPTED, RestaurantItemStatus.CANCELLED, RestaurantItemStatus.DELIVERED],
+  ACCEPTED: [RestaurantItemStatus.PREPARING, RestaurantItemStatus.CANCELLED, RestaurantItemStatus.DELIVERED],
+  PREPARING: [RestaurantItemStatus.READY, RestaurantItemStatus.CANCELLED, RestaurantItemStatus.DELIVERED],
   READY: [RestaurantItemStatus.DELIVERED],
   DELIVERED: [],
   CANCELLED: [],
@@ -3911,7 +3911,7 @@ export class RestaurantService {
                 {
                   visit: { responsibleStaffId: actor.id },
                   items: {
-                    some: { status: RestaurantItemStatus.READY },
+                    some: { status: { in: openStatuses } },
                   },
                 },
               ],
@@ -3993,7 +3993,7 @@ export class RestaurantService {
             if (role === RestaurantStaffRole.BAR) {
               return (
                 item.station === RestaurantStation.BAR ||
-                (isResponsible && item.status === RestaurantItemStatus.READY)
+                (isResponsible && openStatuses.includes(item.status))
               );
             }
             return true;
@@ -4001,7 +4001,7 @@ export class RestaurantService {
           .map((item) => ({
             ...item,
             serviceAction:
-              isResponsible && item.status === RestaurantItemStatus.READY,
+              isResponsible && openStatuses.includes(item.status),
           }));
         return {
           ...order,
@@ -4251,7 +4251,7 @@ export class RestaurantService {
           order: {
             select: {
               table: { select: { waiterId: true } },
-              visit: { select: { responsibleStaffId: true } },
+              visit: { select: { responsibleStaffId: true, status: true, paymentStatus: true } },
             },
           },
         },
@@ -4297,14 +4297,16 @@ export class RestaurantService {
       }
       if (!transitions[item.status].includes(dto.status))
         throw new BadRequestException("Invalid status change");
-      if (
-        !isAdmin &&
-        dto.status === RestaurantItemStatus.DELIVERED &&
-        !item.handedOffAt
-      ) {
-        throw new ConflictException(
-          "Confirm receipt from the preparation station before delivery",
-        );
+      if (dto.status === RestaurantItemStatus.DELIVERED && item.order.visit) {
+        if (item.order.visit.status !== RestaurantVisitStatus.OPEN) {
+          throw new ConflictException("La cuenta ya está cerrada");
+        }
+        if (
+          item.order.visit.paymentStatus === RestaurantPaymentStatus.PENDING ||
+          item.order.visit.paymentStatus === RestaurantPaymentStatus.REJECTED
+        ) {
+          throw new ConflictException("Confirme el pago antes de entregar el pedido");
+        }
       }
       const now = new Date();
       const result = await tx.restaurantOrderItem.updateMany({
