@@ -87,6 +87,15 @@ export function BarOrderEntry({ onCreated }: { onCreated: () => void }) {
     }));
   };
 
+  const removeProduct = (id: string) => {
+    setQuantities((current) => {
+      const next = { ...current };
+      delete next[id];
+      return next;
+    });
+    setMessage("");
+  };
+
   const submit = async () => {
     if (!tableId || !selectedItems.length) {
       setMessage("Seleccione una posición y al menos un producto.");
@@ -243,6 +252,35 @@ export function BarOrderEntry({ onCreated }: { onCreated: () => void }) {
               </p>
             )}
           </div>
+          {selectedItems.length > 0 && (
+            <section className="rounded-lg border border-emerald-300 bg-white p-4">
+              <h3 className="font-black text-emerald-950">Productos de la orden</h3>
+              <p className="mt-1 text-sm text-slate-600">
+                Puede eliminar un producto completo antes de crear la orden.
+              </p>
+              <ul className="mt-3 divide-y">
+                {selectedItems.map((item) => (
+                  <li key={item.id} className="flex flex-wrap items-center justify-between gap-3 py-3">
+                    <div>
+                      <p className="font-bold">{item.quantity} × {item.name}</p>
+                      <p className="text-sm text-slate-600">
+                        ₡{(item.price * item.quantity).toLocaleString()}
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      disabled={saving}
+                      aria-label={`Eliminar ${item.name} de la orden`}
+                      className="rounded-lg border border-red-400 px-4 py-2 font-bold text-red-700 disabled:opacity-40"
+                      onClick={() => removeProduct(item.id)}
+                    >
+                      Eliminar de la orden
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
           <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg bg-white p-4">
             <p className="text-lg font-black">
               {selectedItems.reduce((sum, item) => sum + item.quantity, 0)} productos · ₡{total.toLocaleString()}

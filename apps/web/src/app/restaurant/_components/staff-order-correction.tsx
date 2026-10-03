@@ -116,7 +116,7 @@ export function StaffOrderCorrection({
       )}
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div>
-          <p className="font-black text-sky-950">Cambiar producto, cantidad y modalidad</p>
+          <p className="font-black text-sky-950">Cambiar o eliminar productos, cantidad y modalidad</p>
           {correction.correctionCount > 0 && (
             <p className="text-xs font-semibold text-sky-800">
               CORREGIDA {correction.correctionCount} vez/veces
@@ -132,7 +132,7 @@ export function StaffOrderCorrection({
           className="rounded-lg bg-sky-800 px-4 py-2 font-bold text-white disabled:cursor-not-allowed disabled:opacity-40"
           onClick={() => setOpen((value) => !value)}
         >
-          {open ? "Cerrar editor" : "Modificar productos y cantidades"}
+          {open ? "Cerrar editor" : "Modificar o eliminar productos"}
         </button>
       </div>
       {!correction.canCorrect && correction.blockedReason && (
@@ -216,6 +216,8 @@ export function StaffOrderCorrection({
               </select>
               <button
                 type="button"
+                disabled={saving}
+                aria-label={`Eliminar ${correction.menu.find((item) => item.id === line.menuItemId)?.name ?? "producto"} de la orden`}
                 className="rounded border border-red-400 px-3 py-2 font-bold text-red-700"
                 onClick={() =>
                   setLines((current) =>
@@ -223,7 +225,7 @@ export function StaffOrderCorrection({
                   )
                 }
               >
-                Quitar
+                Eliminar de la orden
               </button>
             </div>
           ))}
