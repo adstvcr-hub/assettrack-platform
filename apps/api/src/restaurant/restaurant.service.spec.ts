@@ -2285,4 +2285,58 @@ describe("RestaurantService", () => {
       }),
     );
   });
+
+  it("allows available bar staff to record inventory without changing costs", async () => {
+    const { prisma, service } = createService();
+    const bartender = {
+      id: "bar-a",
+      organizationId: "org-a",
+      role: UserRole.USER,
+      restaurantRole: RestaurantStaffRole.BAR,
+      restaurantAvailability: RestaurantStaffAvailability.AVAILABLE,
+    };
+    prisma.restaurantInventoryProduct.findFirst.mockResolvedValue({
+      id: "product-a",
+      quantity: 8,
+    });
+    prisma.restaurantInventoryProduct.update.mockResolvedValue({});
+    prisma.restaurantInventoryMovement.create.mockResolvedValue({
+      id: "movement-a",
+      quantityDelta: 2,
+    });
+
+    await expect(
+      service.addInventoryMovement(bartender, "product-a", {
+        type: "ENTRY",
+        quantityDelta: 2,
+      }),
+    ).resolves.toEqual(expect.objectContaining({ quantityDelta: 2 }));
+
+    await expect(
+      service.addInventoryMovement(bartender, "product-a", {
+        type: "ENTRY",
+        quantityDelta: 2,
+        unitCost: 900,
+      }),
+    ).rejects.toBeInstanceOf(ForbiddenException);
+  });
+
+  it("denies inventory records from bar staff who are out of service", async () => {
+    const { service } = createService();
+    const bartender = {
+      id: "bar-a",
+      organizationId: "org-a",
+      role: UserRole.USER,
+      restaurantRole: RestaurantStaffRole.BAR,
+      restaurantAvailability:
+        RestaurantStaffAvailability.TEMPORARILY_UNAVAILABLE,
+    };
+
+    await expect(
+      service.addInventoryMovement(bartender, "product-a", {
+        type: "ADJUSTMENT",
+        quantityDelta: -1,
+      }),
+    ).rejects.toBeInstanceOf(ForbiddenException);
+  });
 });

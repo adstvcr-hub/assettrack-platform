@@ -56,6 +56,10 @@ type Inventory = {
     lowStockProducts: number;
     inventoryCost: number;
   };
+  permissions: {
+    canManageCatalog: boolean;
+    canRecordMovements: boolean;
+  };
 };
 
 const today = () => new Date().toISOString().slice(0, 10);
@@ -196,7 +200,10 @@ export default function InventoryDashboard() {
       await send(`inventory/products/${movementProductId}/movements`, "POST", {
         type: movementType,
         quantityDelta: Number(movementQuantity),
-        unitCost: movementCost ? Number(movementCost) : undefined,
+        unitCost:
+          inventory?.permissions.canManageCatalog && movementCost
+            ? Number(movementCost)
+            : undefined,
         note: movementNote || undefined,
       });
       setMovementQuantity("");
@@ -242,6 +249,8 @@ export default function InventoryDashboard() {
   const liquorProducts = inventory?.products.filter(
     (item) => item.productType === "LIQUOR" && item.active,
   ) ?? [];
+  const canManageCatalog =
+    inventory?.permissions.canManageCatalog ?? false;
 
   return (
     <main className="mx-auto max-w-7xl px-4 py-8 text-slate-900">
@@ -252,10 +261,13 @@ export default function InventoryDashboard() {
           <p className="mt-1 text-slate-600">Existencias, costos, mínimos y control de licores.</p>
         </div>
         <div className="flex flex-wrap gap-2 rounded-lg bg-slate-950 p-2 text-white">
-          <Link className="rounded border px-4 py-2 font-bold" href="/restaurant/admin">
-            Administración
+          <Link
+            className="rounded border px-4 py-2 font-bold"
+            href={canManageCatalog ? "/restaurant/admin" : "/restaurant/bar"}
+          >
+            {canManageCatalog ? "Administración" : "Volver al bar"}
           </Link>
-          <RestaurantSessionActions admin />
+          <RestaurantSessionActions admin={canManageCatalog} />
         </div>
       </header>
 
@@ -287,8 +299,8 @@ export default function InventoryDashboard() {
         <div className="rounded-xl border bg-white p-5 shadow-sm"><p className="text-sm text-slate-600">Costo inventariado</p><p className="text-3xl font-black">{money(inventory?.summary.inventoryCost ?? 0)}</p></div>
       </section>
 
-      <div className="grid gap-6 xl:grid-cols-2">
-        <section className="rounded-xl border bg-white p-5 shadow-sm">
+      <div className={`grid gap-6 ${canManageCatalog ? "xl:grid-cols-2" : ""}`}>
+        {canManageCatalog && <section className="rounded-xl border bg-white p-5 shadow-sm">
           <h2 className="text-xl font-black">Categorías y productos</h2>
           <form onSubmit={createCategory} className="mt-4 flex gap-2">
             <input required maxLength={80} value={categoryName} onChange={(e) => setCategoryName(e.target.value)} placeholder="Nueva categoría" className="min-w-0 flex-1 rounded border p-3" />
@@ -307,7 +319,7 @@ export default function InventoryDashboard() {
             {product.productType === "LIQUOR" && <><input required value={product.liquorBrand} onChange={(e) => setProduct({ ...product, liquorBrand: e.target.value })} placeholder="Marca del licor" className="rounded border p-3" /><input required type="number" min="0" value={product.liquorInitialTareGrams} onChange={(e) => setProduct({ ...product, liquorInitialTareGrams: e.target.value })} placeholder="Tara del envase (gramos)" className="rounded border p-3" /></>}
             <button disabled={busy || !inventory?.categories.length} className="rounded bg-emerald-700 p-3 font-black text-white sm:col-span-2">Guardar producto</button>
           </form>
-        </section>
+        </section>}
 
         <div className="space-y-6">
           <section className="rounded-xl border bg-white p-5 shadow-sm">
@@ -317,7 +329,9 @@ export default function InventoryDashboard() {
               <select required value={movementProductId} onChange={(e) => setMovementProductId(e.target.value)} className="rounded border p-3 sm:col-span-2"><option value="">Seleccione producto</option>{inventory?.products.filter((item) => item.active).map((item) => <option key={item.id} value={item.id}>{item.name} · {item.quantity}</option>)}</select>
               <select value={movementType} onChange={(e) => setMovementType(e.target.value as "ENTRY" | "ADJUSTMENT")} className="rounded border p-3"><option value="ENTRY">Ingreso</option><option value="ADJUSTMENT">Ajuste</option></select>
               <input required type="number" value={movementQuantity} onChange={(e) => setMovementQuantity(e.target.value)} placeholder="Cantidad (+/-)" className="rounded border p-3" />
-              <input type="number" min="0" value={movementCost} onChange={(e) => setMovementCost(e.target.value)} placeholder="Nuevo costo unitario (opcional)" className="rounded border p-3" />
+              {canManageCatalog && (
+                <input type="number" min="0" value={movementCost} onChange={(e) => setMovementCost(e.target.value)} placeholder="Nuevo costo unitario (opcional)" className="rounded border p-3" />
+              )}
               <input value={movementNote} onChange={(e) => setMovementNote(e.target.value)} placeholder="Nota" className="rounded border p-3" />
               <button disabled={busy || !movementProductId} className="rounded bg-slate-950 p-3 font-black text-white sm:col-span-2">Registrar movimiento</button>
             </form>
@@ -340,12 +354,12 @@ export default function InventoryDashboard() {
         <div className="p-5"><h2 className="text-xl font-black">Existencias registradas</h2></div>
         <div className="overflow-x-auto">
           <table className="w-full min-w-[900px] text-left text-sm">
-            <thead className="bg-slate-100"><tr><th className="p-3">Producto</th><th className="p-3">Categoría</th><th className="p-3">Presentación</th><th className="p-3">Cantidad / mínimo</th><th className="p-3">Costo</th><th className="p-3">Ingreso</th><th className="p-3">Último control</th><th className="p-3">Acción</th></tr></thead>
+            <thead className="bg-slate-100"><tr><th className="p-3">Producto</th><th className="p-3">Categoría</th><th className="p-3">Presentación</th><th className="p-3">Cantidad / mínimo</th><th className="p-3">Costo</th><th className="p-3">Ingreso</th><th className="p-3">Último control</th>{canManageCatalog && <th className="p-3">Acción</th>}</tr></thead>
             <tbody>{inventory?.products.map((item) => {
               const weighing = item.weighings[0];
               const movement = item.movements[0];
               const low = item.active && item.quantity <= item.minimumQuantity;
-              return <tr key={item.id} className={`border-t ${low ? "bg-red-50" : ""}`}><td className="p-3"><strong>{item.name}</strong>{item.productType === "LIQUOR" && <span className="ml-2 rounded bg-violet-100 px-2 py-1 text-xs font-bold text-violet-900">LICOR · {item.liquorBrand}</span>}<p className="text-xs text-slate-500">{item.menuItem ? `Menú: ${item.menuItem.name}` : "Sin vínculo al menú"}</p></td><td className="p-3">{item.category.name}</td><td className="p-3">{item.presentation}</td><td className={`p-3 font-black ${low ? "text-red-700" : ""}`}>{item.quantity} / {item.minimumQuantity}</td><td className="p-3">{money(item.unitCost)}</td><td className="p-3">{new Date(item.receivedAt).toLocaleDateString("es-CR")}</td><td className="p-3">{weighing ? <><p>{weighing.netWeightGrams} g netos</p><p className="text-xs text-slate-600">Consumo: {weighing.consumedWeightGrams ?? "—"} g · {weighing.relatedOrderQuantity} unidades ordenadas</p></> : movement ? `${movement.quantityDelta > 0 ? "+" : ""}${movement.quantityDelta} · ${new Date(movement.occurredAt).toLocaleDateString("es-CR")}` : "Sin movimientos"}</td><td className="p-3"><button type="button" onClick={() => editProduct(item)} className="rounded border border-slate-400 px-3 py-2 font-bold">Editar mínimo/costo</button></td></tr>;
+              return <tr key={item.id} className={`border-t ${low ? "bg-red-50" : ""}`}><td className="p-3"><strong>{item.name}</strong>{item.productType === "LIQUOR" && <span className="ml-2 rounded bg-violet-100 px-2 py-1 text-xs font-bold text-violet-900">LICOR · {item.liquorBrand}</span>}<p className="text-xs text-slate-500">{item.menuItem ? `Menú: ${item.menuItem.name}` : "Sin vínculo al menú"}</p></td><td className="p-3">{item.category.name}</td><td className="p-3">{item.presentation}</td><td className={`p-3 font-black ${low ? "text-red-700" : ""}`}>{item.quantity} / {item.minimumQuantity}</td><td className="p-3">{money(item.unitCost)}</td><td className="p-3">{new Date(item.receivedAt).toLocaleDateString("es-CR")}</td><td className="p-3">{weighing ? <><p>{weighing.netWeightGrams} g netos</p><p className="text-xs text-slate-600">Consumo: {weighing.consumedWeightGrams ?? "—"} g · {weighing.relatedOrderQuantity} unidades ordenadas</p></> : movement ? `${movement.quantityDelta > 0 ? "+" : ""}${movement.quantityDelta} · ${new Date(movement.occurredAt).toLocaleDateString("es-CR")}` : "Sin movimientos"}</td>{canManageCatalog && <td className="p-3"><button type="button" onClick={() => editProduct(item)} className="rounded border border-slate-400 px-3 py-2 font-bold">Editar mínimo/costo</button></td>}</tr>;
             })}</tbody>
           </table>
         </div>

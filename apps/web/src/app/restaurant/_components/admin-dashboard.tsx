@@ -1367,19 +1367,13 @@ export default function RestaurantAdminDashboard({
                   {visit.paymentStatus !== "CONFIRMED" && (
                     <button
                       className="rounded bg-emerald-700 px-4 py-3 font-black text-white"
-                      onClick={() => {
-                        if (
-                          window.confirm(
-                            `¿Confirma que se contactó al cliente ${visit.deliveryPhone ?? ""} y que el pago fue verificado?`,
-                          )
-                        ) {
-                          void post(
-                            `visits/${visit.id}/payment`,
-                            { status: "CONFIRMED" },
-                            "PATCH",
-                          );
-                        }
-                      }}
+                      onClick={() =>
+                        void post(
+                          `visits/${visit.id}/payment`,
+                          { status: "CONFIRMED" },
+                          "PATCH",
+                        )
+                      }
                     >
                       Contacto validado y pago confirmado
                     </button>
@@ -1402,20 +1396,14 @@ export default function RestaurantAdminDashboard({
                     <button
                       disabled={!visit.canHandoffDelivery}
                       className="rounded bg-violet-800 px-4 py-3 font-bold text-white disabled:cursor-not-allowed disabled:opacity-40"
-                      onClick={() => {
-                        if (
-                          visit.canHandoffDelivery &&
-                          window.confirm(
-                            "¿Confirma la entrega completa a la persona repartidora?",
-                          )
-                        ) {
-                          void post(
-                            `visits/${visit.id}/delivery-handoff`,
-                            {},
-                            "PATCH",
-                          );
-                        }
-                      }}
+                      onClick={() =>
+                        visit.canHandoffDelivery &&
+                        void post(
+                          `visits/${visit.id}/delivery-handoff`,
+                          {},
+                          "PATCH",
+                        )
+                      }
                     >
                       {visit.canHandoffDelivery
                         ? "Entregar a repartidor y cerrar"
@@ -1473,16 +1461,10 @@ export default function RestaurantAdminDashboard({
                   type="button"
                   disabled={!visit.canClose}
                   className="mt-3 rounded-lg bg-slate-900 px-4 py-3 font-bold text-white disabled:cursor-not-allowed disabled:opacity-40"
-                  onClick={() => {
-                    if (
-                      visit.canClose &&
-                      window.confirm(
-                        `¿Confirma el cierre administrativo de ${visit.table.name}?`,
-                      )
-                    ) {
-                      void post(`visits/${visit.id}/close`, {}, "PATCH");
-                    }
-                  }}
+                  onClick={() =>
+                    visit.canClose &&
+                    void post(`visits/${visit.id}/close`, {}, "PATCH")
+                  }
                 >
                   {visit.canClose
                     ? "Cerrar cuenta"

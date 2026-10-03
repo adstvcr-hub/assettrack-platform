@@ -176,12 +176,6 @@ export default function WaiterPage() {
   async function correctFulfillment(item: Item) {
     if (item.fulfillment === "DELIVERY") return;
     const next = item.fulfillment === "TAKEOUT" ? "DINE_IN" : "TAKEOUT";
-    if (
-      !window.confirm(
-        `¿Cambiar a ${next === "TAKEOUT" ? "PARA LLEVAR" : "CONSUMO EN EL LOCAL"}?`,
-      )
-    )
-      return;
     const response = await authenticatedFetch(
       `${API_URL}/api/v1/restaurant/items/${item.id}/fulfillment`,
       {
@@ -199,11 +193,6 @@ export default function WaiterPage() {
   }
 
   async function closeVisit(visitId: string) {
-    if (
-      !window.confirm("¿Confirma que la cuenta fue atendida y puede cerrarse?")
-    ) {
-      return;
-    }
     const response = await authenticatedFetch(
       `${API_URL}/api/v1/restaurant/visits/${visitId}/close`,
       { method: "PATCH" },
@@ -233,15 +222,6 @@ export default function WaiterPage() {
     visitId: string,
     status: "CONFIRMED" | "REJECTED",
   ) {
-    const action = status === "CONFIRMED" ? "confirmar" : "rechazar";
-    if (
-      !window.confirm(
-        status === "CONFIRMED"
-          ? "¿Confirma que contactó al cliente y verificó el pago? La orden será liberada a cocina y bar."
-          : `¿Desea ${action} el pago de este pedido?`,
-      )
-    )
-      return;
     const response = await authenticatedFetch(
       `${API_URL}/api/v1/restaurant/visits/${visitId}/payment`,
       {
@@ -259,13 +239,6 @@ export default function WaiterPage() {
   }
 
   async function handoffDelivery(visitId: string) {
-    if (
-      !window.confirm(
-        "¿Confirma que entregó el pedido completo a la persona repartidora? Esta acción cerrará la cuenta.",
-      )
-    ) {
-      return;
-    }
     const response = await authenticatedFetch(
       `${API_URL}/api/v1/restaurant/visits/${visitId}/delivery-handoff`,
       { method: "PATCH" },
@@ -283,21 +256,6 @@ export default function WaiterPage() {
       (item) => item.id === destinationId,
     );
     if (!destination) return;
-    const occupied = destination.activeAccountCount
-      ? ` Esta posición ya tiene ${destination.activeAccountCount} cuenta(s) independiente(s); no se mezclarán.`
-      : "";
-    const service =
-      destination.kind === "BAR_SEAT"
-        ? " Se eliminará el cargo por servicio."
-        : destination.serviceChargeEnabled
-          ? " Se aplicará el servicio de la mesa destino."
-          : " La posición destino no cobra servicio.";
-    if (
-      !window.confirm(
-        `¿Trasladar la cuenta a ${destination.name}?${occupied}${service}`,
-      )
-    )
-      return;
     const response = await authenticatedFetch(
       `${API_URL}/api/v1/restaurant/visits/${visit.id}/transfer`,
       {
@@ -325,14 +283,6 @@ export default function WaiterPage() {
       !availabilityDetails.trim()
     ) {
       setError("Explique por qué quedará temporalmente fuera de servicio");
-      return;
-    }
-    if (
-      availabilityChoice !== "AVAILABLE" &&
-      !window.confirm(
-        "Tus mesas activas serán reasignadas automáticamente. ¿Deseas continuar?",
-      )
-    ) {
       return;
     }
     const reason =
@@ -752,9 +702,7 @@ export default function WaiterPage() {
                     {["RECEIVED", "ACCEPTED", "PREPARING", "READY"].includes(item.status) && (
                       <button
                         className="rounded-lg bg-sky-700 px-5 py-3 font-bold text-white"
-                        onClick={() => {
-                          if (window.confirm(`¿Confirma la entrega de ${item.quantity} × ${item.name}?`)) void deliver(item.id);
-                        }}
+                        onClick={() => void deliver(item.id)}
                       >
                         Confirmar entregado
                       </button>

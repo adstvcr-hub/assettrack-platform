@@ -7,6 +7,7 @@ import { StaffAccountDetail } from "./staff-account-detail";
 import { BarOrderEntry } from "./bar-order-entry";
 import { API_URL, authenticatedFetch } from "@/lib/api";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { RestaurantSessionActions } from "./restaurant-session-actions";
 import { useOperationalAlerts } from "./use-operational-alerts";
@@ -183,7 +184,6 @@ export function OperationalDashboard({ station }: { station: Station }) {
   }
 
   async function closeVisit(visitId: string) {
-    if (!window.confirm("¿Confirma el cierre de esta cuenta?")) return;
     const response = await authenticatedFetch(
       `${API_URL}/api/v1/restaurant/visits/${visitId}/close`,
       { method: "PATCH" },
@@ -197,11 +197,6 @@ export function OperationalDashboard({ station }: { station: Station }) {
   }
 
   async function updatePayment(visit: Visit, status: "CONFIRMED" | "REJECTED") {
-    const message =
-      status === "CONFIRMED"
-        ? `¿Confirma que contactó al cliente ${visit.deliveryPhone ?? ""} y verificó el pago? La orden será liberada a cocina y bar.`
-        : "¿Confirma que el pago fue rechazado? La orden permanecerá bloqueada.";
-    if (!window.confirm(message)) return;
     const response = await authenticatedFetch(
       `${API_URL}/api/v1/restaurant/visits/${visit.id}/payment`,
       {
@@ -219,13 +214,6 @@ export function OperationalDashboard({ station }: { station: Station }) {
   }
 
   async function handoffDelivery(visitId: string) {
-    if (
-      !window.confirm(
-        "¿Confirma la entrega del pedido completo a la persona repartidora? La cuenta se cerrará.",
-      )
-    ) {
-      return;
-    }
     const response = await authenticatedFetch(
       `${API_URL}/api/v1/restaurant/visits/${visitId}/delivery-handoff`,
       { method: "PATCH" },
@@ -297,6 +285,14 @@ export function OperationalDashboard({ station }: { station: Station }) {
             </h1>
           </div>
           <div className="flex flex-wrap items-center gap-3">
+            {station === "BAR" && (
+              <Link
+                href="/restaurant/admin/inventory"
+                className="rounded-lg border border-emerald-300 px-4 py-2 font-bold text-emerald-100"
+              >
+                Inventario
+              </Link>
+            )}
             <span className="rounded-full bg-emerald-500 px-4 py-2 font-bold text-slate-950">
               {items.length + pendingDeliveryVisits.length} pendientes
             </span>
@@ -478,12 +474,7 @@ export function OperationalDashboard({ station }: { station: Station }) {
                         onChange={(event) => {
                           const destinationId = event.target.value;
                           event.target.value = "";
-                          if (
-                            destinationId &&
-                            window.confirm(
-                              "¿Confirma el traslado de esta cuenta?",
-                            )
-                          ) {
+                          if (destinationId) {
                             void transferVisit(visit.id, destinationId);
                           }
                         }}
@@ -570,9 +561,7 @@ export function OperationalDashboard({ station }: { station: Station }) {
               {item.serviceAction ? (
                 <button
                   className="rounded-lg bg-violet-700 px-5 py-4 font-bold text-white"
-                  onClick={() => {
-                    if (window.confirm(`¿Confirma la entrega de ${item.quantity} × ${item.name}?`)) void deliver(item.id);
-                  }}
+                  onClick={() => void deliver(item.id)}
                 >
                   Confirmar entregado
                 </button>

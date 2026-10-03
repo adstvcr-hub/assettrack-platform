@@ -107,6 +107,24 @@ export class RestaurantService {
     }
   }
 
+  private requireInventoryAccess(actor: RestaurantActor, write = false) {
+    const role = this.effectiveRole(actor);
+    if (
+      role !== RestaurantStaffRole.RESTAURANT_ADMIN &&
+      role !== RestaurantStaffRole.BAR
+    ) {
+      throw new ForbiddenException("Inventory access requires administration or bar role");
+    }
+    if (
+      write &&
+      role === RestaurantStaffRole.BAR &&
+      actor.restaurantAvailability !== RestaurantStaffAvailability.AVAILABLE
+    ) {
+      throw new ForbiddenException("El bartender no está disponible para registrar inventario");
+    }
+    return role;
+  }
+
   private distanceMeters(
     latitudeA: number,
     longitudeA: number,
@@ -2295,7 +2313,7 @@ export class RestaurantService {
   }
 
   async inventory(actor: RestaurantActor) {
-    this.requireRestaurantAdmin(actor);
+    const role = this.requireInventoryAccess(actor);
     const [categories, products, menuItems] = await Promise.all([
       this.prisma.restaurantInventoryCategory.findMany({
         where: { organizationId: actor.organizationId, active: true },
@@ -2343,6 +2361,10 @@ export class RestaurantService {
             (total, product) => total + product.quantity * product.unitCost,
             0,
           ),
+      },
+      permissions: {
+        canManageCatalog: role === RestaurantStaffRole.RESTAURANT_ADMIN,
+        canRecordMovements: true,
       },
     };
   }
@@ -2474,7 +2496,15 @@ export class RestaurantService {
     productId: string,
     dto: CreateInventoryMovementDto,
   ) {
-    this.requireRestaurantAdmin(actor);
+    const role = this.requireInventoryAccess(actor, true);
+    if (
+      role === RestaurantStaffRole.BAR &&
+      dto.unitCost !== undefined
+    ) {
+      throw new ForbiddenException(
+        "El costo del inventario solo puede cambiarlo la administración",
+      );
+    }
     if (dto.type === RestaurantInventoryMovementType.CONSUMPTION) {
       throw new BadRequestException("Consumption movements are generated from orders");
     }
@@ -2522,7 +2552,7 @@ export class RestaurantService {
     productId: string,
     dto: CreateLiquorWeighingDto,
   ) {
-    this.requireRestaurantAdmin(actor);
+    this.requireInventoryAccess(actor, true);
     const measuredAt = dto.measuredAt ? new Date(dto.measuredAt) : new Date();
     return this.prisma.$transaction(async (tx) => {
       const product = await tx.restaurantInventoryProduct.findFirst({
