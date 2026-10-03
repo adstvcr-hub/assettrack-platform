@@ -2515,9 +2515,7 @@ export class RestaurantService {
       },
       table: table.name,
       tableKind: table.kind,
-      locationVerificationRequired:
-        table.organization.restaurantLatitude != null &&
-        table.organization.restaurantLongitude != null,
+      locationVerificationRequired: false,
       activeAccountCount,
       waiter: table.waiter,
       billing: {
@@ -2572,49 +2570,22 @@ export class RestaurantService {
         "Restaurant ordering is temporarily unavailable",
       );
     }
-    const configured =
-      table.organization.restaurantLatitude != null &&
-      table.organization.restaurantLongitude != null;
-    const hasCoordinates =
-      dto.latitude !== undefined && dto.longitude !== undefined;
-    const distanceMeters =
-      configured && hasCoordinates
-        ? this.distanceMeters(
-            Number(table.organization.restaurantLatitude),
-            Number(table.organization.restaurantLongitude),
-            dto.latitude!,
-            dto.longitude!,
-          )
-        : null;
-    const accuracyMeters =
-      dto.accuracy === undefined ? null : Math.round(dto.accuracy);
-    const tolerance = Math.min(accuracyMeters ?? 0, 50);
-    const insideLocal =
-      distanceMeters === null
-        ? null
-        : distanceMeters <=
-          table.organization.restaurantOrderRadiusMeters + tolerance;
     await this.prisma.restaurantQrAccess.create({
       data: {
         organizationId: table.organizationId,
         tableId: table.id,
         sessionKey: dto.sessionKey,
-        insideLocal,
-        distanceMeters,
-        accuracyMeters,
+        insideLocal: null,
+        distanceMeters: null,
+        accuracyMeters: null,
       },
     });
     return {
-      verificationRequired: configured,
-      insideLocal,
-      distanceMeters,
-      radiusMeters: table.organization.restaurantOrderRadiusMeters,
-      mode:
-        insideLocal === false
-          ? "DELIVERY"
-          : insideLocal === true || !configured
-            ? "ONSITE"
-            : "UNVERIFIED",
+      verificationRequired: false,
+      insideLocal: null,
+      distanceMeters: null,
+      radiusMeters: null,
+      mode: "ONSITE",
     };
   }
 
@@ -2639,31 +2610,6 @@ export class RestaurantService {
       );
     }
     const isDelivery = dto.fulfillment === RestaurantFulfillment.DELIVERY;
-    const geofenceConfigured =
-      table.organization.restaurantLatitude != null &&
-      table.organization.restaurantLongitude != null;
-    if (!isDelivery && geofenceConfigured) {
-      if (dto.latitude === undefined || dto.longitude === undefined) {
-        throw new ForbiddenException(
-          "Debe confirmar su ubicación para ordenar dentro del local",
-        );
-      }
-      const distance = this.distanceMeters(
-        Number(table.organization.restaurantLatitude),
-        Number(table.organization.restaurantLongitude),
-        dto.latitude,
-        dto.longitude,
-      );
-      const tolerance = Math.min(Math.round(dto.locationAccuracy ?? 0), 50);
-      if (
-        distance >
-        table.organization.restaurantOrderRadiusMeters + tolerance
-      ) {
-        throw new ForbiddenException(
-          "Estás fuera del alcance del local comercial",
-        );
-      }
-    }
     const deliveryPhone = dto.deliveryPhone?.trim();
     const deliveryAddress = dto.deliveryAddress?.trim();
     if (isDelivery && (!deliveryPhone || !deliveryAddress)) {

@@ -13,7 +13,6 @@ import {
 } from "react";
 
 type Fulfillment = "DINE_IN" | "TAKEOUT" | "DELIVERY";
-type AccessMode = "CHECKING" | "ONSITE" | "DELIVERY" | "UNVERIFIED";
 type MenuItem = {
   id: string;
   name: string;
@@ -86,12 +85,6 @@ export default function RestaurantTablePage() {
   const [separateAcknowledged, setSeparateAcknowledged] = useState(false);
   const [promotion, setPromotion] = useState<Promotion | null>(null);
   const [promotionQuantity, setPromotionQuantity] = useState(1);
-  const [accessMode, setAccessMode] = useState<AccessMode>("CHECKING");
-  const [location, setLocation] = useState<{
-    latitude: number;
-    longitude: number;
-    accuracy: number;
-  } | null>(null);
   const [deliveryPhone, setDeliveryPhone] = useState("");
   const [deliveryAddress, setDeliveryAddress] = useState("");
   const requestId = useRef<string | null>(null);
@@ -116,11 +109,7 @@ export default function RestaurantTablePage() {
   }, [code]);
 
   const recordAccess = useCallback(
-    async (coordinates?: {
-      latitude: number;
-      longitude: number;
-      accuracy: number;
-    }) => {
+    async () => {
       let sessionKey = window.localStorage.getItem(
         "assettrack_restaurant_guest_session",
       );
@@ -136,53 +125,22 @@ export default function RestaurantTablePage() {
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ sessionKey, ...coordinates }),
+          body: JSON.stringify({ sessionKey }),
         },
       );
-      if (!response.ok) throw new Error("No se pudo verificar la ubicación.");
-      const result: { mode: "ONSITE" | "DELIVERY" | "UNVERIFIED" } =
-        await response.json();
-      setLocation(coordinates ?? null);
-      setAccessMode(result.mode);
-      if (result.mode === "DELIVERY") setFulfillment("DELIVERY");
+      if (!response.ok) throw new Error("No se pudo registrar el acceso.");
     },
     [code],
   );
 
-  const verifyLocation = useCallback(() => {
-    setAccessMode("CHECKING");
-    if (!navigator.geolocation) {
-      void recordAccess()
-        .then(() => setAccessMode("UNVERIFIED"))
-        .catch(() => setAccessMode("UNVERIFIED"));
-      return;
-    }
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        void recordAccess({
-          latitude: position.coords.latitude,
-          longitude: position.coords.longitude,
-          accuracy: position.coords.accuracy,
-        }).catch(() => setAccessMode("UNVERIFIED"));
-      },
-      () => {
-        void recordAccess()
-          .then(() => setAccessMode("UNVERIFIED"))
-          .catch(() => setAccessMode("UNVERIFIED"));
-      },
-      { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 },
-    );
-  }, [recordAccess]);
 
   useEffect(() => {
     if (!data || accessRecorded.current) return;
     accessRecorded.current = true;
-    if (data.locationVerificationRequired) {
-      verifyLocation();
-    } else {
-      void recordAccess().catch(() => setAccessMode("ONSITE"));
-    }
-  }, [data, recordAccess, verifyLocation]);
+    void recordAccess().catch(() => {
+      // Analytics failure must not interrupt menu access or ordering.
+    });
+  }, [data, recordAccess]);
 
   useEffect(() => {
     void load();
@@ -286,16 +244,6 @@ export default function RestaurantTablePage() {
       setError("Seleccione al menos un producto.");
       return;
     }
-    if (accessMode === "CHECKING") {
-      setError("Espere mientras verificamos su ubicación.");
-      return;
-    }
-    if (accessMode === "UNVERIFIED" && fulfillment !== "DELIVERY") {
-      setError(
-        "Debe confirmar su ubicación o seleccionar entrega a domicilio.",
-      );
-      return;
-    }
     if (
       fulfillment === "DELIVERY" &&
       (!deliveryPhone.trim() || !deliveryAddress.trim())
@@ -337,9 +285,6 @@ export default function RestaurantTablePage() {
                 : data?.tableKind === "TAKEOUT_STATION"
                   ? "TAKEOUT"
                   : fulfillment,
-            latitude: location?.latitude,
-            longitude: location?.longitude,
-            locationAccuracy: location?.accuracy,
             deliveryPhone:
               fulfillment === "DELIVERY" ? deliveryPhone.trim() : undefined,
             deliveryAddress:
@@ -545,46 +490,8 @@ export default function RestaurantTablePage() {
         </p>
       )}
 
-      {data?.locationVerificationRequired && accessMode === "CHECKING" && (
-        <p className="mb-5 rounded-xl border border-sky-300 bg-sky-50 p-4 text-sky-950">
-          Verificando que se encuentra dentro del local…
-        </p>
-      )}
-      {data?.locationVerificationRequired &&
-        (accessMode === "DELIVERY" || accessMode === "UNVERIFIED") && (
-          <section className="mb-5 rounded-xl border border-amber-400 bg-amber-50 p-4">
-            <p className="text-lg font-black text-amber-950">
-              {accessMode === "DELIVERY"
-                ? "Estás fuera del alcance del local comercial."
-                : "No pudimos confirmar su ubicación dentro del local."}
-            </p>
-            <p className="mt-1 text-sm text-amber-900">
-              Puede volver a verificar la ubicación o continuar como pedido a
-              domicilio. El pago deberá ser confirmado antes de preparar la
-              orden.
-            </p>
-            <div className="mt-3 flex flex-wrap gap-2">
-              <button
-                type="button"
-                className="rounded border border-amber-700 px-4 py-2 font-semibold"
-                onClick={verifyLocation}
-              >
-                Reintentar ubicación
-              </button>
-              <button
-                type="button"
-                className="rounded bg-amber-800 px-4 py-2 font-semibold text-white"
-                onClick={() => setFulfillment("DELIVERY")}
-              >
-                Pedir a domicilio
-              </button>
-            </div>
-          </section>
-        )}
-
       {data &&
-        data.tableKind !== "TAKEOUT_STATION" &&
-        accessMode === "ONSITE" && (
+        data.tableKind !== "TAKEOUT_STATION" && (
           <section className="mb-5 max-w-2xl rounded-xl border bg-white p-3">
             <h2 className="mb-2 text-base font-bold leading-snug">
               ¿Cómo desea su pedido?

@@ -157,7 +157,10 @@ function createService() {
 describe("RestaurantService", () => {
   const payload = { requestId, items: [{ menuItemId: itemId, quantity: 2 }] };
 
-  it("blocks on-site ordering outside the configured restaurant radius", async () => {
+  it.each([
+    {},
+    { latitude: 10.0, longitude: -84.2, locationAccuracy: 5 },
+  ])("allows guest ordering regardless of location: %j", async (coordinates) => {
     const { prisma, service } = createService();
     prisma.restaurantTable.findUnique.mockResolvedValue({
       ...table,
@@ -172,11 +175,10 @@ describe("RestaurantService", () => {
     await expect(
       service.placeOrder("table-code", {
         ...payload,
-        latitude: 10.0,
-        longitude: -84.2,
-        locationAccuracy: 5,
+        ...coordinates,
       }),
-    ).rejects.toThrow("Estás fuera del alcance del local comercial");
+    ).resolves.toBeDefined();
+    expect(prisma.restaurantOrder.create).toHaveBeenCalled();
   });
 
   it("creates delivery orders without occupying a table and waits for payment", async () => {
@@ -385,7 +387,7 @@ describe("RestaurantService", () => {
     );
   });
 
-  it("records anonymous QR reach data without storing guest coordinates", async () => {
+  it("records QR access without geographic verification or guest coordinates", async () => {
     const { prisma, service } = createService();
     prisma.restaurantTable.findUnique.mockResolvedValue({
       ...table,
@@ -397,7 +399,7 @@ describe("RestaurantService", () => {
       },
     });
 
-    await service.recordQrAccess("table-code", {
+    const result = await service.recordQrAccess("table-code", {
       sessionKey: "4e042db9-2f69-466f-bc62-8f50c9044ceb",
       latitude: 9.9282,
       longitude: -84.0907,
@@ -409,9 +411,10 @@ describe("RestaurantService", () => {
         organizationId: "org-a",
         tableId: "table-a",
         sessionKey: "4e042db9-2f69-466f-bc62-8f50c9044ceb",
-        insideLocal: true,
+        insideLocal: null,
       }),
     });
+    expect(result).toMatchObject({ mode: "ONSITE", verificationRequired: false });
     const stored = prisma.restaurantQrAccess.create.mock.calls[0][0].data;
     expect(stored).not.toHaveProperty("latitude");
     expect(stored).not.toHaveProperty("longitude");
