@@ -3,6 +3,7 @@
 import { getSessionValue } from "@/lib/session";
 
 
+import { StaffAccountDetail } from "./staff-account-detail";
 import { API_URL, authenticatedFetch } from "@/lib/api";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
@@ -61,6 +62,10 @@ type Visit = {
     tax: number;
     service: number;
     total: number;
+    taxIncluded: boolean;
+    taxRateBps: number;
+    serviceRateBps: number;
+    serviceChargeEnabled: boolean;
   };
   items: Array<{
     id: string;
@@ -68,6 +73,8 @@ type Visit = {
     quantity: number;
     price: number;
     status: string;
+    orderCreatedAt: string;
+    fulfillment: "DINE_IN" | "TAKEOUT" | "DELIVERY";
   }>;
   transferDestinations: Array<{
     id: string;
@@ -417,28 +424,7 @@ export function OperationalDashboard({ station }: { station: Station }) {
                     <dt className="font-bold">Dirección</dt>
                     <dd>{visit.deliveryAddress || "No informada"}</dd>
                   </dl>
-                  <div className="mt-4 rounded-lg bg-slate-50 p-3">
-                    <p className="font-bold">Consumo solicitado</p>
-                    <ul className="mt-2 space-y-1 text-sm">
-                      {visit.items.map((item) => (
-                        <li
-                          key={item.id}
-                          className="flex justify-between gap-3"
-                        >
-                          <span>
-                            {item.quantity} × {item.name}
-                          </span>
-                          <span>
-                            ₡{(item.price * item.quantity).toLocaleString()}
-                          </span>
-                        </li>
-                      ))}
-                    </ul>
-                    <p className="mt-3 flex justify-between border-t pt-2 text-lg font-black">
-                      <span>Total a validar</span>
-                      <span>₡{visit.billing.total.toLocaleString()}</span>
-                    </p>
-                  </div>
+                  <StaffAccountDetail visit={visit} />
                   <StaffOrderCorrection
                     correction={visit.staffCorrection}
                       requestedAt={visit.correctionRequest?.requestedAt}
@@ -504,7 +490,10 @@ export function OperationalDashboard({ station }: { station: Station }) {
                         COBERTURA TEMPORAL DE SALÓN
                       </p>
                     )}
-                    <p>Total: ₡{visit.billing.total.toLocaleString()}</p>
+                    <p className="text-sm text-slate-600">
+                      Responsable: {visit.responsibleStaff?.name ?? "Sin asignar"}
+                    </p>
+                    <StaffAccountDetail visit={visit} />
                     <StaffOrderCorrection
                       correction={visit.staffCorrection}
                       requestedAt={visit.correctionRequest?.requestedAt}
