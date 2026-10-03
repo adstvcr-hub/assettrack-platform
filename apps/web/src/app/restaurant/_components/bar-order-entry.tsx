@@ -18,6 +18,15 @@ type MenuItem = {
   productType: string;
 };
 
+const categoryStyles = [
+  "border-rose-300 bg-rose-100 text-rose-950",
+  "border-amber-300 bg-amber-100 text-amber-950",
+  "border-emerald-300 bg-emerald-100 text-emerald-950",
+  "border-sky-300 bg-sky-100 text-sky-950",
+  "border-violet-300 bg-violet-100 text-violet-950",
+  "border-pink-300 bg-pink-100 text-pink-950",
+];
+
 export function BarOrderEntry({ onCreated }: { onCreated: () => void }) {
   const [tables, setTables] = useState<Table[]>([]);
   const [menu, setMenu] = useState<MenuItem[]>([]);
@@ -29,6 +38,7 @@ export function BarOrderEntry({ onCreated }: { onCreated: () => void }) {
   const [open, setOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
+  const [activeType, setActiveType] = useState("");
 
   const load = useCallback(async () => {
     const response = await authenticatedFetch(
@@ -39,6 +49,11 @@ export function BarOrderEntry({ onCreated }: { onCreated: () => void }) {
     setTables(data.tables);
     setMenu(data.menu);
     setTableId((current) => current || data.tables[0]?.id || "");
+    setActiveType((current) =>
+      current && data.menu.some((item) => item.productType === current)
+        ? current
+        : data.menu[0]?.productType || "",
+    );
   }, []);
 
   useEffect(() => {
@@ -51,6 +66,14 @@ export function BarOrderEntry({ onCreated }: { onCreated: () => void }) {
         .filter((item) => (quantities[item.id] ?? 0) > 0)
         .map((item) => ({ ...item, quantity: quantities[item.id] })),
     [menu, quantities],
+  );
+  const productTypes = useMemo(
+    () => [...new Set(menu.map((item) => item.productType))],
+    [menu],
+  );
+  const visibleMenu = useMemo(
+    () => menu.filter((item) => !activeType || item.productType === activeType),
+    [activeType, menu],
   );
   const total = selectedItems.reduce(
     (sum, item) => sum + item.price * item.quantity,
@@ -150,8 +173,32 @@ export function BarOrderEntry({ onCreated }: { onCreated: () => void }) {
               </select>
             </label>
           </div>
+          <div>
+            <p className="mb-2 font-black text-emerald-950">
+              Categorías del menú
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {productTypes.map((type, index) => {
+                return (
+                  <button
+                    type="button"
+                    key={type}
+                    aria-pressed={activeType === type}
+                    onClick={() => setActiveType(type)}
+                    className={`rounded-full border px-4 py-2 font-semibold transition ${categoryStyles[index % categoryStyles.length]} ${
+                      activeType === type
+                        ? "ring-2 ring-slate-800 ring-offset-2"
+                        : "hover:brightness-95"
+                    }`}
+                  >
+                    {type}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
           <div className="grid gap-3 md:grid-cols-2">
-            {menu.map((item) => (
+            {visibleMenu.map((item) => (
               <article key={item.id} className="rounded-lg border bg-white p-3">
                 <div className="flex items-start justify-between gap-3">
                   <div>
@@ -190,6 +237,11 @@ export function BarOrderEntry({ onCreated }: { onCreated: () => void }) {
                 </div>
               </article>
             ))}
+            {visibleMenu.length === 0 && (
+              <p className="rounded-lg bg-white p-4 text-slate-600 md:col-span-2">
+                No hay productos disponibles en esta categoría.
+              </p>
+            )}
           </div>
           <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg bg-white p-4">
             <p className="text-lg font-black">

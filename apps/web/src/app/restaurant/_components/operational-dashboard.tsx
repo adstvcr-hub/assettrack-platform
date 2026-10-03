@@ -7,7 +7,7 @@ import { StaffAccountDetail } from "./staff-account-detail";
 import { BarOrderEntry } from "./bar-order-entry";
 import { API_URL, authenticatedFetch } from "@/lib/api";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { RestaurantSessionActions } from "./restaurant-session-actions";
 import { useOperationalAlerts } from "./use-operational-alerts";
 import {
@@ -108,8 +108,10 @@ export function OperationalDashboard({ station }: { station: Station }) {
   const [visits, setVisits] = useState<Visit[]>([]);
   const [error, setError] = useState("");
   const [now, setNow] = useState(0);
+  const loadSequence = useRef(0);
 
   const load = useCallback(async () => {
+    const sequence = ++loadSequence.current;
     const [profileResponse, response, visitsResponse] = await Promise.all([
       authenticatedFetch(`${API_URL}/api/v1/restaurant/profile`),
       authenticatedFetch(`${API_URL}/api/v1/restaurant/orders`),
@@ -117,6 +119,7 @@ export function OperationalDashboard({ station }: { station: Station }) {
         ? authenticatedFetch(`${API_URL}/api/v1/restaurant/visits`)
         : Promise.resolve(null),
     ]);
+    if (sequence !== loadSequence.current) return;
     if (
       profileResponse.status === 401 ||
       response.status === 401 ||
@@ -276,7 +279,7 @@ export function OperationalDashboard({ station }: { station: Station }) {
         .map((visit) => `correction-${visit.correctionRequest!.orderId}-${visit.correctionRequest!.requestedAt}`),
       ...pendingDeliveryVisits.map((visit) => `payment-${visit.id}`),
     ],
-    { maxAttempts: 3 },
+    { maxAttempts: 3, notifyOnce: station === "BAR" },
   );
 
   return (

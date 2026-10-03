@@ -23,6 +23,7 @@ function playTone() {
 type OperationalAlertOptions = {
   maxAttempts?: number | null;
   repeatMs?: number;
+  notifyOnce?: boolean;
 };
 
 export function useOperationalAlerts(
@@ -30,7 +31,7 @@ export function useOperationalAlerts(
   actionKeys: string[],
   options: OperationalAlertOptions = {},
 ) {
-  const { maxAttempts = 3, repeatMs = 12_000 } = options;
+  const { maxAttempts = 3, repeatMs = 12_000, notifyOnce = false } = options;
   const storageKey = `assettrack_alerts_${channel}`;
   const attemptsKey = `${storageKey}_attempts`;
   const attempts = useRef<Record<string, number>>({});
@@ -59,9 +60,11 @@ export function useOperationalAlerts(
   }, []);
 
   useEffect(() => {
-    const active = new Set(uniqueKeys);
-    for (const key of Object.keys(attempts.current)) {
-      if (!active.has(key)) delete attempts.current[key];
+    if (!notifyOnce) {
+      const active = new Set(uniqueKeys);
+      for (const key of Object.keys(attempts.current)) {
+        if (!active.has(key)) delete attempts.current[key];
+      }
     }
     window.sessionStorage.setItem(
       attemptsKey,
@@ -72,7 +75,10 @@ export function useOperationalAlerts(
     const notifyPending = () => {
       const eligible = uniqueKeys.filter(
         (key) =>
-          maxAttempts === null || (attempts.current[key] ?? 0) < maxAttempts,
+          notifyOnce
+            ? !attempts.current[key]
+            : maxAttempts === null ||
+              (attempts.current[key] ?? 0) < maxAttempts,
       );
       if (!eligible.length) return;
       for (const key of eligible) {
@@ -90,13 +96,21 @@ export function useOperationalAlerts(
     } else {
       notifyPending();
     }
+    if (notifyOnce) return;
     const timer = window.setInterval(notifyPending, repeatMs);
     return () => window.clearInterval(timer);
-  }, [attemptsKey, enabled, maxAttempts, notify, repeatMs, uniqueKeys]);
+  }, [attemptsKey, enabled, maxAttempts, notify, notifyOnce, repeatMs, uniqueKeys]);
 
   function enableAndTest() {
     window.localStorage.setItem(storageKey, "enabled");
     skipNextImmediate.current = uniqueKeys.length > 0;
+    if (notifyOnce) {
+      for (const key of uniqueKeys) attempts.current[key] = 1;
+      window.sessionStorage.setItem(
+        attemptsKey,
+        JSON.stringify(attempts.current),
+      );
+    }
     setEnabled(true);
     notify();
   }
