@@ -20,6 +20,13 @@ type Table = {
   kind: "DINING" | "BAR_SEAT" | "TAKEOUT_STATION";
 };
 type RestaurantRole = "RESTAURANT_ADMIN" | "KITCHEN" | "BAR" | "WAITER";
+type InventoryAlert = {
+  productId: string;
+  name: string;
+  quantity: number;
+  minimumQuantity: number;
+  presentation: string;
+};
 type RestaurantPayPeriod = "HOURLY" | "DAILY" | "MONTHLY";
 type StaffUser = {
   id: string;
@@ -355,6 +362,7 @@ export type RestaurantAdminSection =
   | "branding"
   | "tables"
   | "menu"
+  | "inventory"
   | "promotions"
   | "invoices"
   | "loyalty"
@@ -384,6 +392,11 @@ const adminSections: Array<{
   { section: "tables", label: "Mesas y QR", href: "/restaurant/admin/tables" },
   { section: "menu", label: "Menú", href: "/restaurant/admin/menu" },
   {
+    section: "inventory",
+    label: "Control de inventario",
+    href: "/restaurant/admin/inventory",
+  },
+  {
     section: "promotions",
     label: "Promociones",
     href: "/restaurant/admin/promotions",
@@ -406,12 +419,19 @@ const adminSections: Array<{
 ];
 
 const sectionDataPaths: Record<RestaurantAdminSection, string[]> = {
-  overview: ["orders", "visits", "billing-settings", "ordering-area-settings"],
+  overview: [
+    "orders",
+    "visits",
+    "billing-settings",
+    "ordering-area-settings",
+    "inventory",
+  ],
   analytics: [],
   "sales-history": [],
   branding: ["branding-settings"],
   tables: ["tables", "staff-users"],
   menu: ["menu"],
+  inventory: [],
   promotions: ["promotions", "menu"],
   invoices: ["invoice-requests"],
   loyalty: ["loyalty/summary", "loyalty/rewards", "menu"],
@@ -460,6 +480,7 @@ export default function RestaurantAdminDashboard({
   const [orders, setOrders] = useState<Order[]>([]);
   const [visits, setVisits] = useState<ActiveVisit[]>([]);
   const [staffUsers, setStaffUsers] = useState<StaffUser[]>([]);
+  const [inventoryAlerts, setInventoryAlerts] = useState<InventoryAlert[]>([]);
   const [station, setStation] = useState<Station>("KITCHEN");
   const [tableName, setTableName] = useState("");
   const [tableKind, setTableKind] = useState<
@@ -612,12 +633,16 @@ export default function RestaurantAdminDashboard({
       const rewardData = data["loyalty/rewards"] as RewardProgram[] | undefined;
       const orderingAreaData = data["ordering-area-settings"] as
         OrderingAreaSettings | undefined;
+      const inventoryData = data.inventory as
+        | { alerts: InventoryAlert[] }
+        | undefined;
 
       if (tableData) setTables(tableData);
       if (menuData) setMenu(menuData);
       if (orderData) setOrders(orderData);
       if (visitData) setVisits(visitData);
       if (staffData) setStaffUsers(staffData);
+      if (inventoryData) setInventoryAlerts(inventoryData.alerts);
       if (billingData) setBilling(billingData);
       if (brandingData) setBranding(brandingData);
       if (promotionData) setPromotions(promotionData);
@@ -1240,6 +1265,26 @@ export default function RestaurantAdminDashboard({
         <p role="alert" className="my-4 rounded bg-red-50 p-4 text-red-800">
           {error}
         </p>
+      )}
+      {section === "overview" && inventoryAlerts.length > 0 && (
+        <section className="mb-8 flex flex-wrap items-center justify-between gap-4 rounded-xl border-4 border-red-500 bg-amber-50 p-5 shadow-lg">
+          <div>
+            <h2 className="text-2xl font-black text-red-800">
+              Inventario en nivel mínimo
+            </h2>
+            <p className="mt-1 text-slate-700">
+              {inventoryAlerts.length} producto
+              {inventoryAlerts.length === 1 ? " requiere" : "s requieren"}{" "}
+              reposición o revisión administrativa.
+            </p>
+          </div>
+          <Link
+            href="/restaurant/admin/inventory"
+            className="rounded-lg bg-red-700 px-5 py-3 font-black text-white"
+          >
+            Revisar inventario
+          </Link>
+        </section>
       )}
       {section === "overview" && externalVisits.length > 0 && (
         <section

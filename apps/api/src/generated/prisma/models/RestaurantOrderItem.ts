@@ -315,6 +315,7 @@ export type RestaurantOrderItemWhereInput = {
   order?: Prisma.XOR<Prisma.RestaurantOrderScalarRelationFilter, Prisma.RestaurantOrderWhereInput>
   menuItem?: Prisma.XOR<Prisma.RestaurantMenuItemScalarRelationFilter, Prisma.RestaurantMenuItemWhereInput>
   events?: Prisma.RestaurantItemEventListRelationFilter
+  inventoryMovements?: Prisma.RestaurantInventoryMovementListRelationFilter
 }
 
 export type RestaurantOrderItemOrderByWithRelationInput = {
@@ -337,6 +338,7 @@ export type RestaurantOrderItemOrderByWithRelationInput = {
   order?: Prisma.RestaurantOrderOrderByWithRelationInput
   menuItem?: Prisma.RestaurantMenuItemOrderByWithRelationInput
   events?: Prisma.RestaurantItemEventOrderByRelationAggregateInput
+  inventoryMovements?: Prisma.RestaurantInventoryMovementOrderByRelationAggregateInput
 }
 
 export type RestaurantOrderItemWhereUniqueInput = Prisma.AtLeast<{
@@ -362,6 +364,7 @@ export type RestaurantOrderItemWhereUniqueInput = Prisma.AtLeast<{
   order?: Prisma.XOR<Prisma.RestaurantOrderScalarRelationFilter, Prisma.RestaurantOrderWhereInput>
   menuItem?: Prisma.XOR<Prisma.RestaurantMenuItemScalarRelationFilter, Prisma.RestaurantMenuItemWhereInput>
   events?: Prisma.RestaurantItemEventListRelationFilter
+  inventoryMovements?: Prisma.RestaurantInventoryMovementListRelationFilter
 }, "id">
 
 export type RestaurantOrderItemOrderByWithAggregationInput = {
@@ -428,6 +431,7 @@ export type RestaurantOrderItemCreateInput = {
   order: Prisma.RestaurantOrderCreateNestedOneWithoutItemsInput
   menuItem: Prisma.RestaurantMenuItemCreateNestedOneWithoutOrderItemsInput
   events?: Prisma.RestaurantItemEventCreateNestedManyWithoutItemInput
+  inventoryMovements?: Prisma.RestaurantInventoryMovementCreateNestedManyWithoutOrderItemInput
 }
 
 export type RestaurantOrderItemUncheckedCreateInput = {
@@ -448,6 +452,7 @@ export type RestaurantOrderItemUncheckedCreateInput = {
   handedOffAt?: Date | string | null
   cancelledByGuestCorrection?: boolean
   events?: Prisma.RestaurantItemEventUncheckedCreateNestedManyWithoutItemInput
+  inventoryMovements?: Prisma.RestaurantInventoryMovementUncheckedCreateNestedManyWithoutOrderItemInput
 }
 
 export type RestaurantOrderItemUpdateInput = {
@@ -468,6 +473,7 @@ export type RestaurantOrderItemUpdateInput = {
   order?: Prisma.RestaurantOrderUpdateOneRequiredWithoutItemsNestedInput
   menuItem?: Prisma.RestaurantMenuItemUpdateOneRequiredWithoutOrderItemsNestedInput
   events?: Prisma.RestaurantItemEventUpdateManyWithoutItemNestedInput
+  inventoryMovements?: Prisma.RestaurantInventoryMovementUpdateManyWithoutOrderItemNestedInput
 }
 
 export type RestaurantOrderItemUncheckedUpdateInput = {
@@ -488,6 +494,7 @@ export type RestaurantOrderItemUncheckedUpdateInput = {
   handedOffAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   cancelledByGuestCorrection?: Prisma.BoolFieldUpdateOperationsInput | boolean
   events?: Prisma.RestaurantItemEventUncheckedUpdateManyWithoutItemNestedInput
+  inventoryMovements?: Prisma.RestaurantInventoryMovementUncheckedUpdateManyWithoutOrderItemNestedInput
 }
 
 export type RestaurantOrderItemCreateManyInput = {
@@ -624,6 +631,11 @@ export type RestaurantOrderItemSumOrderByAggregateInput = {
   prepMinutes?: Prisma.SortOrder
 }
 
+export type RestaurantOrderItemNullableScalarRelationFilter = {
+  is?: Prisma.RestaurantOrderItemWhereInput | null
+  isNot?: Prisma.RestaurantOrderItemWhereInput | null
+}
+
 export type RestaurantOrderItemScalarRelationFilter = {
   is?: Prisma.RestaurantOrderItemWhereInput
   isNot?: Prisma.RestaurantOrderItemWhereInput
@@ -717,6 +729,22 @@ export type EnumRestaurantItemStatusFieldUpdateOperationsInput = {
   set?: $Enums.RestaurantItemStatus
 }
 
+export type RestaurantOrderItemCreateNestedOneWithoutInventoryMovementsInput = {
+  create?: Prisma.XOR<Prisma.RestaurantOrderItemCreateWithoutInventoryMovementsInput, Prisma.RestaurantOrderItemUncheckedCreateWithoutInventoryMovementsInput>
+  connectOrCreate?: Prisma.RestaurantOrderItemCreateOrConnectWithoutInventoryMovementsInput
+  connect?: Prisma.RestaurantOrderItemWhereUniqueInput
+}
+
+export type RestaurantOrderItemUpdateOneWithoutInventoryMovementsNestedInput = {
+  create?: Prisma.XOR<Prisma.RestaurantOrderItemCreateWithoutInventoryMovementsInput, Prisma.RestaurantOrderItemUncheckedCreateWithoutInventoryMovementsInput>
+  connectOrCreate?: Prisma.RestaurantOrderItemCreateOrConnectWithoutInventoryMovementsInput
+  upsert?: Prisma.RestaurantOrderItemUpsertWithoutInventoryMovementsInput
+  disconnect?: Prisma.RestaurantOrderItemWhereInput | boolean
+  delete?: Prisma.RestaurantOrderItemWhereInput | boolean
+  connect?: Prisma.RestaurantOrderItemWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.RestaurantOrderItemUpdateToOneWithWhereWithoutInventoryMovementsInput, Prisma.RestaurantOrderItemUpdateWithoutInventoryMovementsInput>, Prisma.RestaurantOrderItemUncheckedUpdateWithoutInventoryMovementsInput>
+}
+
 export type RestaurantOrderItemCreateNestedOneWithoutEventsInput = {
   create?: Prisma.XOR<Prisma.RestaurantOrderItemCreateWithoutEventsInput, Prisma.RestaurantOrderItemUncheckedCreateWithoutEventsInput>
   connectOrCreate?: Prisma.RestaurantOrderItemCreateOrConnectWithoutEventsInput
@@ -748,6 +776,7 @@ export type RestaurantOrderItemCreateWithoutMenuItemInput = {
   cancelledByGuestCorrection?: boolean
   order: Prisma.RestaurantOrderCreateNestedOneWithoutItemsInput
   events?: Prisma.RestaurantItemEventCreateNestedManyWithoutItemInput
+  inventoryMovements?: Prisma.RestaurantInventoryMovementCreateNestedManyWithoutOrderItemInput
 }
 
 export type RestaurantOrderItemUncheckedCreateWithoutMenuItemInput = {
@@ -767,6 +796,7 @@ export type RestaurantOrderItemUncheckedCreateWithoutMenuItemInput = {
   handedOffAt?: Date | string | null
   cancelledByGuestCorrection?: boolean
   events?: Prisma.RestaurantItemEventUncheckedCreateNestedManyWithoutItemInput
+  inventoryMovements?: Prisma.RestaurantInventoryMovementUncheckedCreateNestedManyWithoutOrderItemInput
 }
 
 export type RestaurantOrderItemCreateOrConnectWithoutMenuItemInput = {
@@ -834,6 +864,7 @@ export type RestaurantOrderItemCreateWithoutOrderInput = {
   cancelledByGuestCorrection?: boolean
   menuItem: Prisma.RestaurantMenuItemCreateNestedOneWithoutOrderItemsInput
   events?: Prisma.RestaurantItemEventCreateNestedManyWithoutItemInput
+  inventoryMovements?: Prisma.RestaurantInventoryMovementCreateNestedManyWithoutOrderItemInput
 }
 
 export type RestaurantOrderItemUncheckedCreateWithoutOrderInput = {
@@ -853,6 +884,7 @@ export type RestaurantOrderItemUncheckedCreateWithoutOrderInput = {
   handedOffAt?: Date | string | null
   cancelledByGuestCorrection?: boolean
   events?: Prisma.RestaurantItemEventUncheckedCreateNestedManyWithoutItemInput
+  inventoryMovements?: Prisma.RestaurantInventoryMovementUncheckedCreateNestedManyWithoutOrderItemInput
 }
 
 export type RestaurantOrderItemCreateOrConnectWithoutOrderInput = {
@@ -881,6 +913,102 @@ export type RestaurantOrderItemUpdateManyWithWhereWithoutOrderInput = {
   data: Prisma.XOR<Prisma.RestaurantOrderItemUpdateManyMutationInput, Prisma.RestaurantOrderItemUncheckedUpdateManyWithoutOrderInput>
 }
 
+export type RestaurantOrderItemCreateWithoutInventoryMovementsInput = {
+  id?: string
+  name: string
+  price: number
+  station: $Enums.RestaurantStation
+  course: $Enums.RestaurantCourse
+  quantity: number
+  fulfillment?: $Enums.RestaurantFulfillment
+  prepMinutes?: number | null
+  status?: $Enums.RestaurantItemStatus
+  acceptedAt?: Date | string | null
+  readyAt?: Date | string | null
+  deliveredAt?: Date | string | null
+  handedOffAt?: Date | string | null
+  cancelledByGuestCorrection?: boolean
+  order: Prisma.RestaurantOrderCreateNestedOneWithoutItemsInput
+  menuItem: Prisma.RestaurantMenuItemCreateNestedOneWithoutOrderItemsInput
+  events?: Prisma.RestaurantItemEventCreateNestedManyWithoutItemInput
+}
+
+export type RestaurantOrderItemUncheckedCreateWithoutInventoryMovementsInput = {
+  id?: string
+  orderId: string
+  menuItemId: string
+  name: string
+  price: number
+  station: $Enums.RestaurantStation
+  course: $Enums.RestaurantCourse
+  quantity: number
+  fulfillment?: $Enums.RestaurantFulfillment
+  prepMinutes?: number | null
+  status?: $Enums.RestaurantItemStatus
+  acceptedAt?: Date | string | null
+  readyAt?: Date | string | null
+  deliveredAt?: Date | string | null
+  handedOffAt?: Date | string | null
+  cancelledByGuestCorrection?: boolean
+  events?: Prisma.RestaurantItemEventUncheckedCreateNestedManyWithoutItemInput
+}
+
+export type RestaurantOrderItemCreateOrConnectWithoutInventoryMovementsInput = {
+  where: Prisma.RestaurantOrderItemWhereUniqueInput
+  create: Prisma.XOR<Prisma.RestaurantOrderItemCreateWithoutInventoryMovementsInput, Prisma.RestaurantOrderItemUncheckedCreateWithoutInventoryMovementsInput>
+}
+
+export type RestaurantOrderItemUpsertWithoutInventoryMovementsInput = {
+  update: Prisma.XOR<Prisma.RestaurantOrderItemUpdateWithoutInventoryMovementsInput, Prisma.RestaurantOrderItemUncheckedUpdateWithoutInventoryMovementsInput>
+  create: Prisma.XOR<Prisma.RestaurantOrderItemCreateWithoutInventoryMovementsInput, Prisma.RestaurantOrderItemUncheckedCreateWithoutInventoryMovementsInput>
+  where?: Prisma.RestaurantOrderItemWhereInput
+}
+
+export type RestaurantOrderItemUpdateToOneWithWhereWithoutInventoryMovementsInput = {
+  where?: Prisma.RestaurantOrderItemWhereInput
+  data: Prisma.XOR<Prisma.RestaurantOrderItemUpdateWithoutInventoryMovementsInput, Prisma.RestaurantOrderItemUncheckedUpdateWithoutInventoryMovementsInput>
+}
+
+export type RestaurantOrderItemUpdateWithoutInventoryMovementsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  price?: Prisma.IntFieldUpdateOperationsInput | number
+  station?: Prisma.EnumRestaurantStationFieldUpdateOperationsInput | $Enums.RestaurantStation
+  course?: Prisma.EnumRestaurantCourseFieldUpdateOperationsInput | $Enums.RestaurantCourse
+  quantity?: Prisma.IntFieldUpdateOperationsInput | number
+  fulfillment?: Prisma.EnumRestaurantFulfillmentFieldUpdateOperationsInput | $Enums.RestaurantFulfillment
+  prepMinutes?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  status?: Prisma.EnumRestaurantItemStatusFieldUpdateOperationsInput | $Enums.RestaurantItemStatus
+  acceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  readyAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deliveredAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  handedOffAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  cancelledByGuestCorrection?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  order?: Prisma.RestaurantOrderUpdateOneRequiredWithoutItemsNestedInput
+  menuItem?: Prisma.RestaurantMenuItemUpdateOneRequiredWithoutOrderItemsNestedInput
+  events?: Prisma.RestaurantItemEventUpdateManyWithoutItemNestedInput
+}
+
+export type RestaurantOrderItemUncheckedUpdateWithoutInventoryMovementsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  orderId?: Prisma.StringFieldUpdateOperationsInput | string
+  menuItemId?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  price?: Prisma.IntFieldUpdateOperationsInput | number
+  station?: Prisma.EnumRestaurantStationFieldUpdateOperationsInput | $Enums.RestaurantStation
+  course?: Prisma.EnumRestaurantCourseFieldUpdateOperationsInput | $Enums.RestaurantCourse
+  quantity?: Prisma.IntFieldUpdateOperationsInput | number
+  fulfillment?: Prisma.EnumRestaurantFulfillmentFieldUpdateOperationsInput | $Enums.RestaurantFulfillment
+  prepMinutes?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  status?: Prisma.EnumRestaurantItemStatusFieldUpdateOperationsInput | $Enums.RestaurantItemStatus
+  acceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  readyAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deliveredAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  handedOffAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  cancelledByGuestCorrection?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  events?: Prisma.RestaurantItemEventUncheckedUpdateManyWithoutItemNestedInput
+}
+
 export type RestaurantOrderItemCreateWithoutEventsInput = {
   id?: string
   name: string
@@ -898,6 +1026,7 @@ export type RestaurantOrderItemCreateWithoutEventsInput = {
   cancelledByGuestCorrection?: boolean
   order: Prisma.RestaurantOrderCreateNestedOneWithoutItemsInput
   menuItem: Prisma.RestaurantMenuItemCreateNestedOneWithoutOrderItemsInput
+  inventoryMovements?: Prisma.RestaurantInventoryMovementCreateNestedManyWithoutOrderItemInput
 }
 
 export type RestaurantOrderItemUncheckedCreateWithoutEventsInput = {
@@ -917,6 +1046,7 @@ export type RestaurantOrderItemUncheckedCreateWithoutEventsInput = {
   deliveredAt?: Date | string | null
   handedOffAt?: Date | string | null
   cancelledByGuestCorrection?: boolean
+  inventoryMovements?: Prisma.RestaurantInventoryMovementUncheckedCreateNestedManyWithoutOrderItemInput
 }
 
 export type RestaurantOrderItemCreateOrConnectWithoutEventsInput = {
@@ -952,6 +1082,7 @@ export type RestaurantOrderItemUpdateWithoutEventsInput = {
   cancelledByGuestCorrection?: Prisma.BoolFieldUpdateOperationsInput | boolean
   order?: Prisma.RestaurantOrderUpdateOneRequiredWithoutItemsNestedInput
   menuItem?: Prisma.RestaurantMenuItemUpdateOneRequiredWithoutOrderItemsNestedInput
+  inventoryMovements?: Prisma.RestaurantInventoryMovementUpdateManyWithoutOrderItemNestedInput
 }
 
 export type RestaurantOrderItemUncheckedUpdateWithoutEventsInput = {
@@ -971,6 +1102,7 @@ export type RestaurantOrderItemUncheckedUpdateWithoutEventsInput = {
   deliveredAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   handedOffAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   cancelledByGuestCorrection?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  inventoryMovements?: Prisma.RestaurantInventoryMovementUncheckedUpdateManyWithoutOrderItemNestedInput
 }
 
 export type RestaurantOrderItemCreateManyMenuItemInput = {
@@ -1008,6 +1140,7 @@ export type RestaurantOrderItemUpdateWithoutMenuItemInput = {
   cancelledByGuestCorrection?: Prisma.BoolFieldUpdateOperationsInput | boolean
   order?: Prisma.RestaurantOrderUpdateOneRequiredWithoutItemsNestedInput
   events?: Prisma.RestaurantItemEventUpdateManyWithoutItemNestedInput
+  inventoryMovements?: Prisma.RestaurantInventoryMovementUpdateManyWithoutOrderItemNestedInput
 }
 
 export type RestaurantOrderItemUncheckedUpdateWithoutMenuItemInput = {
@@ -1027,6 +1160,7 @@ export type RestaurantOrderItemUncheckedUpdateWithoutMenuItemInput = {
   handedOffAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   cancelledByGuestCorrection?: Prisma.BoolFieldUpdateOperationsInput | boolean
   events?: Prisma.RestaurantItemEventUncheckedUpdateManyWithoutItemNestedInput
+  inventoryMovements?: Prisma.RestaurantInventoryMovementUncheckedUpdateManyWithoutOrderItemNestedInput
 }
 
 export type RestaurantOrderItemUncheckedUpdateManyWithoutMenuItemInput = {
@@ -1082,6 +1216,7 @@ export type RestaurantOrderItemUpdateWithoutOrderInput = {
   cancelledByGuestCorrection?: Prisma.BoolFieldUpdateOperationsInput | boolean
   menuItem?: Prisma.RestaurantMenuItemUpdateOneRequiredWithoutOrderItemsNestedInput
   events?: Prisma.RestaurantItemEventUpdateManyWithoutItemNestedInput
+  inventoryMovements?: Prisma.RestaurantInventoryMovementUpdateManyWithoutOrderItemNestedInput
 }
 
 export type RestaurantOrderItemUncheckedUpdateWithoutOrderInput = {
@@ -1101,6 +1236,7 @@ export type RestaurantOrderItemUncheckedUpdateWithoutOrderInput = {
   handedOffAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   cancelledByGuestCorrection?: Prisma.BoolFieldUpdateOperationsInput | boolean
   events?: Prisma.RestaurantItemEventUncheckedUpdateManyWithoutItemNestedInput
+  inventoryMovements?: Prisma.RestaurantInventoryMovementUncheckedUpdateManyWithoutOrderItemNestedInput
 }
 
 export type RestaurantOrderItemUncheckedUpdateManyWithoutOrderInput = {
@@ -1128,10 +1264,12 @@ export type RestaurantOrderItemUncheckedUpdateManyWithoutOrderInput = {
 
 export type RestaurantOrderItemCountOutputType = {
   events: number
+  inventoryMovements: number
 }
 
 export type RestaurantOrderItemCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   events?: boolean | RestaurantOrderItemCountOutputTypeCountEventsArgs
+  inventoryMovements?: boolean | RestaurantOrderItemCountOutputTypeCountInventoryMovementsArgs
 }
 
 /**
@@ -1149,6 +1287,13 @@ export type RestaurantOrderItemCountOutputTypeDefaultArgs<ExtArgs extends runtim
  */
 export type RestaurantOrderItemCountOutputTypeCountEventsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.RestaurantItemEventWhereInput
+}
+
+/**
+ * RestaurantOrderItemCountOutputType without action
+ */
+export type RestaurantOrderItemCountOutputTypeCountInventoryMovementsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.RestaurantInventoryMovementWhereInput
 }
 
 
@@ -1172,6 +1317,7 @@ export type RestaurantOrderItemSelect<ExtArgs extends runtime.Types.Extensions.I
   order?: boolean | Prisma.RestaurantOrderDefaultArgs<ExtArgs>
   menuItem?: boolean | Prisma.RestaurantMenuItemDefaultArgs<ExtArgs>
   events?: boolean | Prisma.RestaurantOrderItem$eventsArgs<ExtArgs>
+  inventoryMovements?: boolean | Prisma.RestaurantOrderItem$inventoryMovementsArgs<ExtArgs>
   _count?: boolean | Prisma.RestaurantOrderItemCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["restaurantOrderItem"]>
 
@@ -1241,6 +1387,7 @@ export type RestaurantOrderItemInclude<ExtArgs extends runtime.Types.Extensions.
   order?: boolean | Prisma.RestaurantOrderDefaultArgs<ExtArgs>
   menuItem?: boolean | Prisma.RestaurantMenuItemDefaultArgs<ExtArgs>
   events?: boolean | Prisma.RestaurantOrderItem$eventsArgs<ExtArgs>
+  inventoryMovements?: boolean | Prisma.RestaurantOrderItem$inventoryMovementsArgs<ExtArgs>
   _count?: boolean | Prisma.RestaurantOrderItemCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type RestaurantOrderItemIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1258,6 +1405,7 @@ export type $RestaurantOrderItemPayload<ExtArgs extends runtime.Types.Extensions
     order: Prisma.$RestaurantOrderPayload<ExtArgs>
     menuItem: Prisma.$RestaurantMenuItemPayload<ExtArgs>
     events: Prisma.$RestaurantItemEventPayload<ExtArgs>[]
+    inventoryMovements: Prisma.$RestaurantInventoryMovementPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1673,6 +1821,7 @@ export interface Prisma__RestaurantOrderItemClient<T, Null = never, ExtArgs exte
   order<T extends Prisma.RestaurantOrderDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.RestaurantOrderDefaultArgs<ExtArgs>>): Prisma.Prisma__RestaurantOrderClient<runtime.Types.Result.GetResult<Prisma.$RestaurantOrderPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   menuItem<T extends Prisma.RestaurantMenuItemDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.RestaurantMenuItemDefaultArgs<ExtArgs>>): Prisma.Prisma__RestaurantMenuItemClient<runtime.Types.Result.GetResult<Prisma.$RestaurantMenuItemPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   events<T extends Prisma.RestaurantOrderItem$eventsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.RestaurantOrderItem$eventsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$RestaurantItemEventPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  inventoryMovements<T extends Prisma.RestaurantOrderItem$inventoryMovementsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.RestaurantOrderItem$inventoryMovementsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$RestaurantInventoryMovementPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2140,6 +2289,30 @@ export type RestaurantOrderItem$eventsArgs<ExtArgs extends runtime.Types.Extensi
   take?: number
   skip?: number
   distinct?: Prisma.RestaurantItemEventScalarFieldEnum | Prisma.RestaurantItemEventScalarFieldEnum[]
+}
+
+/**
+ * RestaurantOrderItem.inventoryMovements
+ */
+export type RestaurantOrderItem$inventoryMovementsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the RestaurantInventoryMovement
+   */
+  select?: Prisma.RestaurantInventoryMovementSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the RestaurantInventoryMovement
+   */
+  omit?: Prisma.RestaurantInventoryMovementOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.RestaurantInventoryMovementInclude<ExtArgs> | null
+  where?: Prisma.RestaurantInventoryMovementWhereInput
+  orderBy?: Prisma.RestaurantInventoryMovementOrderByWithRelationInput | Prisma.RestaurantInventoryMovementOrderByWithRelationInput[]
+  cursor?: Prisma.RestaurantInventoryMovementWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.RestaurantInventoryMovementScalarFieldEnum | Prisma.RestaurantInventoryMovementScalarFieldEnum[]
 }
 
 /**

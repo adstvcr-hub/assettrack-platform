@@ -23,6 +23,10 @@ import {
   CreateStaffOrderDto,
   CreatePromotionDto,
   CreateMenuItemDto,
+  CreateInventoryCategoryDto,
+  CreateInventoryMovementDto,
+  CreateInventoryProductDto,
+  CreateLiquorWeighingDto,
   CorrectGuestOrderDto,
   CorrectStaffOrderDto,
   CreateTableDto,
@@ -35,6 +39,7 @@ import {
   UpdateItemFulfillmentDto,
   UpdateInvoiceRequestDto,
   UpdateMenuItemDto,
+  UpdateInventoryProductDto,
   UpdateRestaurantRoleDto,
   UpdateRestaurantBillingDto,
   UpdateRestaurantBrandingDto,
@@ -279,6 +284,54 @@ export class RestaurantStaffController {
   @Delete("menu/:id")
   deleteMenu(@Req() req: StaffRequest, @Param("id") id: string) {
     return this.restaurant.deleteMenuItem(req.user, id);
+  }
+
+  @Get("inventory")
+  inventory(@Req() req: StaffRequest) {
+    return this.restaurant.inventory(req.user);
+  }
+
+  @Post("inventory/categories")
+  addInventoryCategory(
+    @Req() req: StaffRequest,
+    @Body() dto: CreateInventoryCategoryDto,
+  ) {
+    return this.restaurant.addInventoryCategory(req.user, dto);
+  }
+
+  @Post("inventory/products")
+  addInventoryProduct(
+    @Req() req: StaffRequest,
+    @Body() dto: CreateInventoryProductDto,
+  ) {
+    return this.restaurant.addInventoryProduct(req.user, dto);
+  }
+
+  @Patch("inventory/products/:id")
+  updateInventoryProduct(
+    @Req() req: StaffRequest,
+    @Param("id") id: string,
+    @Body() dto: UpdateInventoryProductDto,
+  ) {
+    return this.restaurant.updateInventoryProduct(req.user, id, dto);
+  }
+
+  @Post("inventory/products/:id/movements")
+  addInventoryMovement(
+    @Req() req: StaffRequest,
+    @Param("id") id: string,
+    @Body() dto: CreateInventoryMovementDto,
+  ) {
+    return this.restaurant.addInventoryMovement(req.user, id, dto);
+  }
+
+  @Post("inventory/products/:id/weighings")
+  addLiquorWeighing(
+    @Req() req: StaffRequest,
+    @Param("id") id: string,
+    @Body() dto: CreateLiquorWeighingDto,
+  ) {
+    return this.restaurant.addLiquorWeighing(req.user, id, dto);
   }
 
   @Get("promotions")

@@ -9,6 +9,7 @@ import { PrismaService } from "../prisma/prisma.service";
 import { RestaurantService } from "./restaurant.service";
 import {
   RestaurantPayPeriod,
+  RestaurantInventoryProductType,
   RestaurantStaffAvailability,
   RestaurantStaffRole,
   UserRole,
@@ -133,6 +134,23 @@ function createService() {
       updateMany: vi.fn(),
       findUnique: vi.fn(),
       count: vi.fn().mockResolvedValue(0),
+      create: vi.fn(),
+      aggregate: vi.fn().mockResolvedValue({ _sum: { quantity: 0 } }),
+    },
+    restaurantInventoryCategory: {
+      findFirst: vi.fn(),
+      findMany: vi.fn().mockResolvedValue([]),
+      create: vi.fn(),
+    },
+    restaurantInventoryProduct: {
+      findFirst: vi.fn(),
+      findMany: vi.fn().mockResolvedValue([]),
+      create: vi.fn(),
+      update: vi.fn(),
+    },
+    restaurantInventoryMovement: { create: vi.fn() },
+    restaurantLiquorWeighing: {
+      findFirst: vi.fn(),
       create: vi.fn(),
     },
     restaurantItemEvent: { create: vi.fn(), createMany: vi.fn() },
@@ -2196,6 +2214,75 @@ describe("RestaurantService", () => {
     prisma.restaurantOrderItem.count.mockResolvedValue(1);
     await expect(service.deleteMenuItem(admin, itemId)).rejects.toBeInstanceOf(
       ConflictException,
+    );
+  });
+
+  it("reports products at or below their minimum as inventory alerts", async () => {
+    const { prisma, service } = createService();
+    const admin = {
+      id: "admin-a",
+      organizationId: "org-a",
+      role: UserRole.ADMIN,
+      restaurantRole: null,
+      restaurantAvailability: RestaurantStaffAvailability.AVAILABLE,
+    };
+    prisma.restaurantInventoryProduct.findMany.mockResolvedValue([
+      {
+        id: "product-a",
+        name: "Agua mineral",
+        active: true,
+        quantity: 4,
+        minimumQuantity: 5,
+        presentation: "botella",
+        unitCost: 500,
+      },
+    ]);
+
+    const result = await service.inventory(admin);
+
+    expect(result.alerts).toEqual([
+      expect.objectContaining({ productId: "product-a", quantity: 4 }),
+    ]);
+    expect(result.summary.lowStockProducts).toBe(1);
+  });
+
+  it("relates a liquor weighing to delivered menu quantities", async () => {
+    const { prisma, service } = createService();
+    const admin = {
+      id: "admin-a",
+      organizationId: "org-a",
+      role: UserRole.ADMIN,
+      restaurantRole: null,
+      restaurantAvailability: RestaurantStaffAvailability.AVAILABLE,
+    };
+    prisma.restaurantInventoryProduct.findFirst.mockResolvedValue({
+      id: "liquor-a",
+      menuItemId: itemId,
+      productType: RestaurantInventoryProductType.LIQUOR,
+      liquorInitialTareGrams: 400,
+    });
+    prisma.restaurantLiquorWeighing.findFirst.mockResolvedValue({
+      measuredAt: new Date("2026-10-02T12:00:00Z"),
+      netWeightGrams: 900,
+    });
+    prisma.restaurantOrderItem.aggregate.mockResolvedValue({
+      _sum: { quantity: 3 },
+    });
+    prisma.restaurantLiquorWeighing.create.mockImplementation(({ data }) =>
+      Promise.resolve(data),
+    );
+
+    const result = await service.addLiquorWeighing(admin, "liquor-a", {
+      grossWeightGrams: 1100,
+      measuredAt: "2026-10-03T12:00:00Z",
+    });
+
+    expect(result).toEqual(
+      expect.objectContaining({
+        netWeightGrams: 700,
+        consumedWeightGrams: 200,
+        relatedOrderQuantity: 3,
+      }),
     );
   });
 });

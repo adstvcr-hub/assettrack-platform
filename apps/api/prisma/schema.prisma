@@ -135,6 +135,17 @@ enum RestaurantRewardSponsor {
   ASSETTRACK
 }
 
+enum RestaurantInventoryProductType {
+  STANDARD
+  LIQUOR
+}
+
+enum RestaurantInventoryMovementType {
+  ENTRY
+  ADJUSTMENT
+  CONSUMPTION
+}
+
 model Organization {
   id        String   @id @default(uuid())
   name      String
@@ -142,20 +153,24 @@ model Organization {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  users                       User[]
-  assets                      Asset[]
-  locations                   OrganizationLocation[]
-  restaurantTables            RestaurantTable[]
-  restaurantMenuItems         RestaurantMenuItem[]
-  restaurantOrders            RestaurantOrder[]
-  restaurantVisits            RestaurantVisit[]
-  restaurantPromotions        RestaurantPromotion[]
-  restaurantLoyaltyActivities RestaurantLoyaltyActivity[]
-  restaurantRewardPrograms    RestaurantRewardProgram[]
-  restaurantAnalyticsDaily    RestaurantAnalyticsDaily[]
-  restaurantAnalyticsProducts RestaurantAnalyticsProductDaily[]
-  userManagementEvents        UserManagementEvent[]
-  restaurantStaffSessions     RestaurantStaffSession[]
+  users                         User[]
+  assets                        Asset[]
+  locations                     OrganizationLocation[]
+  restaurantTables              RestaurantTable[]
+  restaurantMenuItems           RestaurantMenuItem[]
+  restaurantOrders              RestaurantOrder[]
+  restaurantVisits              RestaurantVisit[]
+  restaurantPromotions          RestaurantPromotion[]
+  restaurantLoyaltyActivities   RestaurantLoyaltyActivity[]
+  restaurantRewardPrograms      RestaurantRewardProgram[]
+  restaurantAnalyticsDaily      RestaurantAnalyticsDaily[]
+  restaurantAnalyticsProducts   RestaurantAnalyticsProductDaily[]
+  userManagementEvents          UserManagementEvent[]
+  restaurantStaffSessions       RestaurantStaffSession[]
+  restaurantInventoryCategories RestaurantInventoryCategory[]
+  restaurantInventoryProducts   RestaurantInventoryProduct[]
+  restaurantInventoryMovements  RestaurantInventoryMovement[]
+  restaurantLiquorWeighings     RestaurantLiquorWeighing[]
 
   restaurantTaxRateBps              Int                  @default(1300)
   restaurantTaxIncluded             Boolean              @default(false)
@@ -171,7 +186,7 @@ model Organization {
   restaurantLatitude                Decimal?             @db.Decimal(10, 7)
   restaurantLongitude               Decimal?             @db.Decimal(10, 7)
   restaurantOrderRadiusMeters       Int                  @default(150)
-  restaurantOrderCorrectionMinutes Int                  @default(2)
+  restaurantOrderCorrectionMinutes  Int                  @default(2)
   restaurantRetentionDays           Int                  @default(30)
   restaurantQrAccesses              RestaurantQrAccess[]
 
@@ -422,24 +437,25 @@ model UserManagementEvent {
 }
 
 model RestaurantMenuItem {
-  id             String                    @id @default(uuid())
-  organizationId String
-  name           String
-  description    String?
-  price          Int
-  station        RestaurantStation
-  course         RestaurantCourse
-  active         Boolean                   @default(true)
-  productType    String                    @default("Otros")
-  categories     String[]                  @default([])
-  origin         RestaurantProductOrigin   @default(HOUSE_MADE)
-  prepMinutes    Int?
-  alcoholic      Boolean                   @default(false)
-  imageData      String?
-  createdAt      DateTime                  @default(now())
-  organization   Organization              @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  orderItems     RestaurantOrderItem[]
-  rewardPrograms RestaurantRewardProgram[]
+  id               String                      @id @default(uuid())
+  organizationId   String
+  name             String
+  description      String?
+  price            Int
+  station          RestaurantStation
+  course           RestaurantCourse
+  active           Boolean                     @default(true)
+  productType      String                      @default("Otros")
+  categories       String[]                    @default([])
+  origin           RestaurantProductOrigin     @default(HOUSE_MADE)
+  prepMinutes      Int?
+  alcoholic        Boolean                     @default(false)
+  imageData        String?
+  createdAt        DateTime                    @default(now())
+  organization     Organization                @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  orderItems       RestaurantOrderItem[]
+  rewardPrograms   RestaurantRewardProgram[]
+  inventoryProduct RestaurantInventoryProduct?
 
   @@index([organizationId, active])
   @@map("restaurant_menu_items")
@@ -477,28 +493,111 @@ model RestaurantOrder {
 }
 
 model RestaurantOrderItem {
-  id          String                @id @default(uuid())
-  orderId     String
-  menuItemId  String
-  name        String
-  price       Int
-  station     RestaurantStation
-  course      RestaurantCourse
-  quantity    Int
-  fulfillment RestaurantFulfillment @default(DINE_IN)
-  prepMinutes Int?
-  status      RestaurantItemStatus  @default(RECEIVED)
-  acceptedAt  DateTime?
-  readyAt     DateTime?
-  deliveredAt DateTime?
-  handedOffAt DateTime?
-  cancelledByGuestCorrection Boolean @default(false)
-  order       RestaurantOrder       @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  menuItem    RestaurantMenuItem    @relation(fields: [menuItemId], references: [id])
-  events      RestaurantItemEvent[]
+  id                         String                        @id @default(uuid())
+  orderId                    String
+  menuItemId                 String
+  name                       String
+  price                      Int
+  station                    RestaurantStation
+  course                     RestaurantCourse
+  quantity                   Int
+  fulfillment                RestaurantFulfillment         @default(DINE_IN)
+  prepMinutes                Int?
+  status                     RestaurantItemStatus          @default(RECEIVED)
+  acceptedAt                 DateTime?
+  readyAt                    DateTime?
+  deliveredAt                DateTime?
+  handedOffAt                DateTime?
+  cancelledByGuestCorrection Boolean                       @default(false)
+  order                      RestaurantOrder               @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  menuItem                   RestaurantMenuItem            @relation(fields: [menuItemId], references: [id])
+  events                     RestaurantItemEvent[]
+  inventoryMovements         RestaurantInventoryMovement[]
 
   @@index([station, status])
   @@map("restaurant_order_items")
+}
+
+model RestaurantInventoryCategory {
+  id             String                       @id @default(uuid())
+  organizationId String
+  name           String
+  active         Boolean                      @default(true)
+  createdAt      DateTime                     @default(now())
+  updatedAt      DateTime                     @updatedAt
+  organization   Organization                 @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  products       RestaurantInventoryProduct[]
+
+  @@unique([organizationId, name])
+  @@index([organizationId, active])
+  @@map("restaurant_inventory_categories")
+}
+
+model RestaurantInventoryProduct {
+  id                     String                         @id @default(uuid())
+  organizationId         String
+  categoryId             String
+  menuItemId             String?                        @unique
+  name                   String
+  productType            RestaurantInventoryProductType @default(STANDARD)
+  presentation           String
+  quantity               Int                            @default(0)
+  minimumQuantity        Int                            @default(0)
+  unitCost               Int                            @default(0)
+  receivedAt             DateTime
+  liquorBrand            String?
+  liquorInitialTareGrams Int?
+  active                 Boolean                        @default(true)
+  createdAt              DateTime                       @default(now())
+  updatedAt              DateTime                       @updatedAt
+  organization           Organization                   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  category               RestaurantInventoryCategory    @relation(fields: [categoryId], references: [id])
+  menuItem               RestaurantMenuItem?            @relation(fields: [menuItemId], references: [id], onDelete: SetNull)
+  movements              RestaurantInventoryMovement[]
+  weighings              RestaurantLiquorWeighing[]
+
+  @@index([organizationId, active])
+  @@index([categoryId])
+  @@map("restaurant_inventory_products")
+}
+
+model RestaurantInventoryMovement {
+  id             String                          @id @default(uuid())
+  organizationId String
+  productId      String
+  orderItemId    String?
+  type           RestaurantInventoryMovementType
+  quantityDelta  Int
+  unitCost       Int?
+  occurredAt     DateTime                        @default(now())
+  note           String?
+  organization   Organization                    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  product        RestaurantInventoryProduct      @relation(fields: [productId], references: [id], onDelete: Cascade)
+  orderItem      RestaurantOrderItem?            @relation(fields: [orderItemId], references: [id], onDelete: SetNull)
+
+  @@index([organizationId, occurredAt])
+  @@index([productId, occurredAt])
+  @@index([orderItemId])
+  @@map("restaurant_inventory_movements")
+}
+
+model RestaurantLiquorWeighing {
+  id                     String                     @id @default(uuid())
+  organizationId         String
+  productId              String
+  grossWeightGrams       Int
+  netWeightGrams         Int
+  previousNetWeightGrams Int?
+  consumedWeightGrams    Int?
+  relatedOrderQuantity   Int                        @default(0)
+  measuredAt             DateTime                   @default(now())
+  note                   String?
+  organization           Organization               @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  product                RestaurantInventoryProduct @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, measuredAt])
+  @@index([productId, measuredAt])
+  @@map("restaurant_liquor_weighings")
 }
 
 model RestaurantPromotion {

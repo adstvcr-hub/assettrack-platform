@@ -12,6 +12,8 @@ import {
   RestaurantFulfillment,
   RestaurantInvoiceRequestStatus,
   RestaurantItemStatus,
+  RestaurantInventoryMovementType,
+  RestaurantInventoryProductType,
   RestaurantLoyaltyActivityType,
   RestaurantPaymentStatus,
   RestaurantPayPeriod,
@@ -26,6 +28,10 @@ import {
 } from "../generated/prisma/enums";
 import {
   CreateMenuItemDto,
+  CreateInventoryCategoryDto,
+  CreateInventoryMovementDto,
+  CreateInventoryProductDto,
+  CreateLiquorWeighingDto,
   CorrectGuestOrderDto,
   CorrectStaffOrderDto,
   CreatePromotionDto,
@@ -41,6 +47,7 @@ import {
   UpdateItemFulfillmentDto,
   UpdateInvoiceRequestDto,
   UpdateMenuItemDto,
+  UpdateInventoryProductDto,
   UpdateRestaurantBillingDto,
   UpdateRestaurantBrandingDto,
   UpdateRestaurantOrderingAreaDto,
@@ -2285,6 +2292,288 @@ export class RestaurantService {
     }
     await this.prisma.restaurantMenuItem.delete({ where: { id } });
     return { deleted: true };
+  }
+
+  async inventory(actor: RestaurantActor) {
+    this.requireRestaurantAdmin(actor);
+    const [categories, products, menuItems] = await Promise.all([
+      this.prisma.restaurantInventoryCategory.findMany({
+        where: { organizationId: actor.organizationId, active: true },
+        orderBy: { name: "asc" },
+      }),
+      this.prisma.restaurantInventoryProduct.findMany({
+        where: { organizationId: actor.organizationId },
+        include: {
+          category: { select: { id: true, name: true } },
+          menuItem: { select: { id: true, name: true } },
+          movements: { orderBy: { occurredAt: "desc" }, take: 10 },
+          weighings: { orderBy: { measuredAt: "desc" }, take: 10 },
+        },
+        orderBy: [{ active: "desc" }, { name: "asc" }],
+      }),
+      this.prisma.restaurantMenuItem.findMany({
+        where: { organizationId: actor.organizationId, active: true },
+        select: { id: true, name: true },
+        orderBy: { name: "asc" },
+      }),
+    ]);
+    const alerts = products
+      .filter(
+        (product) =>
+          product.active && product.quantity <= product.minimumQuantity,
+      )
+      .map((product) => ({
+        productId: product.id,
+        name: product.name,
+        quantity: product.quantity,
+        minimumQuantity: product.minimumQuantity,
+        presentation: product.presentation,
+      }));
+    return {
+      categories,
+      products,
+      menuItems,
+      alerts,
+      summary: {
+        activeProducts: products.filter((product) => product.active).length,
+        lowStockProducts: alerts.length,
+        inventoryCost: products
+          .filter((product) => product.active)
+          .reduce(
+            (total, product) => total + product.quantity * product.unitCost,
+            0,
+          ),
+      },
+    };
+  }
+
+  async addInventoryCategory(
+    actor: RestaurantActor,
+    dto: CreateInventoryCategoryDto,
+  ) {
+    this.requireRestaurantAdmin(actor);
+    const name = dto.name.trim();
+    if (!name) throw new BadRequestException("Category name required");
+    const existing = await this.prisma.restaurantInventoryCategory.findFirst({
+      where: { organizationId: actor.organizationId, name },
+    });
+    if (existing) throw new ConflictException("Inventory category already exists");
+    return this.prisma.restaurantInventoryCategory.create({
+      data: { organizationId: actor.organizationId, name },
+    });
+  }
+
+  async addInventoryProduct(
+    actor: RestaurantActor,
+    dto: CreateInventoryProductDto,
+  ) {
+    this.requireRestaurantAdmin(actor);
+    const name = dto.name.trim();
+    const presentation = dto.presentation.trim();
+    if (!name || !presentation) {
+      throw new BadRequestException("Name and presentation are required");
+    }
+    if (
+      dto.productType === RestaurantInventoryProductType.LIQUOR &&
+      (!dto.liquorBrand?.trim() || dto.liquorInitialTareGrams === undefined)
+    ) {
+      throw new BadRequestException("Liquor brand and initial tare are required");
+    }
+    const [category, menuItem] = await Promise.all([
+      this.prisma.restaurantInventoryCategory.findFirst({
+        where: {
+          id: dto.categoryId,
+          organizationId: actor.organizationId,
+          active: true,
+        },
+      }),
+      dto.menuItemId
+        ? this.prisma.restaurantMenuItem.findFirst({
+            where: { id: dto.menuItemId, organizationId: actor.organizationId },
+          })
+        : Promise.resolve(null),
+    ]);
+    if (!category) throw new NotFoundException("Inventory category not found");
+    if (dto.menuItemId && !menuItem) {
+      throw new NotFoundException("Menu item not found");
+    }
+    return this.prisma.$transaction(async (tx) => {
+      const product = await tx.restaurantInventoryProduct.create({
+        data: {
+          organizationId: actor.organizationId,
+          categoryId: dto.categoryId,
+          menuItemId: dto.menuItemId ?? null,
+          name,
+          productType: dto.productType,
+          presentation,
+          quantity: dto.quantity,
+          minimumQuantity: dto.minimumQuantity,
+          unitCost: dto.unitCost,
+          receivedAt: new Date(dto.receivedAt),
+          liquorBrand: dto.liquorBrand?.trim() || null,
+          liquorInitialTareGrams: dto.liquorInitialTareGrams ?? null,
+        },
+      });
+      if (dto.quantity > 0) {
+        await tx.restaurantInventoryMovement.create({
+          data: {
+            organizationId: actor.organizationId,
+            productId: product.id,
+            type: RestaurantInventoryMovementType.ENTRY,
+            quantityDelta: dto.quantity,
+            unitCost: dto.unitCost,
+            occurredAt: new Date(dto.receivedAt),
+            note: "Inventario inicial",
+          },
+        });
+      }
+      return product;
+    });
+  }
+
+  async updateInventoryProduct(
+    actor: RestaurantActor,
+    id: string,
+    dto: UpdateInventoryProductDto,
+  ) {
+    this.requireRestaurantAdmin(actor);
+    const current = await this.prisma.restaurantInventoryProduct.findFirst({
+      where: { id, organizationId: actor.organizationId },
+    });
+    if (!current) throw new NotFoundException("Inventory product not found");
+    if (dto.categoryId) {
+      const category = await this.prisma.restaurantInventoryCategory.findFirst({
+        where: { id: dto.categoryId, organizationId: actor.organizationId },
+      });
+      if (!category) throw new NotFoundException("Inventory category not found");
+    }
+    if (dto.menuItemId) {
+      const menuItem = await this.prisma.restaurantMenuItem.findFirst({
+        where: { id: dto.menuItemId, organizationId: actor.organizationId },
+      });
+      if (!menuItem) throw new NotFoundException("Menu item not found");
+    }
+    return this.prisma.restaurantInventoryProduct.update({
+      where: { id },
+      data: {
+        ...dto,
+        ...(dto.name !== undefined ? { name: dto.name.trim() } : {}),
+        ...(dto.presentation !== undefined
+          ? { presentation: dto.presentation.trim() }
+          : {}),
+        ...(dto.receivedAt ? { receivedAt: new Date(dto.receivedAt) } : {}),
+        ...(dto.liquorBrand !== undefined
+          ? { liquorBrand: dto.liquorBrand?.trim() || null }
+          : {}),
+      },
+    });
+  }
+
+  async addInventoryMovement(
+    actor: RestaurantActor,
+    productId: string,
+    dto: CreateInventoryMovementDto,
+  ) {
+    this.requireRestaurantAdmin(actor);
+    if (dto.type === RestaurantInventoryMovementType.CONSUMPTION) {
+      throw new BadRequestException("Consumption movements are generated from orders");
+    }
+    if (dto.quantityDelta === 0) {
+      throw new BadRequestException("Movement quantity cannot be zero");
+    }
+    if (
+      dto.type === RestaurantInventoryMovementType.ENTRY &&
+      dto.quantityDelta < 0
+    ) {
+      throw new BadRequestException("Entries must increase inventory");
+    }
+    return this.prisma.$transaction(async (tx) => {
+      const product = await tx.restaurantInventoryProduct.findFirst({
+        where: { id: productId, organizationId: actor.organizationId },
+      });
+      if (!product) throw new NotFoundException("Inventory product not found");
+      const quantity = product.quantity + dto.quantityDelta;
+      if (quantity < 0) {
+        throw new ConflictException("Movement would leave negative inventory");
+      }
+      await tx.restaurantInventoryProduct.update({
+        where: { id: productId },
+        data: {
+          quantity,
+          ...(dto.unitCost !== undefined ? { unitCost: dto.unitCost } : {}),
+        },
+      });
+      return tx.restaurantInventoryMovement.create({
+        data: {
+          organizationId: actor.organizationId,
+          productId,
+          type: dto.type,
+          quantityDelta: dto.quantityDelta,
+          unitCost: dto.unitCost,
+          occurredAt: dto.occurredAt ? new Date(dto.occurredAt) : new Date(),
+          note: dto.note?.trim() || null,
+        },
+      });
+    });
+  }
+
+  async addLiquorWeighing(
+    actor: RestaurantActor,
+    productId: string,
+    dto: CreateLiquorWeighingDto,
+  ) {
+    this.requireRestaurantAdmin(actor);
+    const measuredAt = dto.measuredAt ? new Date(dto.measuredAt) : new Date();
+    return this.prisma.$transaction(async (tx) => {
+      const product = await tx.restaurantInventoryProduct.findFirst({
+        where: { id: productId, organizationId: actor.organizationId },
+      });
+      if (!product) throw new NotFoundException("Inventory product not found");
+      if (
+        product.productType !== RestaurantInventoryProductType.LIQUOR ||
+        product.liquorInitialTareGrams === null
+      ) {
+        throw new BadRequestException("This product does not use liquor weighing");
+      }
+      if (dto.grossWeightGrams < product.liquorInitialTareGrams) {
+        throw new BadRequestException("Gross weight cannot be below the tare");
+      }
+      const previous = await tx.restaurantLiquorWeighing.findFirst({
+        where: { productId },
+        orderBy: { measuredAt: "desc" },
+      });
+      const netWeightGrams =
+        dto.grossWeightGrams - product.liquorInitialTareGrams;
+      const aggregate = product.menuItemId
+        ? await tx.restaurantOrderItem.aggregate({
+            where: {
+              menuItemId: product.menuItemId,
+              status: RestaurantItemStatus.DELIVERED,
+              deliveredAt: {
+                ...(previous ? { gt: previous.measuredAt } : {}),
+                lte: measuredAt,
+              },
+              order: { organizationId: actor.organizationId },
+            },
+            _sum: { quantity: true },
+          })
+        : null;
+      return tx.restaurantLiquorWeighing.create({
+        data: {
+          organizationId: actor.organizationId,
+          productId,
+          grossWeightGrams: dto.grossWeightGrams,
+          netWeightGrams,
+          previousNetWeightGrams: previous?.netWeightGrams ?? null,
+          consumedWeightGrams: previous
+            ? Math.max(0, previous.netWeightGrams - netWeightGrams)
+            : null,
+          relatedOrderQuantity: aggregate?._sum.quantity ?? 0,
+          measuredAt,
+          note: dto.note?.trim() || null,
+        },
+      });
+    });
   }
 
   promotions(actor: RestaurantActor) {

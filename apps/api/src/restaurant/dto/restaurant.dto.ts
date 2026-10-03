@@ -30,6 +30,8 @@ import {
   RestaurantStation,
   RestaurantTableKind,
   RestaurantRewardType,
+  RestaurantInventoryMovementType,
+  RestaurantInventoryProductType,
 } from "../../generated/prisma/enums";
 
 export class CreateTableDto {
@@ -66,6 +68,53 @@ export class UpdateMenuItemDto {
   @IsOptional() @IsInt() @Min(5) @Max(15) prepMinutes?: number | null;
   @IsOptional() @IsBoolean() alcoholic?: boolean;
   @IsOptional() @IsString() @MaxLength(2800000) imageData?: string | null;
+}
+
+export class CreateInventoryCategoryDto {
+  @IsString() @MaxLength(80) name!: string;
+}
+
+export class CreateInventoryProductDto {
+  @IsUUID() categoryId!: string;
+  @IsOptional() @IsUUID() menuItemId?: string;
+  @IsString() @MaxLength(120) name!: string;
+  @IsEnum(RestaurantInventoryProductType)
+  productType!: RestaurantInventoryProductType;
+  @IsString() @MaxLength(80) presentation!: string;
+  @IsInt() @Min(0) @Max(100000000) quantity!: number;
+  @IsInt() @Min(0) @Max(100000000) minimumQuantity!: number;
+  @IsInt() @Min(0) @Max(100000000) unitCost!: number;
+  @IsDateString() receivedAt!: string;
+  @IsOptional() @IsString() @MaxLength(100) liquorBrand?: string;
+  @IsOptional() @IsInt() @Min(0) @Max(1000000) liquorInitialTareGrams?: number;
+}
+
+export class UpdateInventoryProductDto {
+  @IsOptional() @IsUUID() categoryId?: string;
+  @IsOptional() @IsUUID() menuItemId?: string | null;
+  @IsOptional() @IsString() @MaxLength(120) name?: string;
+  @IsOptional() @IsString() @MaxLength(80) presentation?: string;
+  @IsOptional() @IsInt() @Min(0) @Max(100000000) minimumQuantity?: number;
+  @IsOptional() @IsInt() @Min(0) @Max(100000000) unitCost?: number;
+  @IsOptional() @IsDateString() receivedAt?: string;
+  @IsOptional() @IsString() @MaxLength(100) liquorBrand?: string | null;
+  @IsOptional() @IsInt() @Min(0) @Max(1000000) liquorInitialTareGrams?: number | null;
+  @IsOptional() @IsBoolean() active?: boolean;
+}
+
+export class CreateInventoryMovementDto {
+  @IsEnum(RestaurantInventoryMovementType)
+  type!: RestaurantInventoryMovementType;
+  @IsInt() @Min(-100000000) @Max(100000000) quantityDelta!: number;
+  @IsOptional() @IsInt() @Min(0) @Max(100000000) unitCost?: number;
+  @IsOptional() @IsDateString() occurredAt?: string;
+  @IsOptional() @IsString() @MaxLength(240) note?: string;
+}
+
+export class CreateLiquorWeighingDto {
+  @IsInt() @Min(0) @Max(1000000) grossWeightGrams!: number;
+  @IsOptional() @IsDateString() measuredAt?: string;
+  @IsOptional() @IsString() @MaxLength(240) note?: string;
 }
 
 export class OrderLineDto {
