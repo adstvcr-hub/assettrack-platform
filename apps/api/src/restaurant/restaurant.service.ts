@@ -2363,7 +2363,8 @@ export class RestaurantService {
           ),
       },
       permissions: {
-        canManageCatalog: role === RestaurantStaffRole.RESTAURANT_ADMIN,
+        canManageCatalog: true,
+        isBar: role === RestaurantStaffRole.BAR,
         canRecordMovements: true,
       },
     };
@@ -2373,7 +2374,7 @@ export class RestaurantService {
     actor: RestaurantActor,
     dto: CreateInventoryCategoryDto,
   ) {
-    this.requireRestaurantAdmin(actor);
+    this.requireInventoryAccess(actor, true);
     const name = dto.name.trim();
     if (!name) throw new BadRequestException("Category name required");
     const existing = await this.prisma.restaurantInventoryCategory.findFirst({
@@ -2389,7 +2390,7 @@ export class RestaurantService {
     actor: RestaurantActor,
     dto: CreateInventoryProductDto,
   ) {
-    this.requireRestaurantAdmin(actor);
+    this.requireInventoryAccess(actor, true);
     const name = dto.name.trim();
     const presentation = dto.presentation.trim();
     if (!name || !presentation) {
@@ -2458,7 +2459,7 @@ export class RestaurantService {
     id: string,
     dto: UpdateInventoryProductDto,
   ) {
-    this.requireRestaurantAdmin(actor);
+    this.requireInventoryAccess(actor, true);
     const current = await this.prisma.restaurantInventoryProduct.findFirst({
       where: { id, organizationId: actor.organizationId },
     });
@@ -2496,15 +2497,7 @@ export class RestaurantService {
     productId: string,
     dto: CreateInventoryMovementDto,
   ) {
-    const role = this.requireInventoryAccess(actor, true);
-    if (
-      role === RestaurantStaffRole.BAR &&
-      dto.unitCost !== undefined
-    ) {
-      throw new ForbiddenException(
-        "El costo del inventario solo puede cambiarlo la administración",
-      );
-    }
+    this.requireInventoryAccess(actor, true);
     if (dto.type === RestaurantInventoryMovementType.CONSUMPTION) {
       throw new BadRequestException("Consumption movements are generated from orders");
     }

@@ -37,11 +37,22 @@ export function useOperationalAlerts(
   const attempts = useRef<Record<string, number>>({});
   const skipNextImmediate = useRef(false);
   const [enabled, setEnabled] = useState(false);
+  const [visualPending, setVisualPending] = useState(false);
   const signature = [...new Set(actionKeys)].sort().join("|");
   const uniqueKeys = useMemo(
     () => (signature ? signature.split("|") : []),
     [signature],
   );
+
+  useEffect(() => {
+    if (uniqueKeys.length) {
+      setVisualPending(true);
+      return;
+    }
+    // A transient empty snapshot must not blink the operational indicator.
+    const timer = window.setTimeout(() => setVisualPending(false), 6000);
+    return () => window.clearTimeout(timer);
+  }, [uniqueKeys]);
 
   useEffect(() => {
     setEnabled(window.localStorage.getItem(storageKey) === "enabled");
@@ -123,7 +134,7 @@ export function useOperationalAlerts(
 
   return {
     enabled,
-    flash: uniqueKeys.length > 0,
+    flash: visualPending,
     activeCount: uniqueKeys.length,
     enableAndTest,
     disable,

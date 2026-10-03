@@ -144,8 +144,16 @@ export function OperationalDashboard({ station }: { station: Station }) {
       setError("No se pudo cargar la cola de trabajo");
       return;
     }
-    setOrders(await response.json());
-    if (visitsResponse?.ok) setVisits(await visitsResponse.json());
+    const [nextOrders, nextVisits] = await Promise.all([
+      response.json() as Promise<Order[]>,
+      visitsResponse?.ok
+        ? visitsResponse.json() as Promise<Visit[]>
+        : Promise.resolve(null),
+    ]);
+    // JSON parsing is asynchronous too: recheck before committing the snapshot.
+    if (sequence !== loadSequence.current) return;
+    setOrders(nextOrders);
+    if (nextVisits) setVisits(nextVisits);
     setError("");
   }, [router, station]);
 
@@ -154,9 +162,23 @@ export function OperationalDashboard({ station }: { station: Station }) {
       router.replace(`/?next=/restaurant/${station.toLowerCase()}`);
       return;
     }
-    void load();
-    const timer = setInterval(() => void load(), 5000);
-    return () => clearInterval(timer);
+    let stopped = false;
+    let timer: ReturnType<typeof setTimeout>;
+    const poll = async () => {
+      try {
+        await load();
+      } catch {
+        if (!stopped) setError("Conexión interrumpida; conservamos la última información disponible.");
+      } finally {
+        if (!stopped) timer = setTimeout(() => void poll(), 5000);
+      }
+    };
+    void poll();
+    return () => {
+      stopped = true;
+      ++loadSequence.current;
+      clearTimeout(timer);
+    };
   }, [load, router, station]);
 
   useEffect(() => {

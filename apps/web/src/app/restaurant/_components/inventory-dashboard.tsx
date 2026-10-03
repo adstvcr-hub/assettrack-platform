@@ -58,6 +58,7 @@ type Inventory = {
   };
   permissions: {
     canManageCatalog: boolean;
+    isBar?: boolean;
     canRecordMovements: boolean;
   };
 };
@@ -263,11 +264,11 @@ export default function InventoryDashboard() {
         <div className="flex flex-wrap gap-2 rounded-lg bg-slate-950 p-2 text-white">
           <Link
             className="rounded border px-4 py-2 font-bold"
-            href={canManageCatalog ? "/restaurant/admin" : "/restaurant/bar"}
+            href={inventory?.permissions.isBar ? "/restaurant/bar" : "/restaurant/admin"}
           >
-            {canManageCatalog ? "Administración" : "Volver al bar"}
+            {inventory?.permissions.isBar ? "Volver al bar" : "Administración"}
           </Link>
-          <RestaurantSessionActions admin={canManageCatalog} />
+          <RestaurantSessionActions admin={canManageCatalog && !inventory?.permissions.isBar} />
         </div>
       </header>
 

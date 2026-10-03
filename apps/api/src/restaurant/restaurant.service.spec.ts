@@ -2286,7 +2286,7 @@ describe("RestaurantService", () => {
     );
   });
 
-  it("allows available bar staff to record inventory without changing costs", async () => {
+  it("allows available bar staff to record inventory and change costs", async () => {
     const { prisma, service } = createService();
     const bartender = {
       id: "bar-a",
@@ -2318,7 +2318,30 @@ describe("RestaurantService", () => {
         quantityDelta: 2,
         unitCost: 900,
       }),
-    ).rejects.toBeInstanceOf(ForbiddenException);
+    ).resolves.toEqual(expect.objectContaining({ quantityDelta: 2 }));
+  });
+
+  it("grants bar staff full inventory catalog permissions", async () => {
+    const { prisma, service } = createService();
+    const bartender = {
+      id: "bar-a",
+      organizationId: "org-a",
+      role: UserRole.USER,
+      restaurantRole: RestaurantStaffRole.BAR,
+      restaurantAvailability: RestaurantStaffAvailability.AVAILABLE,
+    };
+    const result = await service.inventory(bartender);
+    expect(result.permissions).toEqual({
+      canManageCatalog: true,
+      canRecordMovements: true,
+      isBar: true,
+    });
+    prisma.restaurantInventoryCategory.findFirst.mockResolvedValue(null);
+    await service.addInventoryCategory(bartender, { name: "Bebidas" });
+    expect(prisma.restaurantInventoryCategory.create).toHaveBeenCalledWith({
+      data: { organizationId: "org-a", name: "Bebidas" },
+    });
+    await expect(service.inventory(kitchenActor)).rejects.toBeInstanceOf(ForbiddenException);
   });
 
   it("denies inventory records from bar staff who are out of service", async () => {
