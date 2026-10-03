@@ -1,4 +1,7 @@
-﻿"use client";
+"use client";
+
+import { getSessionValue } from "@/lib/session";
+
 
 import { FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -33,7 +36,7 @@ export default function AssetsPage() {
   const [totalPages, setTotalPages] = useState(1);
 
   async function getToken() {
-    const token = sessionStorage.getItem("assettrack_token");
+    const token = getSessionValue("assettrack_token");
 
     if (!token) {
       router.replace("/?next=/assets");
@@ -84,7 +87,7 @@ export default function AssetsPage() {
   }
 
   useEffect(() => {
-    const storedUser = sessionStorage.getItem("assettrack_user");
+    const storedUser = getSessionValue("assettrack_user");
 
     if (storedUser) {
       setCurrentUser(JSON.parse(storedUser));
@@ -141,7 +144,7 @@ export default function AssetsPage() {
   }
 
   async function openQr(assetId: string) {
-    const token = sessionStorage.getItem("assettrack_token");
+    const token = getSessionValue("assettrack_token");
 
     if (!token) {
       return;

@@ -23,6 +23,116 @@ export * from './enums';
  */
 export type Organization = Prisma.OrganizationModel
 /**
+ * Model RestaurantTable
+ * 
+ */
+export type RestaurantTable = Prisma.RestaurantTableModel
+/**
+ * Model RestaurantVisit
+ * 
+ */
+export type RestaurantVisit = Prisma.RestaurantVisitModel
+/**
+ * Model RestaurantQrAccess
+ * 
+ */
+export type RestaurantQrAccess = Prisma.RestaurantQrAccessModel
+/**
+ * Model RestaurantLoyaltyMember
+ * 
+ */
+export type RestaurantLoyaltyMember = Prisma.RestaurantLoyaltyMemberModel
+/**
+ * Model RestaurantLoyaltyActivity
+ * 
+ */
+export type RestaurantLoyaltyActivity = Prisma.RestaurantLoyaltyActivityModel
+/**
+ * Model RestaurantRewardProgram
+ * 
+ */
+export type RestaurantRewardProgram = Prisma.RestaurantRewardProgramModel
+/**
+ * Model RestaurantVisitTransfer
+ * 
+ */
+export type RestaurantVisitTransfer = Prisma.RestaurantVisitTransferModel
+/**
+ * Model PlatformAdminEvent
+ * 
+ */
+export type PlatformAdminEvent = Prisma.PlatformAdminEventModel
+/**
+ * Model RestaurantAnalyticsDaily
+ * 
+ */
+export type RestaurantAnalyticsDaily = Prisma.RestaurantAnalyticsDailyModel
+/**
+ * Model RestaurantAnalyticsProductDaily
+ * 
+ */
+export type RestaurantAnalyticsProductDaily = Prisma.RestaurantAnalyticsProductDailyModel
+/**
+ * Model UserManagementEvent
+ * 
+ */
+export type UserManagementEvent = Prisma.UserManagementEventModel
+/**
+ * Model RestaurantMenuItem
+ * 
+ */
+export type RestaurantMenuItem = Prisma.RestaurantMenuItemModel
+/**
+ * Model RestaurantOrder
+ * 
+ */
+export type RestaurantOrder = Prisma.RestaurantOrderModel
+/**
+ * Model RestaurantOrderItem
+ * 
+ */
+export type RestaurantOrderItem = Prisma.RestaurantOrderItemModel
+/**
+ * Model RestaurantInventoryCategory
+ * 
+ */
+export type RestaurantInventoryCategory = Prisma.RestaurantInventoryCategoryModel
+/**
+ * Model RestaurantInventoryProduct
+ * 
+ */
+export type RestaurantInventoryProduct = Prisma.RestaurantInventoryProductModel
+/**
+ * Model RestaurantInventoryMovement
+ * 
+ */
+export type RestaurantInventoryMovement = Prisma.RestaurantInventoryMovementModel
+/**
+ * Model RestaurantLiquorWeighing
+ * 
+ */
+export type RestaurantLiquorWeighing = Prisma.RestaurantLiquorWeighingModel
+/**
+ * Model RestaurantPromotion
+ * 
+ */
+export type RestaurantPromotion = Prisma.RestaurantPromotionModel
+/**
+ * Model RestaurantItemEvent
+ * 
+ */
+export type RestaurantItemEvent = Prisma.RestaurantItemEventModel
+/**
+ * Model RestaurantStaffEvent
+ * 
+ */
+export type RestaurantStaffEvent = Prisma.RestaurantStaffEventModel
+/**
+ * Model RestaurantStaffSession
+ * 
+ */
+export type RestaurantStaffSession = Prisma.RestaurantStaffSessionModel
+/**
  * Model OrganizationLocation
  * 
  */
@@ -32,6 +142,11 @@ export type OrganizationLocation = Prisma.OrganizationLocationModel
  * 
  */
 export type User = Prisma.UserModel
+/**
+ * Model StaffAccessCode
+ * 
+ */
+export type StaffAccessCode = Prisma.StaffAccessCodeModel
 /**
  * Model Asset
  * 

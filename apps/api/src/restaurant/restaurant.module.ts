@@ -1,0 +1,16 @@
+import { Module } from "@nestjs/common";
+import {
+  RestaurantGuestController,
+  RestaurantStaffController,
+} from "./restaurant.controller";
+import { RestaurantService } from "./restaurant.service";
+import { RestaurantAccessGuard } from "./restaurant-access.guard";
+import { UsersModule } from "../users/users.module";
+
+@Module({
+  imports: [UsersModule],
+  controllers: [RestaurantGuestController, RestaurantStaffController],
+  providers: [RestaurantService, RestaurantAccessGuard],
+  exports: [RestaurantService],
+})
+export class RestaurantModule {}

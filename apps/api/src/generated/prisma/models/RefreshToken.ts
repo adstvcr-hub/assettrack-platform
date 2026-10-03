@@ -27,6 +27,7 @@ export type AggregateRefreshToken = {
 export type RefreshTokenMinAggregateOutputType = {
   id: string | null
   userId: string | null
+  restaurantStaffSessionId: string | null
   tokenHash: string | null
   expiresAt: Date | null
   createdAt: Date | null
@@ -36,6 +37,7 @@ export type RefreshTokenMinAggregateOutputType = {
 export type RefreshTokenMaxAggregateOutputType = {
   id: string | null
   userId: string | null
+  restaurantStaffSessionId: string | null
   tokenHash: string | null
   expiresAt: Date | null
   createdAt: Date | null
@@ -45,6 +47,7 @@ export type RefreshTokenMaxAggregateOutputType = {
 export type RefreshTokenCountAggregateOutputType = {
   id: number
   userId: number
+  restaurantStaffSessionId: number
   tokenHash: number
   expiresAt: number
   createdAt: number
@@ -56,6 +59,7 @@ export type RefreshTokenCountAggregateOutputType = {
 export type RefreshTokenMinAggregateInputType = {
   id?: true
   userId?: true
+  restaurantStaffSessionId?: true
   tokenHash?: true
   expiresAt?: true
   createdAt?: true
@@ -65,6 +69,7 @@ export type RefreshTokenMinAggregateInputType = {
 export type RefreshTokenMaxAggregateInputType = {
   id?: true
   userId?: true
+  restaurantStaffSessionId?: true
   tokenHash?: true
   expiresAt?: true
   createdAt?: true
@@ -74,6 +79,7 @@ export type RefreshTokenMaxAggregateInputType = {
 export type RefreshTokenCountAggregateInputType = {
   id?: true
   userId?: true
+  restaurantStaffSessionId?: true
   tokenHash?: true
   expiresAt?: true
   createdAt?: true
@@ -156,6 +162,7 @@ export type RefreshTokenGroupByArgs<ExtArgs extends runtime.Types.Extensions.Int
 export type RefreshTokenGroupByOutputType = {
   id: string
   userId: string
+  restaurantStaffSessionId: string | null
   tokenHash: string
   expiresAt: Date
   createdAt: Date
@@ -186,21 +193,25 @@ export type RefreshTokenWhereInput = {
   NOT?: Prisma.RefreshTokenWhereInput | Prisma.RefreshTokenWhereInput[]
   id?: Prisma.StringFilter<"RefreshToken"> | string
   userId?: Prisma.StringFilter<"RefreshToken"> | string
+  restaurantStaffSessionId?: Prisma.StringNullableFilter<"RefreshToken"> | string | null
   tokenHash?: Prisma.StringFilter<"RefreshToken"> | string
   expiresAt?: Prisma.DateTimeFilter<"RefreshToken"> | Date | string
   createdAt?: Prisma.DateTimeFilter<"RefreshToken"> | Date | string
   revokedAt?: Prisma.DateTimeNullableFilter<"RefreshToken"> | Date | string | null
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
+  restaurantStaffSession?: Prisma.XOR<Prisma.RestaurantStaffSessionNullableScalarRelationFilter, Prisma.RestaurantStaffSessionWhereInput> | null
 }
 
 export type RefreshTokenOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   userId?: Prisma.SortOrder
+  restaurantStaffSessionId?: Prisma.SortOrderInput | Prisma.SortOrder
   tokenHash?: Prisma.SortOrder
   expiresAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   revokedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   user?: Prisma.UserOrderByWithRelationInput
+  restaurantStaffSession?: Prisma.RestaurantStaffSessionOrderByWithRelationInput
 }
 
 export type RefreshTokenWhereUniqueInput = Prisma.AtLeast<{
@@ -210,15 +221,18 @@ export type RefreshTokenWhereUniqueInput = Prisma.AtLeast<{
   OR?: Prisma.RefreshTokenWhereInput[]
   NOT?: Prisma.RefreshTokenWhereInput | Prisma.RefreshTokenWhereInput[]
   userId?: Prisma.StringFilter<"RefreshToken"> | string
+  restaurantStaffSessionId?: Prisma.StringNullableFilter<"RefreshToken"> | string | null
   expiresAt?: Prisma.DateTimeFilter<"RefreshToken"> | Date | string
   createdAt?: Prisma.DateTimeFilter<"RefreshToken"> | Date | string
   revokedAt?: Prisma.DateTimeNullableFilter<"RefreshToken"> | Date | string | null
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
+  restaurantStaffSession?: Prisma.XOR<Prisma.RestaurantStaffSessionNullableScalarRelationFilter, Prisma.RestaurantStaffSessionWhereInput> | null
 }, "id" | "tokenHash">
 
 export type RefreshTokenOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   userId?: Prisma.SortOrder
+  restaurantStaffSessionId?: Prisma.SortOrderInput | Prisma.SortOrder
   tokenHash?: Prisma.SortOrder
   expiresAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -234,6 +248,7 @@ export type RefreshTokenScalarWhereWithAggregatesInput = {
   NOT?: Prisma.RefreshTokenScalarWhereWithAggregatesInput | Prisma.RefreshTokenScalarWhereWithAggregatesInput[]
   id?: Prisma.StringWithAggregatesFilter<"RefreshToken"> | string
   userId?: Prisma.StringWithAggregatesFilter<"RefreshToken"> | string
+  restaurantStaffSessionId?: Prisma.StringNullableWithAggregatesFilter<"RefreshToken"> | string | null
   tokenHash?: Prisma.StringWithAggregatesFilter<"RefreshToken"> | string
   expiresAt?: Prisma.DateTimeWithAggregatesFilter<"RefreshToken"> | Date | string
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"RefreshToken"> | Date | string
@@ -247,11 +262,13 @@ export type RefreshTokenCreateInput = {
   createdAt?: Date | string
   revokedAt?: Date | string | null
   user: Prisma.UserCreateNestedOneWithoutRefreshTokensInput
+  restaurantStaffSession?: Prisma.RestaurantStaffSessionCreateNestedOneWithoutRefreshTokensInput
 }
 
 export type RefreshTokenUncheckedCreateInput = {
   id?: string
   userId: string
+  restaurantStaffSessionId?: string | null
   tokenHash: string
   expiresAt: Date | string
   createdAt?: Date | string
@@ -265,11 +282,13 @@ export type RefreshTokenUpdateInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   revokedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   user?: Prisma.UserUpdateOneRequiredWithoutRefreshTokensNestedInput
+  restaurantStaffSession?: Prisma.RestaurantStaffSessionUpdateOneWithoutRefreshTokensNestedInput
 }
 
 export type RefreshTokenUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.StringFieldUpdateOperationsInput | string
+  restaurantStaffSessionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tokenHash?: Prisma.StringFieldUpdateOperationsInput | string
   expiresAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -279,6 +298,7 @@ export type RefreshTokenUncheckedUpdateInput = {
 export type RefreshTokenCreateManyInput = {
   id?: string
   userId: string
+  restaurantStaffSessionId?: string | null
   tokenHash: string
   expiresAt: Date | string
   createdAt?: Date | string
@@ -296,6 +316,7 @@ export type RefreshTokenUpdateManyMutationInput = {
 export type RefreshTokenUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.StringFieldUpdateOperationsInput | string
+  restaurantStaffSessionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tokenHash?: Prisma.StringFieldUpdateOperationsInput | string
   expiresAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -315,6 +336,7 @@ export type RefreshTokenOrderByRelationAggregateInput = {
 export type RefreshTokenCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   userId?: Prisma.SortOrder
+  restaurantStaffSessionId?: Prisma.SortOrder
   tokenHash?: Prisma.SortOrder
   expiresAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -324,6 +346,7 @@ export type RefreshTokenCountOrderByAggregateInput = {
 export type RefreshTokenMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   userId?: Prisma.SortOrder
+  restaurantStaffSessionId?: Prisma.SortOrder
   tokenHash?: Prisma.SortOrder
   expiresAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -333,10 +356,53 @@ export type RefreshTokenMaxOrderByAggregateInput = {
 export type RefreshTokenMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   userId?: Prisma.SortOrder
+  restaurantStaffSessionId?: Prisma.SortOrder
   tokenHash?: Prisma.SortOrder
   expiresAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   revokedAt?: Prisma.SortOrder
+}
+
+export type RefreshTokenCreateNestedManyWithoutRestaurantStaffSessionInput = {
+  create?: Prisma.XOR<Prisma.RefreshTokenCreateWithoutRestaurantStaffSessionInput, Prisma.RefreshTokenUncheckedCreateWithoutRestaurantStaffSessionInput> | Prisma.RefreshTokenCreateWithoutRestaurantStaffSessionInput[] | Prisma.RefreshTokenUncheckedCreateWithoutRestaurantStaffSessionInput[]
+  connectOrCreate?: Prisma.RefreshTokenCreateOrConnectWithoutRestaurantStaffSessionInput | Prisma.RefreshTokenCreateOrConnectWithoutRestaurantStaffSessionInput[]
+  createMany?: Prisma.RefreshTokenCreateManyRestaurantStaffSessionInputEnvelope
+  connect?: Prisma.RefreshTokenWhereUniqueInput | Prisma.RefreshTokenWhereUniqueInput[]
+}
+
+export type RefreshTokenUncheckedCreateNestedManyWithoutRestaurantStaffSessionInput = {
+  create?: Prisma.XOR<Prisma.RefreshTokenCreateWithoutRestaurantStaffSessionInput, Prisma.RefreshTokenUncheckedCreateWithoutRestaurantStaffSessionInput> | Prisma.RefreshTokenCreateWithoutRestaurantStaffSessionInput[] | Prisma.RefreshTokenUncheckedCreateWithoutRestaurantStaffSessionInput[]
+  connectOrCreate?: Prisma.RefreshTokenCreateOrConnectWithoutRestaurantStaffSessionInput | Prisma.RefreshTokenCreateOrConnectWithoutRestaurantStaffSessionInput[]
+  createMany?: Prisma.RefreshTokenCreateManyRestaurantStaffSessionInputEnvelope
+  connect?: Prisma.RefreshTokenWhereUniqueInput | Prisma.RefreshTokenWhereUniqueInput[]
+}
+
+export type RefreshTokenUpdateManyWithoutRestaurantStaffSessionNestedInput = {
+  create?: Prisma.XOR<Prisma.RefreshTokenCreateWithoutRestaurantStaffSessionInput, Prisma.RefreshTokenUncheckedCreateWithoutRestaurantStaffSessionInput> | Prisma.RefreshTokenCreateWithoutRestaurantStaffSessionInput[] | Prisma.RefreshTokenUncheckedCreateWithoutRestaurantStaffSessionInput[]
+  connectOrCreate?: Prisma.RefreshTokenCreateOrConnectWithoutRestaurantStaffSessionInput | Prisma.RefreshTokenCreateOrConnectWithoutRestaurantStaffSessionInput[]
+  upsert?: Prisma.RefreshTokenUpsertWithWhereUniqueWithoutRestaurantStaffSessionInput | Prisma.RefreshTokenUpsertWithWhereUniqueWithoutRestaurantStaffSessionInput[]
+  createMany?: Prisma.RefreshTokenCreateManyRestaurantStaffSessionInputEnvelope
+  set?: Prisma.RefreshTokenWhereUniqueInput | Prisma.RefreshTokenWhereUniqueInput[]
+  disconnect?: Prisma.RefreshTokenWhereUniqueInput | Prisma.RefreshTokenWhereUniqueInput[]
+  delete?: Prisma.RefreshTokenWhereUniqueInput | Prisma.RefreshTokenWhereUniqueInput[]
+  connect?: Prisma.RefreshTokenWhereUniqueInput | Prisma.RefreshTokenWhereUniqueInput[]
+  update?: Prisma.RefreshTokenUpdateWithWhereUniqueWithoutRestaurantStaffSessionInput | Prisma.RefreshTokenUpdateWithWhereUniqueWithoutRestaurantStaffSessionInput[]
+  updateMany?: Prisma.RefreshTokenUpdateManyWithWhereWithoutRestaurantStaffSessionInput | Prisma.RefreshTokenUpdateManyWithWhereWithoutRestaurantStaffSessionInput[]
+  deleteMany?: Prisma.RefreshTokenScalarWhereInput | Prisma.RefreshTokenScalarWhereInput[]
+}
+
+export type RefreshTokenUncheckedUpdateManyWithoutRestaurantStaffSessionNestedInput = {
+  create?: Prisma.XOR<Prisma.RefreshTokenCreateWithoutRestaurantStaffSessionInput, Prisma.RefreshTokenUncheckedCreateWithoutRestaurantStaffSessionInput> | Prisma.RefreshTokenCreateWithoutRestaurantStaffSessionInput[] | Prisma.RefreshTokenUncheckedCreateWithoutRestaurantStaffSessionInput[]
+  connectOrCreate?: Prisma.RefreshTokenCreateOrConnectWithoutRestaurantStaffSessionInput | Prisma.RefreshTokenCreateOrConnectWithoutRestaurantStaffSessionInput[]
+  upsert?: Prisma.RefreshTokenUpsertWithWhereUniqueWithoutRestaurantStaffSessionInput | Prisma.RefreshTokenUpsertWithWhereUniqueWithoutRestaurantStaffSessionInput[]
+  createMany?: Prisma.RefreshTokenCreateManyRestaurantStaffSessionInputEnvelope
+  set?: Prisma.RefreshTokenWhereUniqueInput | Prisma.RefreshTokenWhereUniqueInput[]
+  disconnect?: Prisma.RefreshTokenWhereUniqueInput | Prisma.RefreshTokenWhereUniqueInput[]
+  delete?: Prisma.RefreshTokenWhereUniqueInput | Prisma.RefreshTokenWhereUniqueInput[]
+  connect?: Prisma.RefreshTokenWhereUniqueInput | Prisma.RefreshTokenWhereUniqueInput[]
+  update?: Prisma.RefreshTokenUpdateWithWhereUniqueWithoutRestaurantStaffSessionInput | Prisma.RefreshTokenUpdateWithWhereUniqueWithoutRestaurantStaffSessionInput[]
+  updateMany?: Prisma.RefreshTokenUpdateManyWithWhereWithoutRestaurantStaffSessionInput | Prisma.RefreshTokenUpdateManyWithWhereWithoutRestaurantStaffSessionInput[]
+  deleteMany?: Prisma.RefreshTokenScalarWhereInput | Prisma.RefreshTokenScalarWhereInput[]
 }
 
 export type RefreshTokenCreateNestedManyWithoutUserInput = {
@@ -381,8 +447,61 @@ export type RefreshTokenUncheckedUpdateManyWithoutUserNestedInput = {
   deleteMany?: Prisma.RefreshTokenScalarWhereInput | Prisma.RefreshTokenScalarWhereInput[]
 }
 
-export type NullableDateTimeFieldUpdateOperationsInput = {
-  set?: Date | string | null
+export type RefreshTokenCreateWithoutRestaurantStaffSessionInput = {
+  id?: string
+  tokenHash: string
+  expiresAt: Date | string
+  createdAt?: Date | string
+  revokedAt?: Date | string | null
+  user: Prisma.UserCreateNestedOneWithoutRefreshTokensInput
+}
+
+export type RefreshTokenUncheckedCreateWithoutRestaurantStaffSessionInput = {
+  id?: string
+  userId: string
+  tokenHash: string
+  expiresAt: Date | string
+  createdAt?: Date | string
+  revokedAt?: Date | string | null
+}
+
+export type RefreshTokenCreateOrConnectWithoutRestaurantStaffSessionInput = {
+  where: Prisma.RefreshTokenWhereUniqueInput
+  create: Prisma.XOR<Prisma.RefreshTokenCreateWithoutRestaurantStaffSessionInput, Prisma.RefreshTokenUncheckedCreateWithoutRestaurantStaffSessionInput>
+}
+
+export type RefreshTokenCreateManyRestaurantStaffSessionInputEnvelope = {
+  data: Prisma.RefreshTokenCreateManyRestaurantStaffSessionInput | Prisma.RefreshTokenCreateManyRestaurantStaffSessionInput[]
+  skipDuplicates?: boolean
+}
+
+export type RefreshTokenUpsertWithWhereUniqueWithoutRestaurantStaffSessionInput = {
+  where: Prisma.RefreshTokenWhereUniqueInput
+  update: Prisma.XOR<Prisma.RefreshTokenUpdateWithoutRestaurantStaffSessionInput, Prisma.RefreshTokenUncheckedUpdateWithoutRestaurantStaffSessionInput>
+  create: Prisma.XOR<Prisma.RefreshTokenCreateWithoutRestaurantStaffSessionInput, Prisma.RefreshTokenUncheckedCreateWithoutRestaurantStaffSessionInput>
+}
+
+export type RefreshTokenUpdateWithWhereUniqueWithoutRestaurantStaffSessionInput = {
+  where: Prisma.RefreshTokenWhereUniqueInput
+  data: Prisma.XOR<Prisma.RefreshTokenUpdateWithoutRestaurantStaffSessionInput, Prisma.RefreshTokenUncheckedUpdateWithoutRestaurantStaffSessionInput>
+}
+
+export type RefreshTokenUpdateManyWithWhereWithoutRestaurantStaffSessionInput = {
+  where: Prisma.RefreshTokenScalarWhereInput
+  data: Prisma.XOR<Prisma.RefreshTokenUpdateManyMutationInput, Prisma.RefreshTokenUncheckedUpdateManyWithoutRestaurantStaffSessionInput>
+}
+
+export type RefreshTokenScalarWhereInput = {
+  AND?: Prisma.RefreshTokenScalarWhereInput | Prisma.RefreshTokenScalarWhereInput[]
+  OR?: Prisma.RefreshTokenScalarWhereInput[]
+  NOT?: Prisma.RefreshTokenScalarWhereInput | Prisma.RefreshTokenScalarWhereInput[]
+  id?: Prisma.StringFilter<"RefreshToken"> | string
+  userId?: Prisma.StringFilter<"RefreshToken"> | string
+  restaurantStaffSessionId?: Prisma.StringNullableFilter<"RefreshToken"> | string | null
+  tokenHash?: Prisma.StringFilter<"RefreshToken"> | string
+  expiresAt?: Prisma.DateTimeFilter<"RefreshToken"> | Date | string
+  createdAt?: Prisma.DateTimeFilter<"RefreshToken"> | Date | string
+  revokedAt?: Prisma.DateTimeNullableFilter<"RefreshToken"> | Date | string | null
 }
 
 export type RefreshTokenCreateWithoutUserInput = {
@@ -391,10 +510,12 @@ export type RefreshTokenCreateWithoutUserInput = {
   expiresAt: Date | string
   createdAt?: Date | string
   revokedAt?: Date | string | null
+  restaurantStaffSession?: Prisma.RestaurantStaffSessionCreateNestedOneWithoutRefreshTokensInput
 }
 
 export type RefreshTokenUncheckedCreateWithoutUserInput = {
   id?: string
+  restaurantStaffSessionId?: string | null
   tokenHash: string
   expiresAt: Date | string
   createdAt?: Date | string
@@ -427,20 +548,45 @@ export type RefreshTokenUpdateManyWithWhereWithoutUserInput = {
   data: Prisma.XOR<Prisma.RefreshTokenUpdateManyMutationInput, Prisma.RefreshTokenUncheckedUpdateManyWithoutUserInput>
 }
 
-export type RefreshTokenScalarWhereInput = {
-  AND?: Prisma.RefreshTokenScalarWhereInput | Prisma.RefreshTokenScalarWhereInput[]
-  OR?: Prisma.RefreshTokenScalarWhereInput[]
-  NOT?: Prisma.RefreshTokenScalarWhereInput | Prisma.RefreshTokenScalarWhereInput[]
-  id?: Prisma.StringFilter<"RefreshToken"> | string
-  userId?: Prisma.StringFilter<"RefreshToken"> | string
-  tokenHash?: Prisma.StringFilter<"RefreshToken"> | string
-  expiresAt?: Prisma.DateTimeFilter<"RefreshToken"> | Date | string
-  createdAt?: Prisma.DateTimeFilter<"RefreshToken"> | Date | string
-  revokedAt?: Prisma.DateTimeNullableFilter<"RefreshToken"> | Date | string | null
+export type RefreshTokenCreateManyRestaurantStaffSessionInput = {
+  id?: string
+  userId: string
+  tokenHash: string
+  expiresAt: Date | string
+  createdAt?: Date | string
+  revokedAt?: Date | string | null
+}
+
+export type RefreshTokenUpdateWithoutRestaurantStaffSessionInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  tokenHash?: Prisma.StringFieldUpdateOperationsInput | string
+  expiresAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  revokedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  user?: Prisma.UserUpdateOneRequiredWithoutRefreshTokensNestedInput
+}
+
+export type RefreshTokenUncheckedUpdateWithoutRestaurantStaffSessionInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  userId?: Prisma.StringFieldUpdateOperationsInput | string
+  tokenHash?: Prisma.StringFieldUpdateOperationsInput | string
+  expiresAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  revokedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+}
+
+export type RefreshTokenUncheckedUpdateManyWithoutRestaurantStaffSessionInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  userId?: Prisma.StringFieldUpdateOperationsInput | string
+  tokenHash?: Prisma.StringFieldUpdateOperationsInput | string
+  expiresAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  revokedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
 export type RefreshTokenCreateManyUserInput = {
   id?: string
+  restaurantStaffSessionId?: string | null
   tokenHash: string
   expiresAt: Date | string
   createdAt?: Date | string
@@ -453,10 +599,12 @@ export type RefreshTokenUpdateWithoutUserInput = {
   expiresAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   revokedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  restaurantStaffSession?: Prisma.RestaurantStaffSessionUpdateOneWithoutRefreshTokensNestedInput
 }
 
 export type RefreshTokenUncheckedUpdateWithoutUserInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  restaurantStaffSessionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tokenHash?: Prisma.StringFieldUpdateOperationsInput | string
   expiresAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -465,6 +613,7 @@ export type RefreshTokenUncheckedUpdateWithoutUserInput = {
 
 export type RefreshTokenUncheckedUpdateManyWithoutUserInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  restaurantStaffSessionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tokenHash?: Prisma.StringFieldUpdateOperationsInput | string
   expiresAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -476,61 +625,73 @@ export type RefreshTokenUncheckedUpdateManyWithoutUserInput = {
 export type RefreshTokenSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   userId?: boolean
+  restaurantStaffSessionId?: boolean
   tokenHash?: boolean
   expiresAt?: boolean
   createdAt?: boolean
   revokedAt?: boolean
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  restaurantStaffSession?: boolean | Prisma.RefreshToken$restaurantStaffSessionArgs<ExtArgs>
 }, ExtArgs["result"]["refreshToken"]>
 
 export type RefreshTokenSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   userId?: boolean
+  restaurantStaffSessionId?: boolean
   tokenHash?: boolean
   expiresAt?: boolean
   createdAt?: boolean
   revokedAt?: boolean
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  restaurantStaffSession?: boolean | Prisma.RefreshToken$restaurantStaffSessionArgs<ExtArgs>
 }, ExtArgs["result"]["refreshToken"]>
 
 export type RefreshTokenSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   userId?: boolean
+  restaurantStaffSessionId?: boolean
   tokenHash?: boolean
   expiresAt?: boolean
   createdAt?: boolean
   revokedAt?: boolean
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  restaurantStaffSession?: boolean | Prisma.RefreshToken$restaurantStaffSessionArgs<ExtArgs>
 }, ExtArgs["result"]["refreshToken"]>
 
 export type RefreshTokenSelectScalar = {
   id?: boolean
   userId?: boolean
+  restaurantStaffSessionId?: boolean
   tokenHash?: boolean
   expiresAt?: boolean
   createdAt?: boolean
   revokedAt?: boolean
 }
 
-export type RefreshTokenOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "tokenHash" | "expiresAt" | "createdAt" | "revokedAt", ExtArgs["result"]["refreshToken"]>
+export type RefreshTokenOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "restaurantStaffSessionId" | "tokenHash" | "expiresAt" | "createdAt" | "revokedAt", ExtArgs["result"]["refreshToken"]>
 export type RefreshTokenInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  restaurantStaffSession?: boolean | Prisma.RefreshToken$restaurantStaffSessionArgs<ExtArgs>
 }
 export type RefreshTokenIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  restaurantStaffSession?: boolean | Prisma.RefreshToken$restaurantStaffSessionArgs<ExtArgs>
 }
 export type RefreshTokenIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  restaurantStaffSession?: boolean | Prisma.RefreshToken$restaurantStaffSessionArgs<ExtArgs>
 }
 
 export type $RefreshTokenPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "RefreshToken"
   objects: {
     user: Prisma.$UserPayload<ExtArgs>
+    restaurantStaffSession: Prisma.$RestaurantStaffSessionPayload<ExtArgs> | null
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
     userId: string
+    restaurantStaffSessionId: string | null
     tokenHash: string
     expiresAt: Date
     createdAt: Date
@@ -930,6 +1091,7 @@ readonly fields: RefreshTokenFieldRefs;
 export interface Prisma__RefreshTokenClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
   user<T extends Prisma.UserDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.UserDefaultArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+  restaurantStaffSession<T extends Prisma.RefreshToken$restaurantStaffSessionArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.RefreshToken$restaurantStaffSessionArgs<ExtArgs>>): Prisma.Prisma__RestaurantStaffSessionClient<runtime.Types.Result.GetResult<Prisma.$RestaurantStaffSessionPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -961,6 +1123,7 @@ export interface Prisma__RefreshTokenClient<T, Null = never, ExtArgs extends run
 export interface RefreshTokenFieldRefs {
   readonly id: Prisma.FieldRef<"RefreshToken", 'String'>
   readonly userId: Prisma.FieldRef<"RefreshToken", 'String'>
+  readonly restaurantStaffSessionId: Prisma.FieldRef<"RefreshToken", 'String'>
   readonly tokenHash: Prisma.FieldRef<"RefreshToken", 'String'>
   readonly expiresAt: Prisma.FieldRef<"RefreshToken", 'DateTime'>
   readonly createdAt: Prisma.FieldRef<"RefreshToken", 'DateTime'>
@@ -1363,6 +1526,25 @@ export type RefreshTokenDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.
    * Limit how many RefreshTokens to delete.
    */
   limit?: number
+}
+
+/**
+ * RefreshToken.restaurantStaffSession
+ */
+export type RefreshToken$restaurantStaffSessionArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the RestaurantStaffSession
+   */
+  select?: Prisma.RestaurantStaffSessionSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the RestaurantStaffSession
+   */
+  omit?: Prisma.RestaurantStaffSessionOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.RestaurantStaffSessionInclude<ExtArgs> | null
+  where?: Prisma.RestaurantStaffSessionWhereInput
 }
 
 /**
