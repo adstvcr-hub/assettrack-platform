@@ -106,6 +106,11 @@ export class PlaceOrderDto {
   items!: OrderLineDto[];
 }
 
+export class CreateStaffOrderDto extends PlaceOrderDto {
+  @IsUUID()
+  tableId!: string;
+}
+
 export class CorrectGuestOrderDto {
   @IsUUID() orderId!: string;
   @IsUUID() requestId!: string;

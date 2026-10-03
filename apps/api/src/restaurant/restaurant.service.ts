@@ -30,6 +30,7 @@ import {
   CorrectStaffOrderDto,
   CreatePromotionDto,
   CreateRewardProgramDto,
+  CreateStaffOrderDto,
   CreateTableDto,
   PlaceOrderDto,
   RecordQrAccessDto,
@@ -2589,7 +2590,11 @@ export class RestaurantService {
     };
   }
 
-  async placeOrder(code: string, dto: PlaceOrderDto) {
+  async placeOrder(
+    code: string,
+    dto: PlaceOrderDto,
+    responsibleActor?: RestaurantActor,
+  ) {
     const table = await this.prisma.restaurantTable.findUnique({
       where: { code },
       include: {
@@ -2708,8 +2713,8 @@ export class RestaurantService {
               restaurantServiceRateBps: true,
             },
           });
-          let responsibleStaffId = table.waiterId;
-          if (isDelivery) {
+          let responsibleStaffId = responsibleActor?.id ?? table.waiterId;
+          if (!responsibleActor && isDelivery) {
             const availableStaff = await tx.user.findMany({
               where: {
                 organizationId: table.organizationId,
@@ -2745,7 +2750,10 @@ export class RestaurantService {
             );
             loads.sort((left, right) => left.load - right.load);
             responsibleStaffId = loads[0]?.id ?? null;
-          } else if (table.kind === RestaurantTableKind.DINING) {
+          } else if (
+            !responsibleActor &&
+            table.kind === RestaurantTableKind.DINING
+          ) {
             const assignedWaiter = table.waiterId
               ? await tx.user.findFirst({
                   where: {
@@ -2774,8 +2782,9 @@ export class RestaurantService {
               );
             }
           } else if (
-            table.kind === RestaurantTableKind.BAR_SEAT ||
-            table.kind === RestaurantTableKind.TAKEOUT_STATION
+            !responsibleActor &&
+            (table.kind === RestaurantTableKind.BAR_SEAT ||
+              table.kind === RestaurantTableKind.TAKEOUT_STATION)
           ) {
             const preferredRole =
               table.kind === RestaurantTableKind.BAR_SEAT
@@ -3876,6 +3885,96 @@ export class RestaurantService {
         endsAt,
       },
     });
+  }
+
+  async staffOrderEntry(actor: RestaurantActor) {
+    const role = this.effectiveRole(actor);
+    if (role !== RestaurantStaffRole.BAR) {
+      throw new ForbiddenException("Bar access required");
+    }
+    const availableStations = await this.availableStations(actor.organizationId);
+    const stations = [
+      ...(availableStations.has(RestaurantStaffRole.KITCHEN)
+        ? [RestaurantStation.KITCHEN]
+        : []),
+      ...(availableStations.has(RestaurantStaffRole.BAR)
+        ? [RestaurantStation.BAR]
+        : []),
+    ];
+    const [tables, menu] = await Promise.all([
+      this.prisma.restaurantTable.findMany({
+        where: {
+          organizationId: actor.organizationId,
+          active: true,
+          kind: {
+            in: [RestaurantTableKind.DINING, RestaurantTableKind.BAR_SEAT],
+          },
+        },
+        select: { id: true, name: true, kind: true },
+        orderBy: { name: "asc" },
+      }),
+      this.prisma.restaurantMenuItem.findMany({
+        where: {
+          organizationId: actor.organizationId,
+          active: true,
+          station: { in: stations },
+        },
+        select: {
+          id: true,
+          name: true,
+          description: true,
+          price: true,
+          station: true,
+          productType: true,
+        },
+        orderBy: [{ productType: "asc" }, { name: "asc" }],
+      }),
+    ]);
+    return { tables, menu };
+  }
+
+  async createStaffOrder(actor: RestaurantActor, dto: CreateStaffOrderDto) {
+    const role = this.effectiveRole(actor);
+    if (role !== RestaurantStaffRole.BAR) {
+      throw new ForbiddenException("Bar access required");
+    }
+    if (
+      actor.restaurantAvailability !== RestaurantStaffAvailability.AVAILABLE
+    ) {
+      throw new ForbiddenException("El bartender no está disponible");
+    }
+    if (dto.fulfillment === RestaurantFulfillment.DELIVERY) {
+      throw new BadRequestException(
+        "Use una mesa o posición para crear esta orden",
+      );
+    }
+    const table = await this.prisma.restaurantTable.findFirst({
+      where: {
+        id: dto.tableId,
+        organizationId: actor.organizationId,
+        active: true,
+      },
+      select: { id: true, code: true },
+    });
+    if (!table) throw new NotFoundException("Mesa o posición no encontrada");
+    const existingVisit = await this.prisma.restaurantVisit.findFirst({
+      where: {
+        organizationId: actor.organizationId,
+        tableId: table.id,
+        responsibleStaffId: actor.id,
+        status: RestaurantVisitStatus.OPEN,
+        occupiesTable: true,
+      },
+      select: { accessCode: true },
+      orderBy: { openedAt: "desc" },
+    });
+    const { tableId: _tableId, ...orderDto } = dto;
+    void _tableId;
+    return this.placeOrder(
+      table.code,
+      { ...orderDto, accountAccessCode: existingVisit?.accessCode },
+      actor,
+    );
   }
 
   async orders(actor: RestaurantActor) {

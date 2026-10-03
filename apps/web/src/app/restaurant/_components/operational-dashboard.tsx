@@ -4,6 +4,7 @@ import { getSessionValue } from "@/lib/session";
 
 
 import { StaffAccountDetail } from "./staff-account-detail";
+import { BarOrderEntry } from "./bar-order-entry";
 import { API_URL, authenticatedFetch } from "@/lib/api";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
@@ -333,6 +334,7 @@ export function OperationalDashboard({ station }: { station: Station }) {
         {error && (
           <p className="rounded-lg bg-red-100 p-4 text-red-800">{error}</p>
         )}
+        {station === "BAR" && <BarOrderEntry onCreated={() => void load()} />}
         {station === "BAR" && deliveryVisits.length > 0 && (
           <section
             className={`rounded-xl border-4 p-5 shadow-lg ${pendingDeliveryVisits.length ? "border-amber-500 bg-amber-50" : "border-violet-400 bg-violet-50"}`}

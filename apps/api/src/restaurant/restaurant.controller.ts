@@ -20,6 +20,7 @@ import {
   AssignWaiterDto,
   CancelOrderDto,
   CreateRewardProgramDto,
+  CreateStaffOrderDto,
   CreatePromotionDto,
   CreateMenuItemDto,
   CorrectGuestOrderDto,
@@ -334,6 +335,19 @@ export class RestaurantStaffController {
   @Get("orders")
   orders(@Req() req: StaffRequest) {
     return this.restaurant.orders(req.user);
+  }
+
+  @Get("order-entry")
+  orderEntry(@Req() req: StaffRequest) {
+    return this.restaurant.staffOrderEntry(req.user);
+  }
+
+  @Post("orders")
+  createStaffOrder(
+    @Req() req: StaffRequest,
+    @Body() dto: CreateStaffOrderDto,
+  ) {
+    return this.restaurant.createStaffOrder(req.user, dto);
   }
 
   @Get("visits")
