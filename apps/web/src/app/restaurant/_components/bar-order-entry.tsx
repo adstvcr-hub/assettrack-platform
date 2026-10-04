@@ -48,7 +48,6 @@ export function BarOrderEntry({ onCreated }: { onCreated: () => void }) {
     const data: { tables: Table[]; menu: MenuItem[] } = await response.json();
     setTables(data.tables);
     setMenu(data.menu);
-    setTableId((current) => current || data.tables[0]?.id || "");
     setActiveType((current) =>
       current && data.menu.some((item) => item.productType === current)
         ? current
@@ -96,6 +95,12 @@ export function BarOrderEntry({ onCreated }: { onCreated: () => void }) {
     setMessage("");
   };
 
+  const toggleMenu = () => {
+    setTableId("");
+    setMessage("");
+    setOpen((current) => !current);
+  };
+
   const submit = async () => {
     if (!tableId || !selectedItems.length) {
       setMessage("Seleccione una posición y al menos un producto.");
@@ -127,6 +132,7 @@ export function BarOrderEntry({ onCreated }: { onCreated: () => void }) {
       return;
     }
     setQuantities({});
+    setTableId("");
     setMessage("Orden creada y asignada a su cuenta de trabajo.");
     onCreated();
   };
@@ -146,7 +152,7 @@ export function BarOrderEntry({ onCreated }: { onCreated: () => void }) {
         <button
           type="button"
           className="rounded-lg bg-emerald-800 px-5 py-3 font-black text-white"
-          onClick={() => setOpen((current) => !current)}
+          onClick={toggleMenu}
         >
           {open ? "Cerrar menú" : "Abrir menú y ordenar"}
         </button>
@@ -161,6 +167,9 @@ export function BarOrderEntry({ onCreated }: { onCreated: () => void }) {
                 value={tableId}
                 onChange={(event) => setTableId(event.target.value)}
               >
+                <option value="" disabled>
+                  Seleccione una mesa o posición
+                </option>
                 {tables.map((table) => (
                   <option key={table.id} value={table.id}>
                     {table.name} · {table.kind === "BAR_SEAT" ? "Barra" : table.kind === "TAKEOUT_STATION" ? "Para llevar" : "Mesa"}
