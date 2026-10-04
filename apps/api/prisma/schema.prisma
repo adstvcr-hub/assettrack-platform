@@ -49,6 +49,7 @@ enum RestaurantStaffRole {
   KITCHEN
   BAR
   WAITER
+  CASHIER
 }
 
 enum RestaurantStaffAvailability {
@@ -56,6 +57,12 @@ enum RestaurantStaffAvailability {
   BREAK
   TEMPORARILY_UNAVAILABLE
   OFF_SHIFT
+}
+
+enum RestaurantCashSessionStatus {
+  OPEN
+  CLOSED_HANDOFF
+  CLOSED_DAY
 }
 
 enum RestaurantPayPeriod {
@@ -171,6 +178,9 @@ model Organization {
   restaurantInventoryProducts   RestaurantInventoryProduct[]
   restaurantInventoryMovements  RestaurantInventoryMovement[]
   restaurantLiquorWeighings     RestaurantLiquorWeighing[]
+  restaurantCashRegisters       RestaurantCashRegister[]
+  restaurantCashSessions        RestaurantCashSession[]
+  restaurantCashDayCloses       RestaurantCashDayClose[]
 
   restaurantTaxRateBps              Int                  @default(1300)
   restaurantTaxIncluded             Boolean              @default(false)
@@ -518,6 +528,64 @@ model RestaurantOrderItem {
   @@map("restaurant_order_items")
 }
 
+model RestaurantCashRegister {
+  id             String                   @id @default(uuid())
+  organizationId String
+  name           String
+  active         Boolean                  @default(true)
+  createdAt      DateTime                 @default(now())
+  updatedAt      DateTime                 @updatedAt
+  organization   Organization             @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  sessions       RestaurantCashSession[]
+  dayCloses      RestaurantCashDayClose[]
+
+  @@unique([organizationId, name])
+  @@index([organizationId, active])
+  @@map("restaurant_cash_registers")
+}
+
+model RestaurantCashSession {
+  id                String                      @id @default(uuid())
+  organizationId    String
+  cashRegisterId    String
+  responsibleUserId String
+  startedAt         DateTime                    @default(now())
+  endedAt           DateTime?
+  status            RestaurantCashSessionStatus @default(OPEN)
+  openGuard         String?                     @unique
+  accountCount      Int?
+  salesTotal        Int?
+  closeNote         String?
+  organization      Organization                @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  cashRegister      RestaurantCashRegister      @relation(fields: [cashRegisterId], references: [id], onDelete: Cascade)
+  responsibleUser   User                        @relation("CashSessionResponsible", fields: [responsibleUserId], references: [id], onDelete: Restrict)
+
+  @@index([organizationId, startedAt])
+  @@index([cashRegisterId, startedAt])
+  @@index([responsibleUserId, startedAt])
+  @@map("restaurant_cash_sessions")
+}
+
+model RestaurantCashDayClose {
+  id                String                 @id @default(uuid())
+  organizationId    String
+  cashRegisterId    String
+  businessDate      String
+  responsibleUserId String
+  closedAt          DateTime               @default(now())
+  accountCount      Int                    @default(0)
+  salesTotal        Int                    @default(0)
+  sessionCount      Int                    @default(0)
+  note              String?
+  organization      Organization           @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  cashRegister      RestaurantCashRegister @relation(fields: [cashRegisterId], references: [id], onDelete: Cascade)
+  responsibleUser   User                   @relation("CashDayCloseResponsible", fields: [responsibleUserId], references: [id], onDelete: Restrict)
+
+  @@unique([cashRegisterId, businessDate])
+  @@index([organizationId, businessDate])
+  @@index([responsibleUserId, businessDate])
+  @@map("restaurant_cash_day_closes")
+}
 model RestaurantInventoryCategory {
   id             String                       @id @default(uuid())
   organizationId String
@@ -703,6 +771,7 @@ model User {
   role                            UserRole                    @default(USER)
   restaurantRole                  RestaurantStaffRole?
   restaurantAvailability          RestaurantStaffAvailability @default(AVAILABLE)
+  restaurantCashAuthorized        Boolean                     @default(false)
   restaurantPayPeriod             RestaurantPayPeriod?
   restaurantPayRate               Int?
   restaurantStandardMinutesPerDay Int                         @default(480)
@@ -723,6 +792,8 @@ model User {
   fallbackRestaurantVisits    RestaurantVisit[]        @relation("RestaurantVisitFallback")
   staffAccessCode             StaffAccessCode?
   restaurantStaffSessions     RestaurantStaffSession[]
+  restaurantCashSessions      RestaurantCashSession[] @relation("CashSessionResponsible")
+  restaurantCashDayCloses     RestaurantCashDayClose[] @relation("CashDayCloseResponsible")
 
   @@unique([organizationId, email])
   @@index([organizationId])

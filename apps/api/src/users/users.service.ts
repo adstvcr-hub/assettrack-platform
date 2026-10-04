@@ -491,6 +491,8 @@ export class UsersService {
         staffEvents,
         transfers,
         adminEvents,
+        cashSessions,
+        cashDayCloses,
       ] = await Promise.all([
         tx.scanEvent.count({ where: { userId: id } }),
         tx.restaurantTable.count({ where: { waiterId: id } }),
@@ -505,6 +507,12 @@ export class UsersService {
         tx.platformAdminEvent.count({
           where: { OR: [{ actorId: id }, { targetUserId: id }] },
         }),
+        tx.restaurantCashSession.count({
+          where: { responsibleUserId: id },
+        }),
+        tx.restaurantCashDayClose.count({
+          where: { responsibleUserId: id },
+        }),
       ]);
       const historicalReferences =
         scans +
@@ -513,7 +521,9 @@ export class UsersService {
         itemEvents +
         staffEvents +
         transfers +
-        adminEvents;
+        adminEvents +
+        cashSessions +
+        cashDayCloses;
 
       if (historicalReferences > 0) {
         await this.reassignRestaurantWork(tx, organizationId, id);

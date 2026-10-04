@@ -161,6 +161,14 @@ function createService() {
     restaurantStaffSession: {
       findMany: vi.fn().mockResolvedValue([]),
     },
+    restaurantCashSession: {
+      findFirst: vi.fn().mockResolvedValue(null),
+      findUnique: vi.fn().mockResolvedValue(null),
+      findMany: vi.fn().mockResolvedValue([]),
+      count: vi.fn().mockResolvedValue(0),
+      create: vi.fn(),
+      update: vi.fn(),
+    },
     restaurantVisitTransfer: { create: vi.fn() },
     $transaction: vi.fn(async (callback: (tx: unknown) => Promise<unknown>) =>
       callback(prisma),
@@ -2089,6 +2097,26 @@ describe("RestaurantService", () => {
         availability: RestaurantStaffAvailability.BREAK,
       }),
     });
+  });
+
+  it("blocks staff from leaving availability while responsible for an open cash session", async () => {
+    const { prisma, service } = createService();
+    prisma.restaurantCashSession.findFirst.mockResolvedValue({
+      id: "cash-session-a",
+      cashRegister: { name: "Caja principal" },
+    });
+
+    await expect(
+      service.updateOwnStaffAvailability(waiterActor, {
+        availability: RestaurantStaffAvailability.BREAK,
+        reason: "Descanso programado",
+      }),
+    ).rejects.toThrow(
+      "Debe entregar o cerrar Caja principal antes de cambiar la disponibilidad",
+    );
+
+    expect(prisma.user.update).not.toHaveBeenCalled();
+    expect(prisma.restaurantStaffEvent.create).not.toHaveBeenCalled();
   });
 
   it("blocks staff from becoming available outside the restaurant geofence", async () => {

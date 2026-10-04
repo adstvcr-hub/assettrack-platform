@@ -19,7 +19,7 @@ type Table = {
   serviceChargeEnabled: boolean;
   kind: "DINING" | "BAR_SEAT" | "TAKEOUT_STATION";
 };
-type RestaurantRole = "RESTAURANT_ADMIN" | "KITCHEN" | "BAR" | "WAITER";
+type RestaurantRole = "RESTAURANT_ADMIN" | "KITCHEN" | "BAR" | "WAITER" | "CASHIER";
 type InventoryAlert = {
   productId: string;
   name: string;
@@ -36,6 +36,7 @@ type StaffUser = {
   restaurantRole: RestaurantRole | null;
   restaurantAvailability:
     "AVAILABLE" | "BREAK" | "TEMPORARILY_UNAVAILABLE" | "OFF_SHIFT";
+  restaurantCashAuthorized: boolean;
   active: boolean;
   restaurantPayPeriod?: RestaurantPayPeriod | null;
   restaurantPayRate?: number | null;
@@ -466,6 +467,7 @@ function restaurantRoleLabel(role: RestaurantRole | null) {
   if (role === "KITCHEN") return "Cocina";
   if (role === "BAR") return "Bar";
   if (role === "WAITER") return "Mesero";
+  if (role === "CASHIER") return "Cajero";
   return "Sin puesto";
 }
 
@@ -3708,6 +3710,7 @@ export default function RestaurantAdminDashboard({
                 <th className="p-3">Persona</th>
                 <th className="p-3">Correo</th>
                 <th className="p-3">Dashboard</th>
+                <th className="p-3">Puede asumir caja</th>
                 <th className="p-3">Disponibilidad</th>
                 <th className="p-3">Cuenta</th>
                 <th className="p-3">QR de acceso</th>
@@ -3741,8 +3744,33 @@ export default function RestaurantAdminDashboard({
                         <option value="KITCHEN">Cocina</option>
                         <option value="BAR">Bar</option>
                         <option value="WAITER">Mesero</option>
+                        <option value="CASHIER">Cajero</option>
                       </select>
                     )}
+                  </td>
+                  <td className="p-3">
+                    <label className="flex items-center gap-2 text-sm font-semibold">
+                      <input
+                        type="checkbox"
+                        checked={
+                          user.restaurantRole === "CASHIER" ||
+                          user.restaurantCashAuthorized
+                        }
+                        disabled={
+                          !user.active || user.restaurantRole === "CASHIER"
+                        }
+                        onChange={(event) =>
+                          void post(
+                            `staff-users/${user.id}/cash-authorization`,
+                            { authorized: event.target.checked },
+                            "PATCH",
+                          )
+                        }
+                      />
+                      {user.restaurantRole === "CASHIER"
+                        ? "Incluido por rol"
+                        : "Autorizado"}
+                    </label>
                   </td>
                   <td className="p-3">
                     <select

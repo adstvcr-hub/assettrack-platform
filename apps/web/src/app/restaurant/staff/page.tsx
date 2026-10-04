@@ -12,6 +12,7 @@ const destination: Record<string, string> = {
   KITCHEN: "/restaurant/kitchen",
   BAR: "/restaurant/bar",
   WAITER: "/restaurant/waiter",
+  CASHIER: "/restaurant/cashier",
 };
 
 export default function RestaurantStaffPage() {

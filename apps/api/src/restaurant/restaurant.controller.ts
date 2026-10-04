@@ -19,6 +19,7 @@ import { RolesGuard } from "../auth/roles.guard";
 import {
   AssignWaiterDto,
   CancelOrderDto,
+  CloseCashSessionDto,
   CreateRewardProgramDto,
   CreateStaffOrderDto,
   CreatePromotionDto,
@@ -44,6 +45,7 @@ import {
   UpdateRestaurantBillingDto,
   UpdateRestaurantBrandingDto,
   UpdateRestaurantOrderingAreaDto,
+  UpdateCashAuthorizationDto,
   UpdateStaffAvailabilityDto,
   UpdateStaffPayrollDto,
   UpdateTableBillingDto,
@@ -52,6 +54,7 @@ import {
   TransferVisitDto,
 } from "./dto/restaurant.dto";
 import { RestaurantActor, RestaurantService } from "./restaurant.service";
+import { RestaurantCashService } from "./restaurant-cash.service";
 import { RestaurantAccessGuard } from "./restaurant-access.guard";
 import { UsersService } from "../users/users.service";
 import { RestaurantStaffRole, UserRole } from "../generated/prisma/enums";
@@ -133,6 +136,7 @@ export class RestaurantStaffController {
   constructor(
     private readonly restaurant: RestaurantService,
     private readonly users: UsersService,
+    private readonly cash: RestaurantCashService,
   ) {}
 
   private requireRestaurantAdministrator(actor: RestaurantActor) {
@@ -148,6 +152,42 @@ export class RestaurantStaffController {
   @Get("profile")
   profile(@Req() req: StaffRequest) {
     return this.restaurant.profile(req.user);
+  }
+
+  @Get("cash-registers/current")
+  cashCurrent(@Req() req: StaffRequest) {
+    return this.cash.current(req.user);
+  }
+
+  @Post("cash-registers/assume")
+  assumeCash(@Req() req: StaffRequest) {
+    return this.cash.assume(req.user);
+  }
+
+  @Post("cash-sessions/:id/close")
+  closeCashSession(
+    @Req() req: StaffRequest,
+    @Param("id") id: string,
+    @Body() dto: CloseCashSessionDto,
+  ) {
+    return this.cash.close(req.user, id, dto);
+  }
+
+  @Get("cash-registers/daily")
+  cashDaily(
+    @Req() req: StaffRequest,
+    @Query("date") date?: string,
+  ) {
+    return this.cash.daily(req.user, date);
+  }
+
+  @Get("staff/daily-close")
+  employeeDailyClose(
+    @Req() req: StaffRequest,
+    @Query("date") date?: string,
+    @Query("userId") userId?: string,
+  ) {
+    return this.cash.employeeDaily(req.user, date, userId);
   }
 
   @Get("tables")
@@ -470,6 +510,15 @@ export class RestaurantStaffController {
     @Body() dto: UpdateRestaurantRoleDto,
   ) {
     return this.restaurant.updateRestaurantRole(req.user, id, dto.role ?? null);
+  }
+
+  @Patch("staff-users/:id/cash-authorization")
+  updateCashAuthorization(
+    @Req() req: StaffRequest,
+    @Param("id") id: string,
+    @Body() dto: UpdateCashAuthorizationDto,
+  ) {
+    return this.cash.updateAuthorization(req.user, id, dto.authorized);
   }
 
   @Patch("staff-users/:id/availability")

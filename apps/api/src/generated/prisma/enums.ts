@@ -65,7 +65,8 @@ export const RestaurantStaffRole = {
   RESTAURANT_ADMIN: 'RESTAURANT_ADMIN',
   KITCHEN: 'KITCHEN',
   BAR: 'BAR',
-  WAITER: 'WAITER'
+  WAITER: 'WAITER',
+  CASHIER: 'CASHIER'
 } as const
 
 export type RestaurantStaffRole = (typeof RestaurantStaffRole)[keyof typeof RestaurantStaffRole]
@@ -79,6 +80,15 @@ export const RestaurantStaffAvailability = {
 } as const
 
 export type RestaurantStaffAvailability = (typeof RestaurantStaffAvailability)[keyof typeof RestaurantStaffAvailability]
+
+
+export const RestaurantCashSessionStatus = {
+  OPEN: 'OPEN',
+  CLOSED_HANDOFF: 'CLOSED_HANDOFF',
+  CLOSED_DAY: 'CLOSED_DAY'
+} as const
+
+export type RestaurantCashSessionStatus = (typeof RestaurantCashSessionStatus)[keyof typeof RestaurantCashSessionStatus]
 
 
 export const RestaurantPayPeriod = {

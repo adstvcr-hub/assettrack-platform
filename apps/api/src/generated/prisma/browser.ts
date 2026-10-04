@@ -93,6 +93,21 @@ export type RestaurantOrder = Prisma.RestaurantOrderModel
  */
 export type RestaurantOrderItem = Prisma.RestaurantOrderItemModel
 /**
+ * Model RestaurantCashRegister
+ * 
+ */
+export type RestaurantCashRegister = Prisma.RestaurantCashRegisterModel
+/**
+ * Model RestaurantCashSession
+ * 
+ */
+export type RestaurantCashSession = Prisma.RestaurantCashSessionModel
+/**
+ * Model RestaurantCashDayClose
+ * 
+ */
+export type RestaurantCashDayClose = Prisma.RestaurantCashDayCloseModel
+/**
  * Model RestaurantInventoryCategory
  * 
  */

@@ -1172,6 +1172,7 @@ export class RestaurantService {
         role: true,
         restaurantRole: true,
         restaurantAvailability: true,
+        restaurantCashAuthorized: true,
         restaurantPayPeriod: true,
         restaurantPayRate: true,
         restaurantStandardMinutesPerDay: true,
@@ -1610,6 +1611,21 @@ export class RestaurantService {
         "Reason required when staff is unavailable",
       );
     }
+    if (dto.availability !== RestaurantStaffAvailability.AVAILABLE) {
+      const activeCash = await this.prisma.restaurantCashSession.findFirst({
+        where: {
+          organizationId: actor.organizationId,
+          responsibleUserId: userId,
+          openGuard: { not: null },
+        },
+        include: { cashRegister: { select: { name: true } } },
+      });
+      if (activeCash) {
+        throw new ConflictException(
+          `Debe entregar o cerrar ${activeCash.cashRegister.name} antes de cambiar la disponibilidad`,
+        );
+      }
+    }
     return this.prisma.$transaction(async (tx) => {
       const updated = await tx.user.update({
         where: { id: userId },
@@ -1680,6 +1696,21 @@ export class RestaurantService {
       throw new BadRequestException(
         "Reason required when staff is unavailable",
       );
+    }
+    if (dto.availability !== RestaurantStaffAvailability.AVAILABLE) {
+      const activeCash = await this.prisma.restaurantCashSession.findFirst({
+        where: {
+          organizationId: actor.organizationId,
+          responsibleUserId: actor.id,
+          openGuard: { not: null },
+        },
+        include: { cashRegister: { select: { name: true } } },
+      });
+      if (activeCash) {
+        throw new ConflictException(
+          `Debe entregar o cerrar ${activeCash.cashRegister.name} antes de cambiar la disponibilidad`,
+        );
+      }
     }
 
     return this.prisma.$transaction(async (tx) => {

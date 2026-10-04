@@ -62,7 +62,8 @@ export class AuthService {
     return (
       user.restaurantRole === RestaurantStaffRole.KITCHEN ||
       user.restaurantRole === RestaurantStaffRole.BAR ||
-      user.restaurantRole === RestaurantStaffRole.WAITER
+      user.restaurantRole === RestaurantStaffRole.WAITER ||
+      user.restaurantRole === RestaurantStaffRole.CASHIER
     );
   }
 

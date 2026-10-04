@@ -514,6 +514,23 @@ export type EnumRestaurantItemStatusWithAggregatesFilter<$PrismaModel = never> =
   _max?: Prisma.NestedEnumRestaurantItemStatusFilter<$PrismaModel>
 }
 
+export type EnumRestaurantCashSessionStatusFilter<$PrismaModel = never> = {
+  equals?: $Enums.RestaurantCashSessionStatus | Prisma.EnumRestaurantCashSessionStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.RestaurantCashSessionStatus[] | Prisma.ListEnumRestaurantCashSessionStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.RestaurantCashSessionStatus[] | Prisma.ListEnumRestaurantCashSessionStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumRestaurantCashSessionStatusFilter<$PrismaModel> | $Enums.RestaurantCashSessionStatus
+}
+
+export type EnumRestaurantCashSessionStatusWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.RestaurantCashSessionStatus | Prisma.EnumRestaurantCashSessionStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.RestaurantCashSessionStatus[] | Prisma.ListEnumRestaurantCashSessionStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.RestaurantCashSessionStatus[] | Prisma.ListEnumRestaurantCashSessionStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumRestaurantCashSessionStatusWithAggregatesFilter<$PrismaModel> | $Enums.RestaurantCashSessionStatus
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumRestaurantCashSessionStatusFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumRestaurantCashSessionStatusFilter<$PrismaModel>
+}
+
 export type EnumRestaurantInventoryProductTypeFilter<$PrismaModel = never> = {
   equals?: $Enums.RestaurantInventoryProductType | Prisma.EnumRestaurantInventoryProductTypeFieldRefInput<$PrismaModel>
   in?: $Enums.RestaurantInventoryProductType[] | Prisma.ListEnumRestaurantInventoryProductTypeFieldRefInput<$PrismaModel>
@@ -1134,6 +1151,23 @@ export type NestedEnumRestaurantItemStatusWithAggregatesFilter<$PrismaModel = ne
   _count?: Prisma.NestedIntFilter<$PrismaModel>
   _min?: Prisma.NestedEnumRestaurantItemStatusFilter<$PrismaModel>
   _max?: Prisma.NestedEnumRestaurantItemStatusFilter<$PrismaModel>
+}
+
+export type NestedEnumRestaurantCashSessionStatusFilter<$PrismaModel = never> = {
+  equals?: $Enums.RestaurantCashSessionStatus | Prisma.EnumRestaurantCashSessionStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.RestaurantCashSessionStatus[] | Prisma.ListEnumRestaurantCashSessionStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.RestaurantCashSessionStatus[] | Prisma.ListEnumRestaurantCashSessionStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumRestaurantCashSessionStatusFilter<$PrismaModel> | $Enums.RestaurantCashSessionStatus
+}
+
+export type NestedEnumRestaurantCashSessionStatusWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.RestaurantCashSessionStatus | Prisma.EnumRestaurantCashSessionStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.RestaurantCashSessionStatus[] | Prisma.ListEnumRestaurantCashSessionStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.RestaurantCashSessionStatus[] | Prisma.ListEnumRestaurantCashSessionStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumRestaurantCashSessionStatusWithAggregatesFilter<$PrismaModel> | $Enums.RestaurantCashSessionStatus
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumRestaurantCashSessionStatusFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumRestaurantCashSessionStatusFilter<$PrismaModel>
 }
 
 export type NestedEnumRestaurantInventoryProductTypeFilter<$PrismaModel = never> = {

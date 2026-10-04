@@ -11,7 +11,7 @@ import Link from "next/link";
 type StaffAccessProfile = {
   restaurantName: string;
   staffName: string;
-  staffRole: "RESTAURANT_ADMIN" | "KITCHEN" | "BAR" | "WAITER";
+  staffRole: "RESTAURANT_ADMIN" | "KITCHEN" | "BAR" | "WAITER" | "CASHIER";
   locationVerificationRequired: boolean;
   locationVerified: boolean;
 };
@@ -27,6 +27,7 @@ const roleLabels: Record<StaffAccessProfile["staffRole"], string> = {
   KITCHEN: "Cocina",
   BAR: "Bar",
   WAITER: "Mesero",
+  CASHIER: "Caja",
 };
 
 export default function StaffAccessPage() {

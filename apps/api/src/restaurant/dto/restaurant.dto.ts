@@ -347,3 +347,18 @@ export class CreateRewardProgramDto {
 export class TransferVisitDto {
   @IsUUID() destinationTableId!: string;
 }
+
+export class UpdateCashAuthorizationDto {
+  @IsBoolean()
+  authorized!: boolean;
+}
+
+export class CloseCashSessionDto {
+  @IsBoolean()
+  finalDailyClose!: boolean;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(500)
+  note?: string;
+}

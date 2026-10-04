@@ -55,6 +55,8 @@ function createService() {
     restaurantStaffEvent: { count: vi.fn().mockResolvedValue(0) },
     restaurantVisitTransfer: { count: vi.fn().mockResolvedValue(0) },
     platformAdminEvent: { count: vi.fn().mockResolvedValue(0) },
+    restaurantCashSession: { count: vi.fn().mockResolvedValue(0) },
+    restaurantCashDayClose: { count: vi.fn().mockResolvedValue(0) },
     $transaction: vi.fn(async (callback: (tx: unknown) => Promise<unknown>) =>
       callback(prisma),
     ),
