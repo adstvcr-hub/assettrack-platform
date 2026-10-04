@@ -290,7 +290,7 @@ export class RestaurantCashService {
       });
       if (activeSession) {
         throw new ConflictException(
-          "No puede retirar la autorizaciÃ³n mientras la persona tenga una caja abierta",
+          "No puede retirar la autorización mientras la persona tenga una caja abierta",
         );
       }
     }
@@ -310,7 +310,7 @@ export class RestaurantCashService {
     const user = await this.currentUser(actor);
     if (!this.canAssume(actor, user)) {
       throw new ForbiddenException(
-        "Este usuario no estÃ¡ autorizado para asumir la caja",
+        "Este usuario no está autorizado para asumir la caja",
       );
     }
     if (
@@ -335,7 +335,7 @@ export class RestaurantCashService {
     });
     if (dayClose) {
       throw new ConflictException(
-        "El cierre general del dÃ­a ya fue registrado para esta caja",
+        "El cierre general del día ya fue registrado para esta caja",
       );
     }
     const current = await this.prisma.restaurantCashSession.findUnique({
@@ -347,7 +347,7 @@ export class RestaurantCashService {
     if (current) {
       if (current.responsibleUserId === actor.id) return current;
       throw new ConflictException(
-        `La caja ya estÃ¡ bajo responsabilidad de ${current.responsibleUser.name}`,
+        `La caja ya está bajo responsabilidad de ${current.responsibleUser.name}`,
       );
     }
     return this.prisma.restaurantCashSession.create({
@@ -419,7 +419,7 @@ export class RestaurantCashService {
           closeNote:
             closeNote ??
             (isAdmin && !isResponsible
-              ? `Liberada por administraciÃ³n (${actor.id})`
+              ? `Liberada por administración (${actor.id})`
               : "Entrega de caja"),
         },
         include: {
@@ -461,7 +461,7 @@ export class RestaurantCashService {
       });
     if (existingClose) {
       throw new ConflictException(
-        "El cierre general del dÃ­a ya fue registrado",
+        "El cierre general del día ya fue registrado",
       );
     }
 
@@ -655,7 +655,7 @@ export class RestaurantCashService {
     });
     if (open) {
       throw new ConflictException(
-        `Debe entregar o cerrar ${open.cashRegister.name} antes de finalizar la sesiÃ³n`,
+        `Debe entregar o cerrar ${open.cashRegister.name} antes de finalizar la sesión`,
       );
     }
     return true;

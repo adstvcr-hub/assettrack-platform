@@ -114,7 +114,7 @@ export default function RestaurantCashierPage() {
       return;
     }
     if (!profileResponse.ok) {
-      setError("No se pudo cargar la sesiÃ³n.");
+      setError("No se pudo cargar la sesión.");
       return;
     }
     const nextProfile = await profileResponse.json();
@@ -163,7 +163,7 @@ export default function RestaurantCashierPage() {
       setError(body.message ?? "No se pudo asumir la caja.");
       return;
     }
-    setMessage("La caja quedÃ³ registrada a su nombre.");
+    setMessage("La caja quedó registrada a su nombre.");
     await load();
   }
 
@@ -228,7 +228,7 @@ export default function RestaurantCashierPage() {
           <section className="rounded-2xl border bg-white p-6">
             <h2 className="text-xl font-black">Acceso a caja no autorizado</h2>
             <p className="mt-2 text-slate-600">
-              AdministraciÃ³n debe habilitar â€œPuede asumir cajaâ€ para esta persona.
+              Administración debe habilitar “Puede asumir caja” para esta persona.
             </p>
           </section>
         )}
@@ -291,7 +291,7 @@ export default function RestaurantCashierPage() {
 
               {cash.session && !cash.currentUserIsResponsible && (
                 <p className="mt-5 rounded-xl bg-amber-50 p-4 font-semibold text-amber-950">
-                  La caja ya estÃ¡ bajo responsabilidad de{" "}
+                  La caja ya está bajo responsabilidad de{" "}
                   {cash.session.responsibleUser.name}. Debe entregarla antes de
                   que otra persona pueda asumirla.
                 </p>
@@ -300,12 +300,12 @@ export default function RestaurantCashierPage() {
               {cash.currentUserIsResponsible && cash.session && (
                 <div className="mt-5 space-y-3">
                   <label className="block font-semibold">
-                    ObservaciÃ³n
+                    Observación
                     <textarea
                       value={note}
                       onChange={(event) => setNote(event.target.value)}
                       className="mt-2 min-h-20 w-full rounded border p-3"
-                      placeholder="Opcional: relevo, incidencia, observaciÃ³n de cierre..."
+                      placeholder="Opcional: relevo, incidencia, observación de cierre..."
                     />
                   </label>
                   <div className="flex flex-wrap gap-3">
@@ -321,7 +321,7 @@ export default function RestaurantCashierPage() {
                       onClick={() => void close(true)}
                       className="rounded-xl bg-emerald-800 px-5 py-3 font-black text-white"
                     >
-                      Cierre general del dÃ­a
+                      Cierre general del día
                     </button>
                   </div>
                 </div>
@@ -334,7 +334,7 @@ export default function RestaurantCashierPage() {
                     Responsable: {cash.dayClose.responsibleUser.name}
                   </p>
                   <p>
-                    {cash.dayClose.accountCount} cuentas Â·{" "}
+                    {cash.dayClose.accountCount} cuentas ·{" "}
                     {money(cash.dayClose.salesTotal)}
                   </p>
                 </div>
@@ -342,10 +342,10 @@ export default function RestaurantCashierPage() {
             </section>
 
             <section className="rounded-2xl border bg-white p-6 shadow-sm">
-              <h2 className="text-xl font-black">Responsables de caja del dÃ­a</h2>
+              <h2 className="text-xl font-black">Responsables de caja del día</h2>
               <p className="mt-1 text-sm text-slate-600">
                 Cada relevo conserva el nombre de quien tuvo la caja y el
-                perÃ­odo exacto de responsabilidad.
+                período exacto de responsabilidad.
               </p>
               <div className="mt-4 overflow-x-auto">
                 <table className="w-full min-w-[760px] text-left text-sm">
@@ -382,7 +382,7 @@ export default function RestaurantCashierPage() {
                             ? "Abierta"
                             : session.status === "CLOSED_HANDOFF"
                               ? "Entregada"
-                              : "Cierre del dÃ­a"}
+                              : "Cierre del día"}
                         </td>
                       </tr>
                     ))}
@@ -393,7 +393,7 @@ export default function RestaurantCashierPage() {
 
             <section className="rounded-2xl border bg-white p-6 shadow-sm">
               <h2 className="text-xl font-black">
-                Cierre personal Â· {personal?.employee.name ?? profile?.name}
+                Cierre personal · {personal?.employee.name ?? profile?.name}
               </h2>
               <div className="mt-4 grid gap-3 sm:grid-cols-2">
                 <div className="rounded-xl bg-slate-50 p-4">

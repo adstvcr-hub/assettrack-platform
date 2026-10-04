@@ -33,7 +33,7 @@ type CashState = {
 };
 
 function roleLabel(role: SessionProfile["restaurantRole"]) {
-  if (role === "RESTAURANT_ADMIN") return "AdministraciÃ³n";
+  if (role === "RESTAURANT_ADMIN") return "Administración";
   if (role === "KITCHEN") return "Cocina";
   if (role === "BAR") return "Bar";
   if (role === "WAITER") return "Mesero";
@@ -77,7 +77,7 @@ export function RestaurantSessionActions({
       method: "POST",
       credentials: "include",
     });
-    if (!response.ok) throw new Error("No se pudo cerrar la sesiÃ³n. Reintente.");
+    if (!response.ok) throw new Error("No se pudo cerrar la sesión. Reintente.");
     removeSessionValue("assettrack_token");
     removeSessionValue("assettrack_user");
     router.replace("/");
@@ -104,7 +104,7 @@ export function RestaurantSessionActions({
         freshCash?.session?.responsibleUserId === freshProfile.id
       ) {
         throw new Error(
-          `Debe entregar o cerrar ${freshCash.register.name} antes de cerrar sesiÃ³n.`,
+          `Debe entregar o cerrar ${freshCash.register.name} antes de cerrar sesión.`,
         );
       }
       if (
@@ -120,7 +120,7 @@ export function RestaurantSessionActions({
       setError(
         cause instanceof Error
           ? cause.message
-          : "No se pudo cerrar la sesiÃ³n.",
+          : "No se pudo cerrar la sesión.",
       );
     } finally {
       setBusy(false);
@@ -172,11 +172,11 @@ export function RestaurantSessionActions({
         <div className="rounded-lg border border-white/30 bg-white/10 px-3 py-2 text-white">
           <strong className="block text-sm">{profile.name}</strong>
           <span className="block text-xs text-slate-200">
-            {roleLabel(profile.restaurantRole)} Â· SesiÃ³n activa
+            {roleLabel(profile.restaurantRole)} · Sesión activa
           </span>
           {cashState?.currentUserIsResponsible && (
             <span className="mt-1 block text-xs font-bold text-amber-300">
-              Responsable Â· {cashState.register.name}
+              Responsable · {cashState.register.name}
             </span>
           )}
         </div>
@@ -208,7 +208,7 @@ export function RestaurantSessionActions({
         className="rounded bg-white px-4 py-2 font-semibold text-slate-950"
         onClick={() => void requestLogout()}
       >
-        Cerrar sesiÃ³n
+        Cerrar sesión
       </button>
 
       {choosing && (
@@ -220,10 +220,10 @@ export function RestaurantSessionActions({
             className="w-full max-w-md rounded-xl bg-white p-6 text-slate-950 shadow-xl"
           >
             <h2 id="staff-exit-title" className="text-xl font-black">
-              Â¿Por quÃ© cierra sesiÃ³n?
+              ¿Por qué cierra sesión?
             </h2>
             <p className="mt-2 text-sm">
-              Se registrarÃ¡ su disponibilidad y se reasignarÃ¡n sus cuentas
+              Se registrará su disponibilidad y se reasignarán sus cuentas
               cuando corresponda.
             </p>
             <div className="mt-4 grid gap-3">
@@ -242,7 +242,7 @@ export function RestaurantSessionActions({
                 onClick={() =>
                   void finishWork(
                     "TEMPORARILY_UNAVAILABLE",
-                    "Fuera de servicio al cerrar sesiÃ³n",
+                    "Fuera de servicio al cerrar sesión",
                   )
                 }
               >
