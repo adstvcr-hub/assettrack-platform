@@ -51,7 +51,7 @@ type Visit = {
   paymentConfirmedAt?: string | null;
   canClose: boolean;
   canHandoffDelivery: boolean;
-  staffCorrection?: StaffCorrection | null;
+  staffCorrections: StaffCorrection[];
   correctionRequest?: {
     orderId: string;
     requestedAt: string;
@@ -407,11 +407,18 @@ export function OperationalDashboard({ station }: { station: Station }) {
                     <dd>{visit.deliveryAddress || "No informada"}</dd>
                   </dl>
                   <StaffAccountDetail visit={visit} />
-                  <StaffOrderCorrection
-                    correction={visit.staffCorrection}
-                      requestedAt={visit.correctionRequest?.requestedAt}
-                    onSaved={load}
-                  />
+                  {visit.staffCorrections.map((correction) => (
+                    <StaffOrderCorrection
+                      key={correction.orderId}
+                      correction={correction}
+                      requestedAt={
+                        visit.correctionRequest?.orderId === correction.orderId
+                          ? visit.correctionRequest.requestedAt
+                          : null
+                      }
+                      onSaved={load}
+                    />
+                  ))}
                   <div className="mt-4 flex flex-wrap gap-2">
                     {visit.paymentStatus !== "CONFIRMED" && (
                       <button
@@ -476,11 +483,19 @@ export function OperationalDashboard({ station }: { station: Station }) {
                       Responsable: {visit.responsibleStaff?.name ?? "Sin asignar"}
                     </p>
                     <StaffAccountDetail visit={visit} />
-                    <StaffOrderCorrection
-                      correction={visit.staffCorrection}
-                      requestedAt={visit.correctionRequest?.requestedAt}
-                      onSaved={load}
-                    />
+                    {visit.staffCorrections.map((correction) => (
+                      <StaffOrderCorrection
+                        key={correction.orderId}
+                        correction={correction}
+                        requestedAt={
+                          visit.correctionRequest?.orderId ===
+                          correction.orderId
+                            ? visit.correctionRequest.requestedAt
+                            : null
+                        }
+                        onSaved={load}
+                      />
+                    ))}
                     <button
                       disabled={!visit.canClose}
                       className="mt-3 rounded bg-violet-800 px-4 py-2 font-bold text-white disabled:opacity-40"

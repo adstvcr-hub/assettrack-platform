@@ -50,7 +50,7 @@ type Visit = {
     requestedAt: string;
     note?: string | null;
   } | null;
-  staffCorrection?: StaffCorrection | null;
+  staffCorrections: StaffCorrection[];
   transferDestinations: Array<{
     id: string;
     name: string;
@@ -520,11 +520,26 @@ export default function WaiterPage() {
                       </button>
                     </div>
                   )}
-                  <StaffOrderCorrection
-                    correction={visit.staffCorrection}
-                    requestedAt={visit.correctionRequest?.requestedAt}
-                    onSaved={load}
-                  />
+                  {visit.staffCorrections.length > 0 && (
+                    <section className="mb-4 space-y-3 rounded-xl border border-sky-200 bg-sky-50/50 p-3">
+                      <h3 className="font-black text-sky-950">
+                        Editar órdenes de la cuenta
+                      </h3>
+                      {visit.staffCorrections.map((correction) => (
+                        <StaffOrderCorrection
+                          key={correction.orderId}
+                          correction={correction}
+                          requestedAt={
+                            visit.correctionRequest?.orderId ===
+                            correction.orderId
+                              ? visit.correctionRequest.requestedAt
+                              : null
+                          }
+                          onSaved={load}
+                        />
+                      ))}
+                    </section>
+                  )}
                   <div className="flex flex-wrap items-center justify-between gap-3">
                     <div>
                       <p className="font-bold">{visit.table.name}</p>

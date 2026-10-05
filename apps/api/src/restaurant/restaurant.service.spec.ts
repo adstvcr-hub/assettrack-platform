@@ -1223,6 +1223,113 @@ describe("RestaurantService", () => {
     });
   });
 
+  it("lets the responsible employee correct an already delivered order", async () => {
+    const { prisma, service } = createService();
+    const current = {
+      id: "delivered-order",
+      visitId: "visit-a",
+      fulfillment: "DINE_IN",
+      promotionId: null,
+      correctionCount: 0,
+      lastCorrectionRequestId: null,
+      table: { waiterId: waiterActor.id, kind: "DINING" },
+      visit: {
+        id: "visit-a",
+        status: "OPEN",
+        responsibleStaffId: waiterActor.id,
+      },
+      items: [
+        {
+          id: "delivered-item",
+          menuItemId: "old-product",
+          status: "DELIVERED",
+          fulfillment: "DINE_IN",
+        },
+      ],
+    };
+    prisma.restaurantOrder.findFirst.mockResolvedValue(current);
+    prisma.restaurantOrderItem.updateMany.mockResolvedValue({ count: 1 });
+    prisma.restaurantOrder.update.mockResolvedValue({
+      id: current.id,
+      correctionCount: 1,
+    });
+
+    await service.correctStaffOrder(waiterActor, current.id, {
+      requestId,
+      items: [{ menuItemId: itemId, quantity: 2 }],
+    });
+
+    expect(prisma.restaurantOrderItem.updateMany).toHaveBeenCalledWith({
+      where: {
+        id: { in: ["delivered-item"] },
+        status: { in: ["DELIVERED"] },
+      },
+      data: {
+        status: "CANCELLED",
+        cancelledByGuestCorrection: true,
+      },
+    });
+    expect(prisma.restaurantOrderItem.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({
+        menuItemId: itemId,
+        quantity: 2,
+        status: "DELIVERED",
+        deliveredAt: expect.any(Date),
+        events: {
+          create: expect.objectContaining({ status: "DELIVERED" }),
+        },
+      }),
+    });
+  });
+
+  it("lets the responsible employee remove every item from a delivered order", async () => {
+    const { prisma, service } = createService();
+    const current = {
+      id: "delivered-order",
+      visitId: "visit-a",
+      fulfillment: "DINE_IN",
+      promotionId: null,
+      correctionCount: 0,
+      lastCorrectionRequestId: null,
+      table: { waiterId: waiterActor.id, kind: "DINING" },
+      visit: {
+        id: "visit-a",
+        status: "OPEN",
+        responsibleStaffId: waiterActor.id,
+      },
+      items: [
+        {
+          id: "delivered-item",
+          menuItemId: itemId,
+          status: "DELIVERED",
+          fulfillment: "DINE_IN",
+        },
+      ],
+    };
+    prisma.restaurantOrder.findFirst.mockResolvedValue(current);
+    prisma.restaurantMenuItem.findMany.mockResolvedValue([]);
+    prisma.restaurantOrderItem.updateMany.mockResolvedValue({ count: 1 });
+    prisma.restaurantOrder.update.mockResolvedValue({
+      id: current.id,
+      correctionCount: 1,
+    });
+
+    await service.correctStaffOrder(waiterActor, current.id, {
+      requestId,
+      items: [],
+    });
+
+    expect(prisma.restaurantOrderItem.create).not.toHaveBeenCalled();
+    expect(prisma.restaurantOrder.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          promotionCredit: 0,
+          correctionCount: { increment: 1 },
+        }),
+      }),
+    );
+  });
+
   it("blocks staff correction after preparation begins", async () => {
     const { prisma, service } = createService();
     prisma.restaurantOrder.findFirst.mockResolvedValue({

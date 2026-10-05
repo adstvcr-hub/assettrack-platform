@@ -177,7 +177,6 @@ export class CorrectStaffOrderDto {
   @IsOptional() @IsString() @MaxLength(240) reason?: string;
 
   @IsArray()
-  @ArrayMinSize(1)
   @ArrayMaxSize(20)
   @ValidateNested({ each: true })
   @Type(() => OrderLineDto)

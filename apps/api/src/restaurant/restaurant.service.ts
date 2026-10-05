@@ -3604,16 +3604,26 @@ export class RestaurantService {
     const activeItems = order.items.filter(
       (item) => item.status !== RestaurantItemStatus.CANCELLED,
     );
-    const editableStatuses: RestaurantItemStatus[] = [
+    const pendingEditableStatuses: RestaurantItemStatus[] = [
       RestaurantItemStatus.RECEIVED,
       RestaurantItemStatus.ACCEPTED,
     ];
-    if (
-      activeItems.length === 0 ||
-      activeItems.some((item) => !editableStatuses.includes(item.status))
-    ) {
+    const isPendingCorrection =
+      activeItems.length > 0 &&
+      activeItems.every((item) =>
+        pendingEditableStatuses.includes(item.status),
+      );
+    const isDeliveredCorrection =
+      activeItems.length > 0 &&
+      activeItems.every(
+        (item) => item.status === RestaurantItemStatus.DELIVERED,
+      );
+    if (activeItems.length === 0) {
+      throw new ConflictException("El pedido no tiene productos activos");
+    }
+    if (!isPendingCorrection && !isDeliveredCorrection) {
       throw new ConflictException(
-        "La preparación ya comenzó; el pedido no puede modificarse desde este control",
+        "La preparación ya comenzó; espere a que el pedido sea entregado para modificar la cuenta",
       );
     }
     const availableStations = await this.availableStations(actor.organizationId);
@@ -3630,7 +3640,7 @@ export class RestaurantService {
         id: { in: ids },
         organizationId: actor.organizationId,
         active: true,
-        station: { in: stations },
+        ...(isDeliveredCorrection ? {} : { station: { in: stations } }),
       },
     });
     if (menu.length !== ids.length) {
@@ -3651,18 +3661,28 @@ export class RestaurantService {
       const currentActive = current.items.filter(
         (item) => item.status !== RestaurantItemStatus.CANCELLED,
       );
-      if (
-        currentActive.length === 0 ||
-        currentActive.some((item) => !editableStatuses.includes(item.status))
-      ) {
+      const currentIsPending =
+        currentActive.length > 0 &&
+        currentActive.every((item) =>
+          pendingEditableStatuses.includes(item.status),
+        );
+      const currentIsDelivered =
+        currentActive.length > 0 &&
+        currentActive.every(
+          (item) => item.status === RestaurantItemStatus.DELIVERED,
+        );
+      if (!currentIsPending && !currentIsDelivered) {
         throw new ConflictException(
-          "La preparación comenzó mientras se modificaba el pedido",
+          "El estado del pedido cambió mientras se modificaba",
         );
       }
+      const replaceableStatuses = currentIsDelivered
+        ? [RestaurantItemStatus.DELIVERED]
+        : pendingEditableStatuses;
       const cancelled = await tx.restaurantOrderItem.updateMany({
         where: {
           id: { in: currentActive.map((item) => item.id) },
-          status: { in: editableStatuses },
+          status: { in: replaceableStatuses },
         },
         data: {
           status: RestaurantItemStatus.CANCELLED,
@@ -3671,7 +3691,7 @@ export class RestaurantService {
       });
       if (cancelled.count !== currentActive.length) {
         throw new ConflictException(
-          "La preparación comenzó mientras se modificaba el pedido",
+          "El estado del pedido cambió mientras se modificaba",
         );
       }
       await tx.restaurantItemEvent.createMany({
@@ -3697,6 +3717,10 @@ export class RestaurantService {
               : (fulfillment ?? defaultFulfillment),
         }),
       );
+      const replacementStatus = currentIsDelivered
+        ? RestaurantItemStatus.DELIVERED
+        : RestaurantItemStatus.RECEIVED;
+      const correctedAt = new Date();
       for (const selected of selectedItems) {
         await tx.restaurantOrderItem.create({
           data: {
@@ -3709,10 +3733,12 @@ export class RestaurantService {
             course: selected.item.course,
             fulfillment: selected.fulfillment,
             prepMinutes: selected.item.prepMinutes,
+            status: replacementStatus,
+            ...(currentIsDelivered ? { deliveredAt: correctedAt } : {}),
             events: {
               create: {
                 actorId: actor.id,
-                status: RestaurantItemStatus.RECEIVED,
+                status: replacementStatus,
                 note: `Producto agregado por corrección del empleado${reason ? `: ${reason}` : ""}`,
               },
             },
@@ -4657,19 +4683,59 @@ export class RestaurantService {
           events: undefined,
         })),
       );
-      const latestOrder = visit.orders.at(-1);
-      const latestActiveItems =
-        latestOrder?.items.filter(
-          (item) => item.status !== RestaurantItemStatus.CANCELLED,
-        ) ?? [];
-      const lastCorrectionEvent = latestOrder?.items
-        .flatMap((item) => item.events ?? [])
-        .filter((event) => event.note?.includes("corrección"))
-        .sort((left, right) => right.createdAt.getTime() - left.createdAt.getTime())[0];
-      const editableStatuses: RestaurantItemStatus[] = [
+      const pendingEditableStatuses: RestaurantItemStatus[] = [
         RestaurantItemStatus.RECEIVED,
         RestaurantItemStatus.ACCEPTED,
       ];
+      const staffCorrections = visit.orders.map((order) => {
+        const activeItems = order.items.filter(
+          (item) => item.status !== RestaurantItemStatus.CANCELLED,
+        );
+        const isPending =
+          activeItems.length > 0 &&
+          activeItems.every((item) =>
+            pendingEditableStatuses.includes(item.status),
+          );
+        const isDelivered =
+          activeItems.length > 0 &&
+          activeItems.every(
+            (item) => item.status === RestaurantItemStatus.DELIVERED,
+          );
+        const lastCorrectionEvent = order.items
+          .flatMap((item) => item.events ?? [])
+          .filter((event) => event.note?.includes("corrección"))
+          .sort(
+            (left, right) =>
+              right.createdAt.getTime() - left.createdAt.getTime(),
+          )[0];
+        return {
+          orderId: order.id,
+          orderCreatedAt: order.createdAt,
+          canCorrect: isPending || isDelivered,
+          delivered: isDelivered,
+          blockedReason:
+            activeItems.length === 0
+              ? "El pedido no tiene productos activos."
+              : activeItems.some(
+                    (item) =>
+                      item.status === RestaurantItemStatus.PREPARING ||
+                      item.status === RestaurantItemStatus.READY,
+                  )
+                ? "El pedido está en preparación; espere a que sea entregado para corregir la cuenta."
+                : !isPending && !isDelivered
+                  ? "El pedido combina productos pendientes y entregados; complete la entrega antes de corregir la cuenta."
+                  : null,
+          correctionCount: order.correctionCount,
+          lastCorrectedAt: lastCorrectionEvent?.createdAt ?? null,
+          items: activeItems.map((item) => ({
+            menuItemId: item.menuItemId,
+            name: item.name,
+            quantity: item.quantity,
+            fulfillment: item.fulfillment,
+          })),
+          menu: correctionMenu,
+        };
+      });
       const correctionRequest = visit.orders
         .filter((order) => order.correctionRequestedAt)
         .sort(
@@ -4695,33 +4761,7 @@ export class RestaurantService {
               note: correctionRequest.correctionRequestNote,
             }
           : null,
-        staffCorrection: latestOrder
-          ? {
-              orderId: latestOrder.id,
-              canCorrect:
-                latestActiveItems.length > 0 &&
-                latestActiveItems.every((item) =>
-                  editableStatuses.includes(item.status),
-                ),
-              blockedReason:
-                latestActiveItems.length === 0
-                  ? "El pedido no tiene productos activos."
-                  : latestActiveItems.some(
-                        (item) => !editableStatuses.includes(item.status),
-                      )
-                    ? "La preparación ya comenzó; solicite apoyo administrativo para cualquier excepción."
-                    : null,
-              correctionCount: latestOrder.correctionCount,
-              lastCorrectedAt: lastCorrectionEvent?.createdAt ?? null,
-              items: latestActiveItems.map((item) => ({
-                menuItemId: item.menuItemId,
-                name: item.name,
-                quantity: item.quantity,
-                fulfillment: item.fulfillment,
-              })),
-              menu: correctionMenu,
-            }
-          : null,
+        staffCorrections,
         items,
         billing: this.billingTotals(
           items,

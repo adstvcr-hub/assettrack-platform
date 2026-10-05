@@ -7,7 +7,9 @@ type Fulfillment = "DINE_IN" | "TAKEOUT" | "DELIVERY";
 
 export type StaffCorrection = {
   orderId: string;
+  orderCreatedAt: string;
   canCorrect: boolean;
+  delivered: boolean;
   blockedReason?: string | null;
   correctionCount: number;
   lastCorrectedAt?: string | null;
@@ -66,10 +68,6 @@ export function StaffOrderCorrection({
   if (!correction) return null;
 
   const save = async () => {
-    if (!lines.length) {
-      setMessage("El pedido debe conservar al menos un producto.");
-      return;
-    }
     setSaving(true);
     setMessage("");
     try {
@@ -116,7 +114,17 @@ export function StaffOrderCorrection({
       )}
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div>
-          <p className="font-black text-sky-950">Cambiar o eliminar productos, cantidad y modalidad</p>
+          <p className="font-black text-sky-950">
+            Pedido de las {new Date(correction.orderCreatedAt).toLocaleTimeString("es-CR")}
+          </p>
+          <p className="text-sm font-semibold text-sky-900">
+            Cambiar o eliminar productos, cantidad y modalidad
+          </p>
+          {correction.delivered && (
+            <p className="mt-1 inline-flex rounded-full bg-emerald-100 px-2 py-1 text-xs font-black text-emerald-900 ring-1 ring-emerald-300">
+              PEDIDO ENTREGADO · CORRECCIÓN DE CUENTA
+            </p>
+          )}
           {correction.correctionCount > 0 && (
             <p className="text-xs font-semibold text-sky-800">
               CORREGIDA {correction.correctionCount} vez/veces
@@ -142,6 +150,11 @@ export function StaffOrderCorrection({
       )}
       {open && correction.canCorrect && (
         <div className="mt-3 space-y-3 border-t border-sky-200 pt-3">
+          {correction.delivered && (
+            <p className="rounded-lg bg-amber-100 p-3 text-sm font-semibold text-amber-950">
+              Este cambio corrige el consumo y el total registrado. Los productos no volverán a enviarse a preparación.
+            </p>
+          )}
           {lines.map((line, index) => (
             <div
               key={`${line.menuItemId}-${index}`}
@@ -264,11 +277,15 @@ export function StaffOrderCorrection({
           </label>
           <button
             type="button"
-            disabled={saving || !lines.length}
+            disabled={saving}
             className="rounded-lg bg-emerald-700 px-4 py-3 font-black text-white disabled:opacity-40"
             onClick={() => void save()}
           >
-            {saving ? "Guardando…" : "Confirmar cambio"}
+            {saving
+              ? "Guardando…"
+              : lines.length
+                ? "Confirmar cambio"
+                : "Eliminar todos los productos del pedido"}
           </button>
         </div>
       )}
