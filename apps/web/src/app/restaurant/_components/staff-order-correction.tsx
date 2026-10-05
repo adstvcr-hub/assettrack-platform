@@ -158,80 +158,86 @@ export function StaffOrderCorrection({
           {lines.map((line, index) => (
             <div
               key={`${line.menuItemId}-${index}`}
-              className="grid gap-2 rounded-lg bg-white p-3 sm:grid-cols-[1fr_90px_150px_auto]"
+              className="grid min-w-0 gap-3 rounded-lg border border-sky-100 bg-white p-3 sm:grid-cols-2"
             >
-              <select
-                aria-label="Producto"
-                className="rounded border p-2"
-                value={line.menuItemId}
-                onChange={(event) =>
-                  setLines((current) =>
-                    current.map((entry, position) =>
+              <label className="min-w-0 text-sm font-semibold">
+                Producto
+                <select
+                  className="mt-1 w-full min-w-0 rounded border p-2"
+                  value={line.menuItemId}
+                  onChange={(event) =>
+                    setLines((current) =>
+                      current.map((entry, position) =>
+                        position === index
+                          ? { ...entry, menuItemId: event.target.value }
+                          : entry,
+                      ),
+                    )
+                  }
+                >
+                  {correction.menu.map((item) => (
+                    <option
+                      key={item.id}
+                      value={item.id}
+                      disabled={lines.some(
+                        (entry, position) =>
+                          position !== index && entry.menuItemId === item.id,
+                      )}
+                    >
+                      {item.name} · ₡{item.price.toLocaleString()}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="min-w-0 text-sm font-semibold">
+                Cantidad
+                <input
+                  className="mt-1 w-full min-w-0 rounded border p-2"
+                  type="number"
+                  min={1}
+                  max={10}
+                  value={line.quantity}
+                  onChange={(event) =>
+                    setLines((current) =>
+                      current.map((entry, position) =>
+                        position === index
+                          ? {
+                              ...entry,
+                              quantity: Math.max(
+                                1,
+                                Math.min(10, Number(event.target.value) || 1),
+                              ),
+                            }
+                          : entry,
+                      ),
+                    )
+                  }
+                />
+              </label>
+              <label className="min-w-0 text-sm font-semibold sm:col-span-2">
+                Modalidad
+                <select
+                  className="mt-1 w-full min-w-0 rounded border p-2"
+                  value={line.fulfillment}
+                  disabled={line.fulfillment === "DELIVERY"}
+                  onChange={(event) =>
+                    setLines((current) => current.map((entry, position) =>
                       position === index
-                        ? { ...entry, menuItemId: event.target.value }
+                        ? { ...entry, fulfillment: event.target.value as Fulfillment }
                         : entry,
-                    ),
-                  )
-                }
-              >
-                {correction.menu.map((item) => (
-                  <option
-                    key={item.id}
-                    value={item.id}
-                    disabled={lines.some(
-                      (entry, position) =>
-                        position !== index && entry.menuItemId === item.id,
-                    )}
-                  >
-                    {item.name} · ₡{item.price.toLocaleString()}
-                  </option>
-                ))}
-              </select>
-              <input
-                aria-label="Cantidad"
-                className="rounded border p-2"
-                type="number"
-                min={1}
-                max={10}
-                value={line.quantity}
-                onChange={(event) =>
-                  setLines((current) =>
-                    current.map((entry, position) =>
-                      position === index
-                        ? {
-                            ...entry,
-                            quantity: Math.max(
-                              1,
-                              Math.min(10, Number(event.target.value) || 1),
-                            ),
-                          }
-                        : entry,
-                    ),
-                  )
-                }
-              />
-              <select
-                aria-label="Modalidad del producto"
-                className="rounded border p-2"
-                value={line.fulfillment}
-                disabled={line.fulfillment === "DELIVERY"}
-                onChange={(event) =>
-                  setLines((current) => current.map((entry, position) =>
-                    position === index
-                      ? { ...entry, fulfillment: event.target.value as Fulfillment }
-                      : entry,
-                  ))
-                }
-              >
-                <option value="DINE_IN">En el local</option>
-                <option value="TAKEOUT">Para llevar</option>
-                {line.fulfillment === "DELIVERY" && <option value="DELIVERY">A domicilio</option>}
-              </select>
+                    ))
+                  }
+                >
+                  <option value="DINE_IN">En el local</option>
+                  <option value="TAKEOUT">Para llevar</option>
+                  {line.fulfillment === "DELIVERY" && <option value="DELIVERY">A domicilio</option>}
+                </select>
+              </label>
               <button
                 type="button"
                 disabled={saving}
                 aria-label={`Eliminar ${correction.menu.find((item) => item.id === line.menuItemId)?.name ?? "producto"} de la orden`}
-                className="rounded border border-red-400 px-3 py-2 font-bold text-red-700"
+                className="w-full rounded border-2 border-red-500 bg-red-50 px-3 py-3 font-black text-red-700 sm:col-span-2"
                 onClick={() =>
                   setLines((current) =>
                     current.filter((_, position) => position !== index),
