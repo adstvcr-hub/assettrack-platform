@@ -3931,7 +3931,9 @@ export class RestaurantService {
     const publicOrders = visit.orders.map((order) => ({
       ...order,
       items: order.items.filter(
-        (item) => !item.cancelledByGuestCorrection,
+        (item) =>
+          item.status !== RestaurantItemStatus.CANCELLED &&
+          !item.cancelledByGuestCorrection,
       ),
     }));
     const items = publicOrders.flatMap((order) =>

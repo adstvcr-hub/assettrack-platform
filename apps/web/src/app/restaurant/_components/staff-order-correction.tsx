@@ -67,7 +67,7 @@ export function StaffOrderCorrection({
 
   if (!correction) return null;
 
-  const save = async () => {
+  const save = async (nextLines: DraftLine[] = lines) => {
     setSaving(true);
     setMessage("");
     try {
@@ -79,7 +79,7 @@ export function StaffOrderCorrection({
           body: JSON.stringify({
             requestId: crypto.randomUUID(),
             reason: reason.trim() || undefined,
-            items: lines,
+            items: nextLines,
           }),
         },
       );
@@ -94,8 +94,10 @@ export function StaffOrderCorrection({
       setMessage("Pedido actualizado y registrado en el historial.");
       setOpen(false);
       await onSaved();
+      return true;
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Error inesperado");
+      return false;
     } finally {
       setSaving(false);
     }
@@ -236,15 +238,20 @@ export function StaffOrderCorrection({
               <button
                 type="button"
                 disabled={saving}
-                aria-label={`Eliminar ${correction.menu.find((item) => item.id === line.menuItemId)?.name ?? "producto"} de la orden`}
+                aria-label={`Eliminar ${correction.menu.find((item) => item.id === line.menuItemId)?.name ?? "producto"} y actualizar la cuenta`}
                 className="w-full rounded border-2 border-red-500 bg-red-50 px-3 py-3 font-black text-red-700 sm:col-span-2"
-                onClick={() =>
-                  setLines((current) =>
-                    current.filter((_, position) => position !== index),
-                  )
-                }
+                onClick={() => {
+                  const previousLines = lines;
+                  const nextLines = lines.filter(
+                    (_, position) => position !== index,
+                  );
+                  setLines(nextLines);
+                  void save(nextLines).then((saved) => {
+                    if (!saved) setLines(previousLines);
+                  });
+                }}
               >
-                Eliminar de la orden
+                {saving ? "Actualizando cuenta…" : "Eliminar y actualizar cuenta"}
               </button>
             </div>
           ))}

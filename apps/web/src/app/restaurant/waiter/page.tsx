@@ -104,13 +104,16 @@ export default function WaiterPage() {
   const [savingAvailability, setSavingAvailability] = useState(false);
   const [staffName, setStaffName] = useState("");
   const profileInitialized = useRef(false);
+  const loadSequence = useRef(0);
 
   const load = useCallback(async () => {
+    const sequence = ++loadSequence.current;
     const [profileResponse, response, visitsResponse] = await Promise.all([
       authenticatedFetch(`${API_URL}/api/v1/restaurant/profile`),
       authenticatedFetch(`${API_URL}/api/v1/restaurant/orders`),
       authenticatedFetch(`${API_URL}/api/v1/restaurant/visits`),
     ]);
+    if (sequence !== loadSequence.current) return;
     if (
       profileResponse.status === 401 ||
       response.status === 401 ||
@@ -141,8 +144,10 @@ export default function WaiterPage() {
       return;
     }
     const data: Order[] = await response.json();
+    const nextVisits: Visit[] = await visitsResponse.json();
+    if (sequence !== loadSequence.current) return;
     setOrders(data.filter((order) => order.items.length > 0));
-    setVisits(await visitsResponse.json());
+    setVisits(nextVisits);
     setError("");
   }, [router]);
 
@@ -153,7 +158,10 @@ export default function WaiterPage() {
     }
     void load();
     const timer = setInterval(() => void load(), 5000);
-    return () => clearInterval(timer);
+    return () => {
+      ++loadSequence.current;
+      clearInterval(timer);
+    };
   }, [load, router]);
 
   async function deliver(itemId: string) {

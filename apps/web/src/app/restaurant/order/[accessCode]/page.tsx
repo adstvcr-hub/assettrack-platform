@@ -4,7 +4,7 @@ import { API_URL } from "@/lib/api";
 import Image from "next/image";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { FormEvent } from "react";
 import { useGuestAlerts } from "../../_components/use-guest-alerts";
 
@@ -162,6 +162,7 @@ export default function RestaurantOrderPage() {
   const [savingCorrection, setSavingCorrection] = useState(false);
   const [correctionMessage, setCorrectionMessage] = useState("");
   const [clock, setClock] = useState(() => Date.now());
+  const loadSequence = useRef(0);
   const guestEventKey = order
     ? `${order.status}:${order.items.map((item) => `${item.id}:${item.status}`).join("|")}`
     : "";
@@ -199,14 +200,16 @@ export default function RestaurantOrderPage() {
     }
   }, []);
   const load = useCallback(async () => {
+    const sequence = ++loadSequence.current;
     try {
       const response = await fetch(
-        `${API_URL}/api/v1/restaurant/guest/orders/${encodeURIComponent(accessCode)}`,
+        `${API_URL}/api/v1/restaurant/guest/orders/${encodeURIComponent(accessCode)}?revision=${sequence}`,
         { cache: "no-store" },
       );
       if (!response.ok)
         throw new Error("Order unavailable. Please ask the staff.");
       const nextOrder: Order = await response.json();
+      if (sequence !== loadSequence.current) return;
       setOrder(nextOrder);
       const storageKey = `assettrack_restaurant_order_${nextOrder.table.code}`;
       clearStoredAccountReferences(accessCode);
@@ -215,6 +218,7 @@ export default function RestaurantOrderPage() {
       }
       setError("");
     } catch (err) {
+      if (sequence !== loadSequence.current) return;
       setError(err instanceof Error ? err.message : "Unable to update order");
     }
   }, [accessCode, clearStoredAccountReferences]);
@@ -223,7 +227,10 @@ export default function RestaurantOrderPage() {
     const timer = setInterval(() => {
       void load();
     }, 5000);
-    return () => clearInterval(timer);
+    return () => {
+      ++loadSequence.current;
+      clearInterval(timer);
+    };
   }, [load]);
   useEffect(() => {
     const timer = setInterval(() => setClock(Date.now()), 1000);
