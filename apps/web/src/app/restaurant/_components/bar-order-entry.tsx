@@ -7,6 +7,12 @@ type Table = {
   id: string;
   name: string;
   kind: "DINING" | "BAR_SEAT" | "TAKEOUT_STATION";
+  openAccounts: Array<{
+    accessCode: string;
+    openedAt: string;
+    responsibleName: string | null;
+    subtotal: number;
+  }>;
 };
 
 type MenuItem = {
@@ -31,6 +37,7 @@ export function BarOrderEntry({ onCreated }: { onCreated: () => void }) {
   const [tables, setTables] = useState<Table[]>([]);
   const [menu, setMenu] = useState<MenuItem[]>([]);
   const [tableId, setTableId] = useState("");
+  const [accountAccessCode, setAccountAccessCode] = useState("");
   const [fulfillment, setFulfillment] = useState<"DINE_IN" | "TAKEOUT">(
     "DINE_IN",
   );
@@ -78,6 +85,7 @@ export function BarOrderEntry({ onCreated }: { onCreated: () => void }) {
     (sum, item) => sum + item.price * item.quantity,
     0,
   );
+  const selectedTable = tables.find((table) => table.id === tableId);
 
   const changeQuantity = (id: string, change: number) => {
     setQuantities((current) => ({
@@ -97,6 +105,7 @@ export function BarOrderEntry({ onCreated }: { onCreated: () => void }) {
 
   const toggleMenu = () => {
     setTableId("");
+    setAccountAccessCode("");
     setMessage("");
     setOpen((current) => !current);
   };
@@ -104,6 +113,13 @@ export function BarOrderEntry({ onCreated }: { onCreated: () => void }) {
   const submit = async () => {
     if (!tableId || !selectedItems.length) {
       setMessage("Seleccione una posición y al menos un producto.");
+      return;
+    }
+    if (
+      (selectedTable?.openAccounts.length ?? 0) > 1 &&
+      !accountAccessCode
+    ) {
+      setMessage("Seleccione la cuenta abierta a la que agregará la orden.");
       return;
     }
     setSaving(true);
@@ -116,6 +132,7 @@ export function BarOrderEntry({ onCreated }: { onCreated: () => void }) {
         body: JSON.stringify({
           requestId: crypto.randomUUID(),
           tableId,
+          ...(accountAccessCode ? { accountAccessCode } : {}),
           fulfillment,
           items: selectedItems.map((item) => ({
             menuItemId: item.id,
@@ -133,6 +150,7 @@ export function BarOrderEntry({ onCreated }: { onCreated: () => void }) {
     }
     setQuantities({});
     setTableId("");
+    setAccountAccessCode("");
     setMessage("Orden creada y asignada a su cuenta de trabajo.");
     onCreated();
   };
@@ -165,7 +183,11 @@ export function BarOrderEntry({ onCreated }: { onCreated: () => void }) {
               <select
                 className="mt-1 w-full rounded-lg border bg-white p-3"
                 value={tableId}
-                onChange={(event) => setTableId(event.target.value)}
+                onChange={(event) => {
+                  setTableId(event.target.value);
+                  setAccountAccessCode("");
+                  setMessage("");
+                }}
               >
                 <option value="" disabled>
                   Seleccione una mesa o posición
@@ -177,6 +199,28 @@ export function BarOrderEntry({ onCreated }: { onCreated: () => void }) {
                 ))}
               </select>
             </label>
+            {(selectedTable?.openAccounts.length ?? 0) > 1 && (
+              <label className="font-semibold">
+                Cuenta abierta
+                <select
+                  className="mt-1 w-full rounded-lg border border-amber-500 bg-amber-50 p-3"
+                  value={accountAccessCode}
+                  onChange={(event) => {
+                    setAccountAccessCode(event.target.value);
+                    setMessage("");
+                  }}
+                >
+                  <option value="" disabled>
+                    Seleccione la cuenta
+                  </option>
+                  {selectedTable?.openAccounts.map((account, index) => (
+                    <option key={account.accessCode} value={account.accessCode}>
+                      Cuenta {index + 1} · {account.responsibleName ?? "Sin responsable"} · ₡{account.subtotal.toLocaleString()}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            )}
             <label className="font-semibold">
               Modalidad
               <select

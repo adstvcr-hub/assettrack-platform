@@ -97,7 +97,7 @@ function createService() {
     restaurantVisit: {
       findFirst: vi.fn().mockResolvedValue(null),
       findUnique: vi.fn(),
-      findMany: vi.fn(),
+      findMany: vi.fn().mockResolvedValue([]),
       create: vi.fn().mockResolvedValue({
         id: "visit-a",
         accessCode: "visit-secret",
@@ -344,7 +344,7 @@ describe("RestaurantService", () => {
     );
   });
 
-  it("adds a bar-entered order to that bartender's open account", async () => {
+  it("adds a bar-entered order to the table account after waiter reassignment", async () => {
     const { prisma, service } = createService();
     const bartender = {
       id: "bar-a",
@@ -357,14 +357,16 @@ describe("RestaurantService", () => {
       id: "table-a",
       code: "table-code",
     });
-    prisma.restaurantVisit.findFirst
-      .mockResolvedValueOnce({ accessCode: "existing-account" })
-      .mockResolvedValueOnce({
-        id: "visit-existing",
-        accessCode: "existing-account",
-        tableId: "table-a",
-        occupiesTable: true,
-      });
+    prisma.restaurantVisit.findMany.mockResolvedValue([
+      { accessCode: "existing-account" },
+    ]);
+    prisma.restaurantVisit.findFirst.mockResolvedValue({
+      id: "visit-existing",
+      accessCode: "existing-account",
+      tableId: "table-a",
+      occupiesTable: true,
+      responsibleStaffId: "waiter-a",
+    });
 
     await service.createStaffOrder(bartender, {
       tableId: "table-a",
@@ -377,6 +379,74 @@ describe("RestaurantService", () => {
     expect(prisma.restaurantOrder.create).toHaveBeenCalledWith(
       expect.objectContaining({
         data: expect.objectContaining({ visitId: "visit-existing" }),
+      }),
+    );
+  });
+
+  it("requires an explicit account when a table has separate open accounts", async () => {
+    const { prisma, service } = createService();
+    const bartender = {
+      id: "bar-a",
+      organizationId: "org-a",
+      role: UserRole.USER,
+      restaurantRole: RestaurantStaffRole.BAR,
+      restaurantAvailability: RestaurantStaffAvailability.AVAILABLE,
+    };
+    prisma.restaurantTable.findFirst.mockResolvedValue({
+      id: "table-a",
+      code: "table-code",
+    });
+    prisma.restaurantVisit.findMany.mockResolvedValue([
+      { accessCode: "account-a" },
+      { accessCode: "account-b" },
+    ]);
+
+    await expect(
+      service.createStaffOrder(bartender, {
+        tableId: "table-a",
+        requestId,
+        fulfillment: "DINE_IN",
+        items: [{ menuItemId: itemId, quantity: 1 }],
+      }),
+    ).rejects.toThrow(ConflictException);
+    expect(prisma.restaurantOrder.create).not.toHaveBeenCalled();
+  });
+
+  it("adds a bar order to the explicitly selected table account", async () => {
+    const { prisma, service } = createService();
+    const bartender = {
+      id: "bar-a",
+      organizationId: "org-a",
+      role: UserRole.USER,
+      restaurantRole: RestaurantStaffRole.BAR,
+      restaurantAvailability: RestaurantStaffAvailability.AVAILABLE,
+    };
+    prisma.restaurantTable.findFirst.mockResolvedValue({
+      id: "table-a",
+      code: "table-code",
+    });
+    prisma.restaurantVisit.findMany.mockResolvedValue([
+      { accessCode: "account-a" },
+      { accessCode: "account-b" },
+    ]);
+    prisma.restaurantVisit.findFirst.mockResolvedValue({
+      id: "visit-b",
+      accessCode: "account-b",
+      tableId: "table-a",
+      occupiesTable: true,
+    });
+
+    await service.createStaffOrder(bartender, {
+      tableId: "table-a",
+      accountAccessCode: "account-b",
+      requestId,
+      fulfillment: "DINE_IN",
+      items: [{ menuItemId: itemId, quantity: 1 }],
+    });
+
+    expect(prisma.restaurantOrder.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({ visitId: "visit-b" }),
       }),
     );
   });

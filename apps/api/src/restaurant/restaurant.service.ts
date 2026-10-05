@@ -4267,7 +4267,7 @@ export class RestaurantService {
         ? [RestaurantStation.BAR]
         : []),
     ];
-    const [tables, menu] = await Promise.all([
+    const [tableRecords, menu] = await Promise.all([
       this.prisma.restaurantTable.findMany({
         where: {
           organizationId: actor.organizationId,
@@ -4276,7 +4276,31 @@ export class RestaurantService {
             in: [RestaurantTableKind.DINING, RestaurantTableKind.BAR_SEAT],
           },
         },
-        select: { id: true, name: true, kind: true },
+        select: {
+          id: true,
+          name: true,
+          kind: true,
+          visits: {
+            where: {
+              status: RestaurantVisitStatus.OPEN,
+              occupiesTable: true,
+            },
+            select: {
+              accessCode: true,
+              openedAt: true,
+              responsibleStaff: { select: { name: true } },
+              orders: {
+                select: {
+                  items: {
+                    where: { status: { not: RestaurantItemStatus.CANCELLED } },
+                    select: { price: true, quantity: true },
+                  },
+                },
+              },
+            },
+            orderBy: { openedAt: "asc" },
+          },
+        },
         orderBy: { name: "asc" },
       }),
       this.prisma.restaurantMenuItem.findMany({
@@ -4296,6 +4320,23 @@ export class RestaurantService {
         orderBy: [{ productType: "asc" }, { name: "asc" }],
       }),
     ]);
+    const tables = tableRecords.map(({ visits, ...table }) => ({
+      ...table,
+      openAccounts: visits.map((visit) => ({
+        accessCode: visit.accessCode,
+        openedAt: visit.openedAt,
+        responsibleName: visit.responsibleStaff?.name ?? null,
+        subtotal: visit.orders.reduce(
+          (orderTotal, order) =>
+            orderTotal +
+            order.items.reduce(
+              (itemTotal, item) => itemTotal + item.price * item.quantity,
+              0,
+            ),
+          0,
+        ),
+      })),
+    }));
     return { tables, menu };
   }
 
@@ -4323,22 +4364,38 @@ export class RestaurantService {
       select: { id: true, code: true },
     });
     if (!table) throw new NotFoundException("Mesa o posición no encontrada");
-    const existingVisit = await this.prisma.restaurantVisit.findFirst({
+    const openAccounts = await this.prisma.restaurantVisit.findMany({
       where: {
         organizationId: actor.organizationId,
         tableId: table.id,
-        responsibleStaffId: actor.id,
         status: RestaurantVisitStatus.OPEN,
         occupiesTable: true,
       },
       select: { accessCode: true },
-      orderBy: { openedAt: "desc" },
+      orderBy: { openedAt: "asc" },
     });
+    const requestedAccount = dto.accountAccessCode
+      ? openAccounts.find(
+          (account) => account.accessCode === dto.accountAccessCode,
+        )
+      : null;
+    if (dto.accountAccessCode && !requestedAccount) {
+      throw new BadRequestException(
+        "La cuenta seleccionada no está abierta en esta mesa",
+      );
+    }
+    if (!dto.accountAccessCode && openAccounts.length > 1) {
+      throw new ConflictException(
+        "Esta mesa tiene varias cuentas abiertas. Seleccione la cuenta para agregar la orden",
+      );
+    }
+    const accountAccessCode =
+      requestedAccount?.accessCode ?? openAccounts[0]?.accessCode;
     const { tableId: _tableId, ...orderDto } = dto;
     void _tableId;
     return this.placeOrder(
       table.code,
-      { ...orderDto, accountAccessCode: existingVisit?.accessCode },
+      { ...orderDto, accountAccessCode },
       actor,
     );
   }
