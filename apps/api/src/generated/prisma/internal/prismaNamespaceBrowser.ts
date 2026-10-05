@@ -71,6 +71,7 @@ export const ModelName = {
   RestaurantCashDayClose: 'RestaurantCashDayClose',
   RestaurantInventoryCategory: 'RestaurantInventoryCategory',
   RestaurantInventoryProduct: 'RestaurantInventoryProduct',
+  RestaurantRecipeIngredient: 'RestaurantRecipeIngredient',
   RestaurantInventoryMovement: 'RestaurantInventoryMovement',
   RestaurantLiquorWeighing: 'RestaurantLiquorWeighing',
   RestaurantPromotion: 'RestaurantPromotion',
@@ -461,6 +462,8 @@ export const RestaurantInventoryProductScalarFieldEnum = {
   name: 'name',
   productType: 'productType',
   presentation: 'presentation',
+  stockUnit: 'stockUnit',
+  unitsPerPresentation: 'unitsPerPresentation',
   quantity: 'quantity',
   minimumQuantity: 'minimumQuantity',
   unitCost: 'unitCost',
@@ -473,6 +476,20 @@ export const RestaurantInventoryProductScalarFieldEnum = {
 } as const
 
 export type RestaurantInventoryProductScalarFieldEnum = (typeof RestaurantInventoryProductScalarFieldEnum)[keyof typeof RestaurantInventoryProductScalarFieldEnum]
+
+
+export const RestaurantRecipeIngredientScalarFieldEnum = {
+  id: 'id',
+  organizationId: 'organizationId',
+  menuItemId: 'menuItemId',
+  productId: 'productId',
+  quantityPerMenuItem: 'quantityPerMenuItem',
+  active: 'active',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type RestaurantRecipeIngredientScalarFieldEnum = (typeof RestaurantRecipeIngredientScalarFieldEnum)[keyof typeof RestaurantRecipeIngredientScalarFieldEnum]
 
 
 export const RestaurantInventoryMovementScalarFieldEnum = {

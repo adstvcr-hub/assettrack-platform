@@ -27,6 +27,7 @@ export type AggregateRestaurantInventoryProduct = {
 }
 
 export type RestaurantInventoryProductAvgAggregateOutputType = {
+  unitsPerPresentation: number | null
   quantity: number | null
   minimumQuantity: number | null
   unitCost: number | null
@@ -34,6 +35,7 @@ export type RestaurantInventoryProductAvgAggregateOutputType = {
 }
 
 export type RestaurantInventoryProductSumAggregateOutputType = {
+  unitsPerPresentation: number | null
   quantity: number | null
   minimumQuantity: number | null
   unitCost: number | null
@@ -48,6 +50,8 @@ export type RestaurantInventoryProductMinAggregateOutputType = {
   name: string | null
   productType: $Enums.RestaurantInventoryProductType | null
   presentation: string | null
+  stockUnit: $Enums.RestaurantInventoryUnit | null
+  unitsPerPresentation: number | null
   quantity: number | null
   minimumQuantity: number | null
   unitCost: number | null
@@ -67,6 +71,8 @@ export type RestaurantInventoryProductMaxAggregateOutputType = {
   name: string | null
   productType: $Enums.RestaurantInventoryProductType | null
   presentation: string | null
+  stockUnit: $Enums.RestaurantInventoryUnit | null
+  unitsPerPresentation: number | null
   quantity: number | null
   minimumQuantity: number | null
   unitCost: number | null
@@ -86,6 +92,8 @@ export type RestaurantInventoryProductCountAggregateOutputType = {
   name: number
   productType: number
   presentation: number
+  stockUnit: number
+  unitsPerPresentation: number
   quantity: number
   minimumQuantity: number
   unitCost: number
@@ -100,6 +108,7 @@ export type RestaurantInventoryProductCountAggregateOutputType = {
 
 
 export type RestaurantInventoryProductAvgAggregateInputType = {
+  unitsPerPresentation?: true
   quantity?: true
   minimumQuantity?: true
   unitCost?: true
@@ -107,6 +116,7 @@ export type RestaurantInventoryProductAvgAggregateInputType = {
 }
 
 export type RestaurantInventoryProductSumAggregateInputType = {
+  unitsPerPresentation?: true
   quantity?: true
   minimumQuantity?: true
   unitCost?: true
@@ -121,6 +131,8 @@ export type RestaurantInventoryProductMinAggregateInputType = {
   name?: true
   productType?: true
   presentation?: true
+  stockUnit?: true
+  unitsPerPresentation?: true
   quantity?: true
   minimumQuantity?: true
   unitCost?: true
@@ -140,6 +152,8 @@ export type RestaurantInventoryProductMaxAggregateInputType = {
   name?: true
   productType?: true
   presentation?: true
+  stockUnit?: true
+  unitsPerPresentation?: true
   quantity?: true
   minimumQuantity?: true
   unitCost?: true
@@ -159,6 +173,8 @@ export type RestaurantInventoryProductCountAggregateInputType = {
   name?: true
   productType?: true
   presentation?: true
+  stockUnit?: true
+  unitsPerPresentation?: true
   quantity?: true
   minimumQuantity?: true
   unitCost?: true
@@ -265,6 +281,8 @@ export type RestaurantInventoryProductGroupByOutputType = {
   name: string
   productType: $Enums.RestaurantInventoryProductType
   presentation: string
+  stockUnit: $Enums.RestaurantInventoryUnit
+  unitsPerPresentation: number
   quantity: number
   minimumQuantity: number
   unitCost: number
@@ -307,6 +325,8 @@ export type RestaurantInventoryProductWhereInput = {
   name?: Prisma.StringFilter<"RestaurantInventoryProduct"> | string
   productType?: Prisma.EnumRestaurantInventoryProductTypeFilter<"RestaurantInventoryProduct"> | $Enums.RestaurantInventoryProductType
   presentation?: Prisma.StringFilter<"RestaurantInventoryProduct"> | string
+  stockUnit?: Prisma.EnumRestaurantInventoryUnitFilter<"RestaurantInventoryProduct"> | $Enums.RestaurantInventoryUnit
+  unitsPerPresentation?: Prisma.IntFilter<"RestaurantInventoryProduct"> | number
   quantity?: Prisma.IntFilter<"RestaurantInventoryProduct"> | number
   minimumQuantity?: Prisma.IntFilter<"RestaurantInventoryProduct"> | number
   unitCost?: Prisma.IntFilter<"RestaurantInventoryProduct"> | number
@@ -321,6 +341,7 @@ export type RestaurantInventoryProductWhereInput = {
   menuItem?: Prisma.XOR<Prisma.RestaurantMenuItemNullableScalarRelationFilter, Prisma.RestaurantMenuItemWhereInput> | null
   movements?: Prisma.RestaurantInventoryMovementListRelationFilter
   weighings?: Prisma.RestaurantLiquorWeighingListRelationFilter
+  recipeIngredients?: Prisma.RestaurantRecipeIngredientListRelationFilter
 }
 
 export type RestaurantInventoryProductOrderByWithRelationInput = {
@@ -331,6 +352,8 @@ export type RestaurantInventoryProductOrderByWithRelationInput = {
   name?: Prisma.SortOrder
   productType?: Prisma.SortOrder
   presentation?: Prisma.SortOrder
+  stockUnit?: Prisma.SortOrder
+  unitsPerPresentation?: Prisma.SortOrder
   quantity?: Prisma.SortOrder
   minimumQuantity?: Prisma.SortOrder
   unitCost?: Prisma.SortOrder
@@ -345,6 +368,7 @@ export type RestaurantInventoryProductOrderByWithRelationInput = {
   menuItem?: Prisma.RestaurantMenuItemOrderByWithRelationInput
   movements?: Prisma.RestaurantInventoryMovementOrderByRelationAggregateInput
   weighings?: Prisma.RestaurantLiquorWeighingOrderByRelationAggregateInput
+  recipeIngredients?: Prisma.RestaurantRecipeIngredientOrderByRelationAggregateInput
 }
 
 export type RestaurantInventoryProductWhereUniqueInput = Prisma.AtLeast<{
@@ -358,6 +382,8 @@ export type RestaurantInventoryProductWhereUniqueInput = Prisma.AtLeast<{
   name?: Prisma.StringFilter<"RestaurantInventoryProduct"> | string
   productType?: Prisma.EnumRestaurantInventoryProductTypeFilter<"RestaurantInventoryProduct"> | $Enums.RestaurantInventoryProductType
   presentation?: Prisma.StringFilter<"RestaurantInventoryProduct"> | string
+  stockUnit?: Prisma.EnumRestaurantInventoryUnitFilter<"RestaurantInventoryProduct"> | $Enums.RestaurantInventoryUnit
+  unitsPerPresentation?: Prisma.IntFilter<"RestaurantInventoryProduct"> | number
   quantity?: Prisma.IntFilter<"RestaurantInventoryProduct"> | number
   minimumQuantity?: Prisma.IntFilter<"RestaurantInventoryProduct"> | number
   unitCost?: Prisma.IntFilter<"RestaurantInventoryProduct"> | number
@@ -372,6 +398,7 @@ export type RestaurantInventoryProductWhereUniqueInput = Prisma.AtLeast<{
   menuItem?: Prisma.XOR<Prisma.RestaurantMenuItemNullableScalarRelationFilter, Prisma.RestaurantMenuItemWhereInput> | null
   movements?: Prisma.RestaurantInventoryMovementListRelationFilter
   weighings?: Prisma.RestaurantLiquorWeighingListRelationFilter
+  recipeIngredients?: Prisma.RestaurantRecipeIngredientListRelationFilter
 }, "id" | "menuItemId">
 
 export type RestaurantInventoryProductOrderByWithAggregationInput = {
@@ -382,6 +409,8 @@ export type RestaurantInventoryProductOrderByWithAggregationInput = {
   name?: Prisma.SortOrder
   productType?: Prisma.SortOrder
   presentation?: Prisma.SortOrder
+  stockUnit?: Prisma.SortOrder
+  unitsPerPresentation?: Prisma.SortOrder
   quantity?: Prisma.SortOrder
   minimumQuantity?: Prisma.SortOrder
   unitCost?: Prisma.SortOrder
@@ -409,6 +438,8 @@ export type RestaurantInventoryProductScalarWhereWithAggregatesInput = {
   name?: Prisma.StringWithAggregatesFilter<"RestaurantInventoryProduct"> | string
   productType?: Prisma.EnumRestaurantInventoryProductTypeWithAggregatesFilter<"RestaurantInventoryProduct"> | $Enums.RestaurantInventoryProductType
   presentation?: Prisma.StringWithAggregatesFilter<"RestaurantInventoryProduct"> | string
+  stockUnit?: Prisma.EnumRestaurantInventoryUnitWithAggregatesFilter<"RestaurantInventoryProduct"> | $Enums.RestaurantInventoryUnit
+  unitsPerPresentation?: Prisma.IntWithAggregatesFilter<"RestaurantInventoryProduct"> | number
   quantity?: Prisma.IntWithAggregatesFilter<"RestaurantInventoryProduct"> | number
   minimumQuantity?: Prisma.IntWithAggregatesFilter<"RestaurantInventoryProduct"> | number
   unitCost?: Prisma.IntWithAggregatesFilter<"RestaurantInventoryProduct"> | number
@@ -425,6 +456,8 @@ export type RestaurantInventoryProductCreateInput = {
   name: string
   productType?: $Enums.RestaurantInventoryProductType
   presentation: string
+  stockUnit?: $Enums.RestaurantInventoryUnit
+  unitsPerPresentation?: number
   quantity?: number
   minimumQuantity?: number
   unitCost?: number
@@ -439,6 +472,7 @@ export type RestaurantInventoryProductCreateInput = {
   menuItem?: Prisma.RestaurantMenuItemCreateNestedOneWithoutInventoryProductInput
   movements?: Prisma.RestaurantInventoryMovementCreateNestedManyWithoutProductInput
   weighings?: Prisma.RestaurantLiquorWeighingCreateNestedManyWithoutProductInput
+  recipeIngredients?: Prisma.RestaurantRecipeIngredientCreateNestedManyWithoutProductInput
 }
 
 export type RestaurantInventoryProductUncheckedCreateInput = {
@@ -449,6 +483,8 @@ export type RestaurantInventoryProductUncheckedCreateInput = {
   name: string
   productType?: $Enums.RestaurantInventoryProductType
   presentation: string
+  stockUnit?: $Enums.RestaurantInventoryUnit
+  unitsPerPresentation?: number
   quantity?: number
   minimumQuantity?: number
   unitCost?: number
@@ -460,6 +496,7 @@ export type RestaurantInventoryProductUncheckedCreateInput = {
   updatedAt?: Date | string
   movements?: Prisma.RestaurantInventoryMovementUncheckedCreateNestedManyWithoutProductInput
   weighings?: Prisma.RestaurantLiquorWeighingUncheckedCreateNestedManyWithoutProductInput
+  recipeIngredients?: Prisma.RestaurantRecipeIngredientUncheckedCreateNestedManyWithoutProductInput
 }
 
 export type RestaurantInventoryProductUpdateInput = {
@@ -467,6 +504,8 @@ export type RestaurantInventoryProductUpdateInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   productType?: Prisma.EnumRestaurantInventoryProductTypeFieldUpdateOperationsInput | $Enums.RestaurantInventoryProductType
   presentation?: Prisma.StringFieldUpdateOperationsInput | string
+  stockUnit?: Prisma.EnumRestaurantInventoryUnitFieldUpdateOperationsInput | $Enums.RestaurantInventoryUnit
+  unitsPerPresentation?: Prisma.IntFieldUpdateOperationsInput | number
   quantity?: Prisma.IntFieldUpdateOperationsInput | number
   minimumQuantity?: Prisma.IntFieldUpdateOperationsInput | number
   unitCost?: Prisma.IntFieldUpdateOperationsInput | number
@@ -481,6 +520,7 @@ export type RestaurantInventoryProductUpdateInput = {
   menuItem?: Prisma.RestaurantMenuItemUpdateOneWithoutInventoryProductNestedInput
   movements?: Prisma.RestaurantInventoryMovementUpdateManyWithoutProductNestedInput
   weighings?: Prisma.RestaurantLiquorWeighingUpdateManyWithoutProductNestedInput
+  recipeIngredients?: Prisma.RestaurantRecipeIngredientUpdateManyWithoutProductNestedInput
 }
 
 export type RestaurantInventoryProductUncheckedUpdateInput = {
@@ -491,6 +531,8 @@ export type RestaurantInventoryProductUncheckedUpdateInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   productType?: Prisma.EnumRestaurantInventoryProductTypeFieldUpdateOperationsInput | $Enums.RestaurantInventoryProductType
   presentation?: Prisma.StringFieldUpdateOperationsInput | string
+  stockUnit?: Prisma.EnumRestaurantInventoryUnitFieldUpdateOperationsInput | $Enums.RestaurantInventoryUnit
+  unitsPerPresentation?: Prisma.IntFieldUpdateOperationsInput | number
   quantity?: Prisma.IntFieldUpdateOperationsInput | number
   minimumQuantity?: Prisma.IntFieldUpdateOperationsInput | number
   unitCost?: Prisma.IntFieldUpdateOperationsInput | number
@@ -502,6 +544,7 @@ export type RestaurantInventoryProductUncheckedUpdateInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   movements?: Prisma.RestaurantInventoryMovementUncheckedUpdateManyWithoutProductNestedInput
   weighings?: Prisma.RestaurantLiquorWeighingUncheckedUpdateManyWithoutProductNestedInput
+  recipeIngredients?: Prisma.RestaurantRecipeIngredientUncheckedUpdateManyWithoutProductNestedInput
 }
 
 export type RestaurantInventoryProductCreateManyInput = {
@@ -512,6 +555,8 @@ export type RestaurantInventoryProductCreateManyInput = {
   name: string
   productType?: $Enums.RestaurantInventoryProductType
   presentation: string
+  stockUnit?: $Enums.RestaurantInventoryUnit
+  unitsPerPresentation?: number
   quantity?: number
   minimumQuantity?: number
   unitCost?: number
@@ -528,6 +573,8 @@ export type RestaurantInventoryProductUpdateManyMutationInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   productType?: Prisma.EnumRestaurantInventoryProductTypeFieldUpdateOperationsInput | $Enums.RestaurantInventoryProductType
   presentation?: Prisma.StringFieldUpdateOperationsInput | string
+  stockUnit?: Prisma.EnumRestaurantInventoryUnitFieldUpdateOperationsInput | $Enums.RestaurantInventoryUnit
+  unitsPerPresentation?: Prisma.IntFieldUpdateOperationsInput | number
   quantity?: Prisma.IntFieldUpdateOperationsInput | number
   minimumQuantity?: Prisma.IntFieldUpdateOperationsInput | number
   unitCost?: Prisma.IntFieldUpdateOperationsInput | number
@@ -547,6 +594,8 @@ export type RestaurantInventoryProductUncheckedUpdateManyInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   productType?: Prisma.EnumRestaurantInventoryProductTypeFieldUpdateOperationsInput | $Enums.RestaurantInventoryProductType
   presentation?: Prisma.StringFieldUpdateOperationsInput | string
+  stockUnit?: Prisma.EnumRestaurantInventoryUnitFieldUpdateOperationsInput | $Enums.RestaurantInventoryUnit
+  unitsPerPresentation?: Prisma.IntFieldUpdateOperationsInput | number
   quantity?: Prisma.IntFieldUpdateOperationsInput | number
   minimumQuantity?: Prisma.IntFieldUpdateOperationsInput | number
   unitCost?: Prisma.IntFieldUpdateOperationsInput | number
@@ -581,6 +630,8 @@ export type RestaurantInventoryProductCountOrderByAggregateInput = {
   name?: Prisma.SortOrder
   productType?: Prisma.SortOrder
   presentation?: Prisma.SortOrder
+  stockUnit?: Prisma.SortOrder
+  unitsPerPresentation?: Prisma.SortOrder
   quantity?: Prisma.SortOrder
   minimumQuantity?: Prisma.SortOrder
   unitCost?: Prisma.SortOrder
@@ -593,6 +644,7 @@ export type RestaurantInventoryProductCountOrderByAggregateInput = {
 }
 
 export type RestaurantInventoryProductAvgOrderByAggregateInput = {
+  unitsPerPresentation?: Prisma.SortOrder
   quantity?: Prisma.SortOrder
   minimumQuantity?: Prisma.SortOrder
   unitCost?: Prisma.SortOrder
@@ -607,6 +659,8 @@ export type RestaurantInventoryProductMaxOrderByAggregateInput = {
   name?: Prisma.SortOrder
   productType?: Prisma.SortOrder
   presentation?: Prisma.SortOrder
+  stockUnit?: Prisma.SortOrder
+  unitsPerPresentation?: Prisma.SortOrder
   quantity?: Prisma.SortOrder
   minimumQuantity?: Prisma.SortOrder
   unitCost?: Prisma.SortOrder
@@ -626,6 +680,8 @@ export type RestaurantInventoryProductMinOrderByAggregateInput = {
   name?: Prisma.SortOrder
   productType?: Prisma.SortOrder
   presentation?: Prisma.SortOrder
+  stockUnit?: Prisma.SortOrder
+  unitsPerPresentation?: Prisma.SortOrder
   quantity?: Prisma.SortOrder
   minimumQuantity?: Prisma.SortOrder
   unitCost?: Prisma.SortOrder
@@ -638,6 +694,7 @@ export type RestaurantInventoryProductMinOrderByAggregateInput = {
 }
 
 export type RestaurantInventoryProductSumOrderByAggregateInput = {
+  unitsPerPresentation?: Prisma.SortOrder
   quantity?: Prisma.SortOrder
   minimumQuantity?: Prisma.SortOrder
   unitCost?: Prisma.SortOrder
@@ -769,6 +826,24 @@ export type EnumRestaurantInventoryProductTypeFieldUpdateOperationsInput = {
   set?: $Enums.RestaurantInventoryProductType
 }
 
+export type EnumRestaurantInventoryUnitFieldUpdateOperationsInput = {
+  set?: $Enums.RestaurantInventoryUnit
+}
+
+export type RestaurantInventoryProductCreateNestedOneWithoutRecipeIngredientsInput = {
+  create?: Prisma.XOR<Prisma.RestaurantInventoryProductCreateWithoutRecipeIngredientsInput, Prisma.RestaurantInventoryProductUncheckedCreateWithoutRecipeIngredientsInput>
+  connectOrCreate?: Prisma.RestaurantInventoryProductCreateOrConnectWithoutRecipeIngredientsInput
+  connect?: Prisma.RestaurantInventoryProductWhereUniqueInput
+}
+
+export type RestaurantInventoryProductUpdateOneRequiredWithoutRecipeIngredientsNestedInput = {
+  create?: Prisma.XOR<Prisma.RestaurantInventoryProductCreateWithoutRecipeIngredientsInput, Prisma.RestaurantInventoryProductUncheckedCreateWithoutRecipeIngredientsInput>
+  connectOrCreate?: Prisma.RestaurantInventoryProductCreateOrConnectWithoutRecipeIngredientsInput
+  upsert?: Prisma.RestaurantInventoryProductUpsertWithoutRecipeIngredientsInput
+  connect?: Prisma.RestaurantInventoryProductWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.RestaurantInventoryProductUpdateToOneWithWhereWithoutRecipeIngredientsInput, Prisma.RestaurantInventoryProductUpdateWithoutRecipeIngredientsInput>, Prisma.RestaurantInventoryProductUncheckedUpdateWithoutRecipeIngredientsInput>
+}
+
 export type RestaurantInventoryProductCreateNestedOneWithoutMovementsInput = {
   create?: Prisma.XOR<Prisma.RestaurantInventoryProductCreateWithoutMovementsInput, Prisma.RestaurantInventoryProductUncheckedCreateWithoutMovementsInput>
   connectOrCreate?: Prisma.RestaurantInventoryProductCreateOrConnectWithoutMovementsInput
@@ -802,6 +877,8 @@ export type RestaurantInventoryProductCreateWithoutOrganizationInput = {
   name: string
   productType?: $Enums.RestaurantInventoryProductType
   presentation: string
+  stockUnit?: $Enums.RestaurantInventoryUnit
+  unitsPerPresentation?: number
   quantity?: number
   minimumQuantity?: number
   unitCost?: number
@@ -815,6 +892,7 @@ export type RestaurantInventoryProductCreateWithoutOrganizationInput = {
   menuItem?: Prisma.RestaurantMenuItemCreateNestedOneWithoutInventoryProductInput
   movements?: Prisma.RestaurantInventoryMovementCreateNestedManyWithoutProductInput
   weighings?: Prisma.RestaurantLiquorWeighingCreateNestedManyWithoutProductInput
+  recipeIngredients?: Prisma.RestaurantRecipeIngredientCreateNestedManyWithoutProductInput
 }
 
 export type RestaurantInventoryProductUncheckedCreateWithoutOrganizationInput = {
@@ -824,6 +902,8 @@ export type RestaurantInventoryProductUncheckedCreateWithoutOrganizationInput = 
   name: string
   productType?: $Enums.RestaurantInventoryProductType
   presentation: string
+  stockUnit?: $Enums.RestaurantInventoryUnit
+  unitsPerPresentation?: number
   quantity?: number
   minimumQuantity?: number
   unitCost?: number
@@ -835,6 +915,7 @@ export type RestaurantInventoryProductUncheckedCreateWithoutOrganizationInput = 
   updatedAt?: Date | string
   movements?: Prisma.RestaurantInventoryMovementUncheckedCreateNestedManyWithoutProductInput
   weighings?: Prisma.RestaurantLiquorWeighingUncheckedCreateNestedManyWithoutProductInput
+  recipeIngredients?: Prisma.RestaurantRecipeIngredientUncheckedCreateNestedManyWithoutProductInput
 }
 
 export type RestaurantInventoryProductCreateOrConnectWithoutOrganizationInput = {
@@ -874,6 +955,8 @@ export type RestaurantInventoryProductScalarWhereInput = {
   name?: Prisma.StringFilter<"RestaurantInventoryProduct"> | string
   productType?: Prisma.EnumRestaurantInventoryProductTypeFilter<"RestaurantInventoryProduct"> | $Enums.RestaurantInventoryProductType
   presentation?: Prisma.StringFilter<"RestaurantInventoryProduct"> | string
+  stockUnit?: Prisma.EnumRestaurantInventoryUnitFilter<"RestaurantInventoryProduct"> | $Enums.RestaurantInventoryUnit
+  unitsPerPresentation?: Prisma.IntFilter<"RestaurantInventoryProduct"> | number
   quantity?: Prisma.IntFilter<"RestaurantInventoryProduct"> | number
   minimumQuantity?: Prisma.IntFilter<"RestaurantInventoryProduct"> | number
   unitCost?: Prisma.IntFilter<"RestaurantInventoryProduct"> | number
@@ -890,6 +973,8 @@ export type RestaurantInventoryProductCreateWithoutMenuItemInput = {
   name: string
   productType?: $Enums.RestaurantInventoryProductType
   presentation: string
+  stockUnit?: $Enums.RestaurantInventoryUnit
+  unitsPerPresentation?: number
   quantity?: number
   minimumQuantity?: number
   unitCost?: number
@@ -903,6 +988,7 @@ export type RestaurantInventoryProductCreateWithoutMenuItemInput = {
   category: Prisma.RestaurantInventoryCategoryCreateNestedOneWithoutProductsInput
   movements?: Prisma.RestaurantInventoryMovementCreateNestedManyWithoutProductInput
   weighings?: Prisma.RestaurantLiquorWeighingCreateNestedManyWithoutProductInput
+  recipeIngredients?: Prisma.RestaurantRecipeIngredientCreateNestedManyWithoutProductInput
 }
 
 export type RestaurantInventoryProductUncheckedCreateWithoutMenuItemInput = {
@@ -912,6 +998,8 @@ export type RestaurantInventoryProductUncheckedCreateWithoutMenuItemInput = {
   name: string
   productType?: $Enums.RestaurantInventoryProductType
   presentation: string
+  stockUnit?: $Enums.RestaurantInventoryUnit
+  unitsPerPresentation?: number
   quantity?: number
   minimumQuantity?: number
   unitCost?: number
@@ -923,6 +1011,7 @@ export type RestaurantInventoryProductUncheckedCreateWithoutMenuItemInput = {
   updatedAt?: Date | string
   movements?: Prisma.RestaurantInventoryMovementUncheckedCreateNestedManyWithoutProductInput
   weighings?: Prisma.RestaurantLiquorWeighingUncheckedCreateNestedManyWithoutProductInput
+  recipeIngredients?: Prisma.RestaurantRecipeIngredientUncheckedCreateNestedManyWithoutProductInput
 }
 
 export type RestaurantInventoryProductCreateOrConnectWithoutMenuItemInput = {
@@ -946,6 +1035,8 @@ export type RestaurantInventoryProductUpdateWithoutMenuItemInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   productType?: Prisma.EnumRestaurantInventoryProductTypeFieldUpdateOperationsInput | $Enums.RestaurantInventoryProductType
   presentation?: Prisma.StringFieldUpdateOperationsInput | string
+  stockUnit?: Prisma.EnumRestaurantInventoryUnitFieldUpdateOperationsInput | $Enums.RestaurantInventoryUnit
+  unitsPerPresentation?: Prisma.IntFieldUpdateOperationsInput | number
   quantity?: Prisma.IntFieldUpdateOperationsInput | number
   minimumQuantity?: Prisma.IntFieldUpdateOperationsInput | number
   unitCost?: Prisma.IntFieldUpdateOperationsInput | number
@@ -959,6 +1050,7 @@ export type RestaurantInventoryProductUpdateWithoutMenuItemInput = {
   category?: Prisma.RestaurantInventoryCategoryUpdateOneRequiredWithoutProductsNestedInput
   movements?: Prisma.RestaurantInventoryMovementUpdateManyWithoutProductNestedInput
   weighings?: Prisma.RestaurantLiquorWeighingUpdateManyWithoutProductNestedInput
+  recipeIngredients?: Prisma.RestaurantRecipeIngredientUpdateManyWithoutProductNestedInput
 }
 
 export type RestaurantInventoryProductUncheckedUpdateWithoutMenuItemInput = {
@@ -968,6 +1060,8 @@ export type RestaurantInventoryProductUncheckedUpdateWithoutMenuItemInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   productType?: Prisma.EnumRestaurantInventoryProductTypeFieldUpdateOperationsInput | $Enums.RestaurantInventoryProductType
   presentation?: Prisma.StringFieldUpdateOperationsInput | string
+  stockUnit?: Prisma.EnumRestaurantInventoryUnitFieldUpdateOperationsInput | $Enums.RestaurantInventoryUnit
+  unitsPerPresentation?: Prisma.IntFieldUpdateOperationsInput | number
   quantity?: Prisma.IntFieldUpdateOperationsInput | number
   minimumQuantity?: Prisma.IntFieldUpdateOperationsInput | number
   unitCost?: Prisma.IntFieldUpdateOperationsInput | number
@@ -979,6 +1073,7 @@ export type RestaurantInventoryProductUncheckedUpdateWithoutMenuItemInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   movements?: Prisma.RestaurantInventoryMovementUncheckedUpdateManyWithoutProductNestedInput
   weighings?: Prisma.RestaurantLiquorWeighingUncheckedUpdateManyWithoutProductNestedInput
+  recipeIngredients?: Prisma.RestaurantRecipeIngredientUncheckedUpdateManyWithoutProductNestedInput
 }
 
 export type RestaurantInventoryProductCreateWithoutCategoryInput = {
@@ -986,6 +1081,8 @@ export type RestaurantInventoryProductCreateWithoutCategoryInput = {
   name: string
   productType?: $Enums.RestaurantInventoryProductType
   presentation: string
+  stockUnit?: $Enums.RestaurantInventoryUnit
+  unitsPerPresentation?: number
   quantity?: number
   minimumQuantity?: number
   unitCost?: number
@@ -999,6 +1096,7 @@ export type RestaurantInventoryProductCreateWithoutCategoryInput = {
   menuItem?: Prisma.RestaurantMenuItemCreateNestedOneWithoutInventoryProductInput
   movements?: Prisma.RestaurantInventoryMovementCreateNestedManyWithoutProductInput
   weighings?: Prisma.RestaurantLiquorWeighingCreateNestedManyWithoutProductInput
+  recipeIngredients?: Prisma.RestaurantRecipeIngredientCreateNestedManyWithoutProductInput
 }
 
 export type RestaurantInventoryProductUncheckedCreateWithoutCategoryInput = {
@@ -1008,6 +1106,8 @@ export type RestaurantInventoryProductUncheckedCreateWithoutCategoryInput = {
   name: string
   productType?: $Enums.RestaurantInventoryProductType
   presentation: string
+  stockUnit?: $Enums.RestaurantInventoryUnit
+  unitsPerPresentation?: number
   quantity?: number
   minimumQuantity?: number
   unitCost?: number
@@ -1019,6 +1119,7 @@ export type RestaurantInventoryProductUncheckedCreateWithoutCategoryInput = {
   updatedAt?: Date | string
   movements?: Prisma.RestaurantInventoryMovementUncheckedCreateNestedManyWithoutProductInput
   weighings?: Prisma.RestaurantLiquorWeighingUncheckedCreateNestedManyWithoutProductInput
+  recipeIngredients?: Prisma.RestaurantRecipeIngredientUncheckedCreateNestedManyWithoutProductInput
 }
 
 export type RestaurantInventoryProductCreateOrConnectWithoutCategoryInput = {
@@ -1047,11 +1148,121 @@ export type RestaurantInventoryProductUpdateManyWithWhereWithoutCategoryInput = 
   data: Prisma.XOR<Prisma.RestaurantInventoryProductUpdateManyMutationInput, Prisma.RestaurantInventoryProductUncheckedUpdateManyWithoutCategoryInput>
 }
 
+export type RestaurantInventoryProductCreateWithoutRecipeIngredientsInput = {
+  id?: string
+  name: string
+  productType?: $Enums.RestaurantInventoryProductType
+  presentation: string
+  stockUnit?: $Enums.RestaurantInventoryUnit
+  unitsPerPresentation?: number
+  quantity?: number
+  minimumQuantity?: number
+  unitCost?: number
+  receivedAt: Date | string
+  liquorBrand?: string | null
+  liquorInitialTareGrams?: number | null
+  active?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  organization: Prisma.OrganizationCreateNestedOneWithoutRestaurantInventoryProductsInput
+  category: Prisma.RestaurantInventoryCategoryCreateNestedOneWithoutProductsInput
+  menuItem?: Prisma.RestaurantMenuItemCreateNestedOneWithoutInventoryProductInput
+  movements?: Prisma.RestaurantInventoryMovementCreateNestedManyWithoutProductInput
+  weighings?: Prisma.RestaurantLiquorWeighingCreateNestedManyWithoutProductInput
+}
+
+export type RestaurantInventoryProductUncheckedCreateWithoutRecipeIngredientsInput = {
+  id?: string
+  organizationId: string
+  categoryId: string
+  menuItemId?: string | null
+  name: string
+  productType?: $Enums.RestaurantInventoryProductType
+  presentation: string
+  stockUnit?: $Enums.RestaurantInventoryUnit
+  unitsPerPresentation?: number
+  quantity?: number
+  minimumQuantity?: number
+  unitCost?: number
+  receivedAt: Date | string
+  liquorBrand?: string | null
+  liquorInitialTareGrams?: number | null
+  active?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  movements?: Prisma.RestaurantInventoryMovementUncheckedCreateNestedManyWithoutProductInput
+  weighings?: Prisma.RestaurantLiquorWeighingUncheckedCreateNestedManyWithoutProductInput
+}
+
+export type RestaurantInventoryProductCreateOrConnectWithoutRecipeIngredientsInput = {
+  where: Prisma.RestaurantInventoryProductWhereUniqueInput
+  create: Prisma.XOR<Prisma.RestaurantInventoryProductCreateWithoutRecipeIngredientsInput, Prisma.RestaurantInventoryProductUncheckedCreateWithoutRecipeIngredientsInput>
+}
+
+export type RestaurantInventoryProductUpsertWithoutRecipeIngredientsInput = {
+  update: Prisma.XOR<Prisma.RestaurantInventoryProductUpdateWithoutRecipeIngredientsInput, Prisma.RestaurantInventoryProductUncheckedUpdateWithoutRecipeIngredientsInput>
+  create: Prisma.XOR<Prisma.RestaurantInventoryProductCreateWithoutRecipeIngredientsInput, Prisma.RestaurantInventoryProductUncheckedCreateWithoutRecipeIngredientsInput>
+  where?: Prisma.RestaurantInventoryProductWhereInput
+}
+
+export type RestaurantInventoryProductUpdateToOneWithWhereWithoutRecipeIngredientsInput = {
+  where?: Prisma.RestaurantInventoryProductWhereInput
+  data: Prisma.XOR<Prisma.RestaurantInventoryProductUpdateWithoutRecipeIngredientsInput, Prisma.RestaurantInventoryProductUncheckedUpdateWithoutRecipeIngredientsInput>
+}
+
+export type RestaurantInventoryProductUpdateWithoutRecipeIngredientsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  productType?: Prisma.EnumRestaurantInventoryProductTypeFieldUpdateOperationsInput | $Enums.RestaurantInventoryProductType
+  presentation?: Prisma.StringFieldUpdateOperationsInput | string
+  stockUnit?: Prisma.EnumRestaurantInventoryUnitFieldUpdateOperationsInput | $Enums.RestaurantInventoryUnit
+  unitsPerPresentation?: Prisma.IntFieldUpdateOperationsInput | number
+  quantity?: Prisma.IntFieldUpdateOperationsInput | number
+  minimumQuantity?: Prisma.IntFieldUpdateOperationsInput | number
+  unitCost?: Prisma.IntFieldUpdateOperationsInput | number
+  receivedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  liquorBrand?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  liquorInitialTareGrams?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  organization?: Prisma.OrganizationUpdateOneRequiredWithoutRestaurantInventoryProductsNestedInput
+  category?: Prisma.RestaurantInventoryCategoryUpdateOneRequiredWithoutProductsNestedInput
+  menuItem?: Prisma.RestaurantMenuItemUpdateOneWithoutInventoryProductNestedInput
+  movements?: Prisma.RestaurantInventoryMovementUpdateManyWithoutProductNestedInput
+  weighings?: Prisma.RestaurantLiquorWeighingUpdateManyWithoutProductNestedInput
+}
+
+export type RestaurantInventoryProductUncheckedUpdateWithoutRecipeIngredientsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  organizationId?: Prisma.StringFieldUpdateOperationsInput | string
+  categoryId?: Prisma.StringFieldUpdateOperationsInput | string
+  menuItemId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  productType?: Prisma.EnumRestaurantInventoryProductTypeFieldUpdateOperationsInput | $Enums.RestaurantInventoryProductType
+  presentation?: Prisma.StringFieldUpdateOperationsInput | string
+  stockUnit?: Prisma.EnumRestaurantInventoryUnitFieldUpdateOperationsInput | $Enums.RestaurantInventoryUnit
+  unitsPerPresentation?: Prisma.IntFieldUpdateOperationsInput | number
+  quantity?: Prisma.IntFieldUpdateOperationsInput | number
+  minimumQuantity?: Prisma.IntFieldUpdateOperationsInput | number
+  unitCost?: Prisma.IntFieldUpdateOperationsInput | number
+  receivedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  liquorBrand?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  liquorInitialTareGrams?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  movements?: Prisma.RestaurantInventoryMovementUncheckedUpdateManyWithoutProductNestedInput
+  weighings?: Prisma.RestaurantLiquorWeighingUncheckedUpdateManyWithoutProductNestedInput
+}
+
 export type RestaurantInventoryProductCreateWithoutMovementsInput = {
   id?: string
   name: string
   productType?: $Enums.RestaurantInventoryProductType
   presentation: string
+  stockUnit?: $Enums.RestaurantInventoryUnit
+  unitsPerPresentation?: number
   quantity?: number
   minimumQuantity?: number
   unitCost?: number
@@ -1065,6 +1276,7 @@ export type RestaurantInventoryProductCreateWithoutMovementsInput = {
   category: Prisma.RestaurantInventoryCategoryCreateNestedOneWithoutProductsInput
   menuItem?: Prisma.RestaurantMenuItemCreateNestedOneWithoutInventoryProductInput
   weighings?: Prisma.RestaurantLiquorWeighingCreateNestedManyWithoutProductInput
+  recipeIngredients?: Prisma.RestaurantRecipeIngredientCreateNestedManyWithoutProductInput
 }
 
 export type RestaurantInventoryProductUncheckedCreateWithoutMovementsInput = {
@@ -1075,6 +1287,8 @@ export type RestaurantInventoryProductUncheckedCreateWithoutMovementsInput = {
   name: string
   productType?: $Enums.RestaurantInventoryProductType
   presentation: string
+  stockUnit?: $Enums.RestaurantInventoryUnit
+  unitsPerPresentation?: number
   quantity?: number
   minimumQuantity?: number
   unitCost?: number
@@ -1085,6 +1299,7 @@ export type RestaurantInventoryProductUncheckedCreateWithoutMovementsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   weighings?: Prisma.RestaurantLiquorWeighingUncheckedCreateNestedManyWithoutProductInput
+  recipeIngredients?: Prisma.RestaurantRecipeIngredientUncheckedCreateNestedManyWithoutProductInput
 }
 
 export type RestaurantInventoryProductCreateOrConnectWithoutMovementsInput = {
@@ -1108,6 +1323,8 @@ export type RestaurantInventoryProductUpdateWithoutMovementsInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   productType?: Prisma.EnumRestaurantInventoryProductTypeFieldUpdateOperationsInput | $Enums.RestaurantInventoryProductType
   presentation?: Prisma.StringFieldUpdateOperationsInput | string
+  stockUnit?: Prisma.EnumRestaurantInventoryUnitFieldUpdateOperationsInput | $Enums.RestaurantInventoryUnit
+  unitsPerPresentation?: Prisma.IntFieldUpdateOperationsInput | number
   quantity?: Prisma.IntFieldUpdateOperationsInput | number
   minimumQuantity?: Prisma.IntFieldUpdateOperationsInput | number
   unitCost?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1121,6 +1338,7 @@ export type RestaurantInventoryProductUpdateWithoutMovementsInput = {
   category?: Prisma.RestaurantInventoryCategoryUpdateOneRequiredWithoutProductsNestedInput
   menuItem?: Prisma.RestaurantMenuItemUpdateOneWithoutInventoryProductNestedInput
   weighings?: Prisma.RestaurantLiquorWeighingUpdateManyWithoutProductNestedInput
+  recipeIngredients?: Prisma.RestaurantRecipeIngredientUpdateManyWithoutProductNestedInput
 }
 
 export type RestaurantInventoryProductUncheckedUpdateWithoutMovementsInput = {
@@ -1131,6 +1349,8 @@ export type RestaurantInventoryProductUncheckedUpdateWithoutMovementsInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   productType?: Prisma.EnumRestaurantInventoryProductTypeFieldUpdateOperationsInput | $Enums.RestaurantInventoryProductType
   presentation?: Prisma.StringFieldUpdateOperationsInput | string
+  stockUnit?: Prisma.EnumRestaurantInventoryUnitFieldUpdateOperationsInput | $Enums.RestaurantInventoryUnit
+  unitsPerPresentation?: Prisma.IntFieldUpdateOperationsInput | number
   quantity?: Prisma.IntFieldUpdateOperationsInput | number
   minimumQuantity?: Prisma.IntFieldUpdateOperationsInput | number
   unitCost?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1141,6 +1361,7 @@ export type RestaurantInventoryProductUncheckedUpdateWithoutMovementsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   weighings?: Prisma.RestaurantLiquorWeighingUncheckedUpdateManyWithoutProductNestedInput
+  recipeIngredients?: Prisma.RestaurantRecipeIngredientUncheckedUpdateManyWithoutProductNestedInput
 }
 
 export type RestaurantInventoryProductCreateWithoutWeighingsInput = {
@@ -1148,6 +1369,8 @@ export type RestaurantInventoryProductCreateWithoutWeighingsInput = {
   name: string
   productType?: $Enums.RestaurantInventoryProductType
   presentation: string
+  stockUnit?: $Enums.RestaurantInventoryUnit
+  unitsPerPresentation?: number
   quantity?: number
   minimumQuantity?: number
   unitCost?: number
@@ -1161,6 +1384,7 @@ export type RestaurantInventoryProductCreateWithoutWeighingsInput = {
   category: Prisma.RestaurantInventoryCategoryCreateNestedOneWithoutProductsInput
   menuItem?: Prisma.RestaurantMenuItemCreateNestedOneWithoutInventoryProductInput
   movements?: Prisma.RestaurantInventoryMovementCreateNestedManyWithoutProductInput
+  recipeIngredients?: Prisma.RestaurantRecipeIngredientCreateNestedManyWithoutProductInput
 }
 
 export type RestaurantInventoryProductUncheckedCreateWithoutWeighingsInput = {
@@ -1171,6 +1395,8 @@ export type RestaurantInventoryProductUncheckedCreateWithoutWeighingsInput = {
   name: string
   productType?: $Enums.RestaurantInventoryProductType
   presentation: string
+  stockUnit?: $Enums.RestaurantInventoryUnit
+  unitsPerPresentation?: number
   quantity?: number
   minimumQuantity?: number
   unitCost?: number
@@ -1181,6 +1407,7 @@ export type RestaurantInventoryProductUncheckedCreateWithoutWeighingsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   movements?: Prisma.RestaurantInventoryMovementUncheckedCreateNestedManyWithoutProductInput
+  recipeIngredients?: Prisma.RestaurantRecipeIngredientUncheckedCreateNestedManyWithoutProductInput
 }
 
 export type RestaurantInventoryProductCreateOrConnectWithoutWeighingsInput = {
@@ -1204,6 +1431,8 @@ export type RestaurantInventoryProductUpdateWithoutWeighingsInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   productType?: Prisma.EnumRestaurantInventoryProductTypeFieldUpdateOperationsInput | $Enums.RestaurantInventoryProductType
   presentation?: Prisma.StringFieldUpdateOperationsInput | string
+  stockUnit?: Prisma.EnumRestaurantInventoryUnitFieldUpdateOperationsInput | $Enums.RestaurantInventoryUnit
+  unitsPerPresentation?: Prisma.IntFieldUpdateOperationsInput | number
   quantity?: Prisma.IntFieldUpdateOperationsInput | number
   minimumQuantity?: Prisma.IntFieldUpdateOperationsInput | number
   unitCost?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1217,6 +1446,7 @@ export type RestaurantInventoryProductUpdateWithoutWeighingsInput = {
   category?: Prisma.RestaurantInventoryCategoryUpdateOneRequiredWithoutProductsNestedInput
   menuItem?: Prisma.RestaurantMenuItemUpdateOneWithoutInventoryProductNestedInput
   movements?: Prisma.RestaurantInventoryMovementUpdateManyWithoutProductNestedInput
+  recipeIngredients?: Prisma.RestaurantRecipeIngredientUpdateManyWithoutProductNestedInput
 }
 
 export type RestaurantInventoryProductUncheckedUpdateWithoutWeighingsInput = {
@@ -1227,6 +1457,8 @@ export type RestaurantInventoryProductUncheckedUpdateWithoutWeighingsInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   productType?: Prisma.EnumRestaurantInventoryProductTypeFieldUpdateOperationsInput | $Enums.RestaurantInventoryProductType
   presentation?: Prisma.StringFieldUpdateOperationsInput | string
+  stockUnit?: Prisma.EnumRestaurantInventoryUnitFieldUpdateOperationsInput | $Enums.RestaurantInventoryUnit
+  unitsPerPresentation?: Prisma.IntFieldUpdateOperationsInput | number
   quantity?: Prisma.IntFieldUpdateOperationsInput | number
   minimumQuantity?: Prisma.IntFieldUpdateOperationsInput | number
   unitCost?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1237,6 +1469,7 @@ export type RestaurantInventoryProductUncheckedUpdateWithoutWeighingsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   movements?: Prisma.RestaurantInventoryMovementUncheckedUpdateManyWithoutProductNestedInput
+  recipeIngredients?: Prisma.RestaurantRecipeIngredientUncheckedUpdateManyWithoutProductNestedInput
 }
 
 export type RestaurantInventoryProductCreateManyOrganizationInput = {
@@ -1246,6 +1479,8 @@ export type RestaurantInventoryProductCreateManyOrganizationInput = {
   name: string
   productType?: $Enums.RestaurantInventoryProductType
   presentation: string
+  stockUnit?: $Enums.RestaurantInventoryUnit
+  unitsPerPresentation?: number
   quantity?: number
   minimumQuantity?: number
   unitCost?: number
@@ -1262,6 +1497,8 @@ export type RestaurantInventoryProductUpdateWithoutOrganizationInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   productType?: Prisma.EnumRestaurantInventoryProductTypeFieldUpdateOperationsInput | $Enums.RestaurantInventoryProductType
   presentation?: Prisma.StringFieldUpdateOperationsInput | string
+  stockUnit?: Prisma.EnumRestaurantInventoryUnitFieldUpdateOperationsInput | $Enums.RestaurantInventoryUnit
+  unitsPerPresentation?: Prisma.IntFieldUpdateOperationsInput | number
   quantity?: Prisma.IntFieldUpdateOperationsInput | number
   minimumQuantity?: Prisma.IntFieldUpdateOperationsInput | number
   unitCost?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1275,6 +1512,7 @@ export type RestaurantInventoryProductUpdateWithoutOrganizationInput = {
   menuItem?: Prisma.RestaurantMenuItemUpdateOneWithoutInventoryProductNestedInput
   movements?: Prisma.RestaurantInventoryMovementUpdateManyWithoutProductNestedInput
   weighings?: Prisma.RestaurantLiquorWeighingUpdateManyWithoutProductNestedInput
+  recipeIngredients?: Prisma.RestaurantRecipeIngredientUpdateManyWithoutProductNestedInput
 }
 
 export type RestaurantInventoryProductUncheckedUpdateWithoutOrganizationInput = {
@@ -1284,6 +1522,8 @@ export type RestaurantInventoryProductUncheckedUpdateWithoutOrganizationInput = 
   name?: Prisma.StringFieldUpdateOperationsInput | string
   productType?: Prisma.EnumRestaurantInventoryProductTypeFieldUpdateOperationsInput | $Enums.RestaurantInventoryProductType
   presentation?: Prisma.StringFieldUpdateOperationsInput | string
+  stockUnit?: Prisma.EnumRestaurantInventoryUnitFieldUpdateOperationsInput | $Enums.RestaurantInventoryUnit
+  unitsPerPresentation?: Prisma.IntFieldUpdateOperationsInput | number
   quantity?: Prisma.IntFieldUpdateOperationsInput | number
   minimumQuantity?: Prisma.IntFieldUpdateOperationsInput | number
   unitCost?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1295,6 +1535,7 @@ export type RestaurantInventoryProductUncheckedUpdateWithoutOrganizationInput = 
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   movements?: Prisma.RestaurantInventoryMovementUncheckedUpdateManyWithoutProductNestedInput
   weighings?: Prisma.RestaurantLiquorWeighingUncheckedUpdateManyWithoutProductNestedInput
+  recipeIngredients?: Prisma.RestaurantRecipeIngredientUncheckedUpdateManyWithoutProductNestedInput
 }
 
 export type RestaurantInventoryProductUncheckedUpdateManyWithoutOrganizationInput = {
@@ -1304,6 +1545,8 @@ export type RestaurantInventoryProductUncheckedUpdateManyWithoutOrganizationInpu
   name?: Prisma.StringFieldUpdateOperationsInput | string
   productType?: Prisma.EnumRestaurantInventoryProductTypeFieldUpdateOperationsInput | $Enums.RestaurantInventoryProductType
   presentation?: Prisma.StringFieldUpdateOperationsInput | string
+  stockUnit?: Prisma.EnumRestaurantInventoryUnitFieldUpdateOperationsInput | $Enums.RestaurantInventoryUnit
+  unitsPerPresentation?: Prisma.IntFieldUpdateOperationsInput | number
   quantity?: Prisma.IntFieldUpdateOperationsInput | number
   minimumQuantity?: Prisma.IntFieldUpdateOperationsInput | number
   unitCost?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1322,6 +1565,8 @@ export type RestaurantInventoryProductCreateManyCategoryInput = {
   name: string
   productType?: $Enums.RestaurantInventoryProductType
   presentation: string
+  stockUnit?: $Enums.RestaurantInventoryUnit
+  unitsPerPresentation?: number
   quantity?: number
   minimumQuantity?: number
   unitCost?: number
@@ -1338,6 +1583,8 @@ export type RestaurantInventoryProductUpdateWithoutCategoryInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   productType?: Prisma.EnumRestaurantInventoryProductTypeFieldUpdateOperationsInput | $Enums.RestaurantInventoryProductType
   presentation?: Prisma.StringFieldUpdateOperationsInput | string
+  stockUnit?: Prisma.EnumRestaurantInventoryUnitFieldUpdateOperationsInput | $Enums.RestaurantInventoryUnit
+  unitsPerPresentation?: Prisma.IntFieldUpdateOperationsInput | number
   quantity?: Prisma.IntFieldUpdateOperationsInput | number
   minimumQuantity?: Prisma.IntFieldUpdateOperationsInput | number
   unitCost?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1351,6 +1598,7 @@ export type RestaurantInventoryProductUpdateWithoutCategoryInput = {
   menuItem?: Prisma.RestaurantMenuItemUpdateOneWithoutInventoryProductNestedInput
   movements?: Prisma.RestaurantInventoryMovementUpdateManyWithoutProductNestedInput
   weighings?: Prisma.RestaurantLiquorWeighingUpdateManyWithoutProductNestedInput
+  recipeIngredients?: Prisma.RestaurantRecipeIngredientUpdateManyWithoutProductNestedInput
 }
 
 export type RestaurantInventoryProductUncheckedUpdateWithoutCategoryInput = {
@@ -1360,6 +1608,8 @@ export type RestaurantInventoryProductUncheckedUpdateWithoutCategoryInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   productType?: Prisma.EnumRestaurantInventoryProductTypeFieldUpdateOperationsInput | $Enums.RestaurantInventoryProductType
   presentation?: Prisma.StringFieldUpdateOperationsInput | string
+  stockUnit?: Prisma.EnumRestaurantInventoryUnitFieldUpdateOperationsInput | $Enums.RestaurantInventoryUnit
+  unitsPerPresentation?: Prisma.IntFieldUpdateOperationsInput | number
   quantity?: Prisma.IntFieldUpdateOperationsInput | number
   minimumQuantity?: Prisma.IntFieldUpdateOperationsInput | number
   unitCost?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1371,6 +1621,7 @@ export type RestaurantInventoryProductUncheckedUpdateWithoutCategoryInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   movements?: Prisma.RestaurantInventoryMovementUncheckedUpdateManyWithoutProductNestedInput
   weighings?: Prisma.RestaurantLiquorWeighingUncheckedUpdateManyWithoutProductNestedInput
+  recipeIngredients?: Prisma.RestaurantRecipeIngredientUncheckedUpdateManyWithoutProductNestedInput
 }
 
 export type RestaurantInventoryProductUncheckedUpdateManyWithoutCategoryInput = {
@@ -1380,6 +1631,8 @@ export type RestaurantInventoryProductUncheckedUpdateManyWithoutCategoryInput = 
   name?: Prisma.StringFieldUpdateOperationsInput | string
   productType?: Prisma.EnumRestaurantInventoryProductTypeFieldUpdateOperationsInput | $Enums.RestaurantInventoryProductType
   presentation?: Prisma.StringFieldUpdateOperationsInput | string
+  stockUnit?: Prisma.EnumRestaurantInventoryUnitFieldUpdateOperationsInput | $Enums.RestaurantInventoryUnit
+  unitsPerPresentation?: Prisma.IntFieldUpdateOperationsInput | number
   quantity?: Prisma.IntFieldUpdateOperationsInput | number
   minimumQuantity?: Prisma.IntFieldUpdateOperationsInput | number
   unitCost?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1399,11 +1652,13 @@ export type RestaurantInventoryProductUncheckedUpdateManyWithoutCategoryInput = 
 export type RestaurantInventoryProductCountOutputType = {
   movements: number
   weighings: number
+  recipeIngredients: number
 }
 
 export type RestaurantInventoryProductCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   movements?: boolean | RestaurantInventoryProductCountOutputTypeCountMovementsArgs
   weighings?: boolean | RestaurantInventoryProductCountOutputTypeCountWeighingsArgs
+  recipeIngredients?: boolean | RestaurantInventoryProductCountOutputTypeCountRecipeIngredientsArgs
 }
 
 /**
@@ -1430,6 +1685,13 @@ export type RestaurantInventoryProductCountOutputTypeCountWeighingsArgs<ExtArgs 
   where?: Prisma.RestaurantLiquorWeighingWhereInput
 }
 
+/**
+ * RestaurantInventoryProductCountOutputType without action
+ */
+export type RestaurantInventoryProductCountOutputTypeCountRecipeIngredientsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.RestaurantRecipeIngredientWhereInput
+}
+
 
 export type RestaurantInventoryProductSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -1439,6 +1701,8 @@ export type RestaurantInventoryProductSelect<ExtArgs extends runtime.Types.Exten
   name?: boolean
   productType?: boolean
   presentation?: boolean
+  stockUnit?: boolean
+  unitsPerPresentation?: boolean
   quantity?: boolean
   minimumQuantity?: boolean
   unitCost?: boolean
@@ -1453,6 +1717,7 @@ export type RestaurantInventoryProductSelect<ExtArgs extends runtime.Types.Exten
   menuItem?: boolean | Prisma.RestaurantInventoryProduct$menuItemArgs<ExtArgs>
   movements?: boolean | Prisma.RestaurantInventoryProduct$movementsArgs<ExtArgs>
   weighings?: boolean | Prisma.RestaurantInventoryProduct$weighingsArgs<ExtArgs>
+  recipeIngredients?: boolean | Prisma.RestaurantInventoryProduct$recipeIngredientsArgs<ExtArgs>
   _count?: boolean | Prisma.RestaurantInventoryProductCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["restaurantInventoryProduct"]>
 
@@ -1464,6 +1729,8 @@ export type RestaurantInventoryProductSelectCreateManyAndReturn<ExtArgs extends 
   name?: boolean
   productType?: boolean
   presentation?: boolean
+  stockUnit?: boolean
+  unitsPerPresentation?: boolean
   quantity?: boolean
   minimumQuantity?: boolean
   unitCost?: boolean
@@ -1486,6 +1753,8 @@ export type RestaurantInventoryProductSelectUpdateManyAndReturn<ExtArgs extends 
   name?: boolean
   productType?: boolean
   presentation?: boolean
+  stockUnit?: boolean
+  unitsPerPresentation?: boolean
   quantity?: boolean
   minimumQuantity?: boolean
   unitCost?: boolean
@@ -1508,6 +1777,8 @@ export type RestaurantInventoryProductSelectScalar = {
   name?: boolean
   productType?: boolean
   presentation?: boolean
+  stockUnit?: boolean
+  unitsPerPresentation?: boolean
   quantity?: boolean
   minimumQuantity?: boolean
   unitCost?: boolean
@@ -1519,13 +1790,14 @@ export type RestaurantInventoryProductSelectScalar = {
   updatedAt?: boolean
 }
 
-export type RestaurantInventoryProductOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "organizationId" | "categoryId" | "menuItemId" | "name" | "productType" | "presentation" | "quantity" | "minimumQuantity" | "unitCost" | "receivedAt" | "liquorBrand" | "liquorInitialTareGrams" | "active" | "createdAt" | "updatedAt", ExtArgs["result"]["restaurantInventoryProduct"]>
+export type RestaurantInventoryProductOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "organizationId" | "categoryId" | "menuItemId" | "name" | "productType" | "presentation" | "stockUnit" | "unitsPerPresentation" | "quantity" | "minimumQuantity" | "unitCost" | "receivedAt" | "liquorBrand" | "liquorInitialTareGrams" | "active" | "createdAt" | "updatedAt", ExtArgs["result"]["restaurantInventoryProduct"]>
 export type RestaurantInventoryProductInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
   category?: boolean | Prisma.RestaurantInventoryCategoryDefaultArgs<ExtArgs>
   menuItem?: boolean | Prisma.RestaurantInventoryProduct$menuItemArgs<ExtArgs>
   movements?: boolean | Prisma.RestaurantInventoryProduct$movementsArgs<ExtArgs>
   weighings?: boolean | Prisma.RestaurantInventoryProduct$weighingsArgs<ExtArgs>
+  recipeIngredients?: boolean | Prisma.RestaurantInventoryProduct$recipeIngredientsArgs<ExtArgs>
   _count?: boolean | Prisma.RestaurantInventoryProductCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type RestaurantInventoryProductIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1547,6 +1819,7 @@ export type $RestaurantInventoryProductPayload<ExtArgs extends runtime.Types.Ext
     menuItem: Prisma.$RestaurantMenuItemPayload<ExtArgs> | null
     movements: Prisma.$RestaurantInventoryMovementPayload<ExtArgs>[]
     weighings: Prisma.$RestaurantLiquorWeighingPayload<ExtArgs>[]
+    recipeIngredients: Prisma.$RestaurantRecipeIngredientPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1556,6 +1829,8 @@ export type $RestaurantInventoryProductPayload<ExtArgs extends runtime.Types.Ext
     name: string
     productType: $Enums.RestaurantInventoryProductType
     presentation: string
+    stockUnit: $Enums.RestaurantInventoryUnit
+    unitsPerPresentation: number
     quantity: number
     minimumQuantity: number
     unitCost: number
@@ -1964,6 +2239,7 @@ export interface Prisma__RestaurantInventoryProductClient<T, Null = never, ExtAr
   menuItem<T extends Prisma.RestaurantInventoryProduct$menuItemArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.RestaurantInventoryProduct$menuItemArgs<ExtArgs>>): Prisma.Prisma__RestaurantMenuItemClient<runtime.Types.Result.GetResult<Prisma.$RestaurantMenuItemPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   movements<T extends Prisma.RestaurantInventoryProduct$movementsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.RestaurantInventoryProduct$movementsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$RestaurantInventoryMovementPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   weighings<T extends Prisma.RestaurantInventoryProduct$weighingsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.RestaurantInventoryProduct$weighingsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$RestaurantLiquorWeighingPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  recipeIngredients<T extends Prisma.RestaurantInventoryProduct$recipeIngredientsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.RestaurantInventoryProduct$recipeIngredientsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$RestaurantRecipeIngredientPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2000,6 +2276,8 @@ export interface RestaurantInventoryProductFieldRefs {
   readonly name: Prisma.FieldRef<"RestaurantInventoryProduct", 'String'>
   readonly productType: Prisma.FieldRef<"RestaurantInventoryProduct", 'RestaurantInventoryProductType'>
   readonly presentation: Prisma.FieldRef<"RestaurantInventoryProduct", 'String'>
+  readonly stockUnit: Prisma.FieldRef<"RestaurantInventoryProduct", 'RestaurantInventoryUnit'>
+  readonly unitsPerPresentation: Prisma.FieldRef<"RestaurantInventoryProduct", 'Int'>
   readonly quantity: Prisma.FieldRef<"RestaurantInventoryProduct", 'Int'>
   readonly minimumQuantity: Prisma.FieldRef<"RestaurantInventoryProduct", 'Int'>
   readonly unitCost: Prisma.FieldRef<"RestaurantInventoryProduct", 'Int'>
@@ -2474,6 +2752,30 @@ export type RestaurantInventoryProduct$weighingsArgs<ExtArgs extends runtime.Typ
   take?: number
   skip?: number
   distinct?: Prisma.RestaurantLiquorWeighingScalarFieldEnum | Prisma.RestaurantLiquorWeighingScalarFieldEnum[]
+}
+
+/**
+ * RestaurantInventoryProduct.recipeIngredients
+ */
+export type RestaurantInventoryProduct$recipeIngredientsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the RestaurantRecipeIngredient
+   */
+  select?: Prisma.RestaurantRecipeIngredientSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the RestaurantRecipeIngredient
+   */
+  omit?: Prisma.RestaurantRecipeIngredientOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.RestaurantRecipeIngredientInclude<ExtArgs> | null
+  where?: Prisma.RestaurantRecipeIngredientWhereInput
+  orderBy?: Prisma.RestaurantRecipeIngredientOrderByWithRelationInput | Prisma.RestaurantRecipeIngredientOrderByWithRelationInput[]
+  cursor?: Prisma.RestaurantRecipeIngredientWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.RestaurantRecipeIngredientScalarFieldEnum | Prisma.RestaurantRecipeIngredientScalarFieldEnum[]
 }
 
 /**

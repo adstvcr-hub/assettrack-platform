@@ -147,10 +147,17 @@ enum RestaurantInventoryProductType {
   LIQUOR
 }
 
+enum RestaurantInventoryUnit {
+  UNIT
+  GRAM
+  MILLILITER
+}
+
 enum RestaurantInventoryMovementType {
   ENTRY
   ADJUSTMENT
   CONSUMPTION
+  REVERSAL
 }
 
 model Organization {
@@ -181,6 +188,7 @@ model Organization {
   restaurantCashRegisters       RestaurantCashRegister[]
   restaurantCashSessions        RestaurantCashSession[]
   restaurantCashDayCloses       RestaurantCashDayClose[]
+  restaurantRecipeIngredients   RestaurantRecipeIngredient[]
 
   restaurantTaxRateBps              Int                  @default(1300)
   restaurantTaxIncluded             Boolean              @default(false)
@@ -466,6 +474,7 @@ model RestaurantMenuItem {
   orderItems       RestaurantOrderItem[]
   rewardPrograms   RestaurantRewardProgram[]
   inventoryProduct RestaurantInventoryProduct?
+  recipeIngredients RestaurantRecipeIngredient[]
 
   @@index([organizationId, active])
   @@map("restaurant_menu_items")
@@ -609,6 +618,8 @@ model RestaurantInventoryProduct {
   name                   String
   productType            RestaurantInventoryProductType @default(STANDARD)
   presentation           String
+  stockUnit              RestaurantInventoryUnit        @default(UNIT)
+  unitsPerPresentation   Int                            @default(1)
   quantity               Int                            @default(0)
   minimumQuantity        Int                            @default(0)
   unitCost               Int                            @default(0)
@@ -623,10 +634,30 @@ model RestaurantInventoryProduct {
   menuItem               RestaurantMenuItem?            @relation(fields: [menuItemId], references: [id], onDelete: SetNull)
   movements              RestaurantInventoryMovement[]
   weighings              RestaurantLiquorWeighing[]
+  recipeIngredients      RestaurantRecipeIngredient[]
 
   @@index([organizationId, active])
   @@index([categoryId])
   @@map("restaurant_inventory_products")
+}
+
+model RestaurantRecipeIngredient {
+  id                  String                     @id @default(uuid())
+  organizationId      String
+  menuItemId          String
+  productId           String
+  quantityPerMenuItem Int
+  active              Boolean                    @default(true)
+  createdAt           DateTime                   @default(now())
+  updatedAt           DateTime                   @updatedAt
+  organization        Organization               @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  menuItem            RestaurantMenuItem         @relation(fields: [menuItemId], references: [id], onDelete: Cascade)
+  product             RestaurantInventoryProduct @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([menuItemId, productId])
+  @@index([organizationId, menuItemId])
+  @@index([productId])
+  @@map("restaurant_recipe_ingredients")
 }
 
 model RestaurantInventoryMovement {
@@ -646,6 +677,7 @@ model RestaurantInventoryMovement {
   @@index([organizationId, occurredAt])
   @@index([productId, occurredAt])
   @@index([orderItemId])
+  @@unique([orderItemId, productId, type])
   @@map("restaurant_inventory_movements")
 }
 

@@ -28,6 +28,7 @@ import {
   CreateInventoryMovementDto,
   CreateInventoryProductDto,
   CreateLiquorWeighingDto,
+  SaveInventoryRecipeDto,
   CorrectGuestOrderDto,
   CorrectStaffOrderDto,
   CreateTableDto,
@@ -372,6 +373,15 @@ export class RestaurantStaffController {
     @Body() dto: CreateLiquorWeighingDto,
   ) {
     return this.restaurant.addLiquorWeighing(req.user, id, dto);
+  }
+
+  @Patch("inventory/recipes/:menuItemId")
+  saveInventoryRecipe(
+    @Req() req: StaffRequest,
+    @Param("menuItemId") menuItemId: string,
+    @Body() dto: SaveInventoryRecipeDto,
+  ) {
+    return this.restaurant.saveInventoryRecipe(req.user, menuItemId, dto);
   }
 
   @Get("promotions")

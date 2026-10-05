@@ -274,6 +274,7 @@ export type RestaurantInventoryMovementOrderByWithRelationInput = {
 
 export type RestaurantInventoryMovementWhereUniqueInput = Prisma.AtLeast<{
   id?: string
+  orderItemId_productId_type?: Prisma.RestaurantInventoryMovementOrderItemIdProductIdTypeCompoundUniqueInput
   AND?: Prisma.RestaurantInventoryMovementWhereInput | Prisma.RestaurantInventoryMovementWhereInput[]
   OR?: Prisma.RestaurantInventoryMovementWhereInput[]
   NOT?: Prisma.RestaurantInventoryMovementWhereInput | Prisma.RestaurantInventoryMovementWhereInput[]
@@ -288,7 +289,7 @@ export type RestaurantInventoryMovementWhereUniqueInput = Prisma.AtLeast<{
   organization?: Prisma.XOR<Prisma.OrganizationScalarRelationFilter, Prisma.OrganizationWhereInput>
   product?: Prisma.XOR<Prisma.RestaurantInventoryProductScalarRelationFilter, Prisma.RestaurantInventoryProductWhereInput>
   orderItem?: Prisma.XOR<Prisma.RestaurantOrderItemNullableScalarRelationFilter, Prisma.RestaurantOrderItemWhereInput> | null
-}, "id">
+}, "id" | "orderItemId_productId_type">
 
 export type RestaurantInventoryMovementOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
@@ -411,6 +412,12 @@ export type RestaurantInventoryMovementListRelationFilter = {
 
 export type RestaurantInventoryMovementOrderByRelationAggregateInput = {
   _count?: Prisma.SortOrder
+}
+
+export type RestaurantInventoryMovementOrderItemIdProductIdTypeCompoundUniqueInput = {
+  orderItemId: string
+  productId: string
+  type: $Enums.RestaurantInventoryMovementType
 }
 
 export type RestaurantInventoryMovementCountOrderByAggregateInput = {

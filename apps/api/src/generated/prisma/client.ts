@@ -140,6 +140,11 @@ export type RestaurantInventoryCategory = Prisma.RestaurantInventoryCategoryMode
  */
 export type RestaurantInventoryProduct = Prisma.RestaurantInventoryProductModel
 /**
+ * Model RestaurantRecipeIngredient
+ * 
+ */
+export type RestaurantRecipeIngredient = Prisma.RestaurantRecipeIngredientModel
+/**
  * Model RestaurantInventoryMovement
  * 
  */

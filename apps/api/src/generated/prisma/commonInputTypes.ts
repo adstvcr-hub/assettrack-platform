@@ -538,6 +538,13 @@ export type EnumRestaurantInventoryProductTypeFilter<$PrismaModel = never> = {
   not?: Prisma.NestedEnumRestaurantInventoryProductTypeFilter<$PrismaModel> | $Enums.RestaurantInventoryProductType
 }
 
+export type EnumRestaurantInventoryUnitFilter<$PrismaModel = never> = {
+  equals?: $Enums.RestaurantInventoryUnit | Prisma.EnumRestaurantInventoryUnitFieldRefInput<$PrismaModel>
+  in?: $Enums.RestaurantInventoryUnit[] | Prisma.ListEnumRestaurantInventoryUnitFieldRefInput<$PrismaModel>
+  notIn?: $Enums.RestaurantInventoryUnit[] | Prisma.ListEnumRestaurantInventoryUnitFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumRestaurantInventoryUnitFilter<$PrismaModel> | $Enums.RestaurantInventoryUnit
+}
+
 export type EnumRestaurantInventoryProductTypeWithAggregatesFilter<$PrismaModel = never> = {
   equals?: $Enums.RestaurantInventoryProductType | Prisma.EnumRestaurantInventoryProductTypeFieldRefInput<$PrismaModel>
   in?: $Enums.RestaurantInventoryProductType[] | Prisma.ListEnumRestaurantInventoryProductTypeFieldRefInput<$PrismaModel>
@@ -546,6 +553,16 @@ export type EnumRestaurantInventoryProductTypeWithAggregatesFilter<$PrismaModel 
   _count?: Prisma.NestedIntFilter<$PrismaModel>
   _min?: Prisma.NestedEnumRestaurantInventoryProductTypeFilter<$PrismaModel>
   _max?: Prisma.NestedEnumRestaurantInventoryProductTypeFilter<$PrismaModel>
+}
+
+export type EnumRestaurantInventoryUnitWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.RestaurantInventoryUnit | Prisma.EnumRestaurantInventoryUnitFieldRefInput<$PrismaModel>
+  in?: $Enums.RestaurantInventoryUnit[] | Prisma.ListEnumRestaurantInventoryUnitFieldRefInput<$PrismaModel>
+  notIn?: $Enums.RestaurantInventoryUnit[] | Prisma.ListEnumRestaurantInventoryUnitFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumRestaurantInventoryUnitWithAggregatesFilter<$PrismaModel> | $Enums.RestaurantInventoryUnit
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumRestaurantInventoryUnitFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumRestaurantInventoryUnitFilter<$PrismaModel>
 }
 
 export type EnumRestaurantInventoryMovementTypeFilter<$PrismaModel = never> = {
@@ -1177,6 +1194,13 @@ export type NestedEnumRestaurantInventoryProductTypeFilter<$PrismaModel = never>
   not?: Prisma.NestedEnumRestaurantInventoryProductTypeFilter<$PrismaModel> | $Enums.RestaurantInventoryProductType
 }
 
+export type NestedEnumRestaurantInventoryUnitFilter<$PrismaModel = never> = {
+  equals?: $Enums.RestaurantInventoryUnit | Prisma.EnumRestaurantInventoryUnitFieldRefInput<$PrismaModel>
+  in?: $Enums.RestaurantInventoryUnit[] | Prisma.ListEnumRestaurantInventoryUnitFieldRefInput<$PrismaModel>
+  notIn?: $Enums.RestaurantInventoryUnit[] | Prisma.ListEnumRestaurantInventoryUnitFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumRestaurantInventoryUnitFilter<$PrismaModel> | $Enums.RestaurantInventoryUnit
+}
+
 export type NestedEnumRestaurantInventoryProductTypeWithAggregatesFilter<$PrismaModel = never> = {
   equals?: $Enums.RestaurantInventoryProductType | Prisma.EnumRestaurantInventoryProductTypeFieldRefInput<$PrismaModel>
   in?: $Enums.RestaurantInventoryProductType[] | Prisma.ListEnumRestaurantInventoryProductTypeFieldRefInput<$PrismaModel>
@@ -1185,6 +1209,16 @@ export type NestedEnumRestaurantInventoryProductTypeWithAggregatesFilter<$Prisma
   _count?: Prisma.NestedIntFilter<$PrismaModel>
   _min?: Prisma.NestedEnumRestaurantInventoryProductTypeFilter<$PrismaModel>
   _max?: Prisma.NestedEnumRestaurantInventoryProductTypeFilter<$PrismaModel>
+}
+
+export type NestedEnumRestaurantInventoryUnitWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.RestaurantInventoryUnit | Prisma.EnumRestaurantInventoryUnitFieldRefInput<$PrismaModel>
+  in?: $Enums.RestaurantInventoryUnit[] | Prisma.ListEnumRestaurantInventoryUnitFieldRefInput<$PrismaModel>
+  notIn?: $Enums.RestaurantInventoryUnit[] | Prisma.ListEnumRestaurantInventoryUnitFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumRestaurantInventoryUnitWithAggregatesFilter<$PrismaModel> | $Enums.RestaurantInventoryUnit
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumRestaurantInventoryUnitFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumRestaurantInventoryUnitFilter<$PrismaModel>
 }
 
 export type NestedEnumRestaurantInventoryMovementTypeFilter<$PrismaModel = never> = {

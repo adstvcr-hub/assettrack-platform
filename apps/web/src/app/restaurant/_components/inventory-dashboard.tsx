@@ -10,7 +10,7 @@ type Category = { id: string; name: string };
 type MenuItem = { id: string; name: string };
 type Movement = {
   id: string;
-  type: "ENTRY" | "ADJUSTMENT" | "CONSUMPTION";
+  type: "ENTRY" | "ADJUSTMENT" | "CONSUMPTION" | "REVERSAL";
   quantityDelta: number;
   occurredAt: string;
   note?: string | null;
@@ -28,6 +28,8 @@ type Product = {
   name: string;
   productType: "STANDARD" | "LIQUOR";
   presentation: string;
+  stockUnit: "UNIT" | "GRAM" | "MILLILITER";
+  unitsPerPresentation: number;
   quantity: number;
   minimumQuantity: number;
   unitCost: number;
@@ -44,6 +46,20 @@ type Inventory = {
   categories: Category[];
   menuItems: MenuItem[];
   products: Product[];
+  recipes: Array<{
+    id: string;
+    menuItemId: string;
+    productId: string;
+    quantityPerMenuItem: number;
+    menuItem: MenuItem;
+    product: {
+      id: string;
+      name: string;
+      stockUnit: "UNIT" | "GRAM" | "MILLILITER";
+      quantity: number;
+      active: boolean;
+    };
+  }>;
   alerts: Array<{
     productId: string;
     name: string;
@@ -71,6 +87,9 @@ const money = (value: number) =>
     maximumFractionDigits: 0,
   }).format(value);
 
+const unitLabel = (unit: Product["stockUnit"]) =>
+  unit === "GRAM" ? "g" : unit === "MILLILITER" ? "ml" : "unid.";
+
 export default function InventoryDashboard() {
   const router = useRouter();
   const [inventory, setInventory] = useState<Inventory | null>(null);
@@ -84,6 +103,8 @@ export default function InventoryDashboard() {
     name: "",
     productType: "STANDARD" as "STANDARD" | "LIQUOR",
     presentation: "",
+    stockUnit: "UNIT" as "UNIT" | "GRAM" | "MILLILITER",
+    unitsPerPresentation: "1",
     quantity: "0",
     minimumQuantity: "0",
     unitCost: "0",
@@ -98,9 +119,16 @@ export default function InventoryDashboard() {
   const [movementQuantity, setMovementQuantity] = useState("");
   const [movementCost, setMovementCost] = useState("");
   const [movementNote, setMovementNote] = useState("");
+  const [movementInPresentations, setMovementInPresentations] = useState(false);
   const [weighingProductId, setWeighingProductId] = useState("");
   const [grossWeight, setGrossWeight] = useState("");
   const [weighingNote, setWeighingNote] = useState("");
+  const [recipeMenuItemId, setRecipeMenuItemId] = useState("");
+  const [recipeProductId, setRecipeProductId] = useState("");
+  const [recipeQuantity, setRecipeQuantity] = useState("");
+  const [recipeDraft, setRecipeDraft] = useState<
+    Array<{ productId: string; quantityPerMenuItem: number }>
+  >([]);
 
   const load = useCallback(async () => {
     const response = await authenticatedFetch(
@@ -126,6 +154,8 @@ export default function InventoryDashboard() {
       (current) =>
         current || data.products.find((item) => item.productType === "LIQUOR")?.id || "",
     );
+    setRecipeMenuItemId((current) => current || data.menuItems[0]?.id || "");
+    setRecipeProductId((current) => current || data.products[0]?.id || "");
   }, [router]);
 
   useEffect(() => {
@@ -133,6 +163,21 @@ export default function InventoryDashboard() {
       setError(cause instanceof Error ? cause.message : "No se pudo cargar el inventario"),
     );
   }, [load]);
+
+  useEffect(() => {
+    if (!inventory || !recipeMenuItemId) {
+      setRecipeDraft([]);
+      return;
+    }
+    setRecipeDraft(
+      inventory.recipes
+        .filter((item) => item.menuItemId === recipeMenuItemId)
+        .map((item) => ({
+          productId: item.productId,
+          quantityPerMenuItem: item.quantityPerMenuItem,
+        })),
+    );
+  }, [inventory, recipeMenuItemId]);
 
   async function send(path: string, method: "POST" | "PATCH", body: unknown) {
     setBusy(true);
@@ -175,6 +220,7 @@ export default function InventoryDashboard() {
         quantity: Number(product.quantity),
         minimumQuantity: Number(product.minimumQuantity),
         unitCost: Number(product.unitCost),
+        unitsPerPresentation: Number(product.unitsPerPresentation),
         receivedAt: new Date(`${product.receivedAt}T12:00:00`).toISOString(),
         liquorBrand: product.productType === "LIQUOR" ? product.liquorBrand : undefined,
         liquorInitialTareGrams:
@@ -186,6 +232,8 @@ export default function InventoryDashboard() {
         ...current,
         name: "",
         presentation: "",
+        stockUnit: "UNIT",
+        unitsPerPresentation: "1",
         quantity: "0",
         minimumQuantity: "0",
         unitCost: "0",
@@ -206,10 +254,41 @@ export default function InventoryDashboard() {
             ? Number(movementCost)
             : undefined,
         note: movementNote || undefined,
+        quantityInPresentations: movementInPresentations,
       });
       setMovementQuantity("");
       setMovementCost("");
       setMovementNote("");
+    } catch {}
+  }
+
+  function addRecipeIngredient() {
+    const quantity = Number(recipeQuantity);
+    if (
+      !recipeProductId ||
+      !Number.isInteger(quantity) ||
+      quantity <= 0
+    ) {
+      setError("Seleccione un ingrediente e indique una cantidad válida");
+      return;
+    }
+    setRecipeDraft((current) => [
+      ...current.filter((item) => item.productId !== recipeProductId),
+      { productId: recipeProductId, quantityPerMenuItem: quantity },
+    ]);
+    setRecipeQuantity("");
+    setError("");
+  }
+
+  async function saveRecipe() {
+    if (!recipeMenuItemId) {
+      setError("Seleccione un producto del menú");
+      return;
+    }
+    try {
+      await send(`inventory/recipes/${recipeMenuItemId}`, "PATCH", {
+        ingredients: recipeDraft,
+      });
     } catch {}
   }
 
@@ -226,6 +305,21 @@ export default function InventoryDashboard() {
   }
 
   async function editProduct(item: Product) {
+    const stockUnit = window.prompt(
+      "Unidad base: UNIT, GRAM o MILLILITER",
+      item.stockUnit,
+    );
+    if (stockUnit === null) return;
+    const normalizedUnit = stockUnit.trim().toUpperCase();
+    if (!["UNIT", "GRAM", "MILLILITER"].includes(normalizedUnit)) {
+      setError("La unidad base debe ser UNIT, GRAM o MILLILITER");
+      return;
+    }
+    const presentationUnits = window.prompt(
+      `Contenido de una presentación en ${unitLabel(normalizedUnit as Product["stockUnit"])}`,
+      String(item.unitsPerPresentation),
+    );
+    if (presentationUnits === null) return;
     const minimum = window.prompt(
       `Cantidad mínima para ${item.name}`,
       String(item.minimumQuantity),
@@ -235,12 +329,15 @@ export default function InventoryDashboard() {
     if (cost === null) return;
     const minimumQuantity = Number(minimum);
     const unitCost = Number(cost);
-    if (!Number.isInteger(minimumQuantity) || minimumQuantity < 0 || !Number.isInteger(unitCost) || unitCost < 0) {
-      setError("El mínimo y el costo deben ser números enteros positivos");
+    const unitsPerPresentation = Number(presentationUnits);
+    if (!Number.isInteger(unitsPerPresentation) || unitsPerPresentation < 1 || !Number.isInteger(minimumQuantity) || minimumQuantity < 0 || !Number.isInteger(unitCost) || unitCost < 0) {
+      setError("La presentación, el mínimo y el costo deben ser números enteros válidos");
       return;
     }
     try {
       await send(`inventory/products/${item.id}`, "PATCH", {
+        stockUnit: normalizedUnit,
+        unitsPerPresentation,
         minimumQuantity,
         unitCost,
       });
@@ -252,6 +349,9 @@ export default function InventoryDashboard() {
   ) ?? [];
   const canManageCatalog =
     inventory?.permissions.canManageCatalog ?? false;
+  const movementProduct = inventory?.products.find(
+    (item) => item.id === movementProductId,
+  );
 
   return (
     <main className="mx-auto max-w-7xl px-4 py-8 text-slate-900">
@@ -312,8 +412,10 @@ export default function InventoryDashboard() {
             <select required value={product.categoryId} onChange={(e) => setProduct({ ...product, categoryId: e.target.value })} className="rounded border p-3"><option value="">Categoría</option>{inventory?.categories.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select>
             <select value={product.productType} onChange={(e) => setProduct({ ...product, productType: e.target.value as "STANDARD" | "LIQUOR" })} className="rounded border p-3"><option value="STANDARD">Producto general</option><option value="LIQUOR">Licor</option></select>
             <input required value={product.presentation} onChange={(e) => setProduct({ ...product, presentation: e.target.value })} placeholder="Presentación (unidad, caja, 750 ml...)" className="rounded border p-3" />
-            <label className="text-sm font-bold">Cantidad<input required type="number" min="0" value={product.quantity} onChange={(e) => setProduct({ ...product, quantity: e.target.value })} className="mt-1 w-full rounded border p-3" /></label>
-            <label className="text-sm font-bold">Cantidad mínima<input required type="number" min="0" value={product.minimumQuantity} onChange={(e) => setProduct({ ...product, minimumQuantity: e.target.value })} className="mt-1 w-full rounded border p-3" /></label>
+            <label className="text-sm font-bold">Unidad base<select value={product.stockUnit} onChange={(e) => setProduct({ ...product, stockUnit: e.target.value as Product["stockUnit"] })} className="mt-1 w-full rounded border p-3"><option value="UNIT">Unidad</option><option value="GRAM">Gramo</option><option value="MILLILITER">Mililitro</option></select></label>
+            <label className="text-sm font-bold">Contenido por presentación<input required type="number" min="1" value={product.unitsPerPresentation} onChange={(e) => setProduct({ ...product, unitsPerPresentation: e.target.value })} className="mt-1 w-full rounded border p-3" /><span className="mt-1 block text-xs font-normal text-slate-500">Ejemplo: caja de 24 = 24 unidades; botella de 750 ml = 750.</span></label>
+            <label className="text-sm font-bold">Existencia inicial en unidad base<input required type="number" min="0" value={product.quantity} onChange={(e) => setProduct({ ...product, quantity: e.target.value })} className="mt-1 w-full rounded border p-3" /></label>
+            <label className="text-sm font-bold">Cantidad mínima en unidad base<input required type="number" min="0" value={product.minimumQuantity} onChange={(e) => setProduct({ ...product, minimumQuantity: e.target.value })} className="mt-1 w-full rounded border p-3" /></label>
             <label className="text-sm font-bold">Costo unitario (₡)<input required type="number" min="0" value={product.unitCost} onChange={(e) => setProduct({ ...product, unitCost: e.target.value })} className="mt-1 w-full rounded border p-3" /></label>
             <label className="text-sm font-bold">Fecha de ingreso<input required type="date" value={product.receivedAt} onChange={(e) => setProduct({ ...product, receivedAt: e.target.value })} className="mt-1 w-full rounded border p-3" /></label>
             <label className="text-sm font-bold sm:col-span-2">Relacionar con producto vendido<select value={product.menuItemId} onChange={(e) => setProduct({ ...product, menuItemId: e.target.value })} className="mt-1 w-full rounded border p-3"><option value="">Sin relación con el menú</option>{inventory?.menuItems.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label>
@@ -325,11 +427,12 @@ export default function InventoryDashboard() {
         <div className="space-y-6">
           <section className="rounded-xl border bg-white p-5 shadow-sm">
             <h2 className="text-xl font-black">Ingreso o ajuste</h2>
-            <p className="mt-1 text-sm text-slate-600">Use valores negativos únicamente para ajustes de salida.</p>
+            <p className="mt-1 text-sm text-slate-600">Use valores negativos únicamente para ajustes de salida. Los consumos de recetas se generan automáticamente al entregar.</p>
             <form onSubmit={registerMovement} className="mt-4 grid gap-3 sm:grid-cols-2">
               <select required value={movementProductId} onChange={(e) => setMovementProductId(e.target.value)} className="rounded border p-3 sm:col-span-2"><option value="">Seleccione producto</option>{inventory?.products.filter((item) => item.active).map((item) => <option key={item.id} value={item.id}>{item.name} · {item.quantity}</option>)}</select>
               <select value={movementType} onChange={(e) => setMovementType(e.target.value as "ENTRY" | "ADJUSTMENT")} className="rounded border p-3"><option value="ENTRY">Ingreso</option><option value="ADJUSTMENT">Ajuste</option></select>
-              <input required type="number" value={movementQuantity} onChange={(e) => setMovementQuantity(e.target.value)} placeholder="Cantidad (+/-)" className="rounded border p-3" />
+              <input required type="number" value={movementQuantity} onChange={(e) => setMovementQuantity(e.target.value)} placeholder={`Cantidad (+/-) ${movementInPresentations ? "presentaciones" : movementProduct ? unitLabel(movementProduct.stockUnit) : ""}`} className="rounded border p-3" />
+              <label className="flex items-center gap-2 rounded border p-3 text-sm font-bold sm:col-span-2"><input type="checkbox" checked={movementInPresentations} onChange={(e) => setMovementInPresentations(e.target.checked)} />Registrar en presentaciones{movementProduct ? ` · 1 ${movementProduct.presentation} = ${movementProduct.unitsPerPresentation} ${unitLabel(movementProduct.stockUnit)}` : ""}</label>
               {canManageCatalog && (
                 <input type="number" min="0" value={movementCost} onChange={(e) => setMovementCost(e.target.value)} placeholder="Nuevo costo unitario (opcional)" className="rounded border p-3" />
               )}
@@ -351,6 +454,113 @@ export default function InventoryDashboard() {
         </div>
       </div>
 
+      {canManageCatalog && (
+        <section className="mt-6 rounded-xl border border-emerald-300 bg-emerald-50 p-5 shadow-sm">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <h2 className="text-xl font-black">Recetas y consumo automático</h2>
+              <p className="mt-1 text-sm text-slate-700">
+                Defina cuánto inventario consume una unidad vendida. El descuento
+                ocurre al marcar el producto como entregado y se revierte si la
+                orden entregada se corrige.
+              </p>
+            </div>
+            <span className="rounded-full bg-white px-3 py-1 text-sm font-bold text-emerald-900">
+              Unidad base obligatoria
+            </span>
+          </div>
+          <div className="mt-5 grid gap-3 lg:grid-cols-[1.3fr_1.3fr_1fr_auto] lg:items-end">
+            <label className="text-sm font-bold">
+              Producto del menú
+              <select
+                value={recipeMenuItemId}
+                onChange={(event) => setRecipeMenuItemId(event.target.value)}
+                className="mt-1 w-full rounded border bg-white p-3"
+              >
+                <option value="">Seleccione</option>
+                {inventory?.menuItems.map((item) => (
+                  <option key={item.id} value={item.id}>{item.name}</option>
+                ))}
+              </select>
+            </label>
+            <label className="text-sm font-bold">
+              Ingrediente del inventario
+              <select
+                value={recipeProductId}
+                onChange={(event) => setRecipeProductId(event.target.value)}
+                className="mt-1 w-full rounded border bg-white p-3"
+              >
+                <option value="">Seleccione</option>
+                {inventory?.products.filter((item) => item.active).map((item) => (
+                  <option key={item.id} value={item.id}>
+                    {item.name} · {item.quantity} {unitLabel(item.stockUnit)}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="text-sm font-bold">
+              Cantidad por unidad vendida
+              <input
+                type="number"
+                min="1"
+                step="1"
+                value={recipeQuantity}
+                onChange={(event) => setRecipeQuantity(event.target.value)}
+                placeholder={
+                  inventory?.products.find((item) => item.id === recipeProductId)
+                    ? unitLabel(inventory.products.find((item) => item.id === recipeProductId)!.stockUnit)
+                    : "Cantidad"
+                }
+                className="mt-1 w-full rounded border bg-white p-3"
+              />
+            </label>
+            <button
+              type="button"
+              onClick={addRecipeIngredient}
+              className="rounded bg-emerald-800 px-4 py-3 font-black text-white"
+            >
+              Agregar
+            </button>
+          </div>
+          <div className="mt-4 space-y-2">
+            {recipeDraft.length ? recipeDraft.map((ingredient) => {
+              const item = inventory?.products.find(
+                (productItem) => productItem.id === ingredient.productId,
+              );
+              return (
+                <div key={ingredient.productId} className="flex flex-wrap items-center justify-between gap-3 rounded-lg bg-white p-3 shadow-sm">
+                  <div>
+                    <strong>{item?.name ?? "Ingrediente"}</strong>
+                    <p className="text-sm text-slate-600">
+                      {ingredient.quantityPerMenuItem} {item ? unitLabel(item.stockUnit) : ""} por producto vendido
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setRecipeDraft((current) => current.filter((entry) => entry.productId !== ingredient.productId))}
+                    className="rounded border border-red-300 px-3 py-2 font-bold text-red-700"
+                  >
+                    Quitar
+                  </button>
+                </div>
+              );
+            }) : (
+              <p className="rounded-lg bg-white p-4 text-slate-600">
+                Este producto del menú no tiene receta. Podrá entregarse, pero no descontará inventario.
+              </p>
+            )}
+          </div>
+          <button
+            type="button"
+            disabled={busy || !recipeMenuItemId}
+            onClick={() => void saveRecipe()}
+            className="mt-4 rounded bg-slate-950 px-5 py-3 font-black text-white disabled:opacity-50"
+          >
+            Guardar receta
+          </button>
+        </section>
+      )}
+
       <section className="mt-6 overflow-hidden rounded-xl border bg-white shadow-sm">
         <div className="p-5"><h2 className="text-xl font-black">Existencias registradas</h2></div>
         <div className="overflow-x-auto">
@@ -360,7 +570,7 @@ export default function InventoryDashboard() {
               const weighing = item.weighings[0];
               const movement = item.movements[0];
               const low = item.active && item.quantity <= item.minimumQuantity;
-              return <tr key={item.id} className={`border-t ${low ? "bg-red-50" : ""}`}><td className="p-3"><strong>{item.name}</strong>{item.productType === "LIQUOR" && <span className="ml-2 rounded bg-violet-100 px-2 py-1 text-xs font-bold text-violet-900">LICOR · {item.liquorBrand}</span>}<p className="text-xs text-slate-500">{item.menuItem ? `Menú: ${item.menuItem.name}` : "Sin vínculo al menú"}</p></td><td className="p-3">{item.category.name}</td><td className="p-3">{item.presentation}</td><td className={`p-3 font-black ${low ? "text-red-700" : ""}`}>{item.quantity} / {item.minimumQuantity}</td><td className="p-3">{money(item.unitCost)}</td><td className="p-3">{new Date(item.receivedAt).toLocaleDateString("es-CR")}</td><td className="p-3">{weighing ? <><p>{weighing.netWeightGrams} g netos</p><p className="text-xs text-slate-600">Consumo: {weighing.consumedWeightGrams ?? "—"} g · {weighing.relatedOrderQuantity} unidades ordenadas</p></> : movement ? `${movement.quantityDelta > 0 ? "+" : ""}${movement.quantityDelta} · ${new Date(movement.occurredAt).toLocaleDateString("es-CR")}` : "Sin movimientos"}</td>{canManageCatalog && <td className="p-3"><button type="button" onClick={() => editProduct(item)} className="rounded border border-slate-400 px-3 py-2 font-bold">Editar mínimo/costo</button></td>}</tr>;
+              return <tr key={item.id} className={`border-t ${low ? "bg-red-50" : ""}`}><td className="p-3"><strong>{item.name}</strong>{item.productType === "LIQUOR" && <span className="ml-2 rounded bg-violet-100 px-2 py-1 text-xs font-bold text-violet-900">LICOR · {item.liquorBrand}</span>}<p className="text-xs text-slate-500">{item.menuItem ? `Menú: ${item.menuItem.name}` : "Sin vínculo directo al menú"}</p></td><td className="p-3">{item.category.name}</td><td className="p-3">{item.presentation}<span className="block text-xs text-slate-500">1 presentación = {item.unitsPerPresentation} {unitLabel(item.stockUnit)}</span></td><td className={`p-3 font-black ${low ? "text-red-700" : ""}`}>{item.quantity} / {item.minimumQuantity} {unitLabel(item.stockUnit)}</td><td className="p-3">{money(item.unitCost)}<span className="block text-xs text-slate-500">por {unitLabel(item.stockUnit)}</span></td><td className="p-3">{new Date(item.receivedAt).toLocaleDateString("es-CR")}</td><td className="p-3">{weighing ? <><p>{weighing.netWeightGrams} g netos</p><p className="text-xs text-slate-600">Consumo: {weighing.consumedWeightGrams ?? "—"} g · {weighing.relatedOrderQuantity} unidades ordenadas</p></> : movement ? <><strong>{movement.type === "CONSUMPTION" ? "Consumo automático" : movement.type === "REVERSAL" ? "Reversión automática" : movement.type === "ENTRY" ? "Ingreso" : "Ajuste"}</strong><span className="block text-xs text-slate-600">{movement.quantityDelta > 0 ? "+" : ""}{movement.quantityDelta} {unitLabel(item.stockUnit)} · {new Date(movement.occurredAt).toLocaleDateString("es-CR")}</span></> : "Sin movimientos"}</td>{canManageCatalog && <td className="p-3"><button type="button" onClick={() => editProduct(item)} className="rounded border border-slate-400 px-3 py-2 font-bold">Editar medida/mínimo/costo</button></td>}</tr>;
             })}</tbody>
           </table>
         </div>

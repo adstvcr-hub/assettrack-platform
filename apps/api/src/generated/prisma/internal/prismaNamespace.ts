@@ -417,6 +417,7 @@ export const ModelName = {
   RestaurantCashDayClose: 'RestaurantCashDayClose',
   RestaurantInventoryCategory: 'RestaurantInventoryCategory',
   RestaurantInventoryProduct: 'RestaurantInventoryProduct',
+  RestaurantRecipeIngredient: 'RestaurantRecipeIngredient',
   RestaurantInventoryMovement: 'RestaurantInventoryMovement',
   RestaurantLiquorWeighing: 'RestaurantLiquorWeighing',
   RestaurantPromotion: 'RestaurantPromotion',
@@ -445,7 +446,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "organization" | "restaurantTable" | "restaurantVisit" | "restaurantQrAccess" | "restaurantLoyaltyMember" | "restaurantLoyaltyActivity" | "restaurantRewardProgram" | "restaurantVisitTransfer" | "platformAdminEvent" | "restaurantAnalyticsDaily" | "restaurantAnalyticsProductDaily" | "userManagementEvent" | "restaurantMenuItem" | "restaurantOrder" | "restaurantOrderItem" | "restaurantCashRegister" | "restaurantCashSession" | "restaurantCashDayClose" | "restaurantInventoryCategory" | "restaurantInventoryProduct" | "restaurantInventoryMovement" | "restaurantLiquorWeighing" | "restaurantPromotion" | "restaurantItemEvent" | "restaurantStaffEvent" | "restaurantStaffSession" | "organizationLocation" | "user" | "staffAccessCode" | "asset" | "qrCode" | "scanEvent" | "refreshToken"
+    modelProps: "organization" | "restaurantTable" | "restaurantVisit" | "restaurantQrAccess" | "restaurantLoyaltyMember" | "restaurantLoyaltyActivity" | "restaurantRewardProgram" | "restaurantVisitTransfer" | "platformAdminEvent" | "restaurantAnalyticsDaily" | "restaurantAnalyticsProductDaily" | "userManagementEvent" | "restaurantMenuItem" | "restaurantOrder" | "restaurantOrderItem" | "restaurantCashRegister" | "restaurantCashSession" | "restaurantCashDayClose" | "restaurantInventoryCategory" | "restaurantInventoryProduct" | "restaurantRecipeIngredient" | "restaurantInventoryMovement" | "restaurantLiquorWeighing" | "restaurantPromotion" | "restaurantItemEvent" | "restaurantStaffEvent" | "restaurantStaffSession" | "organizationLocation" | "user" | "staffAccessCode" | "asset" | "qrCode" | "scanEvent" | "refreshToken"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1929,6 +1930,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    RestaurantRecipeIngredient: {
+      payload: Prisma.$RestaurantRecipeIngredientPayload<ExtArgs>
+      fields: Prisma.RestaurantRecipeIngredientFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.RestaurantRecipeIngredientFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RestaurantRecipeIngredientPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.RestaurantRecipeIngredientFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RestaurantRecipeIngredientPayload>
+        }
+        findFirst: {
+          args: Prisma.RestaurantRecipeIngredientFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RestaurantRecipeIngredientPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.RestaurantRecipeIngredientFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RestaurantRecipeIngredientPayload>
+        }
+        findMany: {
+          args: Prisma.RestaurantRecipeIngredientFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RestaurantRecipeIngredientPayload>[]
+        }
+        create: {
+          args: Prisma.RestaurantRecipeIngredientCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RestaurantRecipeIngredientPayload>
+        }
+        createMany: {
+          args: Prisma.RestaurantRecipeIngredientCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.RestaurantRecipeIngredientCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RestaurantRecipeIngredientPayload>[]
+        }
+        delete: {
+          args: Prisma.RestaurantRecipeIngredientDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RestaurantRecipeIngredientPayload>
+        }
+        update: {
+          args: Prisma.RestaurantRecipeIngredientUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RestaurantRecipeIngredientPayload>
+        }
+        deleteMany: {
+          args: Prisma.RestaurantRecipeIngredientDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.RestaurantRecipeIngredientUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.RestaurantRecipeIngredientUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RestaurantRecipeIngredientPayload>[]
+        }
+        upsert: {
+          args: Prisma.RestaurantRecipeIngredientUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RestaurantRecipeIngredientPayload>
+        }
+        aggregate: {
+          args: Prisma.RestaurantRecipeIngredientAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateRestaurantRecipeIngredient>
+        }
+        groupBy: {
+          args: Prisma.RestaurantRecipeIngredientGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.RestaurantRecipeIngredientGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.RestaurantRecipeIngredientCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.RestaurantRecipeIngredientCountAggregateOutputType> | number
+        }
+      }
+    }
     RestaurantInventoryMovement: {
       payload: Prisma.$RestaurantInventoryMovementPayload<ExtArgs>
       fields: Prisma.RestaurantInventoryMovementFieldRefs
@@ -3289,6 +3364,8 @@ export const RestaurantInventoryProductScalarFieldEnum = {
   name: 'name',
   productType: 'productType',
   presentation: 'presentation',
+  stockUnit: 'stockUnit',
+  unitsPerPresentation: 'unitsPerPresentation',
   quantity: 'quantity',
   minimumQuantity: 'minimumQuantity',
   unitCost: 'unitCost',
@@ -3301,6 +3378,20 @@ export const RestaurantInventoryProductScalarFieldEnum = {
 } as const
 
 export type RestaurantInventoryProductScalarFieldEnum = (typeof RestaurantInventoryProductScalarFieldEnum)[keyof typeof RestaurantInventoryProductScalarFieldEnum]
+
+
+export const RestaurantRecipeIngredientScalarFieldEnum = {
+  id: 'id',
+  organizationId: 'organizationId',
+  menuItemId: 'menuItemId',
+  productId: 'productId',
+  quantityPerMenuItem: 'quantityPerMenuItem',
+  active: 'active',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type RestaurantRecipeIngredientScalarFieldEnum = (typeof RestaurantRecipeIngredientScalarFieldEnum)[keyof typeof RestaurantRecipeIngredientScalarFieldEnum]
 
 
 export const RestaurantInventoryMovementScalarFieldEnum = {
@@ -3848,6 +3939,20 @@ export type ListEnumRestaurantInventoryProductTypeFieldRefInput<$PrismaModel> = 
 
 
 /**
+ * Reference to a field of type 'RestaurantInventoryUnit'
+ */
+export type EnumRestaurantInventoryUnitFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'RestaurantInventoryUnit'>
+    
+
+
+/**
+ * Reference to a field of type 'RestaurantInventoryUnit[]'
+ */
+export type ListEnumRestaurantInventoryUnitFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'RestaurantInventoryUnit[]'>
+    
+
+
+/**
  * Reference to a field of type 'RestaurantInventoryMovementType'
  */
 export type EnumRestaurantInventoryMovementTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'RestaurantInventoryMovementType'>
@@ -4129,6 +4234,7 @@ export type GlobalOmitConfig = {
   restaurantCashDayClose?: Prisma.RestaurantCashDayCloseOmit
   restaurantInventoryCategory?: Prisma.RestaurantInventoryCategoryOmit
   restaurantInventoryProduct?: Prisma.RestaurantInventoryProductOmit
+  restaurantRecipeIngredient?: Prisma.RestaurantRecipeIngredientOmit
   restaurantInventoryMovement?: Prisma.RestaurantInventoryMovementOmit
   restaurantLiquorWeighing?: Prisma.RestaurantLiquorWeighingOmit
   restaurantPromotion?: Prisma.RestaurantPromotionOmit

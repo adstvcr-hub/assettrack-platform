@@ -212,10 +212,20 @@ export const RestaurantInventoryProductType = {
 export type RestaurantInventoryProductType = (typeof RestaurantInventoryProductType)[keyof typeof RestaurantInventoryProductType]
 
 
+export const RestaurantInventoryUnit = {
+  UNIT: 'UNIT',
+  GRAM: 'GRAM',
+  MILLILITER: 'MILLILITER'
+} as const
+
+export type RestaurantInventoryUnit = (typeof RestaurantInventoryUnit)[keyof typeof RestaurantInventoryUnit]
+
+
 export const RestaurantInventoryMovementType = {
   ENTRY: 'ENTRY',
   ADJUSTMENT: 'ADJUSTMENT',
-  CONSUMPTION: 'CONSUMPTION'
+  CONSUMPTION: 'CONSUMPTION',
+  REVERSAL: 'REVERSAL'
 } as const
 
 export type RestaurantInventoryMovementType = (typeof RestaurantInventoryMovementType)[keyof typeof RestaurantInventoryMovementType]

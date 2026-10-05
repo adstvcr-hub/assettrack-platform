@@ -32,6 +32,7 @@ import {
   RestaurantRewardType,
   RestaurantInventoryMovementType,
   RestaurantInventoryProductType,
+  RestaurantInventoryUnit,
 } from "../../generated/prisma/enums";
 
 export class CreateTableDto {
@@ -81,6 +82,8 @@ export class CreateInventoryProductDto {
   @IsEnum(RestaurantInventoryProductType)
   productType!: RestaurantInventoryProductType;
   @IsString() @MaxLength(80) presentation!: string;
+  @IsEnum(RestaurantInventoryUnit) stockUnit!: RestaurantInventoryUnit;
+  @IsInt() @Min(1) @Max(100000000) unitsPerPresentation!: number;
   @IsInt() @Min(0) @Max(100000000) quantity!: number;
   @IsInt() @Min(0) @Max(100000000) minimumQuantity!: number;
   @IsInt() @Min(0) @Max(100000000) unitCost!: number;
@@ -94,6 +97,8 @@ export class UpdateInventoryProductDto {
   @IsOptional() @IsUUID() menuItemId?: string | null;
   @IsOptional() @IsString() @MaxLength(120) name?: string;
   @IsOptional() @IsString() @MaxLength(80) presentation?: string;
+  @IsOptional() @IsEnum(RestaurantInventoryUnit) stockUnit?: RestaurantInventoryUnit;
+  @IsOptional() @IsInt() @Min(1) @Max(100000000) unitsPerPresentation?: number;
   @IsOptional() @IsInt() @Min(0) @Max(100000000) minimumQuantity?: number;
   @IsOptional() @IsInt() @Min(0) @Max(100000000) unitCost?: number;
   @IsOptional() @IsDateString() receivedAt?: string;
@@ -109,6 +114,20 @@ export class CreateInventoryMovementDto {
   @IsOptional() @IsInt() @Min(0) @Max(100000000) unitCost?: number;
   @IsOptional() @IsDateString() occurredAt?: string;
   @IsOptional() @IsString() @MaxLength(240) note?: string;
+  @IsOptional() @IsBoolean() quantityInPresentations?: boolean;
+}
+
+export class InventoryRecipeIngredientDto {
+  @IsUUID() productId!: string;
+  @IsInt() @Min(1) @Max(100000000) quantityPerMenuItem!: number;
+}
+
+export class SaveInventoryRecipeDto {
+  @IsArray()
+  @ArrayMaxSize(50)
+  @ValidateNested({ each: true })
+  @Type(() => InventoryRecipeIngredientDto)
+  ingredients!: InventoryRecipeIngredientDto[];
 }
 
 export class CreateLiquorWeighingDto {
