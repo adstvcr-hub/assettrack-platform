@@ -9,8 +9,10 @@ import { PrismaService } from "../prisma/prisma.service";
 import {
   RestaurantCashSessionStatus,
   RestaurantItemStatus,
+  RestaurantPaymentMethod,
   RestaurantStaffAvailability,
   RestaurantStaffRole,
+  RestaurantSupplierInvoiceStatus,
   RestaurantVisitStatus,
   UserRole,
 } from "../generated/prisma/enums";
@@ -19,7 +21,11 @@ import {
   normalizeTimezone,
 } from "../common/timezone-date-range";
 import type { RestaurantActor } from "./restaurant.service";
-import type { CloseCashSessionDto } from "./dto/restaurant.dto";
+import type {
+  CloseCashSessionDto,
+  CreateEmployeePaymentDto,
+  CreateSupplierInvoiceDto,
+} from "./dto/restaurant.dto";
 
 @Injectable()
 export class RestaurantCashService {
@@ -137,20 +143,106 @@ export class RestaurantCashService {
         receiptNumber: visit.receiptNumber,
         table: visit.table,
         closedAt: visit.closedAt,
+        paymentMethod: visit.paymentMethod,
+        paymentReference: visit.paymentReference,
         billing,
       };
     });
   }
 
   private summarize(
-    accounts: Array<{ billing: { total: number } }>,
+    accounts: Array<{
+      billing: { total: number };
+      paymentMethod?: RestaurantPaymentMethod | null;
+    }>,
   ) {
+    const byMethod = {
+      cashSales: 0,
+      sinpeSales: 0,
+      cardSales: 0,
+      otherSales: 0,
+    };
+    for (const account of accounts) {
+      if (account.paymentMethod === RestaurantPaymentMethod.CASH) {
+        byMethod.cashSales += account.billing.total;
+      } else if (account.paymentMethod === RestaurantPaymentMethod.SINPE) {
+        byMethod.sinpeSales += account.billing.total;
+      } else if (account.paymentMethod === RestaurantPaymentMethod.CARD) {
+        byMethod.cardSales += account.billing.total;
+      } else {
+        byMethod.otherSales += account.billing.total;
+      }
+    }
     return {
       accountCount: accounts.length,
       salesTotal: accounts.reduce(
         (sum, account) => sum + account.billing.total,
         0,
       ),
+      ...byMethod,
+    };
+  }
+
+  private async cashMovements(
+    organizationId: string,
+    start: Date,
+    end: Date,
+    cashSessionId?: string,
+  ) {
+    const [supplierInvoices, employeePayments] = await Promise.all([
+      this.prisma.restaurantSupplierInvoice.findMany({
+        where: {
+          organizationId,
+          ...(cashSessionId
+            ? { cashSessionId }
+            : { OR: [{ createdAt: { gte: start, lt: end } }, { paidAt: { gte: start, lt: end } }] }),
+        },
+        include: {
+          recordedBy: { select: { id: true, name: true } },
+        },
+        orderBy: { createdAt: "asc" },
+      }),
+      this.prisma.restaurantEmployeePayment.findMany({
+        where: {
+          organizationId,
+          ...(cashSessionId
+            ? { cashSessionId }
+            : { paidAt: { gte: start, lt: end } }),
+        },
+        include: {
+          employee: { select: { id: true, name: true, restaurantRole: true } },
+          recordedBy: { select: { id: true, name: true } },
+        },
+        orderBy: { paidAt: "asc" },
+      }),
+    ]);
+    const invoiceReceivedInRange = supplierInvoices.filter(
+      (invoice) => invoice.createdAt >= start && invoice.createdAt < end,
+    );
+    const invoicePaidInRange = supplierInvoices.filter(
+      (invoice) => invoice.paidAt && invoice.paidAt >= start && invoice.paidAt < end,
+    );
+    return {
+      supplierInvoices,
+      employeePayments,
+      supplierInvoicesTotal: invoiceReceivedInRange.reduce(
+        (sum, invoice) => sum + invoice.amount,
+        0,
+      ),
+      supplierPaymentsTotal: invoicePaidInRange.reduce(
+        (sum, invoice) => sum + invoice.amount,
+        0,
+      ),
+      cashSupplierPayments: invoicePaidInRange
+        .filter((invoice) => invoice.paymentMethod === RestaurantPaymentMethod.CASH)
+        .reduce((sum, invoice) => sum + invoice.amount, 0),
+      employeePaymentsTotal: employeePayments.reduce(
+        (sum, payment) => sum + payment.amount,
+        0,
+      ),
+      cashEmployeePayments: employeePayments
+        .filter((payment) => payment.paymentMethod === RestaurantPaymentMethod.CASH)
+        .reduce((sum, payment) => sum + payment.amount, 0),
     };
   }
 
@@ -247,6 +339,28 @@ export class RestaurantCashService {
           ),
         )
       : null;
+    const currentMovements = session
+      ? await this.cashMovements(
+          actor.organizationId,
+          session.startedAt,
+          new Date(),
+          session.id,
+        )
+      : null;
+    const currentReconciliation =
+      session && currentSummary && currentMovements
+        ? {
+            openingCash: session.openingCash,
+            cashSales: currentSummary.cashSales,
+            cashSupplierPayments: currentMovements.cashSupplierPayments,
+            cashEmployeePayments: currentMovements.cashEmployeePayments,
+            expectedCash:
+              session.openingCash +
+              currentSummary.cashSales -
+              currentMovements.cashSupplierPayments -
+              currentMovements.cashEmployeePayments,
+          }
+        : null;
 
     return {
       canAccess,
@@ -256,6 +370,8 @@ export class RestaurantCashService {
         : { id: null, name: "Caja principal" },
       session,
       currentSummary,
+      currentMovements,
+      currentReconciliation,
       dayClose,
       currentUserIsResponsible:
         Boolean(session) && session?.responsibleUserId === actor.id,
@@ -306,7 +422,7 @@ export class RestaurantCashService {
     });
   }
 
-  async assume(actor: RestaurantActor) {
+  async assume(actor: RestaurantActor, openingCash: number) {
     const user = await this.currentUser(actor);
     if (!this.canAssume(actor, user)) {
       throw new ForbiddenException(
@@ -320,6 +436,9 @@ export class RestaurantCashService {
       throw new ConflictException(
         "El empleado debe estar disponible para asumir la caja",
       );
+    }
+    if (!Number.isSafeInteger(openingCash) || openingCash < 0) {
+      throw new BadRequestException("El efectivo inicial debe ser un entero válido");
     }
     const register = await this.defaultRegister(actor.organizationId);
     const timezone = await this.timezone(actor.organizationId);
@@ -356,11 +475,130 @@ export class RestaurantCashService {
         cashRegisterId: register.id,
         responsibleUserId: actor.id,
         openGuard: register.id,
+        openingCash,
       },
       include: {
         responsibleUser: {
           select: { id: true, name: true, restaurantRole: true },
         },
+      },
+    });
+  }
+
+  private async responsibleOpenSession(actor: RestaurantActor) {
+    const session = await this.prisma.restaurantCashSession.findFirst({
+      where: {
+        organizationId: actor.organizationId,
+        responsibleUserId: actor.id,
+        openGuard: { not: null },
+      },
+    });
+    if (!session) {
+      throw new ConflictException(
+        "Debe tener la caja a su nombre para registrar este movimiento",
+      );
+    }
+    return session;
+  }
+
+  async employees(actor: RestaurantActor) {
+    const user = await this.currentUser(actor);
+    if (!this.canAssume(actor, user)) {
+      throw new ForbiddenException("Cash register access required");
+    }
+    return this.prisma.user.findMany({
+      where: {
+        organizationId: actor.organizationId,
+        active: true,
+        role: UserRole.USER,
+        restaurantRole: { not: null },
+      },
+      select: { id: true, name: true, restaurantRole: true },
+      orderBy: { name: "asc" },
+    });
+  }
+
+  async addSupplierInvoice(
+    actor: RestaurantActor,
+    dto: CreateSupplierInvoiceDto,
+  ) {
+    const session = await this.responsibleOpenSession(actor);
+    if (
+      dto.status === RestaurantSupplierInvoiceStatus.PAID &&
+      !dto.paymentMethod
+    ) {
+      throw new BadRequestException(
+        "Indique el método usado para pagar la factura",
+      );
+    }
+    const supplierName = dto.supplierName.trim();
+    const invoiceNumber = dto.invoiceNumber.trim();
+    const duplicate = await this.prisma.restaurantSupplierInvoice.findUnique({
+      where: {
+        organizationId_supplierName_invoiceNumber: {
+          organizationId: actor.organizationId,
+          supplierName,
+          invoiceNumber,
+        },
+      },
+      select: { id: true },
+    });
+    if (duplicate) {
+      throw new ConflictException("Esta factura de proveedor ya fue registrada");
+    }
+    return this.prisma.restaurantSupplierInvoice.create({
+      data: {
+        organizationId: actor.organizationId,
+        cashSessionId: session.id,
+        recordedById: actor.id,
+        supplierName,
+        invoiceNumber,
+        invoiceDate: dto.invoiceDate.slice(0, 10),
+        amount: dto.amount,
+        status: dto.status,
+        paymentMethod:
+          dto.status === RestaurantSupplierInvoiceStatus.PAID
+            ? dto.paymentMethod
+            : null,
+        paidAt:
+          dto.status === RestaurantSupplierInvoiceStatus.PAID
+            ? new Date()
+            : null,
+        note: dto.note?.trim() || null,
+      },
+      include: { recordedBy: { select: { id: true, name: true } } },
+    });
+  }
+
+  async addEmployeePayment(
+    actor: RestaurantActor,
+    dto: CreateEmployeePaymentDto,
+  ) {
+    const session = await this.responsibleOpenSession(actor);
+    const employee = await this.prisma.user.findFirst({
+      where: {
+        id: dto.employeeId,
+        organizationId: actor.organizationId,
+        active: true,
+        role: UserRole.USER,
+        restaurantRole: { not: null },
+      },
+      select: { id: true },
+    });
+    if (!employee) throw new NotFoundException("Employee not found");
+    return this.prisma.restaurantEmployeePayment.create({
+      data: {
+        organizationId: actor.organizationId,
+        cashSessionId: session.id,
+        employeeId: employee.id,
+        recordedById: actor.id,
+        amount: dto.amount,
+        paymentMethod: dto.paymentMethod,
+        note: dto.note?.trim() || null,
+      },
+      include: {
+        employee: { select: { id: true, name: true, restaurantRole: true } },
+        recordedBy: { select: { id: true, name: true } },
       },
     });
   }
@@ -405,6 +643,18 @@ export class RestaurantCashService {
       now,
     );
     const sessionSummary = this.summarize(sessionAccounts);
+    const sessionMovements = await this.cashMovements(
+      actor.organizationId,
+      session.startedAt,
+      now,
+      session.id,
+    );
+    const sessionExpectedCash =
+      session.openingCash +
+      sessionSummary.cashSales -
+      sessionMovements.cashSupplierPayments -
+      sessionMovements.cashEmployeePayments;
+    const sessionDiscrepancy = dto.countedCash - sessionExpectedCash;
     const closeNote = dto.note?.trim() || null;
 
     if (!dto.finalDailyClose) {
@@ -416,6 +666,9 @@ export class RestaurantCashService {
           openGuard: null,
           accountCount: sessionSummary.accountCount,
           salesTotal: sessionSummary.salesTotal,
+          expectedCash: sessionExpectedCash,
+          countedCash: dto.countedCash,
+          discrepancy: sessionDiscrepancy,
           closeNote:
             closeNote ??
             (isAdmin && !isResponsible
@@ -442,6 +695,11 @@ export class RestaurantCashService {
       end,
     );
     const daySummary = this.summarize(dayAccounts);
+    const dayMovements = await this.cashMovements(
+      actor.organizationId,
+      start,
+      end,
+    );
     const sessionCount =
       (await this.prisma.restaurantCashSession.count({
         where: {
@@ -449,6 +707,21 @@ export class RestaurantCashService {
           startedAt: { gte: start, lt: end },
         },
       })) || 1;
+    const firstSession = await this.prisma.restaurantCashSession.findFirst({
+      where: {
+        cashRegisterId: session.cashRegisterId,
+        startedAt: { gte: start, lt: end },
+      },
+      orderBy: { startedAt: "asc" },
+      select: { openingCash: true },
+    });
+    const dayOpeningCash = firstSession?.openingCash ?? session.openingCash;
+    const dayExpectedCash =
+      dayOpeningCash +
+      daySummary.cashSales -
+      dayMovements.cashSupplierPayments -
+      dayMovements.cashEmployeePayments;
+    const dayDiscrepancy = dto.countedCash - dayExpectedCash;
 
     const existingClose =
       await this.prisma.restaurantCashDayClose.findUnique({
@@ -474,6 +747,9 @@ export class RestaurantCashService {
           openGuard: null,
           accountCount: sessionSummary.accountCount,
           salesTotal: sessionSummary.salesTotal,
+          expectedCash: sessionExpectedCash,
+          countedCash: dto.countedCash,
+          discrepancy: sessionDiscrepancy,
           closeNote,
         },
       });
@@ -486,6 +762,17 @@ export class RestaurantCashService {
           accountCount: daySummary.accountCount,
           salesTotal: daySummary.salesTotal,
           sessionCount,
+          openingCash: dayOpeningCash,
+          cashSales: daySummary.cashSales,
+          sinpeSales: daySummary.sinpeSales,
+          cardSales: daySummary.cardSales,
+          otherSales: daySummary.otherSales,
+          supplierInvoicesTotal: dayMovements.supplierInvoicesTotal,
+          supplierPaymentsTotal: dayMovements.supplierPaymentsTotal,
+          employeePaymentsTotal: dayMovements.employeePaymentsTotal,
+          expectedCash: dayExpectedCash,
+          countedCash: dto.countedCash,
+          discrepancy: dayDiscrepancy,
           note: closeNote,
         },
         include: {
@@ -527,7 +814,23 @@ export class RestaurantCashService {
         register: { id: null, name: "Caja principal" },
         sessions: [],
         dayClose: null,
-        daySummary: { accountCount: 0, salesTotal: 0 },
+        accounts: [],
+        supplierInvoices: [],
+        employeePayments: [],
+        daySummary: {
+          accountCount: 0,
+          salesTotal: 0,
+          cashSales: 0,
+          sinpeSales: 0,
+          cardSales: 0,
+          otherSales: 0,
+        },
+        reconciliation: {
+          openingCash: 0,
+          cashSupplierPayments: 0,
+          cashEmployeePayments: 0,
+          expectedCash: 0,
+        },
       };
     }
 
@@ -579,9 +882,23 @@ export class RestaurantCashService {
           },
         },
       });
-    const daySummary = this.summarize(
-      await this.accountsBetween(actor.organizationId, start, end),
+    const accounts = await this.accountsBetween(
+      actor.organizationId,
+      start,
+      end,
     );
+    const daySummary = this.summarize(accounts);
+    const movements = await this.cashMovements(
+      actor.organizationId,
+      start,
+      end,
+    );
+    const openingCash = sessions[0]?.openingCash ?? 0;
+    const expectedCash =
+      openingCash +
+      daySummary.cashSales -
+      movements.cashSupplierPayments -
+      movements.cashEmployeePayments;
 
     return {
       businessDate,
@@ -590,6 +907,18 @@ export class RestaurantCashService {
       sessions: sessionRows,
       dayClose,
       daySummary,
+      accounts,
+      supplierInvoices: movements.supplierInvoices,
+      employeePayments: movements.employeePayments,
+      reconciliation: {
+        openingCash,
+        cashSupplierPayments: movements.cashSupplierPayments,
+        cashEmployeePayments: movements.cashEmployeePayments,
+        supplierInvoicesTotal: movements.supplierInvoicesTotal,
+        supplierPaymentsTotal: movements.supplierPaymentsTotal,
+        employeePaymentsTotal: movements.employeePaymentsTotal,
+        expectedCash,
+      },
     };
   }
 

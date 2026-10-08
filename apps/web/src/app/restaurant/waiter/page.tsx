@@ -13,6 +13,10 @@ import {
   StaffOrderCorrection,
   type StaffCorrection,
 } from "../_components/staff-order-correction";
+import {
+  PaymentMethodDialog,
+  type RestaurantPaymentDetails,
+} from "../_components/payment-method-dialog";
 
 type Item = {
   id: string;
@@ -103,6 +107,7 @@ export default function WaiterPage() {
   const [availabilityMessage, setAvailabilityMessage] = useState("");
   const [savingAvailability, setSavingAvailability] = useState(false);
   const [staffName, setStaffName] = useState("");
+  const [closingVisitId, setClosingVisitId] = useState<string | null>(null);
   const profileInitialized = useRef(false);
   const loadSequence = useRef(0);
 
@@ -200,16 +205,24 @@ export default function WaiterPage() {
     await load();
   }
 
-  async function closeVisit(visitId: string) {
+  async function closeVisit(
+    visitId: string,
+    payment: RestaurantPaymentDetails,
+  ) {
     const response = await authenticatedFetch(
       `${API_URL}/api/v1/restaurant/visits/${visitId}/close`,
-      { method: "PATCH" },
+      {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payment),
+      },
     );
     if (!response.ok) {
       const body = await response.json().catch(() => ({}));
       setError(body.message ?? "No se pudo cerrar la cuenta");
       return;
     }
+    setClosingVisitId(null);
     await load();
   }
 
@@ -577,7 +590,7 @@ export default function WaiterPage() {
                       <button
                         disabled={!visit.canClose}
                         className="rounded-lg bg-slate-900 px-4 py-3 font-semibold text-white disabled:cursor-not-allowed disabled:opacity-40"
-                        onClick={() => void closeVisit(visit.id)}
+                        onClick={() => setClosingVisitId(visit.id)}
                       >
                         {visit.canClose
                           ? "Cerrar cuenta"
@@ -737,6 +750,13 @@ export default function WaiterPage() {
           </article>
         ))}
       </section>
+      <PaymentMethodDialog
+        open={Boolean(closingVisitId)}
+        onCancel={() => setClosingVisitId(null)}
+        onConfirm={(payment) => {
+          if (closingVisitId) return closeVisit(closingVisitId, payment);
+        }}
+      />
     </main>
   );
 }

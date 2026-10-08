@@ -110,6 +110,18 @@ enum RestaurantPaymentStatus {
   REJECTED
 }
 
+enum RestaurantPaymentMethod {
+  CASH
+  SINPE
+  CARD
+  OTHER
+}
+
+enum RestaurantSupplierInvoiceStatus {
+  PENDING
+  PAID
+}
+
 enum RestaurantTableKind {
   DINING
   BAR_SEAT
@@ -188,6 +200,8 @@ model Organization {
   restaurantCashRegisters       RestaurantCashRegister[]
   restaurantCashSessions        RestaurantCashSession[]
   restaurantCashDayCloses       RestaurantCashDayClose[]
+  restaurantSupplierInvoices    RestaurantSupplierInvoice[]
+  restaurantEmployeePayments    RestaurantEmployeePayment[]
   restaurantRecipeIngredients   RestaurantRecipeIngredient[]
 
   restaurantTaxRateBps              Int                  @default(1300)
@@ -255,6 +269,8 @@ model RestaurantVisit {
   paymentStatus                 RestaurantPaymentStatus        @default(NOT_REQUIRED)
   paymentConfirmedAt            DateTime?
   paymentConfirmedById          String?
+  paymentMethod                 RestaurantPaymentMethod?
+  paymentReference              String?
   deliveryHandedOffAt           DateTime?
   deliveryHandedOffById         String?
   invoiceRequestStatus          RestaurantInvoiceRequestStatus @default(NOT_REQUESTED)
@@ -564,10 +580,16 @@ model RestaurantCashSession {
   openGuard         String?                     @unique
   accountCount      Int?
   salesTotal        Int?
+  openingCash       Int                         @default(0)
+  expectedCash      Int?
+  countedCash       Int?
+  discrepancy       Int?
   closeNote         String?
   organization      Organization                @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   cashRegister      RestaurantCashRegister      @relation(fields: [cashRegisterId], references: [id], onDelete: Cascade)
   responsibleUser   User                        @relation("CashSessionResponsible", fields: [responsibleUserId], references: [id], onDelete: Restrict)
+  supplierInvoices  RestaurantSupplierInvoice[]
+  employeePayments  RestaurantEmployeePayment[]
 
   @@index([organizationId, startedAt])
   @@index([cashRegisterId, startedAt])
@@ -585,6 +607,17 @@ model RestaurantCashDayClose {
   accountCount      Int                    @default(0)
   salesTotal        Int                    @default(0)
   sessionCount      Int                    @default(0)
+  openingCash       Int                    @default(0)
+  cashSales         Int                    @default(0)
+  sinpeSales        Int                    @default(0)
+  cardSales         Int                    @default(0)
+  otherSales        Int                    @default(0)
+  supplierInvoicesTotal Int                @default(0)
+  supplierPaymentsTotal Int                @default(0)
+  employeePaymentsTotal Int                @default(0)
+  expectedCash      Int                    @default(0)
+  countedCash       Int                    @default(0)
+  discrepancy       Int                    @default(0)
   note              String?
   organization      Organization           @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   cashRegister      RestaurantCashRegister @relation(fields: [cashRegisterId], references: [id], onDelete: Cascade)
@@ -594,6 +627,51 @@ model RestaurantCashDayClose {
   @@index([organizationId, businessDate])
   @@index([responsibleUserId, businessDate])
   @@map("restaurant_cash_day_closes")
+}
+
+model RestaurantSupplierInvoice {
+  id             String                          @id @default(uuid())
+  organizationId String
+  cashSessionId  String
+  recordedById   String
+  supplierName   String
+  invoiceNumber  String
+  invoiceDate    String
+  amount         Int
+  status         RestaurantSupplierInvoiceStatus @default(PENDING)
+  paymentMethod  RestaurantPaymentMethod?
+  paidAt         DateTime?
+  note           String?
+  createdAt      DateTime                        @default(now())
+  organization   Organization                    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  cashSession    RestaurantCashSession            @relation(fields: [cashSessionId], references: [id], onDelete: Restrict)
+  recordedBy     User                             @relation("SupplierInvoiceRecordedBy", fields: [recordedById], references: [id], onDelete: Restrict)
+
+  @@unique([organizationId, supplierName, invoiceNumber])
+  @@index([organizationId, createdAt])
+  @@index([cashSessionId])
+  @@map("restaurant_supplier_invoices")
+}
+
+model RestaurantEmployeePayment {
+  id             String                  @id @default(uuid())
+  organizationId String
+  cashSessionId  String
+  employeeId     String
+  recordedById   String
+  amount         Int
+  paymentMethod  RestaurantPaymentMethod
+  note           String?
+  paidAt         DateTime                @default(now())
+  organization   Organization            @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  cashSession    RestaurantCashSession    @relation(fields: [cashSessionId], references: [id], onDelete: Restrict)
+  employee       User                     @relation("EmployeePaymentRecipient", fields: [employeeId], references: [id], onDelete: Restrict)
+  recordedBy     User                     @relation("EmployeePaymentRecordedBy", fields: [recordedById], references: [id], onDelete: Restrict)
+
+  @@index([organizationId, paidAt])
+  @@index([cashSessionId])
+  @@index([employeeId, paidAt])
+  @@map("restaurant_employee_payments")
 }
 model RestaurantInventoryCategory {
   id             String                       @id @default(uuid())
@@ -826,6 +904,9 @@ model User {
   restaurantStaffSessions     RestaurantStaffSession[]
   restaurantCashSessions      RestaurantCashSession[] @relation("CashSessionResponsible")
   restaurantCashDayCloses     RestaurantCashDayClose[] @relation("CashDayCloseResponsible")
+  restaurantSupplierInvoicesRecorded RestaurantSupplierInvoice[] @relation("SupplierInvoiceRecordedBy")
+  restaurantEmployeePaymentsReceived RestaurantEmployeePayment[] @relation("EmployeePaymentRecipient")
+  restaurantEmployeePaymentsRecorded RestaurantEmployeePayment[] @relation("EmployeePaymentRecordedBy")
 
   @@unique([organizationId, email])
   @@index([organizationId])

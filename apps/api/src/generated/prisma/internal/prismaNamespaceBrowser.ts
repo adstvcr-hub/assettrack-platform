@@ -69,6 +69,8 @@ export const ModelName = {
   RestaurantCashRegister: 'RestaurantCashRegister',
   RestaurantCashSession: 'RestaurantCashSession',
   RestaurantCashDayClose: 'RestaurantCashDayClose',
+  RestaurantSupplierInvoice: 'RestaurantSupplierInvoice',
+  RestaurantEmployeePayment: 'RestaurantEmployeePayment',
   RestaurantInventoryCategory: 'RestaurantInventoryCategory',
   RestaurantInventoryProduct: 'RestaurantInventoryProduct',
   RestaurantRecipeIngredient: 'RestaurantRecipeIngredient',
@@ -165,6 +167,8 @@ export const RestaurantVisitScalarFieldEnum = {
   paymentStatus: 'paymentStatus',
   paymentConfirmedAt: 'paymentConfirmedAt',
   paymentConfirmedById: 'paymentConfirmedById',
+  paymentMethod: 'paymentMethod',
+  paymentReference: 'paymentReference',
   deliveryHandedOffAt: 'deliveryHandedOffAt',
   deliveryHandedOffById: 'deliveryHandedOffById',
   invoiceRequestStatus: 'invoiceRequestStatus',
@@ -420,6 +424,10 @@ export const RestaurantCashSessionScalarFieldEnum = {
   openGuard: 'openGuard',
   accountCount: 'accountCount',
   salesTotal: 'salesTotal',
+  openingCash: 'openingCash',
+  expectedCash: 'expectedCash',
+  countedCash: 'countedCash',
+  discrepancy: 'discrepancy',
   closeNote: 'closeNote'
 } as const
 
@@ -436,10 +444,55 @@ export const RestaurantCashDayCloseScalarFieldEnum = {
   accountCount: 'accountCount',
   salesTotal: 'salesTotal',
   sessionCount: 'sessionCount',
+  openingCash: 'openingCash',
+  cashSales: 'cashSales',
+  sinpeSales: 'sinpeSales',
+  cardSales: 'cardSales',
+  otherSales: 'otherSales',
+  supplierInvoicesTotal: 'supplierInvoicesTotal',
+  supplierPaymentsTotal: 'supplierPaymentsTotal',
+  employeePaymentsTotal: 'employeePaymentsTotal',
+  expectedCash: 'expectedCash',
+  countedCash: 'countedCash',
+  discrepancy: 'discrepancy',
   note: 'note'
 } as const
 
 export type RestaurantCashDayCloseScalarFieldEnum = (typeof RestaurantCashDayCloseScalarFieldEnum)[keyof typeof RestaurantCashDayCloseScalarFieldEnum]
+
+
+export const RestaurantSupplierInvoiceScalarFieldEnum = {
+  id: 'id',
+  organizationId: 'organizationId',
+  cashSessionId: 'cashSessionId',
+  recordedById: 'recordedById',
+  supplierName: 'supplierName',
+  invoiceNumber: 'invoiceNumber',
+  invoiceDate: 'invoiceDate',
+  amount: 'amount',
+  status: 'status',
+  paymentMethod: 'paymentMethod',
+  paidAt: 'paidAt',
+  note: 'note',
+  createdAt: 'createdAt'
+} as const
+
+export type RestaurantSupplierInvoiceScalarFieldEnum = (typeof RestaurantSupplierInvoiceScalarFieldEnum)[keyof typeof RestaurantSupplierInvoiceScalarFieldEnum]
+
+
+export const RestaurantEmployeePaymentScalarFieldEnum = {
+  id: 'id',
+  organizationId: 'organizationId',
+  cashSessionId: 'cashSessionId',
+  employeeId: 'employeeId',
+  recordedById: 'recordedById',
+  amount: 'amount',
+  paymentMethod: 'paymentMethod',
+  note: 'note',
+  paidAt: 'paidAt'
+} as const
+
+export type RestaurantEmployeePaymentScalarFieldEnum = (typeof RestaurantEmployeePaymentScalarFieldEnum)[keyof typeof RestaurantEmployeePaymentScalarFieldEnum]
 
 
 export const RestaurantInventoryCategoryScalarFieldEnum = {

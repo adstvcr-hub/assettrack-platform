@@ -30,12 +30,34 @@ export type RestaurantCashDayCloseAvgAggregateOutputType = {
   accountCount: number | null
   salesTotal: number | null
   sessionCount: number | null
+  openingCash: number | null
+  cashSales: number | null
+  sinpeSales: number | null
+  cardSales: number | null
+  otherSales: number | null
+  supplierInvoicesTotal: number | null
+  supplierPaymentsTotal: number | null
+  employeePaymentsTotal: number | null
+  expectedCash: number | null
+  countedCash: number | null
+  discrepancy: number | null
 }
 
 export type RestaurantCashDayCloseSumAggregateOutputType = {
   accountCount: number | null
   salesTotal: number | null
   sessionCount: number | null
+  openingCash: number | null
+  cashSales: number | null
+  sinpeSales: number | null
+  cardSales: number | null
+  otherSales: number | null
+  supplierInvoicesTotal: number | null
+  supplierPaymentsTotal: number | null
+  employeePaymentsTotal: number | null
+  expectedCash: number | null
+  countedCash: number | null
+  discrepancy: number | null
 }
 
 export type RestaurantCashDayCloseMinAggregateOutputType = {
@@ -48,6 +70,17 @@ export type RestaurantCashDayCloseMinAggregateOutputType = {
   accountCount: number | null
   salesTotal: number | null
   sessionCount: number | null
+  openingCash: number | null
+  cashSales: number | null
+  sinpeSales: number | null
+  cardSales: number | null
+  otherSales: number | null
+  supplierInvoicesTotal: number | null
+  supplierPaymentsTotal: number | null
+  employeePaymentsTotal: number | null
+  expectedCash: number | null
+  countedCash: number | null
+  discrepancy: number | null
   note: string | null
 }
 
@@ -61,6 +94,17 @@ export type RestaurantCashDayCloseMaxAggregateOutputType = {
   accountCount: number | null
   salesTotal: number | null
   sessionCount: number | null
+  openingCash: number | null
+  cashSales: number | null
+  sinpeSales: number | null
+  cardSales: number | null
+  otherSales: number | null
+  supplierInvoicesTotal: number | null
+  supplierPaymentsTotal: number | null
+  employeePaymentsTotal: number | null
+  expectedCash: number | null
+  countedCash: number | null
+  discrepancy: number | null
   note: string | null
 }
 
@@ -74,6 +118,17 @@ export type RestaurantCashDayCloseCountAggregateOutputType = {
   accountCount: number
   salesTotal: number
   sessionCount: number
+  openingCash: number
+  cashSales: number
+  sinpeSales: number
+  cardSales: number
+  otherSales: number
+  supplierInvoicesTotal: number
+  supplierPaymentsTotal: number
+  employeePaymentsTotal: number
+  expectedCash: number
+  countedCash: number
+  discrepancy: number
   note: number
   _all: number
 }
@@ -83,12 +138,34 @@ export type RestaurantCashDayCloseAvgAggregateInputType = {
   accountCount?: true
   salesTotal?: true
   sessionCount?: true
+  openingCash?: true
+  cashSales?: true
+  sinpeSales?: true
+  cardSales?: true
+  otherSales?: true
+  supplierInvoicesTotal?: true
+  supplierPaymentsTotal?: true
+  employeePaymentsTotal?: true
+  expectedCash?: true
+  countedCash?: true
+  discrepancy?: true
 }
 
 export type RestaurantCashDayCloseSumAggregateInputType = {
   accountCount?: true
   salesTotal?: true
   sessionCount?: true
+  openingCash?: true
+  cashSales?: true
+  sinpeSales?: true
+  cardSales?: true
+  otherSales?: true
+  supplierInvoicesTotal?: true
+  supplierPaymentsTotal?: true
+  employeePaymentsTotal?: true
+  expectedCash?: true
+  countedCash?: true
+  discrepancy?: true
 }
 
 export type RestaurantCashDayCloseMinAggregateInputType = {
@@ -101,6 +178,17 @@ export type RestaurantCashDayCloseMinAggregateInputType = {
   accountCount?: true
   salesTotal?: true
   sessionCount?: true
+  openingCash?: true
+  cashSales?: true
+  sinpeSales?: true
+  cardSales?: true
+  otherSales?: true
+  supplierInvoicesTotal?: true
+  supplierPaymentsTotal?: true
+  employeePaymentsTotal?: true
+  expectedCash?: true
+  countedCash?: true
+  discrepancy?: true
   note?: true
 }
 
@@ -114,6 +202,17 @@ export type RestaurantCashDayCloseMaxAggregateInputType = {
   accountCount?: true
   salesTotal?: true
   sessionCount?: true
+  openingCash?: true
+  cashSales?: true
+  sinpeSales?: true
+  cardSales?: true
+  otherSales?: true
+  supplierInvoicesTotal?: true
+  supplierPaymentsTotal?: true
+  employeePaymentsTotal?: true
+  expectedCash?: true
+  countedCash?: true
+  discrepancy?: true
   note?: true
 }
 
@@ -127,6 +226,17 @@ export type RestaurantCashDayCloseCountAggregateInputType = {
   accountCount?: true
   salesTotal?: true
   sessionCount?: true
+  openingCash?: true
+  cashSales?: true
+  sinpeSales?: true
+  cardSales?: true
+  otherSales?: true
+  supplierInvoicesTotal?: true
+  supplierPaymentsTotal?: true
+  employeePaymentsTotal?: true
+  expectedCash?: true
+  countedCash?: true
+  discrepancy?: true
   note?: true
   _all?: true
 }
@@ -227,6 +337,17 @@ export type RestaurantCashDayCloseGroupByOutputType = {
   accountCount: number
   salesTotal: number
   sessionCount: number
+  openingCash: number
+  cashSales: number
+  sinpeSales: number
+  cardSales: number
+  otherSales: number
+  supplierInvoicesTotal: number
+  supplierPaymentsTotal: number
+  employeePaymentsTotal: number
+  expectedCash: number
+  countedCash: number
+  discrepancy: number
   note: string | null
   _count: RestaurantCashDayCloseCountAggregateOutputType | null
   _avg: RestaurantCashDayCloseAvgAggregateOutputType | null
@@ -263,6 +384,17 @@ export type RestaurantCashDayCloseWhereInput = {
   accountCount?: Prisma.IntFilter<"RestaurantCashDayClose"> | number
   salesTotal?: Prisma.IntFilter<"RestaurantCashDayClose"> | number
   sessionCount?: Prisma.IntFilter<"RestaurantCashDayClose"> | number
+  openingCash?: Prisma.IntFilter<"RestaurantCashDayClose"> | number
+  cashSales?: Prisma.IntFilter<"RestaurantCashDayClose"> | number
+  sinpeSales?: Prisma.IntFilter<"RestaurantCashDayClose"> | number
+  cardSales?: Prisma.IntFilter<"RestaurantCashDayClose"> | number
+  otherSales?: Prisma.IntFilter<"RestaurantCashDayClose"> | number
+  supplierInvoicesTotal?: Prisma.IntFilter<"RestaurantCashDayClose"> | number
+  supplierPaymentsTotal?: Prisma.IntFilter<"RestaurantCashDayClose"> | number
+  employeePaymentsTotal?: Prisma.IntFilter<"RestaurantCashDayClose"> | number
+  expectedCash?: Prisma.IntFilter<"RestaurantCashDayClose"> | number
+  countedCash?: Prisma.IntFilter<"RestaurantCashDayClose"> | number
+  discrepancy?: Prisma.IntFilter<"RestaurantCashDayClose"> | number
   note?: Prisma.StringNullableFilter<"RestaurantCashDayClose"> | string | null
   organization?: Prisma.XOR<Prisma.OrganizationScalarRelationFilter, Prisma.OrganizationWhereInput>
   cashRegister?: Prisma.XOR<Prisma.RestaurantCashRegisterScalarRelationFilter, Prisma.RestaurantCashRegisterWhereInput>
@@ -279,6 +411,17 @@ export type RestaurantCashDayCloseOrderByWithRelationInput = {
   accountCount?: Prisma.SortOrder
   salesTotal?: Prisma.SortOrder
   sessionCount?: Prisma.SortOrder
+  openingCash?: Prisma.SortOrder
+  cashSales?: Prisma.SortOrder
+  sinpeSales?: Prisma.SortOrder
+  cardSales?: Prisma.SortOrder
+  otherSales?: Prisma.SortOrder
+  supplierInvoicesTotal?: Prisma.SortOrder
+  supplierPaymentsTotal?: Prisma.SortOrder
+  employeePaymentsTotal?: Prisma.SortOrder
+  expectedCash?: Prisma.SortOrder
+  countedCash?: Prisma.SortOrder
+  discrepancy?: Prisma.SortOrder
   note?: Prisma.SortOrderInput | Prisma.SortOrder
   organization?: Prisma.OrganizationOrderByWithRelationInput
   cashRegister?: Prisma.RestaurantCashRegisterOrderByWithRelationInput
@@ -299,6 +442,17 @@ export type RestaurantCashDayCloseWhereUniqueInput = Prisma.AtLeast<{
   accountCount?: Prisma.IntFilter<"RestaurantCashDayClose"> | number
   salesTotal?: Prisma.IntFilter<"RestaurantCashDayClose"> | number
   sessionCount?: Prisma.IntFilter<"RestaurantCashDayClose"> | number
+  openingCash?: Prisma.IntFilter<"RestaurantCashDayClose"> | number
+  cashSales?: Prisma.IntFilter<"RestaurantCashDayClose"> | number
+  sinpeSales?: Prisma.IntFilter<"RestaurantCashDayClose"> | number
+  cardSales?: Prisma.IntFilter<"RestaurantCashDayClose"> | number
+  otherSales?: Prisma.IntFilter<"RestaurantCashDayClose"> | number
+  supplierInvoicesTotal?: Prisma.IntFilter<"RestaurantCashDayClose"> | number
+  supplierPaymentsTotal?: Prisma.IntFilter<"RestaurantCashDayClose"> | number
+  employeePaymentsTotal?: Prisma.IntFilter<"RestaurantCashDayClose"> | number
+  expectedCash?: Prisma.IntFilter<"RestaurantCashDayClose"> | number
+  countedCash?: Prisma.IntFilter<"RestaurantCashDayClose"> | number
+  discrepancy?: Prisma.IntFilter<"RestaurantCashDayClose"> | number
   note?: Prisma.StringNullableFilter<"RestaurantCashDayClose"> | string | null
   organization?: Prisma.XOR<Prisma.OrganizationScalarRelationFilter, Prisma.OrganizationWhereInput>
   cashRegister?: Prisma.XOR<Prisma.RestaurantCashRegisterScalarRelationFilter, Prisma.RestaurantCashRegisterWhereInput>
@@ -315,6 +469,17 @@ export type RestaurantCashDayCloseOrderByWithAggregationInput = {
   accountCount?: Prisma.SortOrder
   salesTotal?: Prisma.SortOrder
   sessionCount?: Prisma.SortOrder
+  openingCash?: Prisma.SortOrder
+  cashSales?: Prisma.SortOrder
+  sinpeSales?: Prisma.SortOrder
+  cardSales?: Prisma.SortOrder
+  otherSales?: Prisma.SortOrder
+  supplierInvoicesTotal?: Prisma.SortOrder
+  supplierPaymentsTotal?: Prisma.SortOrder
+  employeePaymentsTotal?: Prisma.SortOrder
+  expectedCash?: Prisma.SortOrder
+  countedCash?: Prisma.SortOrder
+  discrepancy?: Prisma.SortOrder
   note?: Prisma.SortOrderInput | Prisma.SortOrder
   _count?: Prisma.RestaurantCashDayCloseCountOrderByAggregateInput
   _avg?: Prisma.RestaurantCashDayCloseAvgOrderByAggregateInput
@@ -336,6 +501,17 @@ export type RestaurantCashDayCloseScalarWhereWithAggregatesInput = {
   accountCount?: Prisma.IntWithAggregatesFilter<"RestaurantCashDayClose"> | number
   salesTotal?: Prisma.IntWithAggregatesFilter<"RestaurantCashDayClose"> | number
   sessionCount?: Prisma.IntWithAggregatesFilter<"RestaurantCashDayClose"> | number
+  openingCash?: Prisma.IntWithAggregatesFilter<"RestaurantCashDayClose"> | number
+  cashSales?: Prisma.IntWithAggregatesFilter<"RestaurantCashDayClose"> | number
+  sinpeSales?: Prisma.IntWithAggregatesFilter<"RestaurantCashDayClose"> | number
+  cardSales?: Prisma.IntWithAggregatesFilter<"RestaurantCashDayClose"> | number
+  otherSales?: Prisma.IntWithAggregatesFilter<"RestaurantCashDayClose"> | number
+  supplierInvoicesTotal?: Prisma.IntWithAggregatesFilter<"RestaurantCashDayClose"> | number
+  supplierPaymentsTotal?: Prisma.IntWithAggregatesFilter<"RestaurantCashDayClose"> | number
+  employeePaymentsTotal?: Prisma.IntWithAggregatesFilter<"RestaurantCashDayClose"> | number
+  expectedCash?: Prisma.IntWithAggregatesFilter<"RestaurantCashDayClose"> | number
+  countedCash?: Prisma.IntWithAggregatesFilter<"RestaurantCashDayClose"> | number
+  discrepancy?: Prisma.IntWithAggregatesFilter<"RestaurantCashDayClose"> | number
   note?: Prisma.StringNullableWithAggregatesFilter<"RestaurantCashDayClose"> | string | null
 }
 
@@ -346,6 +522,17 @@ export type RestaurantCashDayCloseCreateInput = {
   accountCount?: number
   salesTotal?: number
   sessionCount?: number
+  openingCash?: number
+  cashSales?: number
+  sinpeSales?: number
+  cardSales?: number
+  otherSales?: number
+  supplierInvoicesTotal?: number
+  supplierPaymentsTotal?: number
+  employeePaymentsTotal?: number
+  expectedCash?: number
+  countedCash?: number
+  discrepancy?: number
   note?: string | null
   organization: Prisma.OrganizationCreateNestedOneWithoutRestaurantCashDayClosesInput
   cashRegister: Prisma.RestaurantCashRegisterCreateNestedOneWithoutDayClosesInput
@@ -362,6 +549,17 @@ export type RestaurantCashDayCloseUncheckedCreateInput = {
   accountCount?: number
   salesTotal?: number
   sessionCount?: number
+  openingCash?: number
+  cashSales?: number
+  sinpeSales?: number
+  cardSales?: number
+  otherSales?: number
+  supplierInvoicesTotal?: number
+  supplierPaymentsTotal?: number
+  employeePaymentsTotal?: number
+  expectedCash?: number
+  countedCash?: number
+  discrepancy?: number
   note?: string | null
 }
 
@@ -372,6 +570,17 @@ export type RestaurantCashDayCloseUpdateInput = {
   accountCount?: Prisma.IntFieldUpdateOperationsInput | number
   salesTotal?: Prisma.IntFieldUpdateOperationsInput | number
   sessionCount?: Prisma.IntFieldUpdateOperationsInput | number
+  openingCash?: Prisma.IntFieldUpdateOperationsInput | number
+  cashSales?: Prisma.IntFieldUpdateOperationsInput | number
+  sinpeSales?: Prisma.IntFieldUpdateOperationsInput | number
+  cardSales?: Prisma.IntFieldUpdateOperationsInput | number
+  otherSales?: Prisma.IntFieldUpdateOperationsInput | number
+  supplierInvoicesTotal?: Prisma.IntFieldUpdateOperationsInput | number
+  supplierPaymentsTotal?: Prisma.IntFieldUpdateOperationsInput | number
+  employeePaymentsTotal?: Prisma.IntFieldUpdateOperationsInput | number
+  expectedCash?: Prisma.IntFieldUpdateOperationsInput | number
+  countedCash?: Prisma.IntFieldUpdateOperationsInput | number
+  discrepancy?: Prisma.IntFieldUpdateOperationsInput | number
   note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutRestaurantCashDayClosesNestedInput
   cashRegister?: Prisma.RestaurantCashRegisterUpdateOneRequiredWithoutDayClosesNestedInput
@@ -388,6 +597,17 @@ export type RestaurantCashDayCloseUncheckedUpdateInput = {
   accountCount?: Prisma.IntFieldUpdateOperationsInput | number
   salesTotal?: Prisma.IntFieldUpdateOperationsInput | number
   sessionCount?: Prisma.IntFieldUpdateOperationsInput | number
+  openingCash?: Prisma.IntFieldUpdateOperationsInput | number
+  cashSales?: Prisma.IntFieldUpdateOperationsInput | number
+  sinpeSales?: Prisma.IntFieldUpdateOperationsInput | number
+  cardSales?: Prisma.IntFieldUpdateOperationsInput | number
+  otherSales?: Prisma.IntFieldUpdateOperationsInput | number
+  supplierInvoicesTotal?: Prisma.IntFieldUpdateOperationsInput | number
+  supplierPaymentsTotal?: Prisma.IntFieldUpdateOperationsInput | number
+  employeePaymentsTotal?: Prisma.IntFieldUpdateOperationsInput | number
+  expectedCash?: Prisma.IntFieldUpdateOperationsInput | number
+  countedCash?: Prisma.IntFieldUpdateOperationsInput | number
+  discrepancy?: Prisma.IntFieldUpdateOperationsInput | number
   note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
@@ -401,6 +621,17 @@ export type RestaurantCashDayCloseCreateManyInput = {
   accountCount?: number
   salesTotal?: number
   sessionCount?: number
+  openingCash?: number
+  cashSales?: number
+  sinpeSales?: number
+  cardSales?: number
+  otherSales?: number
+  supplierInvoicesTotal?: number
+  supplierPaymentsTotal?: number
+  employeePaymentsTotal?: number
+  expectedCash?: number
+  countedCash?: number
+  discrepancy?: number
   note?: string | null
 }
 
@@ -411,6 +642,17 @@ export type RestaurantCashDayCloseUpdateManyMutationInput = {
   accountCount?: Prisma.IntFieldUpdateOperationsInput | number
   salesTotal?: Prisma.IntFieldUpdateOperationsInput | number
   sessionCount?: Prisma.IntFieldUpdateOperationsInput | number
+  openingCash?: Prisma.IntFieldUpdateOperationsInput | number
+  cashSales?: Prisma.IntFieldUpdateOperationsInput | number
+  sinpeSales?: Prisma.IntFieldUpdateOperationsInput | number
+  cardSales?: Prisma.IntFieldUpdateOperationsInput | number
+  otherSales?: Prisma.IntFieldUpdateOperationsInput | number
+  supplierInvoicesTotal?: Prisma.IntFieldUpdateOperationsInput | number
+  supplierPaymentsTotal?: Prisma.IntFieldUpdateOperationsInput | number
+  employeePaymentsTotal?: Prisma.IntFieldUpdateOperationsInput | number
+  expectedCash?: Prisma.IntFieldUpdateOperationsInput | number
+  countedCash?: Prisma.IntFieldUpdateOperationsInput | number
+  discrepancy?: Prisma.IntFieldUpdateOperationsInput | number
   note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
@@ -424,6 +666,17 @@ export type RestaurantCashDayCloseUncheckedUpdateManyInput = {
   accountCount?: Prisma.IntFieldUpdateOperationsInput | number
   salesTotal?: Prisma.IntFieldUpdateOperationsInput | number
   sessionCount?: Prisma.IntFieldUpdateOperationsInput | number
+  openingCash?: Prisma.IntFieldUpdateOperationsInput | number
+  cashSales?: Prisma.IntFieldUpdateOperationsInput | number
+  sinpeSales?: Prisma.IntFieldUpdateOperationsInput | number
+  cardSales?: Prisma.IntFieldUpdateOperationsInput | number
+  otherSales?: Prisma.IntFieldUpdateOperationsInput | number
+  supplierInvoicesTotal?: Prisma.IntFieldUpdateOperationsInput | number
+  supplierPaymentsTotal?: Prisma.IntFieldUpdateOperationsInput | number
+  employeePaymentsTotal?: Prisma.IntFieldUpdateOperationsInput | number
+  expectedCash?: Prisma.IntFieldUpdateOperationsInput | number
+  countedCash?: Prisma.IntFieldUpdateOperationsInput | number
+  discrepancy?: Prisma.IntFieldUpdateOperationsInput | number
   note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
@@ -452,6 +705,17 @@ export type RestaurantCashDayCloseCountOrderByAggregateInput = {
   accountCount?: Prisma.SortOrder
   salesTotal?: Prisma.SortOrder
   sessionCount?: Prisma.SortOrder
+  openingCash?: Prisma.SortOrder
+  cashSales?: Prisma.SortOrder
+  sinpeSales?: Prisma.SortOrder
+  cardSales?: Prisma.SortOrder
+  otherSales?: Prisma.SortOrder
+  supplierInvoicesTotal?: Prisma.SortOrder
+  supplierPaymentsTotal?: Prisma.SortOrder
+  employeePaymentsTotal?: Prisma.SortOrder
+  expectedCash?: Prisma.SortOrder
+  countedCash?: Prisma.SortOrder
+  discrepancy?: Prisma.SortOrder
   note?: Prisma.SortOrder
 }
 
@@ -459,6 +723,17 @@ export type RestaurantCashDayCloseAvgOrderByAggregateInput = {
   accountCount?: Prisma.SortOrder
   salesTotal?: Prisma.SortOrder
   sessionCount?: Prisma.SortOrder
+  openingCash?: Prisma.SortOrder
+  cashSales?: Prisma.SortOrder
+  sinpeSales?: Prisma.SortOrder
+  cardSales?: Prisma.SortOrder
+  otherSales?: Prisma.SortOrder
+  supplierInvoicesTotal?: Prisma.SortOrder
+  supplierPaymentsTotal?: Prisma.SortOrder
+  employeePaymentsTotal?: Prisma.SortOrder
+  expectedCash?: Prisma.SortOrder
+  countedCash?: Prisma.SortOrder
+  discrepancy?: Prisma.SortOrder
 }
 
 export type RestaurantCashDayCloseMaxOrderByAggregateInput = {
@@ -471,6 +746,17 @@ export type RestaurantCashDayCloseMaxOrderByAggregateInput = {
   accountCount?: Prisma.SortOrder
   salesTotal?: Prisma.SortOrder
   sessionCount?: Prisma.SortOrder
+  openingCash?: Prisma.SortOrder
+  cashSales?: Prisma.SortOrder
+  sinpeSales?: Prisma.SortOrder
+  cardSales?: Prisma.SortOrder
+  otherSales?: Prisma.SortOrder
+  supplierInvoicesTotal?: Prisma.SortOrder
+  supplierPaymentsTotal?: Prisma.SortOrder
+  employeePaymentsTotal?: Prisma.SortOrder
+  expectedCash?: Prisma.SortOrder
+  countedCash?: Prisma.SortOrder
+  discrepancy?: Prisma.SortOrder
   note?: Prisma.SortOrder
 }
 
@@ -484,6 +770,17 @@ export type RestaurantCashDayCloseMinOrderByAggregateInput = {
   accountCount?: Prisma.SortOrder
   salesTotal?: Prisma.SortOrder
   sessionCount?: Prisma.SortOrder
+  openingCash?: Prisma.SortOrder
+  cashSales?: Prisma.SortOrder
+  sinpeSales?: Prisma.SortOrder
+  cardSales?: Prisma.SortOrder
+  otherSales?: Prisma.SortOrder
+  supplierInvoicesTotal?: Prisma.SortOrder
+  supplierPaymentsTotal?: Prisma.SortOrder
+  employeePaymentsTotal?: Prisma.SortOrder
+  expectedCash?: Prisma.SortOrder
+  countedCash?: Prisma.SortOrder
+  discrepancy?: Prisma.SortOrder
   note?: Prisma.SortOrder
 }
 
@@ -491,6 +788,17 @@ export type RestaurantCashDayCloseSumOrderByAggregateInput = {
   accountCount?: Prisma.SortOrder
   salesTotal?: Prisma.SortOrder
   sessionCount?: Prisma.SortOrder
+  openingCash?: Prisma.SortOrder
+  cashSales?: Prisma.SortOrder
+  sinpeSales?: Prisma.SortOrder
+  cardSales?: Prisma.SortOrder
+  otherSales?: Prisma.SortOrder
+  supplierInvoicesTotal?: Prisma.SortOrder
+  supplierPaymentsTotal?: Prisma.SortOrder
+  employeePaymentsTotal?: Prisma.SortOrder
+  expectedCash?: Prisma.SortOrder
+  countedCash?: Prisma.SortOrder
+  discrepancy?: Prisma.SortOrder
 }
 
 export type RestaurantCashDayCloseCreateNestedManyWithoutOrganizationInput = {
@@ -626,6 +934,17 @@ export type RestaurantCashDayCloseCreateWithoutOrganizationInput = {
   accountCount?: number
   salesTotal?: number
   sessionCount?: number
+  openingCash?: number
+  cashSales?: number
+  sinpeSales?: number
+  cardSales?: number
+  otherSales?: number
+  supplierInvoicesTotal?: number
+  supplierPaymentsTotal?: number
+  employeePaymentsTotal?: number
+  expectedCash?: number
+  countedCash?: number
+  discrepancy?: number
   note?: string | null
   cashRegister: Prisma.RestaurantCashRegisterCreateNestedOneWithoutDayClosesInput
   responsibleUser: Prisma.UserCreateNestedOneWithoutRestaurantCashDayClosesInput
@@ -640,6 +959,17 @@ export type RestaurantCashDayCloseUncheckedCreateWithoutOrganizationInput = {
   accountCount?: number
   salesTotal?: number
   sessionCount?: number
+  openingCash?: number
+  cashSales?: number
+  sinpeSales?: number
+  cardSales?: number
+  otherSales?: number
+  supplierInvoicesTotal?: number
+  supplierPaymentsTotal?: number
+  employeePaymentsTotal?: number
+  expectedCash?: number
+  countedCash?: number
+  discrepancy?: number
   note?: string | null
 }
 
@@ -682,6 +1012,17 @@ export type RestaurantCashDayCloseScalarWhereInput = {
   accountCount?: Prisma.IntFilter<"RestaurantCashDayClose"> | number
   salesTotal?: Prisma.IntFilter<"RestaurantCashDayClose"> | number
   sessionCount?: Prisma.IntFilter<"RestaurantCashDayClose"> | number
+  openingCash?: Prisma.IntFilter<"RestaurantCashDayClose"> | number
+  cashSales?: Prisma.IntFilter<"RestaurantCashDayClose"> | number
+  sinpeSales?: Prisma.IntFilter<"RestaurantCashDayClose"> | number
+  cardSales?: Prisma.IntFilter<"RestaurantCashDayClose"> | number
+  otherSales?: Prisma.IntFilter<"RestaurantCashDayClose"> | number
+  supplierInvoicesTotal?: Prisma.IntFilter<"RestaurantCashDayClose"> | number
+  supplierPaymentsTotal?: Prisma.IntFilter<"RestaurantCashDayClose"> | number
+  employeePaymentsTotal?: Prisma.IntFilter<"RestaurantCashDayClose"> | number
+  expectedCash?: Prisma.IntFilter<"RestaurantCashDayClose"> | number
+  countedCash?: Prisma.IntFilter<"RestaurantCashDayClose"> | number
+  discrepancy?: Prisma.IntFilter<"RestaurantCashDayClose"> | number
   note?: Prisma.StringNullableFilter<"RestaurantCashDayClose"> | string | null
 }
 
@@ -692,6 +1033,17 @@ export type RestaurantCashDayCloseCreateWithoutCashRegisterInput = {
   accountCount?: number
   salesTotal?: number
   sessionCount?: number
+  openingCash?: number
+  cashSales?: number
+  sinpeSales?: number
+  cardSales?: number
+  otherSales?: number
+  supplierInvoicesTotal?: number
+  supplierPaymentsTotal?: number
+  employeePaymentsTotal?: number
+  expectedCash?: number
+  countedCash?: number
+  discrepancy?: number
   note?: string | null
   organization: Prisma.OrganizationCreateNestedOneWithoutRestaurantCashDayClosesInput
   responsibleUser: Prisma.UserCreateNestedOneWithoutRestaurantCashDayClosesInput
@@ -706,6 +1058,17 @@ export type RestaurantCashDayCloseUncheckedCreateWithoutCashRegisterInput = {
   accountCount?: number
   salesTotal?: number
   sessionCount?: number
+  openingCash?: number
+  cashSales?: number
+  sinpeSales?: number
+  cardSales?: number
+  otherSales?: number
+  supplierInvoicesTotal?: number
+  supplierPaymentsTotal?: number
+  employeePaymentsTotal?: number
+  expectedCash?: number
+  countedCash?: number
+  discrepancy?: number
   note?: string | null
 }
 
@@ -742,6 +1105,17 @@ export type RestaurantCashDayCloseCreateWithoutResponsibleUserInput = {
   accountCount?: number
   salesTotal?: number
   sessionCount?: number
+  openingCash?: number
+  cashSales?: number
+  sinpeSales?: number
+  cardSales?: number
+  otherSales?: number
+  supplierInvoicesTotal?: number
+  supplierPaymentsTotal?: number
+  employeePaymentsTotal?: number
+  expectedCash?: number
+  countedCash?: number
+  discrepancy?: number
   note?: string | null
   organization: Prisma.OrganizationCreateNestedOneWithoutRestaurantCashDayClosesInput
   cashRegister: Prisma.RestaurantCashRegisterCreateNestedOneWithoutDayClosesInput
@@ -756,6 +1130,17 @@ export type RestaurantCashDayCloseUncheckedCreateWithoutResponsibleUserInput = {
   accountCount?: number
   salesTotal?: number
   sessionCount?: number
+  openingCash?: number
+  cashSales?: number
+  sinpeSales?: number
+  cardSales?: number
+  otherSales?: number
+  supplierInvoicesTotal?: number
+  supplierPaymentsTotal?: number
+  employeePaymentsTotal?: number
+  expectedCash?: number
+  countedCash?: number
+  discrepancy?: number
   note?: string | null
 }
 
@@ -794,6 +1179,17 @@ export type RestaurantCashDayCloseCreateManyOrganizationInput = {
   accountCount?: number
   salesTotal?: number
   sessionCount?: number
+  openingCash?: number
+  cashSales?: number
+  sinpeSales?: number
+  cardSales?: number
+  otherSales?: number
+  supplierInvoicesTotal?: number
+  supplierPaymentsTotal?: number
+  employeePaymentsTotal?: number
+  expectedCash?: number
+  countedCash?: number
+  discrepancy?: number
   note?: string | null
 }
 
@@ -804,6 +1200,17 @@ export type RestaurantCashDayCloseUpdateWithoutOrganizationInput = {
   accountCount?: Prisma.IntFieldUpdateOperationsInput | number
   salesTotal?: Prisma.IntFieldUpdateOperationsInput | number
   sessionCount?: Prisma.IntFieldUpdateOperationsInput | number
+  openingCash?: Prisma.IntFieldUpdateOperationsInput | number
+  cashSales?: Prisma.IntFieldUpdateOperationsInput | number
+  sinpeSales?: Prisma.IntFieldUpdateOperationsInput | number
+  cardSales?: Prisma.IntFieldUpdateOperationsInput | number
+  otherSales?: Prisma.IntFieldUpdateOperationsInput | number
+  supplierInvoicesTotal?: Prisma.IntFieldUpdateOperationsInput | number
+  supplierPaymentsTotal?: Prisma.IntFieldUpdateOperationsInput | number
+  employeePaymentsTotal?: Prisma.IntFieldUpdateOperationsInput | number
+  expectedCash?: Prisma.IntFieldUpdateOperationsInput | number
+  countedCash?: Prisma.IntFieldUpdateOperationsInput | number
+  discrepancy?: Prisma.IntFieldUpdateOperationsInput | number
   note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cashRegister?: Prisma.RestaurantCashRegisterUpdateOneRequiredWithoutDayClosesNestedInput
   responsibleUser?: Prisma.UserUpdateOneRequiredWithoutRestaurantCashDayClosesNestedInput
@@ -818,6 +1225,17 @@ export type RestaurantCashDayCloseUncheckedUpdateWithoutOrganizationInput = {
   accountCount?: Prisma.IntFieldUpdateOperationsInput | number
   salesTotal?: Prisma.IntFieldUpdateOperationsInput | number
   sessionCount?: Prisma.IntFieldUpdateOperationsInput | number
+  openingCash?: Prisma.IntFieldUpdateOperationsInput | number
+  cashSales?: Prisma.IntFieldUpdateOperationsInput | number
+  sinpeSales?: Prisma.IntFieldUpdateOperationsInput | number
+  cardSales?: Prisma.IntFieldUpdateOperationsInput | number
+  otherSales?: Prisma.IntFieldUpdateOperationsInput | number
+  supplierInvoicesTotal?: Prisma.IntFieldUpdateOperationsInput | number
+  supplierPaymentsTotal?: Prisma.IntFieldUpdateOperationsInput | number
+  employeePaymentsTotal?: Prisma.IntFieldUpdateOperationsInput | number
+  expectedCash?: Prisma.IntFieldUpdateOperationsInput | number
+  countedCash?: Prisma.IntFieldUpdateOperationsInput | number
+  discrepancy?: Prisma.IntFieldUpdateOperationsInput | number
   note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
@@ -830,6 +1248,17 @@ export type RestaurantCashDayCloseUncheckedUpdateManyWithoutOrganizationInput = 
   accountCount?: Prisma.IntFieldUpdateOperationsInput | number
   salesTotal?: Prisma.IntFieldUpdateOperationsInput | number
   sessionCount?: Prisma.IntFieldUpdateOperationsInput | number
+  openingCash?: Prisma.IntFieldUpdateOperationsInput | number
+  cashSales?: Prisma.IntFieldUpdateOperationsInput | number
+  sinpeSales?: Prisma.IntFieldUpdateOperationsInput | number
+  cardSales?: Prisma.IntFieldUpdateOperationsInput | number
+  otherSales?: Prisma.IntFieldUpdateOperationsInput | number
+  supplierInvoicesTotal?: Prisma.IntFieldUpdateOperationsInput | number
+  supplierPaymentsTotal?: Prisma.IntFieldUpdateOperationsInput | number
+  employeePaymentsTotal?: Prisma.IntFieldUpdateOperationsInput | number
+  expectedCash?: Prisma.IntFieldUpdateOperationsInput | number
+  countedCash?: Prisma.IntFieldUpdateOperationsInput | number
+  discrepancy?: Prisma.IntFieldUpdateOperationsInput | number
   note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
@@ -842,6 +1271,17 @@ export type RestaurantCashDayCloseCreateManyCashRegisterInput = {
   accountCount?: number
   salesTotal?: number
   sessionCount?: number
+  openingCash?: number
+  cashSales?: number
+  sinpeSales?: number
+  cardSales?: number
+  otherSales?: number
+  supplierInvoicesTotal?: number
+  supplierPaymentsTotal?: number
+  employeePaymentsTotal?: number
+  expectedCash?: number
+  countedCash?: number
+  discrepancy?: number
   note?: string | null
 }
 
@@ -852,6 +1292,17 @@ export type RestaurantCashDayCloseUpdateWithoutCashRegisterInput = {
   accountCount?: Prisma.IntFieldUpdateOperationsInput | number
   salesTotal?: Prisma.IntFieldUpdateOperationsInput | number
   sessionCount?: Prisma.IntFieldUpdateOperationsInput | number
+  openingCash?: Prisma.IntFieldUpdateOperationsInput | number
+  cashSales?: Prisma.IntFieldUpdateOperationsInput | number
+  sinpeSales?: Prisma.IntFieldUpdateOperationsInput | number
+  cardSales?: Prisma.IntFieldUpdateOperationsInput | number
+  otherSales?: Prisma.IntFieldUpdateOperationsInput | number
+  supplierInvoicesTotal?: Prisma.IntFieldUpdateOperationsInput | number
+  supplierPaymentsTotal?: Prisma.IntFieldUpdateOperationsInput | number
+  employeePaymentsTotal?: Prisma.IntFieldUpdateOperationsInput | number
+  expectedCash?: Prisma.IntFieldUpdateOperationsInput | number
+  countedCash?: Prisma.IntFieldUpdateOperationsInput | number
+  discrepancy?: Prisma.IntFieldUpdateOperationsInput | number
   note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutRestaurantCashDayClosesNestedInput
   responsibleUser?: Prisma.UserUpdateOneRequiredWithoutRestaurantCashDayClosesNestedInput
@@ -866,6 +1317,17 @@ export type RestaurantCashDayCloseUncheckedUpdateWithoutCashRegisterInput = {
   accountCount?: Prisma.IntFieldUpdateOperationsInput | number
   salesTotal?: Prisma.IntFieldUpdateOperationsInput | number
   sessionCount?: Prisma.IntFieldUpdateOperationsInput | number
+  openingCash?: Prisma.IntFieldUpdateOperationsInput | number
+  cashSales?: Prisma.IntFieldUpdateOperationsInput | number
+  sinpeSales?: Prisma.IntFieldUpdateOperationsInput | number
+  cardSales?: Prisma.IntFieldUpdateOperationsInput | number
+  otherSales?: Prisma.IntFieldUpdateOperationsInput | number
+  supplierInvoicesTotal?: Prisma.IntFieldUpdateOperationsInput | number
+  supplierPaymentsTotal?: Prisma.IntFieldUpdateOperationsInput | number
+  employeePaymentsTotal?: Prisma.IntFieldUpdateOperationsInput | number
+  expectedCash?: Prisma.IntFieldUpdateOperationsInput | number
+  countedCash?: Prisma.IntFieldUpdateOperationsInput | number
+  discrepancy?: Prisma.IntFieldUpdateOperationsInput | number
   note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
@@ -878,6 +1340,17 @@ export type RestaurantCashDayCloseUncheckedUpdateManyWithoutCashRegisterInput = 
   accountCount?: Prisma.IntFieldUpdateOperationsInput | number
   salesTotal?: Prisma.IntFieldUpdateOperationsInput | number
   sessionCount?: Prisma.IntFieldUpdateOperationsInput | number
+  openingCash?: Prisma.IntFieldUpdateOperationsInput | number
+  cashSales?: Prisma.IntFieldUpdateOperationsInput | number
+  sinpeSales?: Prisma.IntFieldUpdateOperationsInput | number
+  cardSales?: Prisma.IntFieldUpdateOperationsInput | number
+  otherSales?: Prisma.IntFieldUpdateOperationsInput | number
+  supplierInvoicesTotal?: Prisma.IntFieldUpdateOperationsInput | number
+  supplierPaymentsTotal?: Prisma.IntFieldUpdateOperationsInput | number
+  employeePaymentsTotal?: Prisma.IntFieldUpdateOperationsInput | number
+  expectedCash?: Prisma.IntFieldUpdateOperationsInput | number
+  countedCash?: Prisma.IntFieldUpdateOperationsInput | number
+  discrepancy?: Prisma.IntFieldUpdateOperationsInput | number
   note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
@@ -890,6 +1363,17 @@ export type RestaurantCashDayCloseCreateManyResponsibleUserInput = {
   accountCount?: number
   salesTotal?: number
   sessionCount?: number
+  openingCash?: number
+  cashSales?: number
+  sinpeSales?: number
+  cardSales?: number
+  otherSales?: number
+  supplierInvoicesTotal?: number
+  supplierPaymentsTotal?: number
+  employeePaymentsTotal?: number
+  expectedCash?: number
+  countedCash?: number
+  discrepancy?: number
   note?: string | null
 }
 
@@ -900,6 +1384,17 @@ export type RestaurantCashDayCloseUpdateWithoutResponsibleUserInput = {
   accountCount?: Prisma.IntFieldUpdateOperationsInput | number
   salesTotal?: Prisma.IntFieldUpdateOperationsInput | number
   sessionCount?: Prisma.IntFieldUpdateOperationsInput | number
+  openingCash?: Prisma.IntFieldUpdateOperationsInput | number
+  cashSales?: Prisma.IntFieldUpdateOperationsInput | number
+  sinpeSales?: Prisma.IntFieldUpdateOperationsInput | number
+  cardSales?: Prisma.IntFieldUpdateOperationsInput | number
+  otherSales?: Prisma.IntFieldUpdateOperationsInput | number
+  supplierInvoicesTotal?: Prisma.IntFieldUpdateOperationsInput | number
+  supplierPaymentsTotal?: Prisma.IntFieldUpdateOperationsInput | number
+  employeePaymentsTotal?: Prisma.IntFieldUpdateOperationsInput | number
+  expectedCash?: Prisma.IntFieldUpdateOperationsInput | number
+  countedCash?: Prisma.IntFieldUpdateOperationsInput | number
+  discrepancy?: Prisma.IntFieldUpdateOperationsInput | number
   note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutRestaurantCashDayClosesNestedInput
   cashRegister?: Prisma.RestaurantCashRegisterUpdateOneRequiredWithoutDayClosesNestedInput
@@ -914,6 +1409,17 @@ export type RestaurantCashDayCloseUncheckedUpdateWithoutResponsibleUserInput = {
   accountCount?: Prisma.IntFieldUpdateOperationsInput | number
   salesTotal?: Prisma.IntFieldUpdateOperationsInput | number
   sessionCount?: Prisma.IntFieldUpdateOperationsInput | number
+  openingCash?: Prisma.IntFieldUpdateOperationsInput | number
+  cashSales?: Prisma.IntFieldUpdateOperationsInput | number
+  sinpeSales?: Prisma.IntFieldUpdateOperationsInput | number
+  cardSales?: Prisma.IntFieldUpdateOperationsInput | number
+  otherSales?: Prisma.IntFieldUpdateOperationsInput | number
+  supplierInvoicesTotal?: Prisma.IntFieldUpdateOperationsInput | number
+  supplierPaymentsTotal?: Prisma.IntFieldUpdateOperationsInput | number
+  employeePaymentsTotal?: Prisma.IntFieldUpdateOperationsInput | number
+  expectedCash?: Prisma.IntFieldUpdateOperationsInput | number
+  countedCash?: Prisma.IntFieldUpdateOperationsInput | number
+  discrepancy?: Prisma.IntFieldUpdateOperationsInput | number
   note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
@@ -926,6 +1432,17 @@ export type RestaurantCashDayCloseUncheckedUpdateManyWithoutResponsibleUserInput
   accountCount?: Prisma.IntFieldUpdateOperationsInput | number
   salesTotal?: Prisma.IntFieldUpdateOperationsInput | number
   sessionCount?: Prisma.IntFieldUpdateOperationsInput | number
+  openingCash?: Prisma.IntFieldUpdateOperationsInput | number
+  cashSales?: Prisma.IntFieldUpdateOperationsInput | number
+  sinpeSales?: Prisma.IntFieldUpdateOperationsInput | number
+  cardSales?: Prisma.IntFieldUpdateOperationsInput | number
+  otherSales?: Prisma.IntFieldUpdateOperationsInput | number
+  supplierInvoicesTotal?: Prisma.IntFieldUpdateOperationsInput | number
+  supplierPaymentsTotal?: Prisma.IntFieldUpdateOperationsInput | number
+  employeePaymentsTotal?: Prisma.IntFieldUpdateOperationsInput | number
+  expectedCash?: Prisma.IntFieldUpdateOperationsInput | number
+  countedCash?: Prisma.IntFieldUpdateOperationsInput | number
+  discrepancy?: Prisma.IntFieldUpdateOperationsInput | number
   note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
@@ -941,6 +1458,17 @@ export type RestaurantCashDayCloseSelect<ExtArgs extends runtime.Types.Extension
   accountCount?: boolean
   salesTotal?: boolean
   sessionCount?: boolean
+  openingCash?: boolean
+  cashSales?: boolean
+  sinpeSales?: boolean
+  cardSales?: boolean
+  otherSales?: boolean
+  supplierInvoicesTotal?: boolean
+  supplierPaymentsTotal?: boolean
+  employeePaymentsTotal?: boolean
+  expectedCash?: boolean
+  countedCash?: boolean
+  discrepancy?: boolean
   note?: boolean
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
   cashRegister?: boolean | Prisma.RestaurantCashRegisterDefaultArgs<ExtArgs>
@@ -957,6 +1485,17 @@ export type RestaurantCashDayCloseSelectCreateManyAndReturn<ExtArgs extends runt
   accountCount?: boolean
   salesTotal?: boolean
   sessionCount?: boolean
+  openingCash?: boolean
+  cashSales?: boolean
+  sinpeSales?: boolean
+  cardSales?: boolean
+  otherSales?: boolean
+  supplierInvoicesTotal?: boolean
+  supplierPaymentsTotal?: boolean
+  employeePaymentsTotal?: boolean
+  expectedCash?: boolean
+  countedCash?: boolean
+  discrepancy?: boolean
   note?: boolean
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
   cashRegister?: boolean | Prisma.RestaurantCashRegisterDefaultArgs<ExtArgs>
@@ -973,6 +1512,17 @@ export type RestaurantCashDayCloseSelectUpdateManyAndReturn<ExtArgs extends runt
   accountCount?: boolean
   salesTotal?: boolean
   sessionCount?: boolean
+  openingCash?: boolean
+  cashSales?: boolean
+  sinpeSales?: boolean
+  cardSales?: boolean
+  otherSales?: boolean
+  supplierInvoicesTotal?: boolean
+  supplierPaymentsTotal?: boolean
+  employeePaymentsTotal?: boolean
+  expectedCash?: boolean
+  countedCash?: boolean
+  discrepancy?: boolean
   note?: boolean
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
   cashRegister?: boolean | Prisma.RestaurantCashRegisterDefaultArgs<ExtArgs>
@@ -989,10 +1539,21 @@ export type RestaurantCashDayCloseSelectScalar = {
   accountCount?: boolean
   salesTotal?: boolean
   sessionCount?: boolean
+  openingCash?: boolean
+  cashSales?: boolean
+  sinpeSales?: boolean
+  cardSales?: boolean
+  otherSales?: boolean
+  supplierInvoicesTotal?: boolean
+  supplierPaymentsTotal?: boolean
+  employeePaymentsTotal?: boolean
+  expectedCash?: boolean
+  countedCash?: boolean
+  discrepancy?: boolean
   note?: boolean
 }
 
-export type RestaurantCashDayCloseOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "organizationId" | "cashRegisterId" | "businessDate" | "responsibleUserId" | "closedAt" | "accountCount" | "salesTotal" | "sessionCount" | "note", ExtArgs["result"]["restaurantCashDayClose"]>
+export type RestaurantCashDayCloseOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "organizationId" | "cashRegisterId" | "businessDate" | "responsibleUserId" | "closedAt" | "accountCount" | "salesTotal" | "sessionCount" | "openingCash" | "cashSales" | "sinpeSales" | "cardSales" | "otherSales" | "supplierInvoicesTotal" | "supplierPaymentsTotal" | "employeePaymentsTotal" | "expectedCash" | "countedCash" | "discrepancy" | "note", ExtArgs["result"]["restaurantCashDayClose"]>
 export type RestaurantCashDayCloseInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
   cashRegister?: boolean | Prisma.RestaurantCashRegisterDefaultArgs<ExtArgs>
@@ -1026,6 +1587,17 @@ export type $RestaurantCashDayClosePayload<ExtArgs extends runtime.Types.Extensi
     accountCount: number
     salesTotal: number
     sessionCount: number
+    openingCash: number
+    cashSales: number
+    sinpeSales: number
+    cardSales: number
+    otherSales: number
+    supplierInvoicesTotal: number
+    supplierPaymentsTotal: number
+    employeePaymentsTotal: number
+    expectedCash: number
+    countedCash: number
+    discrepancy: number
     note: string | null
   }, ExtArgs["result"]["restaurantCashDayClose"]>
   composites: {}
@@ -1462,6 +2034,17 @@ export interface RestaurantCashDayCloseFieldRefs {
   readonly accountCount: Prisma.FieldRef<"RestaurantCashDayClose", 'Int'>
   readonly salesTotal: Prisma.FieldRef<"RestaurantCashDayClose", 'Int'>
   readonly sessionCount: Prisma.FieldRef<"RestaurantCashDayClose", 'Int'>
+  readonly openingCash: Prisma.FieldRef<"RestaurantCashDayClose", 'Int'>
+  readonly cashSales: Prisma.FieldRef<"RestaurantCashDayClose", 'Int'>
+  readonly sinpeSales: Prisma.FieldRef<"RestaurantCashDayClose", 'Int'>
+  readonly cardSales: Prisma.FieldRef<"RestaurantCashDayClose", 'Int'>
+  readonly otherSales: Prisma.FieldRef<"RestaurantCashDayClose", 'Int'>
+  readonly supplierInvoicesTotal: Prisma.FieldRef<"RestaurantCashDayClose", 'Int'>
+  readonly supplierPaymentsTotal: Prisma.FieldRef<"RestaurantCashDayClose", 'Int'>
+  readonly employeePaymentsTotal: Prisma.FieldRef<"RestaurantCashDayClose", 'Int'>
+  readonly expectedCash: Prisma.FieldRef<"RestaurantCashDayClose", 'Int'>
+  readonly countedCash: Prisma.FieldRef<"RestaurantCashDayClose", 'Int'>
+  readonly discrepancy: Prisma.FieldRef<"RestaurantCashDayClose", 'Int'>
   readonly note: Prisma.FieldRef<"RestaurantCashDayClose", 'String'>
 }
     

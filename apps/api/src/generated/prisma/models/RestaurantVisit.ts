@@ -56,6 +56,8 @@ export type RestaurantVisitMinAggregateOutputType = {
   paymentStatus: $Enums.RestaurantPaymentStatus | null
   paymentConfirmedAt: Date | null
   paymentConfirmedById: string | null
+  paymentMethod: $Enums.RestaurantPaymentMethod | null
+  paymentReference: string | null
   deliveryHandedOffAt: Date | null
   deliveryHandedOffById: string | null
   invoiceRequestStatus: $Enums.RestaurantInvoiceRequestStatus | null
@@ -92,6 +94,8 @@ export type RestaurantVisitMaxAggregateOutputType = {
   paymentStatus: $Enums.RestaurantPaymentStatus | null
   paymentConfirmedAt: Date | null
   paymentConfirmedById: string | null
+  paymentMethod: $Enums.RestaurantPaymentMethod | null
+  paymentReference: string | null
   deliveryHandedOffAt: Date | null
   deliveryHandedOffById: string | null
   invoiceRequestStatus: $Enums.RestaurantInvoiceRequestStatus | null
@@ -128,6 +132,8 @@ export type RestaurantVisitCountAggregateOutputType = {
   paymentStatus: number
   paymentConfirmedAt: number
   paymentConfirmedById: number
+  paymentMethod: number
+  paymentReference: number
   deliveryHandedOffAt: number
   deliveryHandedOffById: number
   invoiceRequestStatus: number
@@ -176,6 +182,8 @@ export type RestaurantVisitMinAggregateInputType = {
   paymentStatus?: true
   paymentConfirmedAt?: true
   paymentConfirmedById?: true
+  paymentMethod?: true
+  paymentReference?: true
   deliveryHandedOffAt?: true
   deliveryHandedOffById?: true
   invoiceRequestStatus?: true
@@ -212,6 +220,8 @@ export type RestaurantVisitMaxAggregateInputType = {
   paymentStatus?: true
   paymentConfirmedAt?: true
   paymentConfirmedById?: true
+  paymentMethod?: true
+  paymentReference?: true
   deliveryHandedOffAt?: true
   deliveryHandedOffById?: true
   invoiceRequestStatus?: true
@@ -248,6 +258,8 @@ export type RestaurantVisitCountAggregateInputType = {
   paymentStatus?: true
   paymentConfirmedAt?: true
   paymentConfirmedById?: true
+  paymentMethod?: true
+  paymentReference?: true
   deliveryHandedOffAt?: true
   deliveryHandedOffById?: true
   invoiceRequestStatus?: true
@@ -371,6 +383,8 @@ export type RestaurantVisitGroupByOutputType = {
   paymentStatus: $Enums.RestaurantPaymentStatus
   paymentConfirmedAt: Date | null
   paymentConfirmedById: string | null
+  paymentMethod: $Enums.RestaurantPaymentMethod | null
+  paymentReference: string | null
   deliveryHandedOffAt: Date | null
   deliveryHandedOffById: string | null
   invoiceRequestStatus: $Enums.RestaurantInvoiceRequestStatus
@@ -430,6 +444,8 @@ export type RestaurantVisitWhereInput = {
   paymentStatus?: Prisma.EnumRestaurantPaymentStatusFilter<"RestaurantVisit"> | $Enums.RestaurantPaymentStatus
   paymentConfirmedAt?: Prisma.DateTimeNullableFilter<"RestaurantVisit"> | Date | string | null
   paymentConfirmedById?: Prisma.StringNullableFilter<"RestaurantVisit"> | string | null
+  paymentMethod?: Prisma.EnumRestaurantPaymentMethodNullableFilter<"RestaurantVisit"> | $Enums.RestaurantPaymentMethod | null
+  paymentReference?: Prisma.StringNullableFilter<"RestaurantVisit"> | string | null
   deliveryHandedOffAt?: Prisma.DateTimeNullableFilter<"RestaurantVisit"> | Date | string | null
   deliveryHandedOffById?: Prisma.StringNullableFilter<"RestaurantVisit"> | string | null
   invoiceRequestStatus?: Prisma.EnumRestaurantInvoiceRequestStatusFilter<"RestaurantVisit"> | $Enums.RestaurantInvoiceRequestStatus
@@ -473,6 +489,8 @@ export type RestaurantVisitOrderByWithRelationInput = {
   paymentStatus?: Prisma.SortOrder
   paymentConfirmedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   paymentConfirmedById?: Prisma.SortOrderInput | Prisma.SortOrder
+  paymentMethod?: Prisma.SortOrderInput | Prisma.SortOrder
+  paymentReference?: Prisma.SortOrderInput | Prisma.SortOrder
   deliveryHandedOffAt?: Prisma.SortOrderInput | Prisma.SortOrder
   deliveryHandedOffById?: Prisma.SortOrderInput | Prisma.SortOrder
   invoiceRequestStatus?: Prisma.SortOrder
@@ -520,6 +538,8 @@ export type RestaurantVisitWhereUniqueInput = Prisma.AtLeast<{
   paymentStatus?: Prisma.EnumRestaurantPaymentStatusFilter<"RestaurantVisit"> | $Enums.RestaurantPaymentStatus
   paymentConfirmedAt?: Prisma.DateTimeNullableFilter<"RestaurantVisit"> | Date | string | null
   paymentConfirmedById?: Prisma.StringNullableFilter<"RestaurantVisit"> | string | null
+  paymentMethod?: Prisma.EnumRestaurantPaymentMethodNullableFilter<"RestaurantVisit"> | $Enums.RestaurantPaymentMethod | null
+  paymentReference?: Prisma.StringNullableFilter<"RestaurantVisit"> | string | null
   deliveryHandedOffAt?: Prisma.DateTimeNullableFilter<"RestaurantVisit"> | Date | string | null
   deliveryHandedOffById?: Prisma.StringNullableFilter<"RestaurantVisit"> | string | null
   invoiceRequestStatus?: Prisma.EnumRestaurantInvoiceRequestStatusFilter<"RestaurantVisit"> | $Enums.RestaurantInvoiceRequestStatus
@@ -562,6 +582,8 @@ export type RestaurantVisitOrderByWithAggregationInput = {
   paymentStatus?: Prisma.SortOrder
   paymentConfirmedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   paymentConfirmedById?: Prisma.SortOrderInput | Prisma.SortOrder
+  paymentMethod?: Prisma.SortOrderInput | Prisma.SortOrder
+  paymentReference?: Prisma.SortOrderInput | Prisma.SortOrder
   deliveryHandedOffAt?: Prisma.SortOrderInput | Prisma.SortOrder
   deliveryHandedOffById?: Prisma.SortOrderInput | Prisma.SortOrder
   invoiceRequestStatus?: Prisma.SortOrder
@@ -606,6 +628,8 @@ export type RestaurantVisitScalarWhereWithAggregatesInput = {
   paymentStatus?: Prisma.EnumRestaurantPaymentStatusWithAggregatesFilter<"RestaurantVisit"> | $Enums.RestaurantPaymentStatus
   paymentConfirmedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"RestaurantVisit"> | Date | string | null
   paymentConfirmedById?: Prisma.StringNullableWithAggregatesFilter<"RestaurantVisit"> | string | null
+  paymentMethod?: Prisma.EnumRestaurantPaymentMethodNullableWithAggregatesFilter<"RestaurantVisit"> | $Enums.RestaurantPaymentMethod | null
+  paymentReference?: Prisma.StringNullableWithAggregatesFilter<"RestaurantVisit"> | string | null
   deliveryHandedOffAt?: Prisma.DateTimeNullableWithAggregatesFilter<"RestaurantVisit"> | Date | string | null
   deliveryHandedOffById?: Prisma.StringNullableWithAggregatesFilter<"RestaurantVisit"> | string | null
   invoiceRequestStatus?: Prisma.EnumRestaurantInvoiceRequestStatusWithAggregatesFilter<"RestaurantVisit"> | $Enums.RestaurantInvoiceRequestStatus
@@ -640,6 +664,8 @@ export type RestaurantVisitCreateInput = {
   paymentStatus?: $Enums.RestaurantPaymentStatus
   paymentConfirmedAt?: Date | string | null
   paymentConfirmedById?: string | null
+  paymentMethod?: $Enums.RestaurantPaymentMethod | null
+  paymentReference?: string | null
   deliveryHandedOffAt?: Date | string | null
   deliveryHandedOffById?: string | null
   invoiceRequestStatus?: $Enums.RestaurantInvoiceRequestStatus
@@ -681,6 +707,8 @@ export type RestaurantVisitUncheckedCreateInput = {
   paymentStatus?: $Enums.RestaurantPaymentStatus
   paymentConfirmedAt?: Date | string | null
   paymentConfirmedById?: string | null
+  paymentMethod?: $Enums.RestaurantPaymentMethod | null
+  paymentReference?: string | null
   deliveryHandedOffAt?: Date | string | null
   deliveryHandedOffById?: string | null
   invoiceRequestStatus?: $Enums.RestaurantInvoiceRequestStatus
@@ -718,6 +746,8 @@ export type RestaurantVisitUpdateInput = {
   paymentStatus?: Prisma.EnumRestaurantPaymentStatusFieldUpdateOperationsInput | $Enums.RestaurantPaymentStatus
   paymentConfirmedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   paymentConfirmedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  paymentMethod?: Prisma.NullableEnumRestaurantPaymentMethodFieldUpdateOperationsInput | $Enums.RestaurantPaymentMethod | null
+  paymentReference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   deliveryHandedOffAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   deliveryHandedOffById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   invoiceRequestStatus?: Prisma.EnumRestaurantInvoiceRequestStatusFieldUpdateOperationsInput | $Enums.RestaurantInvoiceRequestStatus
@@ -759,6 +789,8 @@ export type RestaurantVisitUncheckedUpdateInput = {
   paymentStatus?: Prisma.EnumRestaurantPaymentStatusFieldUpdateOperationsInput | $Enums.RestaurantPaymentStatus
   paymentConfirmedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   paymentConfirmedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  paymentMethod?: Prisma.NullableEnumRestaurantPaymentMethodFieldUpdateOperationsInput | $Enums.RestaurantPaymentMethod | null
+  paymentReference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   deliveryHandedOffAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   deliveryHandedOffById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   invoiceRequestStatus?: Prisma.EnumRestaurantInvoiceRequestStatusFieldUpdateOperationsInput | $Enums.RestaurantInvoiceRequestStatus
@@ -798,6 +830,8 @@ export type RestaurantVisitCreateManyInput = {
   paymentStatus?: $Enums.RestaurantPaymentStatus
   paymentConfirmedAt?: Date | string | null
   paymentConfirmedById?: string | null
+  paymentMethod?: $Enums.RestaurantPaymentMethod | null
+  paymentReference?: string | null
   deliveryHandedOffAt?: Date | string | null
   deliveryHandedOffById?: string | null
   invoiceRequestStatus?: $Enums.RestaurantInvoiceRequestStatus
@@ -832,6 +866,8 @@ export type RestaurantVisitUpdateManyMutationInput = {
   paymentStatus?: Prisma.EnumRestaurantPaymentStatusFieldUpdateOperationsInput | $Enums.RestaurantPaymentStatus
   paymentConfirmedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   paymentConfirmedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  paymentMethod?: Prisma.NullableEnumRestaurantPaymentMethodFieldUpdateOperationsInput | $Enums.RestaurantPaymentMethod | null
+  paymentReference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   deliveryHandedOffAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   deliveryHandedOffById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   invoiceRequestStatus?: Prisma.EnumRestaurantInvoiceRequestStatusFieldUpdateOperationsInput | $Enums.RestaurantInvoiceRequestStatus
@@ -866,6 +902,8 @@ export type RestaurantVisitUncheckedUpdateManyInput = {
   paymentStatus?: Prisma.EnumRestaurantPaymentStatusFieldUpdateOperationsInput | $Enums.RestaurantPaymentStatus
   paymentConfirmedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   paymentConfirmedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  paymentMethod?: Prisma.NullableEnumRestaurantPaymentMethodFieldUpdateOperationsInput | $Enums.RestaurantPaymentMethod | null
+  paymentReference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   deliveryHandedOffAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   deliveryHandedOffById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   invoiceRequestStatus?: Prisma.EnumRestaurantInvoiceRequestStatusFieldUpdateOperationsInput | $Enums.RestaurantInvoiceRequestStatus
@@ -912,6 +950,8 @@ export type RestaurantVisitCountOrderByAggregateInput = {
   paymentStatus?: Prisma.SortOrder
   paymentConfirmedAt?: Prisma.SortOrder
   paymentConfirmedById?: Prisma.SortOrder
+  paymentMethod?: Prisma.SortOrder
+  paymentReference?: Prisma.SortOrder
   deliveryHandedOffAt?: Prisma.SortOrder
   deliveryHandedOffById?: Prisma.SortOrder
   invoiceRequestStatus?: Prisma.SortOrder
@@ -953,6 +993,8 @@ export type RestaurantVisitMaxOrderByAggregateInput = {
   paymentStatus?: Prisma.SortOrder
   paymentConfirmedAt?: Prisma.SortOrder
   paymentConfirmedById?: Prisma.SortOrder
+  paymentMethod?: Prisma.SortOrder
+  paymentReference?: Prisma.SortOrder
   deliveryHandedOffAt?: Prisma.SortOrder
   deliveryHandedOffById?: Prisma.SortOrder
   invoiceRequestStatus?: Prisma.SortOrder
@@ -989,6 +1031,8 @@ export type RestaurantVisitMinOrderByAggregateInput = {
   paymentStatus?: Prisma.SortOrder
   paymentConfirmedAt?: Prisma.SortOrder
   paymentConfirmedById?: Prisma.SortOrder
+  paymentMethod?: Prisma.SortOrder
+  paymentReference?: Prisma.SortOrder
   deliveryHandedOffAt?: Prisma.SortOrder
   deliveryHandedOffById?: Prisma.SortOrder
   invoiceRequestStatus?: Prisma.SortOrder
@@ -1118,6 +1162,10 @@ export type NullableEnumRestaurantStaffRoleFieldUpdateOperationsInput = {
 
 export type EnumRestaurantPaymentStatusFieldUpdateOperationsInput = {
   set?: $Enums.RestaurantPaymentStatus
+}
+
+export type NullableEnumRestaurantPaymentMethodFieldUpdateOperationsInput = {
+  set?: $Enums.RestaurantPaymentMethod | null
 }
 
 export type EnumRestaurantInvoiceRequestStatusFieldUpdateOperationsInput = {
@@ -1272,6 +1320,8 @@ export type RestaurantVisitCreateWithoutOrganizationInput = {
   paymentStatus?: $Enums.RestaurantPaymentStatus
   paymentConfirmedAt?: Date | string | null
   paymentConfirmedById?: string | null
+  paymentMethod?: $Enums.RestaurantPaymentMethod | null
+  paymentReference?: string | null
   deliveryHandedOffAt?: Date | string | null
   deliveryHandedOffById?: string | null
   invoiceRequestStatus?: $Enums.RestaurantInvoiceRequestStatus
@@ -1311,6 +1361,8 @@ export type RestaurantVisitUncheckedCreateWithoutOrganizationInput = {
   paymentStatus?: $Enums.RestaurantPaymentStatus
   paymentConfirmedAt?: Date | string | null
   paymentConfirmedById?: string | null
+  paymentMethod?: $Enums.RestaurantPaymentMethod | null
+  paymentReference?: string | null
   deliveryHandedOffAt?: Date | string | null
   deliveryHandedOffById?: string | null
   invoiceRequestStatus?: $Enums.RestaurantInvoiceRequestStatus
@@ -1379,6 +1431,8 @@ export type RestaurantVisitScalarWhereInput = {
   paymentStatus?: Prisma.EnumRestaurantPaymentStatusFilter<"RestaurantVisit"> | $Enums.RestaurantPaymentStatus
   paymentConfirmedAt?: Prisma.DateTimeNullableFilter<"RestaurantVisit"> | Date | string | null
   paymentConfirmedById?: Prisma.StringNullableFilter<"RestaurantVisit"> | string | null
+  paymentMethod?: Prisma.EnumRestaurantPaymentMethodNullableFilter<"RestaurantVisit"> | $Enums.RestaurantPaymentMethod | null
+  paymentReference?: Prisma.StringNullableFilter<"RestaurantVisit"> | string | null
   deliveryHandedOffAt?: Prisma.DateTimeNullableFilter<"RestaurantVisit"> | Date | string | null
   deliveryHandedOffById?: Prisma.StringNullableFilter<"RestaurantVisit"> | string | null
   invoiceRequestStatus?: Prisma.EnumRestaurantInvoiceRequestStatusFilter<"RestaurantVisit"> | $Enums.RestaurantInvoiceRequestStatus
@@ -1413,6 +1467,8 @@ export type RestaurantVisitCreateWithoutTableInput = {
   paymentStatus?: $Enums.RestaurantPaymentStatus
   paymentConfirmedAt?: Date | string | null
   paymentConfirmedById?: string | null
+  paymentMethod?: $Enums.RestaurantPaymentMethod | null
+  paymentReference?: string | null
   deliveryHandedOffAt?: Date | string | null
   deliveryHandedOffById?: string | null
   invoiceRequestStatus?: $Enums.RestaurantInvoiceRequestStatus
@@ -1452,6 +1508,8 @@ export type RestaurantVisitUncheckedCreateWithoutTableInput = {
   paymentStatus?: $Enums.RestaurantPaymentStatus
   paymentConfirmedAt?: Date | string | null
   paymentConfirmedById?: string | null
+  paymentMethod?: $Enums.RestaurantPaymentMethod | null
+  paymentReference?: string | null
   deliveryHandedOffAt?: Date | string | null
   deliveryHandedOffById?: string | null
   invoiceRequestStatus?: $Enums.RestaurantInvoiceRequestStatus
@@ -1515,6 +1573,8 @@ export type RestaurantVisitCreateWithoutLoyaltyActivitiesInput = {
   paymentStatus?: $Enums.RestaurantPaymentStatus
   paymentConfirmedAt?: Date | string | null
   paymentConfirmedById?: string | null
+  paymentMethod?: $Enums.RestaurantPaymentMethod | null
+  paymentReference?: string | null
   deliveryHandedOffAt?: Date | string | null
   deliveryHandedOffById?: string | null
   invoiceRequestStatus?: $Enums.RestaurantInvoiceRequestStatus
@@ -1555,6 +1615,8 @@ export type RestaurantVisitUncheckedCreateWithoutLoyaltyActivitiesInput = {
   paymentStatus?: $Enums.RestaurantPaymentStatus
   paymentConfirmedAt?: Date | string | null
   paymentConfirmedById?: string | null
+  paymentMethod?: $Enums.RestaurantPaymentMethod | null
+  paymentReference?: string | null
   deliveryHandedOffAt?: Date | string | null
   deliveryHandedOffById?: string | null
   invoiceRequestStatus?: $Enums.RestaurantInvoiceRequestStatus
@@ -1607,6 +1669,8 @@ export type RestaurantVisitUpdateWithoutLoyaltyActivitiesInput = {
   paymentStatus?: Prisma.EnumRestaurantPaymentStatusFieldUpdateOperationsInput | $Enums.RestaurantPaymentStatus
   paymentConfirmedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   paymentConfirmedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  paymentMethod?: Prisma.NullableEnumRestaurantPaymentMethodFieldUpdateOperationsInput | $Enums.RestaurantPaymentMethod | null
+  paymentReference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   deliveryHandedOffAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   deliveryHandedOffById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   invoiceRequestStatus?: Prisma.EnumRestaurantInvoiceRequestStatusFieldUpdateOperationsInput | $Enums.RestaurantInvoiceRequestStatus
@@ -1647,6 +1711,8 @@ export type RestaurantVisitUncheckedUpdateWithoutLoyaltyActivitiesInput = {
   paymentStatus?: Prisma.EnumRestaurantPaymentStatusFieldUpdateOperationsInput | $Enums.RestaurantPaymentStatus
   paymentConfirmedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   paymentConfirmedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  paymentMethod?: Prisma.NullableEnumRestaurantPaymentMethodFieldUpdateOperationsInput | $Enums.RestaurantPaymentMethod | null
+  paymentReference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   deliveryHandedOffAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   deliveryHandedOffById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   invoiceRequestStatus?: Prisma.EnumRestaurantInvoiceRequestStatusFieldUpdateOperationsInput | $Enums.RestaurantInvoiceRequestStatus
@@ -1683,6 +1749,8 @@ export type RestaurantVisitCreateWithoutTransfersInput = {
   paymentStatus?: $Enums.RestaurantPaymentStatus
   paymentConfirmedAt?: Date | string | null
   paymentConfirmedById?: string | null
+  paymentMethod?: $Enums.RestaurantPaymentMethod | null
+  paymentReference?: string | null
   deliveryHandedOffAt?: Date | string | null
   deliveryHandedOffById?: string | null
   invoiceRequestStatus?: $Enums.RestaurantInvoiceRequestStatus
@@ -1723,6 +1791,8 @@ export type RestaurantVisitUncheckedCreateWithoutTransfersInput = {
   paymentStatus?: $Enums.RestaurantPaymentStatus
   paymentConfirmedAt?: Date | string | null
   paymentConfirmedById?: string | null
+  paymentMethod?: $Enums.RestaurantPaymentMethod | null
+  paymentReference?: string | null
   deliveryHandedOffAt?: Date | string | null
   deliveryHandedOffById?: string | null
   invoiceRequestStatus?: $Enums.RestaurantInvoiceRequestStatus
@@ -1775,6 +1845,8 @@ export type RestaurantVisitUpdateWithoutTransfersInput = {
   paymentStatus?: Prisma.EnumRestaurantPaymentStatusFieldUpdateOperationsInput | $Enums.RestaurantPaymentStatus
   paymentConfirmedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   paymentConfirmedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  paymentMethod?: Prisma.NullableEnumRestaurantPaymentMethodFieldUpdateOperationsInput | $Enums.RestaurantPaymentMethod | null
+  paymentReference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   deliveryHandedOffAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   deliveryHandedOffById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   invoiceRequestStatus?: Prisma.EnumRestaurantInvoiceRequestStatusFieldUpdateOperationsInput | $Enums.RestaurantInvoiceRequestStatus
@@ -1815,6 +1887,8 @@ export type RestaurantVisitUncheckedUpdateWithoutTransfersInput = {
   paymentStatus?: Prisma.EnumRestaurantPaymentStatusFieldUpdateOperationsInput | $Enums.RestaurantPaymentStatus
   paymentConfirmedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   paymentConfirmedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  paymentMethod?: Prisma.NullableEnumRestaurantPaymentMethodFieldUpdateOperationsInput | $Enums.RestaurantPaymentMethod | null
+  paymentReference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   deliveryHandedOffAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   deliveryHandedOffById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   invoiceRequestStatus?: Prisma.EnumRestaurantInvoiceRequestStatusFieldUpdateOperationsInput | $Enums.RestaurantInvoiceRequestStatus
@@ -1851,6 +1925,8 @@ export type RestaurantVisitCreateWithoutOrdersInput = {
   paymentStatus?: $Enums.RestaurantPaymentStatus
   paymentConfirmedAt?: Date | string | null
   paymentConfirmedById?: string | null
+  paymentMethod?: $Enums.RestaurantPaymentMethod | null
+  paymentReference?: string | null
   deliveryHandedOffAt?: Date | string | null
   deliveryHandedOffById?: string | null
   invoiceRequestStatus?: $Enums.RestaurantInvoiceRequestStatus
@@ -1891,6 +1967,8 @@ export type RestaurantVisitUncheckedCreateWithoutOrdersInput = {
   paymentStatus?: $Enums.RestaurantPaymentStatus
   paymentConfirmedAt?: Date | string | null
   paymentConfirmedById?: string | null
+  paymentMethod?: $Enums.RestaurantPaymentMethod | null
+  paymentReference?: string | null
   deliveryHandedOffAt?: Date | string | null
   deliveryHandedOffById?: string | null
   invoiceRequestStatus?: $Enums.RestaurantInvoiceRequestStatus
@@ -1943,6 +2021,8 @@ export type RestaurantVisitUpdateWithoutOrdersInput = {
   paymentStatus?: Prisma.EnumRestaurantPaymentStatusFieldUpdateOperationsInput | $Enums.RestaurantPaymentStatus
   paymentConfirmedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   paymentConfirmedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  paymentMethod?: Prisma.NullableEnumRestaurantPaymentMethodFieldUpdateOperationsInput | $Enums.RestaurantPaymentMethod | null
+  paymentReference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   deliveryHandedOffAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   deliveryHandedOffById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   invoiceRequestStatus?: Prisma.EnumRestaurantInvoiceRequestStatusFieldUpdateOperationsInput | $Enums.RestaurantInvoiceRequestStatus
@@ -1983,6 +2063,8 @@ export type RestaurantVisitUncheckedUpdateWithoutOrdersInput = {
   paymentStatus?: Prisma.EnumRestaurantPaymentStatusFieldUpdateOperationsInput | $Enums.RestaurantPaymentStatus
   paymentConfirmedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   paymentConfirmedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  paymentMethod?: Prisma.NullableEnumRestaurantPaymentMethodFieldUpdateOperationsInput | $Enums.RestaurantPaymentMethod | null
+  paymentReference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   deliveryHandedOffAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   deliveryHandedOffById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   invoiceRequestStatus?: Prisma.EnumRestaurantInvoiceRequestStatusFieldUpdateOperationsInput | $Enums.RestaurantInvoiceRequestStatus
@@ -2019,6 +2101,8 @@ export type RestaurantVisitCreateWithoutResponsibleStaffInput = {
   paymentStatus?: $Enums.RestaurantPaymentStatus
   paymentConfirmedAt?: Date | string | null
   paymentConfirmedById?: string | null
+  paymentMethod?: $Enums.RestaurantPaymentMethod | null
+  paymentReference?: string | null
   deliveryHandedOffAt?: Date | string | null
   deliveryHandedOffById?: string | null
   invoiceRequestStatus?: $Enums.RestaurantInvoiceRequestStatus
@@ -2059,6 +2143,8 @@ export type RestaurantVisitUncheckedCreateWithoutResponsibleStaffInput = {
   paymentStatus?: $Enums.RestaurantPaymentStatus
   paymentConfirmedAt?: Date | string | null
   paymentConfirmedById?: string | null
+  paymentMethod?: $Enums.RestaurantPaymentMethod | null
+  paymentReference?: string | null
   deliveryHandedOffAt?: Date | string | null
   deliveryHandedOffById?: string | null
   invoiceRequestStatus?: $Enums.RestaurantInvoiceRequestStatus
@@ -2105,6 +2191,8 @@ export type RestaurantVisitCreateWithoutFallbackStaffInput = {
   paymentStatus?: $Enums.RestaurantPaymentStatus
   paymentConfirmedAt?: Date | string | null
   paymentConfirmedById?: string | null
+  paymentMethod?: $Enums.RestaurantPaymentMethod | null
+  paymentReference?: string | null
   deliveryHandedOffAt?: Date | string | null
   deliveryHandedOffById?: string | null
   invoiceRequestStatus?: $Enums.RestaurantInvoiceRequestStatus
@@ -2145,6 +2233,8 @@ export type RestaurantVisitUncheckedCreateWithoutFallbackStaffInput = {
   paymentStatus?: $Enums.RestaurantPaymentStatus
   paymentConfirmedAt?: Date | string | null
   paymentConfirmedById?: string | null
+  paymentMethod?: $Enums.RestaurantPaymentMethod | null
+  paymentReference?: string | null
   deliveryHandedOffAt?: Date | string | null
   deliveryHandedOffById?: string | null
   invoiceRequestStatus?: $Enums.RestaurantInvoiceRequestStatus
@@ -2224,6 +2314,8 @@ export type RestaurantVisitCreateManyOrganizationInput = {
   paymentStatus?: $Enums.RestaurantPaymentStatus
   paymentConfirmedAt?: Date | string | null
   paymentConfirmedById?: string | null
+  paymentMethod?: $Enums.RestaurantPaymentMethod | null
+  paymentReference?: string | null
   deliveryHandedOffAt?: Date | string | null
   deliveryHandedOffById?: string | null
   invoiceRequestStatus?: $Enums.RestaurantInvoiceRequestStatus
@@ -2258,6 +2350,8 @@ export type RestaurantVisitUpdateWithoutOrganizationInput = {
   paymentStatus?: Prisma.EnumRestaurantPaymentStatusFieldUpdateOperationsInput | $Enums.RestaurantPaymentStatus
   paymentConfirmedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   paymentConfirmedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  paymentMethod?: Prisma.NullableEnumRestaurantPaymentMethodFieldUpdateOperationsInput | $Enums.RestaurantPaymentMethod | null
+  paymentReference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   deliveryHandedOffAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   deliveryHandedOffById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   invoiceRequestStatus?: Prisma.EnumRestaurantInvoiceRequestStatusFieldUpdateOperationsInput | $Enums.RestaurantInvoiceRequestStatus
@@ -2297,6 +2391,8 @@ export type RestaurantVisitUncheckedUpdateWithoutOrganizationInput = {
   paymentStatus?: Prisma.EnumRestaurantPaymentStatusFieldUpdateOperationsInput | $Enums.RestaurantPaymentStatus
   paymentConfirmedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   paymentConfirmedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  paymentMethod?: Prisma.NullableEnumRestaurantPaymentMethodFieldUpdateOperationsInput | $Enums.RestaurantPaymentMethod | null
+  paymentReference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   deliveryHandedOffAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   deliveryHandedOffById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   invoiceRequestStatus?: Prisma.EnumRestaurantInvoiceRequestStatusFieldUpdateOperationsInput | $Enums.RestaurantInvoiceRequestStatus
@@ -2335,6 +2431,8 @@ export type RestaurantVisitUncheckedUpdateManyWithoutOrganizationInput = {
   paymentStatus?: Prisma.EnumRestaurantPaymentStatusFieldUpdateOperationsInput | $Enums.RestaurantPaymentStatus
   paymentConfirmedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   paymentConfirmedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  paymentMethod?: Prisma.NullableEnumRestaurantPaymentMethodFieldUpdateOperationsInput | $Enums.RestaurantPaymentMethod | null
+  paymentReference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   deliveryHandedOffAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   deliveryHandedOffById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   invoiceRequestStatus?: Prisma.EnumRestaurantInvoiceRequestStatusFieldUpdateOperationsInput | $Enums.RestaurantInvoiceRequestStatus
@@ -2370,6 +2468,8 @@ export type RestaurantVisitCreateManyTableInput = {
   paymentStatus?: $Enums.RestaurantPaymentStatus
   paymentConfirmedAt?: Date | string | null
   paymentConfirmedById?: string | null
+  paymentMethod?: $Enums.RestaurantPaymentMethod | null
+  paymentReference?: string | null
   deliveryHandedOffAt?: Date | string | null
   deliveryHandedOffById?: string | null
   invoiceRequestStatus?: $Enums.RestaurantInvoiceRequestStatus
@@ -2404,6 +2504,8 @@ export type RestaurantVisitUpdateWithoutTableInput = {
   paymentStatus?: Prisma.EnumRestaurantPaymentStatusFieldUpdateOperationsInput | $Enums.RestaurantPaymentStatus
   paymentConfirmedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   paymentConfirmedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  paymentMethod?: Prisma.NullableEnumRestaurantPaymentMethodFieldUpdateOperationsInput | $Enums.RestaurantPaymentMethod | null
+  paymentReference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   deliveryHandedOffAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   deliveryHandedOffById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   invoiceRequestStatus?: Prisma.EnumRestaurantInvoiceRequestStatusFieldUpdateOperationsInput | $Enums.RestaurantInvoiceRequestStatus
@@ -2443,6 +2545,8 @@ export type RestaurantVisitUncheckedUpdateWithoutTableInput = {
   paymentStatus?: Prisma.EnumRestaurantPaymentStatusFieldUpdateOperationsInput | $Enums.RestaurantPaymentStatus
   paymentConfirmedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   paymentConfirmedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  paymentMethod?: Prisma.NullableEnumRestaurantPaymentMethodFieldUpdateOperationsInput | $Enums.RestaurantPaymentMethod | null
+  paymentReference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   deliveryHandedOffAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   deliveryHandedOffById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   invoiceRequestStatus?: Prisma.EnumRestaurantInvoiceRequestStatusFieldUpdateOperationsInput | $Enums.RestaurantInvoiceRequestStatus
@@ -2481,6 +2585,8 @@ export type RestaurantVisitUncheckedUpdateManyWithoutTableInput = {
   paymentStatus?: Prisma.EnumRestaurantPaymentStatusFieldUpdateOperationsInput | $Enums.RestaurantPaymentStatus
   paymentConfirmedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   paymentConfirmedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  paymentMethod?: Prisma.NullableEnumRestaurantPaymentMethodFieldUpdateOperationsInput | $Enums.RestaurantPaymentMethod | null
+  paymentReference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   deliveryHandedOffAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   deliveryHandedOffById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   invoiceRequestStatus?: Prisma.EnumRestaurantInvoiceRequestStatusFieldUpdateOperationsInput | $Enums.RestaurantInvoiceRequestStatus
@@ -2517,6 +2623,8 @@ export type RestaurantVisitCreateManyResponsibleStaffInput = {
   paymentStatus?: $Enums.RestaurantPaymentStatus
   paymentConfirmedAt?: Date | string | null
   paymentConfirmedById?: string | null
+  paymentMethod?: $Enums.RestaurantPaymentMethod | null
+  paymentReference?: string | null
   deliveryHandedOffAt?: Date | string | null
   deliveryHandedOffById?: string | null
   invoiceRequestStatus?: $Enums.RestaurantInvoiceRequestStatus
@@ -2552,6 +2660,8 @@ export type RestaurantVisitCreateManyFallbackStaffInput = {
   paymentStatus?: $Enums.RestaurantPaymentStatus
   paymentConfirmedAt?: Date | string | null
   paymentConfirmedById?: string | null
+  paymentMethod?: $Enums.RestaurantPaymentMethod | null
+  paymentReference?: string | null
   deliveryHandedOffAt?: Date | string | null
   deliveryHandedOffById?: string | null
   invoiceRequestStatus?: $Enums.RestaurantInvoiceRequestStatus
@@ -2585,6 +2695,8 @@ export type RestaurantVisitUpdateWithoutResponsibleStaffInput = {
   paymentStatus?: Prisma.EnumRestaurantPaymentStatusFieldUpdateOperationsInput | $Enums.RestaurantPaymentStatus
   paymentConfirmedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   paymentConfirmedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  paymentMethod?: Prisma.NullableEnumRestaurantPaymentMethodFieldUpdateOperationsInput | $Enums.RestaurantPaymentMethod | null
+  paymentReference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   deliveryHandedOffAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   deliveryHandedOffById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   invoiceRequestStatus?: Prisma.EnumRestaurantInvoiceRequestStatusFieldUpdateOperationsInput | $Enums.RestaurantInvoiceRequestStatus
@@ -2625,6 +2737,8 @@ export type RestaurantVisitUncheckedUpdateWithoutResponsibleStaffInput = {
   paymentStatus?: Prisma.EnumRestaurantPaymentStatusFieldUpdateOperationsInput | $Enums.RestaurantPaymentStatus
   paymentConfirmedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   paymentConfirmedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  paymentMethod?: Prisma.NullableEnumRestaurantPaymentMethodFieldUpdateOperationsInput | $Enums.RestaurantPaymentMethod | null
+  paymentReference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   deliveryHandedOffAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   deliveryHandedOffById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   invoiceRequestStatus?: Prisma.EnumRestaurantInvoiceRequestStatusFieldUpdateOperationsInput | $Enums.RestaurantInvoiceRequestStatus
@@ -2663,6 +2777,8 @@ export type RestaurantVisitUncheckedUpdateManyWithoutResponsibleStaffInput = {
   paymentStatus?: Prisma.EnumRestaurantPaymentStatusFieldUpdateOperationsInput | $Enums.RestaurantPaymentStatus
   paymentConfirmedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   paymentConfirmedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  paymentMethod?: Prisma.NullableEnumRestaurantPaymentMethodFieldUpdateOperationsInput | $Enums.RestaurantPaymentMethod | null
+  paymentReference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   deliveryHandedOffAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   deliveryHandedOffById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   invoiceRequestStatus?: Prisma.EnumRestaurantInvoiceRequestStatusFieldUpdateOperationsInput | $Enums.RestaurantInvoiceRequestStatus
@@ -2696,6 +2812,8 @@ export type RestaurantVisitUpdateWithoutFallbackStaffInput = {
   paymentStatus?: Prisma.EnumRestaurantPaymentStatusFieldUpdateOperationsInput | $Enums.RestaurantPaymentStatus
   paymentConfirmedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   paymentConfirmedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  paymentMethod?: Prisma.NullableEnumRestaurantPaymentMethodFieldUpdateOperationsInput | $Enums.RestaurantPaymentMethod | null
+  paymentReference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   deliveryHandedOffAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   deliveryHandedOffById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   invoiceRequestStatus?: Prisma.EnumRestaurantInvoiceRequestStatusFieldUpdateOperationsInput | $Enums.RestaurantInvoiceRequestStatus
@@ -2736,6 +2854,8 @@ export type RestaurantVisitUncheckedUpdateWithoutFallbackStaffInput = {
   paymentStatus?: Prisma.EnumRestaurantPaymentStatusFieldUpdateOperationsInput | $Enums.RestaurantPaymentStatus
   paymentConfirmedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   paymentConfirmedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  paymentMethod?: Prisma.NullableEnumRestaurantPaymentMethodFieldUpdateOperationsInput | $Enums.RestaurantPaymentMethod | null
+  paymentReference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   deliveryHandedOffAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   deliveryHandedOffById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   invoiceRequestStatus?: Prisma.EnumRestaurantInvoiceRequestStatusFieldUpdateOperationsInput | $Enums.RestaurantInvoiceRequestStatus
@@ -2774,6 +2894,8 @@ export type RestaurantVisitUncheckedUpdateManyWithoutFallbackStaffInput = {
   paymentStatus?: Prisma.EnumRestaurantPaymentStatusFieldUpdateOperationsInput | $Enums.RestaurantPaymentStatus
   paymentConfirmedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   paymentConfirmedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  paymentMethod?: Prisma.NullableEnumRestaurantPaymentMethodFieldUpdateOperationsInput | $Enums.RestaurantPaymentMethod | null
+  paymentReference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   deliveryHandedOffAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   deliveryHandedOffById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   invoiceRequestStatus?: Prisma.EnumRestaurantInvoiceRequestStatusFieldUpdateOperationsInput | $Enums.RestaurantInvoiceRequestStatus
@@ -2858,6 +2980,8 @@ export type RestaurantVisitSelect<ExtArgs extends runtime.Types.Extensions.Inter
   paymentStatus?: boolean
   paymentConfirmedAt?: boolean
   paymentConfirmedById?: boolean
+  paymentMethod?: boolean
+  paymentReference?: boolean
   deliveryHandedOffAt?: boolean
   deliveryHandedOffById?: boolean
   invoiceRequestStatus?: boolean
@@ -2902,6 +3026,8 @@ export type RestaurantVisitSelectCreateManyAndReturn<ExtArgs extends runtime.Typ
   paymentStatus?: boolean
   paymentConfirmedAt?: boolean
   paymentConfirmedById?: boolean
+  paymentMethod?: boolean
+  paymentReference?: boolean
   deliveryHandedOffAt?: boolean
   deliveryHandedOffById?: boolean
   invoiceRequestStatus?: boolean
@@ -2942,6 +3068,8 @@ export type RestaurantVisitSelectUpdateManyAndReturn<ExtArgs extends runtime.Typ
   paymentStatus?: boolean
   paymentConfirmedAt?: boolean
   paymentConfirmedById?: boolean
+  paymentMethod?: boolean
+  paymentReference?: boolean
   deliveryHandedOffAt?: boolean
   deliveryHandedOffById?: boolean
   invoiceRequestStatus?: boolean
@@ -2982,6 +3110,8 @@ export type RestaurantVisitSelectScalar = {
   paymentStatus?: boolean
   paymentConfirmedAt?: boolean
   paymentConfirmedById?: boolean
+  paymentMethod?: boolean
+  paymentReference?: boolean
   deliveryHandedOffAt?: boolean
   deliveryHandedOffById?: boolean
   invoiceRequestStatus?: boolean
@@ -2998,7 +3128,7 @@ export type RestaurantVisitSelectScalar = {
   closedAnalyticsConsolidatedAt?: boolean
 }
 
-export type RestaurantVisitOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "organizationId" | "tableId" | "accessCode" | "status" | "openedAt" | "closedAt" | "closedById" | "closedByRole" | "taxRateBps" | "taxIncluded" | "serviceRateBps" | "serviceChargeEnabled" | "occupiesTable" | "deliveryPhone" | "deliveryAddress" | "paymentStatus" | "paymentConfirmedAt" | "paymentConfirmedById" | "deliveryHandedOffAt" | "deliveryHandedOffById" | "invoiceRequestStatus" | "invoiceRequestedAt" | "invoiceName" | "invoiceEmail" | "invoicePhone" | "invoiceTaxId" | "invoiceReference" | "responsibleStaffId" | "fallbackStaffId" | "receiptNumber" | "openedAnalyticsConsolidatedAt" | "closedAnalyticsConsolidatedAt", ExtArgs["result"]["restaurantVisit"]>
+export type RestaurantVisitOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "organizationId" | "tableId" | "accessCode" | "status" | "openedAt" | "closedAt" | "closedById" | "closedByRole" | "taxRateBps" | "taxIncluded" | "serviceRateBps" | "serviceChargeEnabled" | "occupiesTable" | "deliveryPhone" | "deliveryAddress" | "paymentStatus" | "paymentConfirmedAt" | "paymentConfirmedById" | "paymentMethod" | "paymentReference" | "deliveryHandedOffAt" | "deliveryHandedOffById" | "invoiceRequestStatus" | "invoiceRequestedAt" | "invoiceName" | "invoiceEmail" | "invoicePhone" | "invoiceTaxId" | "invoiceReference" | "responsibleStaffId" | "fallbackStaffId" | "receiptNumber" | "openedAnalyticsConsolidatedAt" | "closedAnalyticsConsolidatedAt", ExtArgs["result"]["restaurantVisit"]>
 export type RestaurantVisitInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
   table?: boolean | Prisma.RestaurantTableDefaultArgs<ExtArgs>
@@ -3053,6 +3183,8 @@ export type $RestaurantVisitPayload<ExtArgs extends runtime.Types.Extensions.Int
     paymentStatus: $Enums.RestaurantPaymentStatus
     paymentConfirmedAt: Date | null
     paymentConfirmedById: string | null
+    paymentMethod: $Enums.RestaurantPaymentMethod | null
+    paymentReference: string | null
     deliveryHandedOffAt: Date | null
     deliveryHandedOffById: string | null
     invoiceRequestStatus: $Enums.RestaurantInvoiceRequestStatus
@@ -3516,6 +3648,8 @@ export interface RestaurantVisitFieldRefs {
   readonly paymentStatus: Prisma.FieldRef<"RestaurantVisit", 'RestaurantPaymentStatus'>
   readonly paymentConfirmedAt: Prisma.FieldRef<"RestaurantVisit", 'DateTime'>
   readonly paymentConfirmedById: Prisma.FieldRef<"RestaurantVisit", 'String'>
+  readonly paymentMethod: Prisma.FieldRef<"RestaurantVisit", 'RestaurantPaymentMethod'>
+  readonly paymentReference: Prisma.FieldRef<"RestaurantVisit", 'String'>
   readonly deliveryHandedOffAt: Prisma.FieldRef<"RestaurantVisit", 'DateTime'>
   readonly deliveryHandedOffById: Prisma.FieldRef<"RestaurantVisit", 'String'>
   readonly invoiceRequestStatus: Prisma.FieldRef<"RestaurantVisit", 'RestaurantInvoiceRequestStatus'>

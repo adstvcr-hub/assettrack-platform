@@ -33,6 +33,8 @@ import {
   RestaurantInventoryMovementType,
   RestaurantInventoryProductType,
   RestaurantInventoryUnit,
+  RestaurantPaymentMethod,
+  RestaurantSupplierInvoiceStatus,
 } from "../../generated/prisma/enums";
 
 export class CreateTableDto {
@@ -371,12 +373,50 @@ export class UpdateCashAuthorizationDto {
   authorized!: boolean;
 }
 
+export class AssumeCashSessionDto {
+  @IsInt()
+  @Min(0)
+  @Max(100000000)
+  openingCash!: number;
+}
+
 export class CloseCashSessionDto {
   @IsBoolean()
   finalDailyClose!: boolean;
+
+  @IsInt()
+  @Min(0)
+  @Max(100000000)
+  countedCash!: number;
 
   @IsOptional()
   @IsString()
   @MaxLength(500)
   note?: string;
+}
+
+export class CreateSupplierInvoiceDto {
+  @IsString() @MaxLength(120) supplierName!: string;
+  @IsString() @MaxLength(80) invoiceNumber!: string;
+  @IsDateString() invoiceDate!: string;
+  @IsInt() @Min(1) @Max(100000000) amount!: number;
+  @IsEnum(RestaurantSupplierInvoiceStatus)
+  status!: RestaurantSupplierInvoiceStatus;
+  @IsOptional() @IsEnum(RestaurantPaymentMethod)
+  paymentMethod?: RestaurantPaymentMethod;
+  @IsOptional() @IsString() @MaxLength(500) note?: string;
+}
+
+export class CreateEmployeePaymentDto {
+  @IsUUID() employeeId!: string;
+  @IsInt() @Min(1) @Max(100000000) amount!: number;
+  @IsEnum(RestaurantPaymentMethod)
+  paymentMethod!: RestaurantPaymentMethod;
+  @IsOptional() @IsString() @MaxLength(500) note?: string;
+}
+
+export class CloseVisitDto {
+  @IsEnum(RestaurantPaymentMethod)
+  paymentMethod!: RestaurantPaymentMethod;
+  @IsOptional() @IsString() @MaxLength(120) paymentReference?: string;
 }

@@ -10,6 +10,7 @@ import { RestaurantService } from "./restaurant.service";
 import {
   RestaurantPayPeriod,
   RestaurantInventoryProductType,
+  RestaurantPaymentMethod,
   RestaurantStaffAvailability,
   RestaurantStaffRole,
   UserRole,
@@ -1814,6 +1815,7 @@ describe("RestaurantService", () => {
           closedAt: expect.any(Date),
           closedById: "bartender-a",
           closedByRole: RestaurantStaffRole.BAR,
+          paymentMethod: RestaurantPaymentMethod.CASH,
           receiptNumber: expect.stringMatching(/^AT-/),
         }),
       }),

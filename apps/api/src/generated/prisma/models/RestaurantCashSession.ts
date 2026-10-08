@@ -29,11 +29,19 @@ export type AggregateRestaurantCashSession = {
 export type RestaurantCashSessionAvgAggregateOutputType = {
   accountCount: number | null
   salesTotal: number | null
+  openingCash: number | null
+  expectedCash: number | null
+  countedCash: number | null
+  discrepancy: number | null
 }
 
 export type RestaurantCashSessionSumAggregateOutputType = {
   accountCount: number | null
   salesTotal: number | null
+  openingCash: number | null
+  expectedCash: number | null
+  countedCash: number | null
+  discrepancy: number | null
 }
 
 export type RestaurantCashSessionMinAggregateOutputType = {
@@ -47,6 +55,10 @@ export type RestaurantCashSessionMinAggregateOutputType = {
   openGuard: string | null
   accountCount: number | null
   salesTotal: number | null
+  openingCash: number | null
+  expectedCash: number | null
+  countedCash: number | null
+  discrepancy: number | null
   closeNote: string | null
 }
 
@@ -61,6 +73,10 @@ export type RestaurantCashSessionMaxAggregateOutputType = {
   openGuard: string | null
   accountCount: number | null
   salesTotal: number | null
+  openingCash: number | null
+  expectedCash: number | null
+  countedCash: number | null
+  discrepancy: number | null
   closeNote: string | null
 }
 
@@ -75,6 +91,10 @@ export type RestaurantCashSessionCountAggregateOutputType = {
   openGuard: number
   accountCount: number
   salesTotal: number
+  openingCash: number
+  expectedCash: number
+  countedCash: number
+  discrepancy: number
   closeNote: number
   _all: number
 }
@@ -83,11 +103,19 @@ export type RestaurantCashSessionCountAggregateOutputType = {
 export type RestaurantCashSessionAvgAggregateInputType = {
   accountCount?: true
   salesTotal?: true
+  openingCash?: true
+  expectedCash?: true
+  countedCash?: true
+  discrepancy?: true
 }
 
 export type RestaurantCashSessionSumAggregateInputType = {
   accountCount?: true
   salesTotal?: true
+  openingCash?: true
+  expectedCash?: true
+  countedCash?: true
+  discrepancy?: true
 }
 
 export type RestaurantCashSessionMinAggregateInputType = {
@@ -101,6 +129,10 @@ export type RestaurantCashSessionMinAggregateInputType = {
   openGuard?: true
   accountCount?: true
   salesTotal?: true
+  openingCash?: true
+  expectedCash?: true
+  countedCash?: true
+  discrepancy?: true
   closeNote?: true
 }
 
@@ -115,6 +147,10 @@ export type RestaurantCashSessionMaxAggregateInputType = {
   openGuard?: true
   accountCount?: true
   salesTotal?: true
+  openingCash?: true
+  expectedCash?: true
+  countedCash?: true
+  discrepancy?: true
   closeNote?: true
 }
 
@@ -129,6 +165,10 @@ export type RestaurantCashSessionCountAggregateInputType = {
   openGuard?: true
   accountCount?: true
   salesTotal?: true
+  openingCash?: true
+  expectedCash?: true
+  countedCash?: true
+  discrepancy?: true
   closeNote?: true
   _all?: true
 }
@@ -230,6 +270,10 @@ export type RestaurantCashSessionGroupByOutputType = {
   openGuard: string | null
   accountCount: number | null
   salesTotal: number | null
+  openingCash: number
+  expectedCash: number | null
+  countedCash: number | null
+  discrepancy: number | null
   closeNote: string | null
   _count: RestaurantCashSessionCountAggregateOutputType | null
   _avg: RestaurantCashSessionAvgAggregateOutputType | null
@@ -267,10 +311,16 @@ export type RestaurantCashSessionWhereInput = {
   openGuard?: Prisma.StringNullableFilter<"RestaurantCashSession"> | string | null
   accountCount?: Prisma.IntNullableFilter<"RestaurantCashSession"> | number | null
   salesTotal?: Prisma.IntNullableFilter<"RestaurantCashSession"> | number | null
+  openingCash?: Prisma.IntFilter<"RestaurantCashSession"> | number
+  expectedCash?: Prisma.IntNullableFilter<"RestaurantCashSession"> | number | null
+  countedCash?: Prisma.IntNullableFilter<"RestaurantCashSession"> | number | null
+  discrepancy?: Prisma.IntNullableFilter<"RestaurantCashSession"> | number | null
   closeNote?: Prisma.StringNullableFilter<"RestaurantCashSession"> | string | null
   organization?: Prisma.XOR<Prisma.OrganizationScalarRelationFilter, Prisma.OrganizationWhereInput>
   cashRegister?: Prisma.XOR<Prisma.RestaurantCashRegisterScalarRelationFilter, Prisma.RestaurantCashRegisterWhereInput>
   responsibleUser?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
+  supplierInvoices?: Prisma.RestaurantSupplierInvoiceListRelationFilter
+  employeePayments?: Prisma.RestaurantEmployeePaymentListRelationFilter
 }
 
 export type RestaurantCashSessionOrderByWithRelationInput = {
@@ -284,10 +334,16 @@ export type RestaurantCashSessionOrderByWithRelationInput = {
   openGuard?: Prisma.SortOrderInput | Prisma.SortOrder
   accountCount?: Prisma.SortOrderInput | Prisma.SortOrder
   salesTotal?: Prisma.SortOrderInput | Prisma.SortOrder
+  openingCash?: Prisma.SortOrder
+  expectedCash?: Prisma.SortOrderInput | Prisma.SortOrder
+  countedCash?: Prisma.SortOrderInput | Prisma.SortOrder
+  discrepancy?: Prisma.SortOrderInput | Prisma.SortOrder
   closeNote?: Prisma.SortOrderInput | Prisma.SortOrder
   organization?: Prisma.OrganizationOrderByWithRelationInput
   cashRegister?: Prisma.RestaurantCashRegisterOrderByWithRelationInput
   responsibleUser?: Prisma.UserOrderByWithRelationInput
+  supplierInvoices?: Prisma.RestaurantSupplierInvoiceOrderByRelationAggregateInput
+  employeePayments?: Prisma.RestaurantEmployeePaymentOrderByRelationAggregateInput
 }
 
 export type RestaurantCashSessionWhereUniqueInput = Prisma.AtLeast<{
@@ -304,10 +360,16 @@ export type RestaurantCashSessionWhereUniqueInput = Prisma.AtLeast<{
   status?: Prisma.EnumRestaurantCashSessionStatusFilter<"RestaurantCashSession"> | $Enums.RestaurantCashSessionStatus
   accountCount?: Prisma.IntNullableFilter<"RestaurantCashSession"> | number | null
   salesTotal?: Prisma.IntNullableFilter<"RestaurantCashSession"> | number | null
+  openingCash?: Prisma.IntFilter<"RestaurantCashSession"> | number
+  expectedCash?: Prisma.IntNullableFilter<"RestaurantCashSession"> | number | null
+  countedCash?: Prisma.IntNullableFilter<"RestaurantCashSession"> | number | null
+  discrepancy?: Prisma.IntNullableFilter<"RestaurantCashSession"> | number | null
   closeNote?: Prisma.StringNullableFilter<"RestaurantCashSession"> | string | null
   organization?: Prisma.XOR<Prisma.OrganizationScalarRelationFilter, Prisma.OrganizationWhereInput>
   cashRegister?: Prisma.XOR<Prisma.RestaurantCashRegisterScalarRelationFilter, Prisma.RestaurantCashRegisterWhereInput>
   responsibleUser?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
+  supplierInvoices?: Prisma.RestaurantSupplierInvoiceListRelationFilter
+  employeePayments?: Prisma.RestaurantEmployeePaymentListRelationFilter
 }, "id" | "openGuard">
 
 export type RestaurantCashSessionOrderByWithAggregationInput = {
@@ -321,6 +383,10 @@ export type RestaurantCashSessionOrderByWithAggregationInput = {
   openGuard?: Prisma.SortOrderInput | Prisma.SortOrder
   accountCount?: Prisma.SortOrderInput | Prisma.SortOrder
   salesTotal?: Prisma.SortOrderInput | Prisma.SortOrder
+  openingCash?: Prisma.SortOrder
+  expectedCash?: Prisma.SortOrderInput | Prisma.SortOrder
+  countedCash?: Prisma.SortOrderInput | Prisma.SortOrder
+  discrepancy?: Prisma.SortOrderInput | Prisma.SortOrder
   closeNote?: Prisma.SortOrderInput | Prisma.SortOrder
   _count?: Prisma.RestaurantCashSessionCountOrderByAggregateInput
   _avg?: Prisma.RestaurantCashSessionAvgOrderByAggregateInput
@@ -343,6 +409,10 @@ export type RestaurantCashSessionScalarWhereWithAggregatesInput = {
   openGuard?: Prisma.StringNullableWithAggregatesFilter<"RestaurantCashSession"> | string | null
   accountCount?: Prisma.IntNullableWithAggregatesFilter<"RestaurantCashSession"> | number | null
   salesTotal?: Prisma.IntNullableWithAggregatesFilter<"RestaurantCashSession"> | number | null
+  openingCash?: Prisma.IntWithAggregatesFilter<"RestaurantCashSession"> | number
+  expectedCash?: Prisma.IntNullableWithAggregatesFilter<"RestaurantCashSession"> | number | null
+  countedCash?: Prisma.IntNullableWithAggregatesFilter<"RestaurantCashSession"> | number | null
+  discrepancy?: Prisma.IntNullableWithAggregatesFilter<"RestaurantCashSession"> | number | null
   closeNote?: Prisma.StringNullableWithAggregatesFilter<"RestaurantCashSession"> | string | null
 }
 
@@ -354,10 +424,16 @@ export type RestaurantCashSessionCreateInput = {
   openGuard?: string | null
   accountCount?: number | null
   salesTotal?: number | null
+  openingCash?: number
+  expectedCash?: number | null
+  countedCash?: number | null
+  discrepancy?: number | null
   closeNote?: string | null
   organization: Prisma.OrganizationCreateNestedOneWithoutRestaurantCashSessionsInput
   cashRegister: Prisma.RestaurantCashRegisterCreateNestedOneWithoutSessionsInput
   responsibleUser: Prisma.UserCreateNestedOneWithoutRestaurantCashSessionsInput
+  supplierInvoices?: Prisma.RestaurantSupplierInvoiceCreateNestedManyWithoutCashSessionInput
+  employeePayments?: Prisma.RestaurantEmployeePaymentCreateNestedManyWithoutCashSessionInput
 }
 
 export type RestaurantCashSessionUncheckedCreateInput = {
@@ -371,7 +447,13 @@ export type RestaurantCashSessionUncheckedCreateInput = {
   openGuard?: string | null
   accountCount?: number | null
   salesTotal?: number | null
+  openingCash?: number
+  expectedCash?: number | null
+  countedCash?: number | null
+  discrepancy?: number | null
   closeNote?: string | null
+  supplierInvoices?: Prisma.RestaurantSupplierInvoiceUncheckedCreateNestedManyWithoutCashSessionInput
+  employeePayments?: Prisma.RestaurantEmployeePaymentUncheckedCreateNestedManyWithoutCashSessionInput
 }
 
 export type RestaurantCashSessionUpdateInput = {
@@ -382,10 +464,16 @@ export type RestaurantCashSessionUpdateInput = {
   openGuard?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   accountCount?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   salesTotal?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  openingCash?: Prisma.IntFieldUpdateOperationsInput | number
+  expectedCash?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  countedCash?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  discrepancy?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   closeNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutRestaurantCashSessionsNestedInput
   cashRegister?: Prisma.RestaurantCashRegisterUpdateOneRequiredWithoutSessionsNestedInput
   responsibleUser?: Prisma.UserUpdateOneRequiredWithoutRestaurantCashSessionsNestedInput
+  supplierInvoices?: Prisma.RestaurantSupplierInvoiceUpdateManyWithoutCashSessionNestedInput
+  employeePayments?: Prisma.RestaurantEmployeePaymentUpdateManyWithoutCashSessionNestedInput
 }
 
 export type RestaurantCashSessionUncheckedUpdateInput = {
@@ -399,7 +487,13 @@ export type RestaurantCashSessionUncheckedUpdateInput = {
   openGuard?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   accountCount?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   salesTotal?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  openingCash?: Prisma.IntFieldUpdateOperationsInput | number
+  expectedCash?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  countedCash?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  discrepancy?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   closeNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  supplierInvoices?: Prisma.RestaurantSupplierInvoiceUncheckedUpdateManyWithoutCashSessionNestedInput
+  employeePayments?: Prisma.RestaurantEmployeePaymentUncheckedUpdateManyWithoutCashSessionNestedInput
 }
 
 export type RestaurantCashSessionCreateManyInput = {
@@ -413,6 +507,10 @@ export type RestaurantCashSessionCreateManyInput = {
   openGuard?: string | null
   accountCount?: number | null
   salesTotal?: number | null
+  openingCash?: number
+  expectedCash?: number | null
+  countedCash?: number | null
+  discrepancy?: number | null
   closeNote?: string | null
 }
 
@@ -424,6 +522,10 @@ export type RestaurantCashSessionUpdateManyMutationInput = {
   openGuard?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   accountCount?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   salesTotal?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  openingCash?: Prisma.IntFieldUpdateOperationsInput | number
+  expectedCash?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  countedCash?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  discrepancy?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   closeNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
@@ -438,6 +540,10 @@ export type RestaurantCashSessionUncheckedUpdateManyInput = {
   openGuard?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   accountCount?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   salesTotal?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  openingCash?: Prisma.IntFieldUpdateOperationsInput | number
+  expectedCash?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  countedCash?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  discrepancy?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   closeNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
@@ -462,12 +568,20 @@ export type RestaurantCashSessionCountOrderByAggregateInput = {
   openGuard?: Prisma.SortOrder
   accountCount?: Prisma.SortOrder
   salesTotal?: Prisma.SortOrder
+  openingCash?: Prisma.SortOrder
+  expectedCash?: Prisma.SortOrder
+  countedCash?: Prisma.SortOrder
+  discrepancy?: Prisma.SortOrder
   closeNote?: Prisma.SortOrder
 }
 
 export type RestaurantCashSessionAvgOrderByAggregateInput = {
   accountCount?: Prisma.SortOrder
   salesTotal?: Prisma.SortOrder
+  openingCash?: Prisma.SortOrder
+  expectedCash?: Prisma.SortOrder
+  countedCash?: Prisma.SortOrder
+  discrepancy?: Prisma.SortOrder
 }
 
 export type RestaurantCashSessionMaxOrderByAggregateInput = {
@@ -481,6 +595,10 @@ export type RestaurantCashSessionMaxOrderByAggregateInput = {
   openGuard?: Prisma.SortOrder
   accountCount?: Prisma.SortOrder
   salesTotal?: Prisma.SortOrder
+  openingCash?: Prisma.SortOrder
+  expectedCash?: Prisma.SortOrder
+  countedCash?: Prisma.SortOrder
+  discrepancy?: Prisma.SortOrder
   closeNote?: Prisma.SortOrder
 }
 
@@ -495,12 +613,25 @@ export type RestaurantCashSessionMinOrderByAggregateInput = {
   openGuard?: Prisma.SortOrder
   accountCount?: Prisma.SortOrder
   salesTotal?: Prisma.SortOrder
+  openingCash?: Prisma.SortOrder
+  expectedCash?: Prisma.SortOrder
+  countedCash?: Prisma.SortOrder
+  discrepancy?: Prisma.SortOrder
   closeNote?: Prisma.SortOrder
 }
 
 export type RestaurantCashSessionSumOrderByAggregateInput = {
   accountCount?: Prisma.SortOrder
   salesTotal?: Prisma.SortOrder
+  openingCash?: Prisma.SortOrder
+  expectedCash?: Prisma.SortOrder
+  countedCash?: Prisma.SortOrder
+  discrepancy?: Prisma.SortOrder
+}
+
+export type RestaurantCashSessionScalarRelationFilter = {
+  is?: Prisma.RestaurantCashSessionWhereInput
+  isNot?: Prisma.RestaurantCashSessionWhereInput
 }
 
 export type RestaurantCashSessionCreateNestedManyWithoutOrganizationInput = {
@@ -591,6 +722,34 @@ export type EnumRestaurantCashSessionStatusFieldUpdateOperationsInput = {
   set?: $Enums.RestaurantCashSessionStatus
 }
 
+export type RestaurantCashSessionCreateNestedOneWithoutSupplierInvoicesInput = {
+  create?: Prisma.XOR<Prisma.RestaurantCashSessionCreateWithoutSupplierInvoicesInput, Prisma.RestaurantCashSessionUncheckedCreateWithoutSupplierInvoicesInput>
+  connectOrCreate?: Prisma.RestaurantCashSessionCreateOrConnectWithoutSupplierInvoicesInput
+  connect?: Prisma.RestaurantCashSessionWhereUniqueInput
+}
+
+export type RestaurantCashSessionUpdateOneRequiredWithoutSupplierInvoicesNestedInput = {
+  create?: Prisma.XOR<Prisma.RestaurantCashSessionCreateWithoutSupplierInvoicesInput, Prisma.RestaurantCashSessionUncheckedCreateWithoutSupplierInvoicesInput>
+  connectOrCreate?: Prisma.RestaurantCashSessionCreateOrConnectWithoutSupplierInvoicesInput
+  upsert?: Prisma.RestaurantCashSessionUpsertWithoutSupplierInvoicesInput
+  connect?: Prisma.RestaurantCashSessionWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.RestaurantCashSessionUpdateToOneWithWhereWithoutSupplierInvoicesInput, Prisma.RestaurantCashSessionUpdateWithoutSupplierInvoicesInput>, Prisma.RestaurantCashSessionUncheckedUpdateWithoutSupplierInvoicesInput>
+}
+
+export type RestaurantCashSessionCreateNestedOneWithoutEmployeePaymentsInput = {
+  create?: Prisma.XOR<Prisma.RestaurantCashSessionCreateWithoutEmployeePaymentsInput, Prisma.RestaurantCashSessionUncheckedCreateWithoutEmployeePaymentsInput>
+  connectOrCreate?: Prisma.RestaurantCashSessionCreateOrConnectWithoutEmployeePaymentsInput
+  connect?: Prisma.RestaurantCashSessionWhereUniqueInput
+}
+
+export type RestaurantCashSessionUpdateOneRequiredWithoutEmployeePaymentsNestedInput = {
+  create?: Prisma.XOR<Prisma.RestaurantCashSessionCreateWithoutEmployeePaymentsInput, Prisma.RestaurantCashSessionUncheckedCreateWithoutEmployeePaymentsInput>
+  connectOrCreate?: Prisma.RestaurantCashSessionCreateOrConnectWithoutEmployeePaymentsInput
+  upsert?: Prisma.RestaurantCashSessionUpsertWithoutEmployeePaymentsInput
+  connect?: Prisma.RestaurantCashSessionWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.RestaurantCashSessionUpdateToOneWithWhereWithoutEmployeePaymentsInput, Prisma.RestaurantCashSessionUpdateWithoutEmployeePaymentsInput>, Prisma.RestaurantCashSessionUncheckedUpdateWithoutEmployeePaymentsInput>
+}
+
 export type RestaurantCashSessionCreateNestedManyWithoutResponsibleUserInput = {
   create?: Prisma.XOR<Prisma.RestaurantCashSessionCreateWithoutResponsibleUserInput, Prisma.RestaurantCashSessionUncheckedCreateWithoutResponsibleUserInput> | Prisma.RestaurantCashSessionCreateWithoutResponsibleUserInput[] | Prisma.RestaurantCashSessionUncheckedCreateWithoutResponsibleUserInput[]
   connectOrCreate?: Prisma.RestaurantCashSessionCreateOrConnectWithoutResponsibleUserInput | Prisma.RestaurantCashSessionCreateOrConnectWithoutResponsibleUserInput[]
@@ -641,9 +800,15 @@ export type RestaurantCashSessionCreateWithoutOrganizationInput = {
   openGuard?: string | null
   accountCount?: number | null
   salesTotal?: number | null
+  openingCash?: number
+  expectedCash?: number | null
+  countedCash?: number | null
+  discrepancy?: number | null
   closeNote?: string | null
   cashRegister: Prisma.RestaurantCashRegisterCreateNestedOneWithoutSessionsInput
   responsibleUser: Prisma.UserCreateNestedOneWithoutRestaurantCashSessionsInput
+  supplierInvoices?: Prisma.RestaurantSupplierInvoiceCreateNestedManyWithoutCashSessionInput
+  employeePayments?: Prisma.RestaurantEmployeePaymentCreateNestedManyWithoutCashSessionInput
 }
 
 export type RestaurantCashSessionUncheckedCreateWithoutOrganizationInput = {
@@ -656,7 +821,13 @@ export type RestaurantCashSessionUncheckedCreateWithoutOrganizationInput = {
   openGuard?: string | null
   accountCount?: number | null
   salesTotal?: number | null
+  openingCash?: number
+  expectedCash?: number | null
+  countedCash?: number | null
+  discrepancy?: number | null
   closeNote?: string | null
+  supplierInvoices?: Prisma.RestaurantSupplierInvoiceUncheckedCreateNestedManyWithoutCashSessionInput
+  employeePayments?: Prisma.RestaurantEmployeePaymentUncheckedCreateNestedManyWithoutCashSessionInput
 }
 
 export type RestaurantCashSessionCreateOrConnectWithoutOrganizationInput = {
@@ -699,6 +870,10 @@ export type RestaurantCashSessionScalarWhereInput = {
   openGuard?: Prisma.StringNullableFilter<"RestaurantCashSession"> | string | null
   accountCount?: Prisma.IntNullableFilter<"RestaurantCashSession"> | number | null
   salesTotal?: Prisma.IntNullableFilter<"RestaurantCashSession"> | number | null
+  openingCash?: Prisma.IntFilter<"RestaurantCashSession"> | number
+  expectedCash?: Prisma.IntNullableFilter<"RestaurantCashSession"> | number | null
+  countedCash?: Prisma.IntNullableFilter<"RestaurantCashSession"> | number | null
+  discrepancy?: Prisma.IntNullableFilter<"RestaurantCashSession"> | number | null
   closeNote?: Prisma.StringNullableFilter<"RestaurantCashSession"> | string | null
 }
 
@@ -710,9 +885,15 @@ export type RestaurantCashSessionCreateWithoutCashRegisterInput = {
   openGuard?: string | null
   accountCount?: number | null
   salesTotal?: number | null
+  openingCash?: number
+  expectedCash?: number | null
+  countedCash?: number | null
+  discrepancy?: number | null
   closeNote?: string | null
   organization: Prisma.OrganizationCreateNestedOneWithoutRestaurantCashSessionsInput
   responsibleUser: Prisma.UserCreateNestedOneWithoutRestaurantCashSessionsInput
+  supplierInvoices?: Prisma.RestaurantSupplierInvoiceCreateNestedManyWithoutCashSessionInput
+  employeePayments?: Prisma.RestaurantEmployeePaymentCreateNestedManyWithoutCashSessionInput
 }
 
 export type RestaurantCashSessionUncheckedCreateWithoutCashRegisterInput = {
@@ -725,7 +906,13 @@ export type RestaurantCashSessionUncheckedCreateWithoutCashRegisterInput = {
   openGuard?: string | null
   accountCount?: number | null
   salesTotal?: number | null
+  openingCash?: number
+  expectedCash?: number | null
+  countedCash?: number | null
+  discrepancy?: number | null
   closeNote?: string | null
+  supplierInvoices?: Prisma.RestaurantSupplierInvoiceUncheckedCreateNestedManyWithoutCashSessionInput
+  employeePayments?: Prisma.RestaurantEmployeePaymentUncheckedCreateNestedManyWithoutCashSessionInput
 }
 
 export type RestaurantCashSessionCreateOrConnectWithoutCashRegisterInput = {
@@ -754,6 +941,190 @@ export type RestaurantCashSessionUpdateManyWithWhereWithoutCashRegisterInput = {
   data: Prisma.XOR<Prisma.RestaurantCashSessionUpdateManyMutationInput, Prisma.RestaurantCashSessionUncheckedUpdateManyWithoutCashRegisterInput>
 }
 
+export type RestaurantCashSessionCreateWithoutSupplierInvoicesInput = {
+  id?: string
+  startedAt?: Date | string
+  endedAt?: Date | string | null
+  status?: $Enums.RestaurantCashSessionStatus
+  openGuard?: string | null
+  accountCount?: number | null
+  salesTotal?: number | null
+  openingCash?: number
+  expectedCash?: number | null
+  countedCash?: number | null
+  discrepancy?: number | null
+  closeNote?: string | null
+  organization: Prisma.OrganizationCreateNestedOneWithoutRestaurantCashSessionsInput
+  cashRegister: Prisma.RestaurantCashRegisterCreateNestedOneWithoutSessionsInput
+  responsibleUser: Prisma.UserCreateNestedOneWithoutRestaurantCashSessionsInput
+  employeePayments?: Prisma.RestaurantEmployeePaymentCreateNestedManyWithoutCashSessionInput
+}
+
+export type RestaurantCashSessionUncheckedCreateWithoutSupplierInvoicesInput = {
+  id?: string
+  organizationId: string
+  cashRegisterId: string
+  responsibleUserId: string
+  startedAt?: Date | string
+  endedAt?: Date | string | null
+  status?: $Enums.RestaurantCashSessionStatus
+  openGuard?: string | null
+  accountCount?: number | null
+  salesTotal?: number | null
+  openingCash?: number
+  expectedCash?: number | null
+  countedCash?: number | null
+  discrepancy?: number | null
+  closeNote?: string | null
+  employeePayments?: Prisma.RestaurantEmployeePaymentUncheckedCreateNestedManyWithoutCashSessionInput
+}
+
+export type RestaurantCashSessionCreateOrConnectWithoutSupplierInvoicesInput = {
+  where: Prisma.RestaurantCashSessionWhereUniqueInput
+  create: Prisma.XOR<Prisma.RestaurantCashSessionCreateWithoutSupplierInvoicesInput, Prisma.RestaurantCashSessionUncheckedCreateWithoutSupplierInvoicesInput>
+}
+
+export type RestaurantCashSessionUpsertWithoutSupplierInvoicesInput = {
+  update: Prisma.XOR<Prisma.RestaurantCashSessionUpdateWithoutSupplierInvoicesInput, Prisma.RestaurantCashSessionUncheckedUpdateWithoutSupplierInvoicesInput>
+  create: Prisma.XOR<Prisma.RestaurantCashSessionCreateWithoutSupplierInvoicesInput, Prisma.RestaurantCashSessionUncheckedCreateWithoutSupplierInvoicesInput>
+  where?: Prisma.RestaurantCashSessionWhereInput
+}
+
+export type RestaurantCashSessionUpdateToOneWithWhereWithoutSupplierInvoicesInput = {
+  where?: Prisma.RestaurantCashSessionWhereInput
+  data: Prisma.XOR<Prisma.RestaurantCashSessionUpdateWithoutSupplierInvoicesInput, Prisma.RestaurantCashSessionUncheckedUpdateWithoutSupplierInvoicesInput>
+}
+
+export type RestaurantCashSessionUpdateWithoutSupplierInvoicesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  startedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  endedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  status?: Prisma.EnumRestaurantCashSessionStatusFieldUpdateOperationsInput | $Enums.RestaurantCashSessionStatus
+  openGuard?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  accountCount?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  salesTotal?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  openingCash?: Prisma.IntFieldUpdateOperationsInput | number
+  expectedCash?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  countedCash?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  discrepancy?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  closeNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  organization?: Prisma.OrganizationUpdateOneRequiredWithoutRestaurantCashSessionsNestedInput
+  cashRegister?: Prisma.RestaurantCashRegisterUpdateOneRequiredWithoutSessionsNestedInput
+  responsibleUser?: Prisma.UserUpdateOneRequiredWithoutRestaurantCashSessionsNestedInput
+  employeePayments?: Prisma.RestaurantEmployeePaymentUpdateManyWithoutCashSessionNestedInput
+}
+
+export type RestaurantCashSessionUncheckedUpdateWithoutSupplierInvoicesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  organizationId?: Prisma.StringFieldUpdateOperationsInput | string
+  cashRegisterId?: Prisma.StringFieldUpdateOperationsInput | string
+  responsibleUserId?: Prisma.StringFieldUpdateOperationsInput | string
+  startedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  endedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  status?: Prisma.EnumRestaurantCashSessionStatusFieldUpdateOperationsInput | $Enums.RestaurantCashSessionStatus
+  openGuard?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  accountCount?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  salesTotal?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  openingCash?: Prisma.IntFieldUpdateOperationsInput | number
+  expectedCash?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  countedCash?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  discrepancy?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  closeNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  employeePayments?: Prisma.RestaurantEmployeePaymentUncheckedUpdateManyWithoutCashSessionNestedInput
+}
+
+export type RestaurantCashSessionCreateWithoutEmployeePaymentsInput = {
+  id?: string
+  startedAt?: Date | string
+  endedAt?: Date | string | null
+  status?: $Enums.RestaurantCashSessionStatus
+  openGuard?: string | null
+  accountCount?: number | null
+  salesTotal?: number | null
+  openingCash?: number
+  expectedCash?: number | null
+  countedCash?: number | null
+  discrepancy?: number | null
+  closeNote?: string | null
+  organization: Prisma.OrganizationCreateNestedOneWithoutRestaurantCashSessionsInput
+  cashRegister: Prisma.RestaurantCashRegisterCreateNestedOneWithoutSessionsInput
+  responsibleUser: Prisma.UserCreateNestedOneWithoutRestaurantCashSessionsInput
+  supplierInvoices?: Prisma.RestaurantSupplierInvoiceCreateNestedManyWithoutCashSessionInput
+}
+
+export type RestaurantCashSessionUncheckedCreateWithoutEmployeePaymentsInput = {
+  id?: string
+  organizationId: string
+  cashRegisterId: string
+  responsibleUserId: string
+  startedAt?: Date | string
+  endedAt?: Date | string | null
+  status?: $Enums.RestaurantCashSessionStatus
+  openGuard?: string | null
+  accountCount?: number | null
+  salesTotal?: number | null
+  openingCash?: number
+  expectedCash?: number | null
+  countedCash?: number | null
+  discrepancy?: number | null
+  closeNote?: string | null
+  supplierInvoices?: Prisma.RestaurantSupplierInvoiceUncheckedCreateNestedManyWithoutCashSessionInput
+}
+
+export type RestaurantCashSessionCreateOrConnectWithoutEmployeePaymentsInput = {
+  where: Prisma.RestaurantCashSessionWhereUniqueInput
+  create: Prisma.XOR<Prisma.RestaurantCashSessionCreateWithoutEmployeePaymentsInput, Prisma.RestaurantCashSessionUncheckedCreateWithoutEmployeePaymentsInput>
+}
+
+export type RestaurantCashSessionUpsertWithoutEmployeePaymentsInput = {
+  update: Prisma.XOR<Prisma.RestaurantCashSessionUpdateWithoutEmployeePaymentsInput, Prisma.RestaurantCashSessionUncheckedUpdateWithoutEmployeePaymentsInput>
+  create: Prisma.XOR<Prisma.RestaurantCashSessionCreateWithoutEmployeePaymentsInput, Prisma.RestaurantCashSessionUncheckedCreateWithoutEmployeePaymentsInput>
+  where?: Prisma.RestaurantCashSessionWhereInput
+}
+
+export type RestaurantCashSessionUpdateToOneWithWhereWithoutEmployeePaymentsInput = {
+  where?: Prisma.RestaurantCashSessionWhereInput
+  data: Prisma.XOR<Prisma.RestaurantCashSessionUpdateWithoutEmployeePaymentsInput, Prisma.RestaurantCashSessionUncheckedUpdateWithoutEmployeePaymentsInput>
+}
+
+export type RestaurantCashSessionUpdateWithoutEmployeePaymentsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  startedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  endedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  status?: Prisma.EnumRestaurantCashSessionStatusFieldUpdateOperationsInput | $Enums.RestaurantCashSessionStatus
+  openGuard?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  accountCount?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  salesTotal?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  openingCash?: Prisma.IntFieldUpdateOperationsInput | number
+  expectedCash?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  countedCash?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  discrepancy?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  closeNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  organization?: Prisma.OrganizationUpdateOneRequiredWithoutRestaurantCashSessionsNestedInput
+  cashRegister?: Prisma.RestaurantCashRegisterUpdateOneRequiredWithoutSessionsNestedInput
+  responsibleUser?: Prisma.UserUpdateOneRequiredWithoutRestaurantCashSessionsNestedInput
+  supplierInvoices?: Prisma.RestaurantSupplierInvoiceUpdateManyWithoutCashSessionNestedInput
+}
+
+export type RestaurantCashSessionUncheckedUpdateWithoutEmployeePaymentsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  organizationId?: Prisma.StringFieldUpdateOperationsInput | string
+  cashRegisterId?: Prisma.StringFieldUpdateOperationsInput | string
+  responsibleUserId?: Prisma.StringFieldUpdateOperationsInput | string
+  startedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  endedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  status?: Prisma.EnumRestaurantCashSessionStatusFieldUpdateOperationsInput | $Enums.RestaurantCashSessionStatus
+  openGuard?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  accountCount?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  salesTotal?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  openingCash?: Prisma.IntFieldUpdateOperationsInput | number
+  expectedCash?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  countedCash?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  discrepancy?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  closeNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  supplierInvoices?: Prisma.RestaurantSupplierInvoiceUncheckedUpdateManyWithoutCashSessionNestedInput
+}
+
 export type RestaurantCashSessionCreateWithoutResponsibleUserInput = {
   id?: string
   startedAt?: Date | string
@@ -762,9 +1133,15 @@ export type RestaurantCashSessionCreateWithoutResponsibleUserInput = {
   openGuard?: string | null
   accountCount?: number | null
   salesTotal?: number | null
+  openingCash?: number
+  expectedCash?: number | null
+  countedCash?: number | null
+  discrepancy?: number | null
   closeNote?: string | null
   organization: Prisma.OrganizationCreateNestedOneWithoutRestaurantCashSessionsInput
   cashRegister: Prisma.RestaurantCashRegisterCreateNestedOneWithoutSessionsInput
+  supplierInvoices?: Prisma.RestaurantSupplierInvoiceCreateNestedManyWithoutCashSessionInput
+  employeePayments?: Prisma.RestaurantEmployeePaymentCreateNestedManyWithoutCashSessionInput
 }
 
 export type RestaurantCashSessionUncheckedCreateWithoutResponsibleUserInput = {
@@ -777,7 +1154,13 @@ export type RestaurantCashSessionUncheckedCreateWithoutResponsibleUserInput = {
   openGuard?: string | null
   accountCount?: number | null
   salesTotal?: number | null
+  openingCash?: number
+  expectedCash?: number | null
+  countedCash?: number | null
+  discrepancy?: number | null
   closeNote?: string | null
+  supplierInvoices?: Prisma.RestaurantSupplierInvoiceUncheckedCreateNestedManyWithoutCashSessionInput
+  employeePayments?: Prisma.RestaurantEmployeePaymentUncheckedCreateNestedManyWithoutCashSessionInput
 }
 
 export type RestaurantCashSessionCreateOrConnectWithoutResponsibleUserInput = {
@@ -816,6 +1199,10 @@ export type RestaurantCashSessionCreateManyOrganizationInput = {
   openGuard?: string | null
   accountCount?: number | null
   salesTotal?: number | null
+  openingCash?: number
+  expectedCash?: number | null
+  countedCash?: number | null
+  discrepancy?: number | null
   closeNote?: string | null
 }
 
@@ -827,9 +1214,15 @@ export type RestaurantCashSessionUpdateWithoutOrganizationInput = {
   openGuard?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   accountCount?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   salesTotal?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  openingCash?: Prisma.IntFieldUpdateOperationsInput | number
+  expectedCash?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  countedCash?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  discrepancy?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   closeNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cashRegister?: Prisma.RestaurantCashRegisterUpdateOneRequiredWithoutSessionsNestedInput
   responsibleUser?: Prisma.UserUpdateOneRequiredWithoutRestaurantCashSessionsNestedInput
+  supplierInvoices?: Prisma.RestaurantSupplierInvoiceUpdateManyWithoutCashSessionNestedInput
+  employeePayments?: Prisma.RestaurantEmployeePaymentUpdateManyWithoutCashSessionNestedInput
 }
 
 export type RestaurantCashSessionUncheckedUpdateWithoutOrganizationInput = {
@@ -842,7 +1235,13 @@ export type RestaurantCashSessionUncheckedUpdateWithoutOrganizationInput = {
   openGuard?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   accountCount?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   salesTotal?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  openingCash?: Prisma.IntFieldUpdateOperationsInput | number
+  expectedCash?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  countedCash?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  discrepancy?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   closeNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  supplierInvoices?: Prisma.RestaurantSupplierInvoiceUncheckedUpdateManyWithoutCashSessionNestedInput
+  employeePayments?: Prisma.RestaurantEmployeePaymentUncheckedUpdateManyWithoutCashSessionNestedInput
 }
 
 export type RestaurantCashSessionUncheckedUpdateManyWithoutOrganizationInput = {
@@ -855,6 +1254,10 @@ export type RestaurantCashSessionUncheckedUpdateManyWithoutOrganizationInput = {
   openGuard?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   accountCount?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   salesTotal?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  openingCash?: Prisma.IntFieldUpdateOperationsInput | number
+  expectedCash?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  countedCash?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  discrepancy?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   closeNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
@@ -868,6 +1271,10 @@ export type RestaurantCashSessionCreateManyCashRegisterInput = {
   openGuard?: string | null
   accountCount?: number | null
   salesTotal?: number | null
+  openingCash?: number
+  expectedCash?: number | null
+  countedCash?: number | null
+  discrepancy?: number | null
   closeNote?: string | null
 }
 
@@ -879,9 +1286,15 @@ export type RestaurantCashSessionUpdateWithoutCashRegisterInput = {
   openGuard?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   accountCount?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   salesTotal?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  openingCash?: Prisma.IntFieldUpdateOperationsInput | number
+  expectedCash?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  countedCash?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  discrepancy?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   closeNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutRestaurantCashSessionsNestedInput
   responsibleUser?: Prisma.UserUpdateOneRequiredWithoutRestaurantCashSessionsNestedInput
+  supplierInvoices?: Prisma.RestaurantSupplierInvoiceUpdateManyWithoutCashSessionNestedInput
+  employeePayments?: Prisma.RestaurantEmployeePaymentUpdateManyWithoutCashSessionNestedInput
 }
 
 export type RestaurantCashSessionUncheckedUpdateWithoutCashRegisterInput = {
@@ -894,7 +1307,13 @@ export type RestaurantCashSessionUncheckedUpdateWithoutCashRegisterInput = {
   openGuard?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   accountCount?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   salesTotal?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  openingCash?: Prisma.IntFieldUpdateOperationsInput | number
+  expectedCash?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  countedCash?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  discrepancy?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   closeNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  supplierInvoices?: Prisma.RestaurantSupplierInvoiceUncheckedUpdateManyWithoutCashSessionNestedInput
+  employeePayments?: Prisma.RestaurantEmployeePaymentUncheckedUpdateManyWithoutCashSessionNestedInput
 }
 
 export type RestaurantCashSessionUncheckedUpdateManyWithoutCashRegisterInput = {
@@ -907,6 +1326,10 @@ export type RestaurantCashSessionUncheckedUpdateManyWithoutCashRegisterInput = {
   openGuard?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   accountCount?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   salesTotal?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  openingCash?: Prisma.IntFieldUpdateOperationsInput | number
+  expectedCash?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  countedCash?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  discrepancy?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   closeNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
@@ -920,6 +1343,10 @@ export type RestaurantCashSessionCreateManyResponsibleUserInput = {
   openGuard?: string | null
   accountCount?: number | null
   salesTotal?: number | null
+  openingCash?: number
+  expectedCash?: number | null
+  countedCash?: number | null
+  discrepancy?: number | null
   closeNote?: string | null
 }
 
@@ -931,9 +1358,15 @@ export type RestaurantCashSessionUpdateWithoutResponsibleUserInput = {
   openGuard?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   accountCount?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   salesTotal?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  openingCash?: Prisma.IntFieldUpdateOperationsInput | number
+  expectedCash?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  countedCash?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  discrepancy?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   closeNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutRestaurantCashSessionsNestedInput
   cashRegister?: Prisma.RestaurantCashRegisterUpdateOneRequiredWithoutSessionsNestedInput
+  supplierInvoices?: Prisma.RestaurantSupplierInvoiceUpdateManyWithoutCashSessionNestedInput
+  employeePayments?: Prisma.RestaurantEmployeePaymentUpdateManyWithoutCashSessionNestedInput
 }
 
 export type RestaurantCashSessionUncheckedUpdateWithoutResponsibleUserInput = {
@@ -946,7 +1379,13 @@ export type RestaurantCashSessionUncheckedUpdateWithoutResponsibleUserInput = {
   openGuard?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   accountCount?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   salesTotal?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  openingCash?: Prisma.IntFieldUpdateOperationsInput | number
+  expectedCash?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  countedCash?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  discrepancy?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   closeNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  supplierInvoices?: Prisma.RestaurantSupplierInvoiceUncheckedUpdateManyWithoutCashSessionNestedInput
+  employeePayments?: Prisma.RestaurantEmployeePaymentUncheckedUpdateManyWithoutCashSessionNestedInput
 }
 
 export type RestaurantCashSessionUncheckedUpdateManyWithoutResponsibleUserInput = {
@@ -959,9 +1398,51 @@ export type RestaurantCashSessionUncheckedUpdateManyWithoutResponsibleUserInput 
   openGuard?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   accountCount?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   salesTotal?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  openingCash?: Prisma.IntFieldUpdateOperationsInput | number
+  expectedCash?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  countedCash?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  discrepancy?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   closeNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
+
+/**
+ * Count Type RestaurantCashSessionCountOutputType
+ */
+
+export type RestaurantCashSessionCountOutputType = {
+  supplierInvoices: number
+  employeePayments: number
+}
+
+export type RestaurantCashSessionCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  supplierInvoices?: boolean | RestaurantCashSessionCountOutputTypeCountSupplierInvoicesArgs
+  employeePayments?: boolean | RestaurantCashSessionCountOutputTypeCountEmployeePaymentsArgs
+}
+
+/**
+ * RestaurantCashSessionCountOutputType without action
+ */
+export type RestaurantCashSessionCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the RestaurantCashSessionCountOutputType
+   */
+  select?: Prisma.RestaurantCashSessionCountOutputTypeSelect<ExtArgs> | null
+}
+
+/**
+ * RestaurantCashSessionCountOutputType without action
+ */
+export type RestaurantCashSessionCountOutputTypeCountSupplierInvoicesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.RestaurantSupplierInvoiceWhereInput
+}
+
+/**
+ * RestaurantCashSessionCountOutputType without action
+ */
+export type RestaurantCashSessionCountOutputTypeCountEmployeePaymentsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.RestaurantEmployeePaymentWhereInput
+}
 
 
 export type RestaurantCashSessionSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -975,10 +1456,17 @@ export type RestaurantCashSessionSelect<ExtArgs extends runtime.Types.Extensions
   openGuard?: boolean
   accountCount?: boolean
   salesTotal?: boolean
+  openingCash?: boolean
+  expectedCash?: boolean
+  countedCash?: boolean
+  discrepancy?: boolean
   closeNote?: boolean
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
   cashRegister?: boolean | Prisma.RestaurantCashRegisterDefaultArgs<ExtArgs>
   responsibleUser?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  supplierInvoices?: boolean | Prisma.RestaurantCashSession$supplierInvoicesArgs<ExtArgs>
+  employeePayments?: boolean | Prisma.RestaurantCashSession$employeePaymentsArgs<ExtArgs>
+  _count?: boolean | Prisma.RestaurantCashSessionCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["restaurantCashSession"]>
 
 export type RestaurantCashSessionSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -992,6 +1480,10 @@ export type RestaurantCashSessionSelectCreateManyAndReturn<ExtArgs extends runti
   openGuard?: boolean
   accountCount?: boolean
   salesTotal?: boolean
+  openingCash?: boolean
+  expectedCash?: boolean
+  countedCash?: boolean
+  discrepancy?: boolean
   closeNote?: boolean
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
   cashRegister?: boolean | Prisma.RestaurantCashRegisterDefaultArgs<ExtArgs>
@@ -1009,6 +1501,10 @@ export type RestaurantCashSessionSelectUpdateManyAndReturn<ExtArgs extends runti
   openGuard?: boolean
   accountCount?: boolean
   salesTotal?: boolean
+  openingCash?: boolean
+  expectedCash?: boolean
+  countedCash?: boolean
+  discrepancy?: boolean
   closeNote?: boolean
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
   cashRegister?: boolean | Prisma.RestaurantCashRegisterDefaultArgs<ExtArgs>
@@ -1026,14 +1522,21 @@ export type RestaurantCashSessionSelectScalar = {
   openGuard?: boolean
   accountCount?: boolean
   salesTotal?: boolean
+  openingCash?: boolean
+  expectedCash?: boolean
+  countedCash?: boolean
+  discrepancy?: boolean
   closeNote?: boolean
 }
 
-export type RestaurantCashSessionOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "organizationId" | "cashRegisterId" | "responsibleUserId" | "startedAt" | "endedAt" | "status" | "openGuard" | "accountCount" | "salesTotal" | "closeNote", ExtArgs["result"]["restaurantCashSession"]>
+export type RestaurantCashSessionOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "organizationId" | "cashRegisterId" | "responsibleUserId" | "startedAt" | "endedAt" | "status" | "openGuard" | "accountCount" | "salesTotal" | "openingCash" | "expectedCash" | "countedCash" | "discrepancy" | "closeNote", ExtArgs["result"]["restaurantCashSession"]>
 export type RestaurantCashSessionInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
   cashRegister?: boolean | Prisma.RestaurantCashRegisterDefaultArgs<ExtArgs>
   responsibleUser?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  supplierInvoices?: boolean | Prisma.RestaurantCashSession$supplierInvoicesArgs<ExtArgs>
+  employeePayments?: boolean | Prisma.RestaurantCashSession$employeePaymentsArgs<ExtArgs>
+  _count?: boolean | Prisma.RestaurantCashSessionCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type RestaurantCashSessionIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
@@ -1052,6 +1555,8 @@ export type $RestaurantCashSessionPayload<ExtArgs extends runtime.Types.Extensio
     organization: Prisma.$OrganizationPayload<ExtArgs>
     cashRegister: Prisma.$RestaurantCashRegisterPayload<ExtArgs>
     responsibleUser: Prisma.$UserPayload<ExtArgs>
+    supplierInvoices: Prisma.$RestaurantSupplierInvoicePayload<ExtArgs>[]
+    employeePayments: Prisma.$RestaurantEmployeePaymentPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1064,6 +1569,10 @@ export type $RestaurantCashSessionPayload<ExtArgs extends runtime.Types.Extensio
     openGuard: string | null
     accountCount: number | null
     salesTotal: number | null
+    openingCash: number
+    expectedCash: number | null
+    countedCash: number | null
+    discrepancy: number | null
     closeNote: string | null
   }, ExtArgs["result"]["restaurantCashSession"]>
   composites: {}
@@ -1462,6 +1971,8 @@ export interface Prisma__RestaurantCashSessionClient<T, Null = never, ExtArgs ex
   organization<T extends Prisma.OrganizationDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.OrganizationDefaultArgs<ExtArgs>>): Prisma.Prisma__OrganizationClient<runtime.Types.Result.GetResult<Prisma.$OrganizationPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   cashRegister<T extends Prisma.RestaurantCashRegisterDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.RestaurantCashRegisterDefaultArgs<ExtArgs>>): Prisma.Prisma__RestaurantCashRegisterClient<runtime.Types.Result.GetResult<Prisma.$RestaurantCashRegisterPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   responsibleUser<T extends Prisma.UserDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.UserDefaultArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+  supplierInvoices<T extends Prisma.RestaurantCashSession$supplierInvoicesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.RestaurantCashSession$supplierInvoicesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$RestaurantSupplierInvoicePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  employeePayments<T extends Prisma.RestaurantCashSession$employeePaymentsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.RestaurantCashSession$employeePaymentsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$RestaurantEmployeePaymentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1501,6 +2012,10 @@ export interface RestaurantCashSessionFieldRefs {
   readonly openGuard: Prisma.FieldRef<"RestaurantCashSession", 'String'>
   readonly accountCount: Prisma.FieldRef<"RestaurantCashSession", 'Int'>
   readonly salesTotal: Prisma.FieldRef<"RestaurantCashSession", 'Int'>
+  readonly openingCash: Prisma.FieldRef<"RestaurantCashSession", 'Int'>
+  readonly expectedCash: Prisma.FieldRef<"RestaurantCashSession", 'Int'>
+  readonly countedCash: Prisma.FieldRef<"RestaurantCashSession", 'Int'>
+  readonly discrepancy: Prisma.FieldRef<"RestaurantCashSession", 'Int'>
   readonly closeNote: Prisma.FieldRef<"RestaurantCashSession", 'String'>
 }
     
@@ -1900,6 +2415,54 @@ export type RestaurantCashSessionDeleteManyArgs<ExtArgs extends runtime.Types.Ex
    * Limit how many RestaurantCashSessions to delete.
    */
   limit?: number
+}
+
+/**
+ * RestaurantCashSession.supplierInvoices
+ */
+export type RestaurantCashSession$supplierInvoicesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the RestaurantSupplierInvoice
+   */
+  select?: Prisma.RestaurantSupplierInvoiceSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the RestaurantSupplierInvoice
+   */
+  omit?: Prisma.RestaurantSupplierInvoiceOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.RestaurantSupplierInvoiceInclude<ExtArgs> | null
+  where?: Prisma.RestaurantSupplierInvoiceWhereInput
+  orderBy?: Prisma.RestaurantSupplierInvoiceOrderByWithRelationInput | Prisma.RestaurantSupplierInvoiceOrderByWithRelationInput[]
+  cursor?: Prisma.RestaurantSupplierInvoiceWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.RestaurantSupplierInvoiceScalarFieldEnum | Prisma.RestaurantSupplierInvoiceScalarFieldEnum[]
+}
+
+/**
+ * RestaurantCashSession.employeePayments
+ */
+export type RestaurantCashSession$employeePaymentsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the RestaurantEmployeePayment
+   */
+  select?: Prisma.RestaurantEmployeePaymentSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the RestaurantEmployeePayment
+   */
+  omit?: Prisma.RestaurantEmployeePaymentOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.RestaurantEmployeePaymentInclude<ExtArgs> | null
+  where?: Prisma.RestaurantEmployeePaymentWhereInput
+  orderBy?: Prisma.RestaurantEmployeePaymentOrderByWithRelationInput | Prisma.RestaurantEmployeePaymentOrderByWithRelationInput[]
+  cursor?: Prisma.RestaurantEmployeePaymentWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.RestaurantEmployeePaymentScalarFieldEnum | Prisma.RestaurantEmployeePaymentScalarFieldEnum[]
 }
 
 /**

@@ -15,6 +15,10 @@ import {
   StaffOrderCorrection,
   type StaffCorrection,
 } from "./staff-order-correction";
+import {
+  PaymentMethodDialog,
+  type RestaurantPaymentDetails,
+} from "./payment-method-dialog";
 
 type Station = "KITCHEN" | "BAR";
 type OrderItem = {
@@ -109,6 +113,7 @@ export function OperationalDashboard({ station }: { station: Station }) {
   const [visits, setVisits] = useState<Visit[]>([]);
   const [error, setError] = useState("");
   const [now, setNow] = useState(0);
+  const [closingVisitId, setClosingVisitId] = useState<string | null>(null);
   const loadSequence = useRef(0);
 
   const load = useCallback(async () => {
@@ -205,16 +210,24 @@ export function OperationalDashboard({ station }: { station: Station }) {
     await load();
   }
 
-  async function closeVisit(visitId: string) {
+  async function closeVisit(
+    visitId: string,
+    payment: RestaurantPaymentDetails,
+  ) {
     const response = await authenticatedFetch(
       `${API_URL}/api/v1/restaurant/visits/${visitId}/close`,
-      { method: "PATCH" },
+      {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payment),
+      },
     );
     if (!response.ok) {
       const body = await response.json().catch(() => ({}));
       setError(body.message ?? "No se pudo cerrar la cuenta");
       return;
     }
+    setClosingVisitId(null);
     await load();
   }
 
@@ -499,7 +512,7 @@ export function OperationalDashboard({ station }: { station: Station }) {
                     <button
                       disabled={!visit.canClose}
                       className="mt-3 rounded bg-violet-800 px-4 py-2 font-bold text-white disabled:opacity-40"
-                      onClick={() => void closeVisit(visit.id)}
+                      onClick={() => setClosingVisitId(visit.id)}
                     >
                       {visit.canClose ? "Cerrar cuenta" : "Entregas pendientes"}
                     </button>
@@ -611,6 +624,13 @@ export function OperationalDashboard({ station }: { station: Station }) {
           </article>
         ))}
       </section>
+      <PaymentMethodDialog
+        open={Boolean(closingVisitId)}
+        onCancel={() => setClosingVisitId(null)}
+        onConfirm={(payment) => {
+          if (closingVisitId) return closeVisit(closingVisitId, payment);
+        }}
+      />
     </main>
   );
 }

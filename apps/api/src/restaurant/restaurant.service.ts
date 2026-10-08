@@ -16,6 +16,7 @@ import {
   RestaurantInventoryProductType,
   RestaurantInventoryUnit,
   RestaurantLoyaltyActivityType,
+  RestaurantPaymentMethod,
   RestaurantPaymentStatus,
   RestaurantPayPeriod,
   RestaurantRewardSponsor,
@@ -1796,7 +1797,12 @@ export class RestaurantService {
     });
   }
 
-  async closeVisit(actor: RestaurantActor, visitId: string) {
+  async closeVisit(
+    actor: RestaurantActor,
+    visitId: string,
+    paymentMethod: RestaurantPaymentMethod = RestaurantPaymentMethod.CASH,
+    paymentReference?: string,
+  ) {
     const role = this.effectiveRole(actor);
     const visit = await this.prisma.restaurantVisit.findFirst({
       where: { id: visitId, organizationId: actor.organizationId },
@@ -1846,6 +1852,8 @@ export class RestaurantService {
         closedAt,
         closedById: actor.id,
         closedByRole: role,
+        paymentMethod,
+        paymentReference: paymentReference?.trim() || null,
         receiptNumber: this.receiptNumber(visitId, closedAt),
       },
     });

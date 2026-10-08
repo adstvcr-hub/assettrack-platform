@@ -9,6 +9,10 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { RestaurantSessionActions } from "./restaurant-session-actions";
+import {
+  PaymentMethodDialog,
+  type RestaurantPaymentDetails,
+} from "./payment-method-dialog";
 
 type Table = {
   id: string;
@@ -477,6 +481,7 @@ export default function RestaurantAdminDashboard({
   section?: RestaurantAdminSection;
 }) {
   const router = useRouter();
+  const [closingVisitId, setClosingVisitId] = useState<string | null>(null);
   const [tables, setTables] = useState<Table[]>([]);
   const [menu, setMenu] = useState<MenuItem[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
@@ -859,6 +864,15 @@ export default function RestaurantAdminDashboard({
     } catch (err) {
       setError(err instanceof Error ? err.message : "Update failed");
       return false;
+    }
+  }
+
+  async function closeVisit(
+    visitId: string,
+    payment: RestaurantPaymentDetails,
+  ) {
+    if (await post(`visits/${visitId}/close`, payment, "PATCH")) {
+      setClosingVisitId(null);
     }
   }
 
@@ -1463,10 +1477,7 @@ export default function RestaurantAdminDashboard({
                   type="button"
                   disabled={!visit.canClose}
                   className="mt-3 rounded-lg bg-slate-900 px-4 py-3 font-bold text-white disabled:cursor-not-allowed disabled:opacity-40"
-                  onClick={() =>
-                    visit.canClose &&
-                    void post(`visits/${visit.id}/close`, {}, "PATCH")
-                  }
+                  onClick={() => visit.canClose && setClosingVisitId(visit.id)}
                 >
                   {visit.canClose
                     ? "Cerrar cuenta"
@@ -3895,6 +3906,13 @@ export default function RestaurantAdminDashboard({
           </div>
         )}
       </section>
+      <PaymentMethodDialog
+        open={Boolean(closingVisitId)}
+        onCancel={() => setClosingVisitId(null)}
+        onConfirm={(payment) => {
+          if (closingVisitId) return closeVisit(closingVisitId, payment);
+        }}
+      />
     </main>
   );
 }

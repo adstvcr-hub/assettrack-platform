@@ -18,8 +18,11 @@ import { JwtAuthGuard } from "../auth/jwt-auth.guard";
 import { RolesGuard } from "../auth/roles.guard";
 import {
   AssignWaiterDto,
+  AssumeCashSessionDto,
   CancelOrderDto,
+  CloseVisitDto,
   CloseCashSessionDto,
+  CreateEmployeePaymentDto,
   CreateRewardProgramDto,
   CreateStaffOrderDto,
   CreatePromotionDto,
@@ -28,6 +31,7 @@ import {
   CreateInventoryMovementDto,
   CreateInventoryProductDto,
   CreateLiquorWeighingDto,
+  CreateSupplierInvoiceDto,
   SaveInventoryRecipeDto,
   CorrectGuestOrderDto,
   CorrectStaffOrderDto,
@@ -161,8 +165,8 @@ export class RestaurantStaffController {
   }
 
   @Post("cash-registers/assume")
-  assumeCash(@Req() req: StaffRequest) {
-    return this.cash.assume(req.user);
+  assumeCash(@Req() req: StaffRequest, @Body() dto: AssumeCashSessionDto) {
+    return this.cash.assume(req.user, dto.openingCash);
   }
 
   @Post("cash-sessions/:id/close")
@@ -180,6 +184,27 @@ export class RestaurantStaffController {
     @Query("date") date?: string,
   ) {
     return this.cash.daily(req.user, date);
+  }
+
+  @Post("cash-registers/supplier-invoices")
+  addSupplierInvoice(
+    @Req() req: StaffRequest,
+    @Body() dto: CreateSupplierInvoiceDto,
+  ) {
+    return this.cash.addSupplierInvoice(req.user, dto);
+  }
+
+  @Post("cash-registers/employee-payments")
+  addEmployeePayment(
+    @Req() req: StaffRequest,
+    @Body() dto: CreateEmployeePaymentDto,
+  ) {
+    return this.cash.addEmployeePayment(req.user, dto);
+  }
+
+  @Get("cash-registers/employees")
+  cashEmployees(@Req() req: StaffRequest) {
+    return this.cash.employees(req.user);
   }
 
   @Get("staff/daily-close")
@@ -587,8 +612,17 @@ export class RestaurantStaffController {
   }
 
   @Patch("visits/:id/close")
-  closeVisit(@Req() req: StaffRequest, @Param("id") id: string) {
-    return this.restaurant.closeVisit(req.user, id);
+  closeVisit(
+    @Req() req: StaffRequest,
+    @Param("id") id: string,
+    @Body() dto: CloseVisitDto,
+  ) {
+    return this.restaurant.closeVisit(
+      req.user,
+      id,
+      dto.paymentMethod,
+      dto.paymentReference,
+    );
   }
 
   @Patch("visits/:id/payment")

@@ -157,6 +157,24 @@ export const RestaurantPaymentStatus = {
 export type RestaurantPaymentStatus = (typeof RestaurantPaymentStatus)[keyof typeof RestaurantPaymentStatus]
 
 
+export const RestaurantPaymentMethod = {
+  CASH: 'CASH',
+  SINPE: 'SINPE',
+  CARD: 'CARD',
+  OTHER: 'OTHER'
+} as const
+
+export type RestaurantPaymentMethod = (typeof RestaurantPaymentMethod)[keyof typeof RestaurantPaymentMethod]
+
+
+export const RestaurantSupplierInvoiceStatus = {
+  PENDING: 'PENDING',
+  PAID: 'PAID'
+} as const
+
+export type RestaurantSupplierInvoiceStatus = (typeof RestaurantSupplierInvoiceStatus)[keyof typeof RestaurantSupplierInvoiceStatus]
+
+
 export const RestaurantTableKind = {
   DINING: 'DINING',
   BAR_SEAT: 'BAR_SEAT',
