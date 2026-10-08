@@ -428,6 +428,9 @@ export const ModelName = {
   RestaurantStaffSession: 'RestaurantStaffSession',
   OrganizationLocation: 'OrganizationLocation',
   User: 'User',
+  ServiceFeedbackCampaign: 'ServiceFeedbackCampaign',
+  ServiceFeedbackPromoter: 'ServiceFeedbackPromoter',
+  ServiceFeedbackVote: 'ServiceFeedbackVote',
   StaffAccessCode: 'StaffAccessCode',
   Asset: 'Asset',
   QrCode: 'QrCode',
@@ -448,7 +451,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "organization" | "restaurantTable" | "restaurantVisit" | "restaurantQrAccess" | "restaurantLoyaltyMember" | "restaurantLoyaltyActivity" | "restaurantRewardProgram" | "restaurantVisitTransfer" | "platformAdminEvent" | "restaurantAnalyticsDaily" | "restaurantAnalyticsProductDaily" | "userManagementEvent" | "restaurantMenuItem" | "restaurantOrder" | "restaurantOrderItem" | "restaurantCashRegister" | "restaurantCashSession" | "restaurantCashDayClose" | "restaurantSupplierInvoice" | "restaurantEmployeePayment" | "restaurantInventoryCategory" | "restaurantInventoryProduct" | "restaurantRecipeIngredient" | "restaurantInventoryMovement" | "restaurantLiquorWeighing" | "restaurantPromotion" | "restaurantItemEvent" | "restaurantStaffEvent" | "restaurantStaffSession" | "organizationLocation" | "user" | "staffAccessCode" | "asset" | "qrCode" | "scanEvent" | "refreshToken"
+    modelProps: "organization" | "restaurantTable" | "restaurantVisit" | "restaurantQrAccess" | "restaurantLoyaltyMember" | "restaurantLoyaltyActivity" | "restaurantRewardProgram" | "restaurantVisitTransfer" | "platformAdminEvent" | "restaurantAnalyticsDaily" | "restaurantAnalyticsProductDaily" | "userManagementEvent" | "restaurantMenuItem" | "restaurantOrder" | "restaurantOrderItem" | "restaurantCashRegister" | "restaurantCashSession" | "restaurantCashDayClose" | "restaurantSupplierInvoice" | "restaurantEmployeePayment" | "restaurantInventoryCategory" | "restaurantInventoryProduct" | "restaurantRecipeIngredient" | "restaurantInventoryMovement" | "restaurantLiquorWeighing" | "restaurantPromotion" | "restaurantItemEvent" | "restaurantStaffEvent" | "restaurantStaffSession" | "organizationLocation" | "user" | "serviceFeedbackCampaign" | "serviceFeedbackPromoter" | "serviceFeedbackVote" | "staffAccessCode" | "asset" | "qrCode" | "scanEvent" | "refreshToken"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -2746,6 +2749,228 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    ServiceFeedbackCampaign: {
+      payload: Prisma.$ServiceFeedbackCampaignPayload<ExtArgs>
+      fields: Prisma.ServiceFeedbackCampaignFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.ServiceFeedbackCampaignFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ServiceFeedbackCampaignPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.ServiceFeedbackCampaignFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ServiceFeedbackCampaignPayload>
+        }
+        findFirst: {
+          args: Prisma.ServiceFeedbackCampaignFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ServiceFeedbackCampaignPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.ServiceFeedbackCampaignFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ServiceFeedbackCampaignPayload>
+        }
+        findMany: {
+          args: Prisma.ServiceFeedbackCampaignFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ServiceFeedbackCampaignPayload>[]
+        }
+        create: {
+          args: Prisma.ServiceFeedbackCampaignCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ServiceFeedbackCampaignPayload>
+        }
+        createMany: {
+          args: Prisma.ServiceFeedbackCampaignCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.ServiceFeedbackCampaignCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ServiceFeedbackCampaignPayload>[]
+        }
+        delete: {
+          args: Prisma.ServiceFeedbackCampaignDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ServiceFeedbackCampaignPayload>
+        }
+        update: {
+          args: Prisma.ServiceFeedbackCampaignUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ServiceFeedbackCampaignPayload>
+        }
+        deleteMany: {
+          args: Prisma.ServiceFeedbackCampaignDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.ServiceFeedbackCampaignUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.ServiceFeedbackCampaignUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ServiceFeedbackCampaignPayload>[]
+        }
+        upsert: {
+          args: Prisma.ServiceFeedbackCampaignUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ServiceFeedbackCampaignPayload>
+        }
+        aggregate: {
+          args: Prisma.ServiceFeedbackCampaignAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateServiceFeedbackCampaign>
+        }
+        groupBy: {
+          args: Prisma.ServiceFeedbackCampaignGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ServiceFeedbackCampaignGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.ServiceFeedbackCampaignCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ServiceFeedbackCampaignCountAggregateOutputType> | number
+        }
+      }
+    }
+    ServiceFeedbackPromoter: {
+      payload: Prisma.$ServiceFeedbackPromoterPayload<ExtArgs>
+      fields: Prisma.ServiceFeedbackPromoterFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.ServiceFeedbackPromoterFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ServiceFeedbackPromoterPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.ServiceFeedbackPromoterFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ServiceFeedbackPromoterPayload>
+        }
+        findFirst: {
+          args: Prisma.ServiceFeedbackPromoterFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ServiceFeedbackPromoterPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.ServiceFeedbackPromoterFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ServiceFeedbackPromoterPayload>
+        }
+        findMany: {
+          args: Prisma.ServiceFeedbackPromoterFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ServiceFeedbackPromoterPayload>[]
+        }
+        create: {
+          args: Prisma.ServiceFeedbackPromoterCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ServiceFeedbackPromoterPayload>
+        }
+        createMany: {
+          args: Prisma.ServiceFeedbackPromoterCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.ServiceFeedbackPromoterCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ServiceFeedbackPromoterPayload>[]
+        }
+        delete: {
+          args: Prisma.ServiceFeedbackPromoterDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ServiceFeedbackPromoterPayload>
+        }
+        update: {
+          args: Prisma.ServiceFeedbackPromoterUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ServiceFeedbackPromoterPayload>
+        }
+        deleteMany: {
+          args: Prisma.ServiceFeedbackPromoterDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.ServiceFeedbackPromoterUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.ServiceFeedbackPromoterUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ServiceFeedbackPromoterPayload>[]
+        }
+        upsert: {
+          args: Prisma.ServiceFeedbackPromoterUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ServiceFeedbackPromoterPayload>
+        }
+        aggregate: {
+          args: Prisma.ServiceFeedbackPromoterAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateServiceFeedbackPromoter>
+        }
+        groupBy: {
+          args: Prisma.ServiceFeedbackPromoterGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ServiceFeedbackPromoterGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.ServiceFeedbackPromoterCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ServiceFeedbackPromoterCountAggregateOutputType> | number
+        }
+      }
+    }
+    ServiceFeedbackVote: {
+      payload: Prisma.$ServiceFeedbackVotePayload<ExtArgs>
+      fields: Prisma.ServiceFeedbackVoteFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.ServiceFeedbackVoteFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ServiceFeedbackVotePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.ServiceFeedbackVoteFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ServiceFeedbackVotePayload>
+        }
+        findFirst: {
+          args: Prisma.ServiceFeedbackVoteFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ServiceFeedbackVotePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.ServiceFeedbackVoteFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ServiceFeedbackVotePayload>
+        }
+        findMany: {
+          args: Prisma.ServiceFeedbackVoteFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ServiceFeedbackVotePayload>[]
+        }
+        create: {
+          args: Prisma.ServiceFeedbackVoteCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ServiceFeedbackVotePayload>
+        }
+        createMany: {
+          args: Prisma.ServiceFeedbackVoteCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.ServiceFeedbackVoteCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ServiceFeedbackVotePayload>[]
+        }
+        delete: {
+          args: Prisma.ServiceFeedbackVoteDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ServiceFeedbackVotePayload>
+        }
+        update: {
+          args: Prisma.ServiceFeedbackVoteUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ServiceFeedbackVotePayload>
+        }
+        deleteMany: {
+          args: Prisma.ServiceFeedbackVoteDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.ServiceFeedbackVoteUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.ServiceFeedbackVoteUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ServiceFeedbackVotePayload>[]
+        }
+        upsert: {
+          args: Prisma.ServiceFeedbackVoteUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ServiceFeedbackVotePayload>
+        }
+        aggregate: {
+          args: Prisma.ServiceFeedbackVoteAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateServiceFeedbackVote>
+        }
+        groupBy: {
+          args: Prisma.ServiceFeedbackVoteGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ServiceFeedbackVoteGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.ServiceFeedbackVoteCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ServiceFeedbackVoteCountAggregateOutputType> | number
+        }
+      }
+    }
     StaffAccessCode: {
       payload: Prisma.$StaffAccessCodePayload<ExtArgs>
       fields: Prisma.StaffAccessCodeFieldRefs
@@ -3729,6 +3954,46 @@ export const UserScalarFieldEnum = {
 export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
 
 
+export const ServiceFeedbackCampaignScalarFieldEnum = {
+  id: 'id',
+  organizationId: 'organizationId',
+  createdById: 'createdById',
+  name: 'name',
+  question: 'question',
+  active: 'active',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ServiceFeedbackCampaignScalarFieldEnum = (typeof ServiceFeedbackCampaignScalarFieldEnum)[keyof typeof ServiceFeedbackCampaignScalarFieldEnum]
+
+
+export const ServiceFeedbackPromoterScalarFieldEnum = {
+  id: 'id',
+  organizationId: 'organizationId',
+  campaignId: 'campaignId',
+  name: 'name',
+  code: 'code',
+  active: 'active',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ServiceFeedbackPromoterScalarFieldEnum = (typeof ServiceFeedbackPromoterScalarFieldEnum)[keyof typeof ServiceFeedbackPromoterScalarFieldEnum]
+
+
+export const ServiceFeedbackVoteScalarFieldEnum = {
+  id: 'id',
+  organizationId: 'organizationId',
+  campaignId: 'campaignId',
+  promoterId: 'promoterId',
+  rating: 'rating',
+  createdAt: 'createdAt'
+} as const
+
+export type ServiceFeedbackVoteScalarFieldEnum = (typeof ServiceFeedbackVoteScalarFieldEnum)[keyof typeof ServiceFeedbackVoteScalarFieldEnum]
+
+
 export const StaffAccessCodeScalarFieldEnum = {
   id: 'id',
   userId: 'userId',
@@ -4474,6 +4739,9 @@ export type GlobalOmitConfig = {
   restaurantStaffSession?: Prisma.RestaurantStaffSessionOmit
   organizationLocation?: Prisma.OrganizationLocationOmit
   user?: Prisma.UserOmit
+  serviceFeedbackCampaign?: Prisma.ServiceFeedbackCampaignOmit
+  serviceFeedbackPromoter?: Prisma.ServiceFeedbackPromoterOmit
+  serviceFeedbackVote?: Prisma.ServiceFeedbackVoteOmit
   staffAccessCode?: Prisma.StaffAccessCodeOmit
   asset?: Prisma.AssetOmit
   qrCode?: Prisma.QrCodeOmit

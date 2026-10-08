@@ -195,6 +195,21 @@ export type OrganizationLocation = Prisma.OrganizationLocationModel
  */
 export type User = Prisma.UserModel
 /**
+ * Model ServiceFeedbackCampaign
+ *
+ */
+export type ServiceFeedbackCampaign = Prisma.ServiceFeedbackCampaignModel
+/**
+ * Model ServiceFeedbackPromoter
+ *
+ */
+export type ServiceFeedbackPromoter = Prisma.ServiceFeedbackPromoterModel
+/**
+ * Model ServiceFeedbackVote
+ *
+ */
+export type ServiceFeedbackVote = Prisma.ServiceFeedbackVoteModel
+/**
  * Model StaffAccessCode
  *
  */

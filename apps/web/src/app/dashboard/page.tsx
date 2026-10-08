@@ -238,12 +238,20 @@ export default function DashboardPage() {
           </button>
 
           {(userRole === "OWNER" || userRole === "ADMIN") && (
-            <button
-              onClick={() => router.push("/restaurant/admin")}
-              className="rounded-lg bg-emerald-700 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-800"
-            >
-              Administración del restaurante
-            </button>
+            <>
+              <button
+                onClick={() => router.push("/feedback/admin")}
+                className="rounded-lg bg-sky-700 px-4 py-2 text-sm font-semibold text-white hover:bg-sky-800"
+              >
+                Encuestas QR
+              </button>
+              <button
+                onClick={() => router.push("/restaurant/admin")}
+                className="rounded-lg bg-emerald-700 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-800"
+              >
+                Administración del restaurante
+              </button>
+            </>
           )}
           {isPlatformAdmin && (
             <button

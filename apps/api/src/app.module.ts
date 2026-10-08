@@ -15,6 +15,7 @@ import { OrganizationLocationsModule } from "./organization-locations/organizati
 import { RestaurantModule } from "./restaurant/restaurant.module";
 import { PlatformAdminModule } from "./platform-admin/platform-admin.module";
 import { RestaurantDataLifecycleModule } from "./restaurant/restaurant-data-lifecycle.module";
+import { ServiceFeedbackModule } from "./service-feedback/service-feedback.module";
 
 @Module({
   imports: [
@@ -39,6 +40,7 @@ import { RestaurantDataLifecycleModule } from "./restaurant/restaurant-data-life
     RestaurantDataLifecycleModule,
     RestaurantModule,
     PlatformAdminModule,
+    ServiceFeedbackModule,
   ],
   providers: [
     {

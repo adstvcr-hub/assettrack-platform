@@ -82,6 +82,9 @@ export const ModelName = {
   RestaurantStaffSession: 'RestaurantStaffSession',
   OrganizationLocation: 'OrganizationLocation',
   User: 'User',
+  ServiceFeedbackCampaign: 'ServiceFeedbackCampaign',
+  ServiceFeedbackPromoter: 'ServiceFeedbackPromoter',
+  ServiceFeedbackVote: 'ServiceFeedbackVote',
   StaffAccessCode: 'StaffAccessCode',
   Asset: 'Asset',
   QrCode: 'QrCode',
@@ -677,6 +680,46 @@ export const UserScalarFieldEnum = {
 } as const
 
 export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
+
+
+export const ServiceFeedbackCampaignScalarFieldEnum = {
+  id: 'id',
+  organizationId: 'organizationId',
+  createdById: 'createdById',
+  name: 'name',
+  question: 'question',
+  active: 'active',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ServiceFeedbackCampaignScalarFieldEnum = (typeof ServiceFeedbackCampaignScalarFieldEnum)[keyof typeof ServiceFeedbackCampaignScalarFieldEnum]
+
+
+export const ServiceFeedbackPromoterScalarFieldEnum = {
+  id: 'id',
+  organizationId: 'organizationId',
+  campaignId: 'campaignId',
+  name: 'name',
+  code: 'code',
+  active: 'active',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ServiceFeedbackPromoterScalarFieldEnum = (typeof ServiceFeedbackPromoterScalarFieldEnum)[keyof typeof ServiceFeedbackPromoterScalarFieldEnum]
+
+
+export const ServiceFeedbackVoteScalarFieldEnum = {
+  id: 'id',
+  organizationId: 'organizationId',
+  campaignId: 'campaignId',
+  promoterId: 'promoterId',
+  rating: 'rating',
+  createdAt: 'createdAt'
+} as const
+
+export type ServiceFeedbackVoteScalarFieldEnum = (typeof ServiceFeedbackVoteScalarFieldEnum)[keyof typeof ServiceFeedbackVoteScalarFieldEnum]
 
 
 export const StaffAccessCodeScalarFieldEnum = {

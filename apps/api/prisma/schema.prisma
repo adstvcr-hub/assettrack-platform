@@ -203,6 +203,9 @@ model Organization {
   restaurantSupplierInvoices    RestaurantSupplierInvoice[]
   restaurantEmployeePayments    RestaurantEmployeePayment[]
   restaurantRecipeIngredients   RestaurantRecipeIngredient[]
+  serviceFeedbackCampaigns      ServiceFeedbackCampaign[]
+  serviceFeedbackPromoters      ServiceFeedbackPromoter[]
+  serviceFeedbackVotes          ServiceFeedbackVote[]
 
   restaurantTaxRateBps              Int                  @default(1300)
   restaurantTaxIncluded             Boolean              @default(false)
@@ -907,10 +910,64 @@ model User {
   restaurantSupplierInvoicesRecorded RestaurantSupplierInvoice[] @relation("SupplierInvoiceRecordedBy")
   restaurantEmployeePaymentsReceived RestaurantEmployeePayment[] @relation("EmployeePaymentRecipient")
   restaurantEmployeePaymentsRecorded RestaurantEmployeePayment[] @relation("EmployeePaymentRecordedBy")
+  serviceFeedbackCampaignsCreated ServiceFeedbackCampaign[] @relation("ServiceFeedbackCampaignCreatedBy")
 
   @@unique([organizationId, email])
   @@index([organizationId])
   @@map("users")
+}
+
+model ServiceFeedbackCampaign {
+  id             String                    @id @default(uuid())
+  organizationId String
+  createdById    String
+  name           String
+  question       String                    @default("¿Cómo califica el servicio recibido?")
+  active         Boolean                   @default(true)
+  createdAt      DateTime                  @default(now())
+  updatedAt      DateTime                  @updatedAt
+  organization   Organization              @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdBy      User                      @relation("ServiceFeedbackCampaignCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
+  promoters      ServiceFeedbackPromoter[]
+  votes          ServiceFeedbackVote[]
+
+  @@index([organizationId, active])
+  @@map("service_feedback_campaigns")
+}
+
+model ServiceFeedbackPromoter {
+  id             String                   @id @default(uuid())
+  organizationId String
+  campaignId     String
+  name           String
+  code           String                   @unique @default(uuid())
+  active         Boolean                  @default(true)
+  createdAt      DateTime                 @default(now())
+  updatedAt      DateTime                 @updatedAt
+  organization   Organization             @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  campaign       ServiceFeedbackCampaign  @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  votes          ServiceFeedbackVote[]
+
+  @@index([organizationId, active])
+  @@index([campaignId, active])
+  @@map("service_feedback_promoters")
+}
+
+model ServiceFeedbackVote {
+  id             String                  @id @default(uuid())
+  organizationId String
+  campaignId     String
+  promoterId     String
+  rating         Int
+  createdAt      DateTime                @default(now())
+  organization   Organization            @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  campaign       ServiceFeedbackCampaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  promoter       ServiceFeedbackPromoter @relation(fields: [promoterId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, createdAt])
+  @@index([campaignId, createdAt])
+  @@index([promoterId, createdAt])
+  @@map("service_feedback_votes")
 }
 
 model StaffAccessCode {
