@@ -2727,7 +2727,7 @@ export class RestaurantService {
     organizationId: string,
     item: { id: string; menuItemId: string; name: string; quantity: number },
   ) {
-    const ingredients = await tx.restaurantRecipeIngredient.findMany({
+    const recipeIngredients = await tx.restaurantRecipeIngredient.findMany({
       where: { organizationId, menuItemId: item.menuItemId, active: true },
       include: {
         product: {
@@ -2742,6 +2742,43 @@ export class RestaurantService {
       },
       orderBy: { productId: "asc" },
     });
+    let ingredients: Array<{
+      productId: string;
+      quantityPerMenuItem: number;
+      product: {
+        id: string;
+        name: string;
+        quantity: number;
+        unitCost: number;
+        active: boolean;
+      };
+    }> = recipeIngredients;
+    if (ingredients.length === 0) {
+      const directlyLinkedProduct =
+        await tx.restaurantInventoryProduct.findFirst({
+          where: {
+            organizationId,
+            menuItemId: item.menuItemId,
+            stockUnit: RestaurantInventoryUnit.UNIT,
+          },
+          select: {
+            id: true,
+            name: true,
+            quantity: true,
+            unitCost: true,
+            active: true,
+          },
+        });
+      if (directlyLinkedProduct) {
+        ingredients = [
+          {
+            productId: directlyLinkedProduct.id,
+            quantityPerMenuItem: 1,
+            product: directlyLinkedProduct,
+          },
+        ];
+      }
+    }
     for (const ingredient of ingredients) {
       if (!ingredient.product.active) {
         throw new ConflictException(

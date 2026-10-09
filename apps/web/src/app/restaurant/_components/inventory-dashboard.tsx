@@ -418,7 +418,17 @@ export default function InventoryDashboard() {
             <label className="text-sm font-bold">Cantidad mínima en unidad base<input required type="number" min="0" value={product.minimumQuantity} onChange={(e) => setProduct({ ...product, minimumQuantity: e.target.value })} className="mt-1 w-full rounded border p-3" /></label>
             <label className="text-sm font-bold">Costo unitario (₡)<input required type="number" min="0" value={product.unitCost} onChange={(e) => setProduct({ ...product, unitCost: e.target.value })} className="mt-1 w-full rounded border p-3" /></label>
             <label className="text-sm font-bold">Fecha de ingreso<input required type="date" value={product.receivedAt} onChange={(e) => setProduct({ ...product, receivedAt: e.target.value })} className="mt-1 w-full rounded border p-3" /></label>
-            <label className="text-sm font-bold sm:col-span-2">Relacionar con producto vendido<select value={product.menuItemId} onChange={(e) => setProduct({ ...product, menuItemId: e.target.value })} className="mt-1 w-full rounded border p-3"><option value="">Sin relación con el menú</option>{inventory?.menuItems.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label>
+            <label className="text-sm font-bold sm:col-span-2">
+              Relacionar con producto vendido
+              <select value={product.menuItemId} onChange={(e) => setProduct({ ...product, menuItemId: e.target.value })} className="mt-1 w-full rounded border p-3"><option value="">Sin relación con el menú</option>{inventory?.menuItems.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select>
+              {product.menuItemId ? (
+                <span className="mt-1 block text-xs font-normal text-emerald-800">
+                  {product.stockUnit === "UNIT"
+                    ? "Descuento automático: 1 unidad por cada producto entregado, salvo que configure una receta explícita."
+                    : "La relación identifica el producto, pero debe configurar una receta para descontar gramos o mililitros."}
+                </span>
+              ) : null}
+            </label>
             {product.productType === "LIQUOR" && <><input required value={product.liquorBrand} onChange={(e) => setProduct({ ...product, liquorBrand: e.target.value })} placeholder="Marca del licor" className="rounded border p-3" /><input required type="number" min="0" value={product.liquorInitialTareGrams} onChange={(e) => setProduct({ ...product, liquorInitialTareGrams: e.target.value })} placeholder="Tara del envase (gramos)" className="rounded border p-3" /></>}
             <button disabled={busy || !inventory?.categories.length} className="rounded bg-emerald-700 p-3 font-black text-white sm:col-span-2">Guardar producto</button>
           </form>
@@ -460,9 +470,11 @@ export default function InventoryDashboard() {
             <div>
               <h2 className="text-xl font-black">Recetas y consumo automático</h2>
               <p className="mt-1 text-sm text-slate-700">
-                Defina cuánto inventario consume una unidad vendida. El descuento
-                ocurre al marcar el producto como entregado y se revierte si la
-                orden entregada se corrige.
+                Defina cuánto inventario consume una unidad vendida. Los productos
+                relacionados directamente y medidos por unidad descuentan 1:1 si
+                no tienen receta. Una receta explícita reemplaza esa regla. El
+                descuento ocurre al marcar el producto como entregado y se revierte
+                si la orden entregada se corrige.
               </p>
             </div>
             <span className="rounded-full bg-white px-3 py-1 text-sm font-bold text-emerald-900">

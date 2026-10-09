@@ -1997,6 +1997,74 @@ describe("RestaurantService", () => {
         quantityDelta: -250,
       }),
     });
+    expect(prisma.restaurantInventoryProduct.findFirst).not.toHaveBeenCalled();
+  });
+
+  it("discounts a directly linked unit product one-to-one when no recipe exists", async () => {
+    const { prisma, service } = createService();
+    prisma.restaurantOrderItem.findFirst.mockResolvedValue({
+      id: "order-item-beer",
+      menuItemId: itemId,
+      name: "Imperial regular",
+      quantity: 3,
+      status: "RECEIVED",
+      station: "BAR",
+      order: {
+        table: { waiterId: null },
+        visit: {
+          responsibleStaffId: waiterActor.id,
+          status: "OPEN",
+          paymentStatus: "NOT_REQUIRED",
+        },
+      },
+    });
+    prisma.restaurantOrderItem.updateMany.mockResolvedValue({ count: 1 });
+    prisma.restaurantRecipeIngredient.findMany.mockResolvedValue([]);
+    prisma.restaurantInventoryProduct.findFirst.mockResolvedValue({
+      id: "imperial-stock",
+      name: "Imperial regular",
+      quantity: 122,
+      unitCost: 700,
+      active: true,
+    });
+    prisma.restaurantInventoryProduct.updateMany.mockResolvedValue({ count: 1 });
+
+    await service.updateStatus(waiterActor, "order-item-beer", {
+      status: "DELIVERED",
+    });
+
+    expect(prisma.restaurantInventoryProduct.findFirst).toHaveBeenCalledWith({
+      where: {
+        organizationId: "org-a",
+        menuItemId: itemId,
+        stockUnit: "UNIT",
+      },
+      select: {
+        id: true,
+        name: true,
+        quantity: true,
+        unitCost: true,
+        active: true,
+      },
+    });
+    expect(prisma.restaurantInventoryProduct.updateMany).toHaveBeenCalledWith({
+      where: {
+        id: "imperial-stock",
+        organizationId: "org-a",
+        active: true,
+        quantity: { gte: 3 },
+      },
+      data: { quantity: { decrement: 3 } },
+    });
+    expect(prisma.restaurantInventoryMovement.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({
+        productId: "imperial-stock",
+        orderItemId: "order-item-beer",
+        type: "CONSUMPTION",
+        quantityDelta: -3,
+        note: "Consumo automático: 3 × Imperial regular",
+      }),
+    });
   });
 
   it("blocks delivery when a recipe ingredient has insufficient inventory", async () => {
