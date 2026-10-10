@@ -1,0 +1,636 @@
+"use client";
+
+import { getSessionValue } from "@/lib/session";
+
+
+import { StaffAccountDetail } from "./staff-account-detail";
+import { BarOrderEntry } from "./bar-order-entry";
+import { API_URL, authenticatedFetch } from "@/lib/api";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { RestaurantSessionActions } from "./restaurant-session-actions";
+import { useOperationalAlerts } from "./use-operational-alerts";
+import {
+  StaffOrderCorrection,
+  type StaffCorrection,
+} from "./staff-order-correction";
+import {
+  PaymentMethodDialog,
+  type RestaurantPaymentDetails,
+} from "./payment-method-dialog";
+
+type Station = "KITCHEN" | "BAR";
+type OrderItem = {
+  id: string;
+  name: string;
+  quantity: number;
+  station: Station;
+  course: string;
+  status: string;
+  fulfillment: "DINE_IN" | "TAKEOUT" | "DELIVERY";
+  handedOffAt?: string | null;
+  serviceAction?: boolean;
+};
+type Order = {
+  id: string;
+  createdAt: string;
+  table: { name: string };
+  items: OrderItem[];
+  isDelayed: boolean;
+  thresholdMinutes?: number | null;
+};
+type Visit = {
+  id: string;
+  table: { name: string; kind: "DINING" | "BAR_SEAT" | "TAKEOUT_STATION" };
+  responsibleStaff?: {
+    id: string;
+    name: string;
+    restaurantRole: string;
+  } | null;
+  occupiesTable: boolean;
+  deliveryPhone?: string | null;
+  deliveryAddress?: string | null;
+  paymentStatus: "NOT_REQUIRED" | "PENDING" | "CONFIRMED" | "REJECTED";
+  paymentConfirmedAt?: string | null;
+  canClose: boolean;
+  canHandoffDelivery: boolean;
+  staffCorrections: StaffCorrection[];
+  correctionRequest?: {
+    orderId: string;
+    requestedAt: string;
+    note?: string | null;
+  } | null;
+  billing: {
+    grossSubtotal: number;
+    promotionCredit: number;
+    subtotal: number;
+    tax: number;
+    service: number;
+    total: number;
+    taxIncluded: boolean;
+    taxRateBps: number;
+    serviceRateBps: number;
+    serviceChargeEnabled: boolean;
+  };
+  items: Array<{
+    id: string;
+    name: string;
+    quantity: number;
+    price: number;
+    status: string;
+    orderCreatedAt: string;
+    fulfillment: "DINE_IN" | "TAKEOUT" | "DELIVERY";
+  }>;
+  transferDestinations: Array<{
+    id: string;
+    name: string;
+    kind: "DINING" | "BAR_SEAT" | "TAKEOUT_STATION";
+    activeAccountCount: number;
+  }>;
+};
+
+const labels: Record<string, string> = {
+  RECEIVED: "Recibido",
+  ACCEPTED: "Aceptado",
+  PREPARING: "En preparación",
+  READY: "Listo para entregar",
+};
+
+function formatElapsed(milliseconds: number) {
+  const totalSeconds = Math.max(0, Math.floor(milliseconds / 1000));
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+  return [hours, minutes, seconds]
+    .map((value) => String(value).padStart(2, "0"))
+    .join(":");
+}
+
+export function OperationalDashboard({ station }: { station: Station }) {
+  const router = useRouter();
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [visits, setVisits] = useState<Visit[]>([]);
+  const [error, setError] = useState("");
+  const [now, setNow] = useState(0);
+  const [closingVisitId, setClosingVisitId] = useState<string | null>(null);
+  const loadSequence = useRef(0);
+
+  const load = useCallback(async () => {
+    const sequence = ++loadSequence.current;
+    const [profileResponse, response, visitsResponse] = await Promise.all([
+      authenticatedFetch(`${API_URL}/api/v1/restaurant/profile`),
+      authenticatedFetch(`${API_URL}/api/v1/restaurant/orders`),
+      station === "BAR"
+        ? authenticatedFetch(`${API_URL}/api/v1/restaurant/visits`)
+        : Promise.resolve(null),
+    ]);
+    if (sequence !== loadSequence.current) return;
+    if (
+      profileResponse.status === 401 ||
+      response.status === 401 ||
+      visitsResponse?.status === 401
+    ) {
+      router.replace(`/?next=/restaurant/${station.toLowerCase()}`);
+      return;
+    }
+    if (profileResponse.ok) {
+      const profile = await profileResponse.json();
+      if (profile.restaurantRole !== station) {
+        router.replace("/restaurant/staff");
+        return;
+      }
+    }
+    if (response.status === 403) {
+      router.replace("/restaurant/staff");
+      return;
+    }
+    if (!response.ok) {
+      setError("No se pudo cargar la cola de trabajo");
+      return;
+    }
+    const [nextOrders, nextVisits] = await Promise.all([
+      response.json() as Promise<Order[]>,
+      visitsResponse?.ok
+        ? visitsResponse.json() as Promise<Visit[]>
+        : Promise.resolve(null),
+    ]);
+    // JSON parsing is asynchronous too: recheck before committing the snapshot.
+    if (sequence !== loadSequence.current) return;
+    setOrders(nextOrders);
+    if (nextVisits) setVisits(nextVisits);
+    setError("");
+  }, [router, station]);
+
+  useEffect(() => {
+    if (!getSessionValue("assettrack_token")) {
+      router.replace(`/?next=/restaurant/${station.toLowerCase()}`);
+      return;
+    }
+    let stopped = false;
+    let timer: ReturnType<typeof setTimeout>;
+    const poll = async () => {
+      try {
+        await load();
+      } catch {
+        if (!stopped) setError("Conexión interrumpida; conservamos la última información disponible.");
+      } finally {
+        if (!stopped) timer = setTimeout(() => void poll(), 5000);
+      }
+    };
+    void poll();
+    return () => {
+      stopped = true;
+      ++loadSequence.current;
+      clearTimeout(timer);
+    };
+  }, [load, router, station]);
+
+  useEffect(() => {
+    if (station !== "KITCHEN") return;
+    setNow(Date.now());
+    const timer = window.setInterval(() => setNow(Date.now()), 1000);
+    return () => window.clearInterval(timer);
+  }, [station]);
+
+  async function deliver(itemId: string) {
+    const response = await authenticatedFetch(
+      `${API_URL}/api/v1/restaurant/items/${itemId}/status`,
+      {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: "DELIVERED" }),
+      },
+    );
+    if (!response.ok) {
+      const body = await response.json().catch(() => ({}));
+      setError(body.message ?? "No se pudo confirmar la entrega");
+      return;
+    }
+    await load();
+  }
+
+  async function closeVisit(
+    visitId: string,
+    payment: RestaurantPaymentDetails,
+  ) {
+    const response = await authenticatedFetch(
+      `${API_URL}/api/v1/restaurant/visits/${visitId}/close`,
+      {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payment),
+      },
+    );
+    if (!response.ok) {
+      const body = await response.json().catch(() => ({}));
+      setError(body.message ?? "No se pudo cerrar la cuenta");
+      return;
+    }
+    setClosingVisitId(null);
+    await load();
+  }
+
+  async function updatePayment(visit: Visit, status: "CONFIRMED" | "REJECTED") {
+    const response = await authenticatedFetch(
+      `${API_URL}/api/v1/restaurant/visits/${visit.id}/payment`,
+      {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status }),
+      },
+    );
+    const body = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      setError(body.message ?? "No se pudo validar el contacto y el pago");
+      return;
+    }
+    await load();
+  }
+
+  async function handoffDelivery(visitId: string) {
+    const response = await authenticatedFetch(
+      `${API_URL}/api/v1/restaurant/visits/${visitId}/delivery-handoff`,
+      { method: "PATCH" },
+    );
+    const body = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      setError(body.message ?? "No se pudo cerrar la entrega");
+      return;
+    }
+    await load();
+  }
+
+  async function transferVisit(visitId: string, destinationTableId: string) {
+    const response = await authenticatedFetch(
+      `${API_URL}/api/v1/restaurant/visits/${visitId}/transfer`,
+      {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ destinationTableId }),
+      },
+    );
+    if (!response.ok) {
+      const body = await response.json().catch(() => ({}));
+      setError(body.message ?? "No se pudo trasladar la cuenta");
+      return;
+    }
+    await load();
+  }
+
+  const items = orders.flatMap((order) =>
+    order.items
+      .filter((item) => item.station === station || Boolean(item.serviceAction))
+      .map((item) => ({ order, item })),
+  );
+  const deliveryVisits = visits.filter((visit) => !visit.occupiesTable);
+  const pendingDeliveryVisits = deliveryVisits.filter(
+    (visit) => visit.paymentStatus === "PENDING",
+  );
+  const alerts = useOperationalAlerts(
+    station.toLowerCase(),
+    [
+      ...items
+        .filter(
+          ({ item }) =>
+            (item.station === station && item.status === "RECEIVED") ||
+            Boolean(item.serviceAction),
+        )
+        .map(({ item }) => item.id),
+      ...visits
+        .filter((visit) => Boolean(visit.correctionRequest))
+        .map((visit) => `correction-${visit.correctionRequest!.orderId}-${visit.correctionRequest!.requestedAt}`),
+      ...pendingDeliveryVisits.map((visit) => `payment-${visit.id}`),
+    ],
+    { maxAttempts: 3, notifyOnce: station === "BAR" },
+  );
+
+  return (
+    <main className="min-h-screen bg-slate-100 text-slate-950">
+      <header
+        className={`px-5 py-5 text-white transition-colors ${alerts.flash ? "bg-red-600" : "bg-slate-950"}`}
+      >
+        <div className="mx-auto flex max-w-6xl items-center justify-between">
+          <div>
+            <p className="text-sm font-semibold tracking-[0.2em] text-emerald-400">
+              ASSETTRACK · RESTAURANTE
+            </p>
+            <h1 className="text-3xl font-bold">
+              {station === "KITCHEN" ? "Cocina" : "Bar y barra"}
+            </h1>
+          </div>
+          <div className="flex flex-wrap items-center gap-3">
+            {station === "BAR" && (
+              <Link
+                href="/restaurant/admin/inventory"
+                className="rounded-lg border border-emerald-300 px-4 py-2 font-bold text-emerald-100"
+              >
+                Inventario
+              </Link>
+            )}
+            <span className="rounded-full bg-emerald-500 px-4 py-2 font-bold text-slate-950">
+              {items.length + pendingDeliveryVisits.length} pendientes
+            </span>
+            <RestaurantSessionActions />
+          </div>
+        </div>
+      </header>
+      <section className="mx-auto max-w-6xl space-y-4 p-5">
+        <div
+          className={`flex flex-wrap items-center justify-between gap-3 rounded-xl border p-4 ${alerts.flash ? "border-red-500 bg-yellow-200 ring-4 ring-red-300" : "bg-white"}`}
+        >
+          <p className="font-bold">
+            Alertas operativas: {alerts.enabled ? "activadas" : "desactivadas"}
+          </p>
+          <div className="flex flex-wrap gap-2">
+            <button
+              className="rounded bg-emerald-700 px-4 py-2 font-bold text-white"
+              onClick={alerts.enableAndTest}
+            >
+              {alerts.enabled
+                ? "Probar sonido y vibración"
+                : "Activar y probar alertas"}
+            </button>
+            {alerts.enabled && (
+              <button
+                className="rounded border px-4 py-2 font-semibold"
+                onClick={alerts.disable}
+              >
+                Desactivar
+              </button>
+            )}
+          </div>
+          <p className="w-full text-sm text-slate-600">
+            La vibración depende de la compatibilidad del dispositivo; el sonido
+            y la alerta visual permanecen disponibles.
+          </p>
+        </div>
+        {error && (
+          <p className="rounded-lg bg-red-100 p-4 text-red-800">{error}</p>
+        )}
+        {station === "BAR" && <BarOrderEntry onCreated={() => void load()} />}
+        {station === "BAR" && deliveryVisits.length > 0 && (
+          <section
+            className={`rounded-xl border-4 p-5 shadow-lg ${pendingDeliveryVisits.length ? "border-amber-500 bg-amber-50" : "border-violet-400 bg-violet-50"}`}
+          >
+            <h2 className="text-xl font-black text-slate-950">
+              Pedidos a domicilio bajo mi responsabilidad
+            </h2>
+            {pendingDeliveryVisits.length > 0 && (
+              <p className="mt-2 rounded-lg bg-red-600 p-3 font-black text-white">
+                ACCIÓN REQUERIDA: valide el contacto y el pago antes de enviar
+                estos productos a preparación.
+              </p>
+            )}
+            <div className="mt-4 grid gap-4 lg:grid-cols-2">
+              {deliveryVisits.map((visit) => (
+                <article
+                  key={visit.id}
+                  className="rounded-xl bg-white p-5 shadow"
+                >
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div>
+                      <p className="text-xs font-bold uppercase tracking-wider text-violet-700">
+                        Código originado en {visit.table.name}
+                      </p>
+                      <p className="mt-1 text-xl font-black">
+                        Entrega a domicilio
+                      </p>
+                    </div>
+                    <span
+                      className={`rounded-full px-3 py-1 text-sm font-black ${
+                        visit.paymentStatus === "CONFIRMED"
+                          ? "bg-emerald-100 text-emerald-900"
+                          : visit.paymentStatus === "REJECTED"
+                            ? "bg-red-100 text-red-900"
+                            : "bg-amber-200 text-amber-950"
+                      }`}
+                    >
+                      {visit.paymentStatus === "CONFIRMED"
+                        ? "PAGO CONFIRMADO"
+                        : visit.paymentStatus === "REJECTED"
+                          ? "PAGO RECHAZADO"
+                          : "PAGO PENDIENTE"}
+                    </span>
+                  </div>
+                  <dl className="mt-4 grid grid-cols-[auto_1fr] gap-x-3 gap-y-2 text-sm">
+                    <dt className="font-bold">Teléfono</dt>
+                    <dd>{visit.deliveryPhone || "No informado"}</dd>
+                    <dt className="font-bold">Dirección</dt>
+                    <dd>{visit.deliveryAddress || "No informada"}</dd>
+                  </dl>
+                  <StaffAccountDetail visit={visit} />
+                  {visit.staffCorrections.map((correction) => (
+                    <StaffOrderCorrection
+                      key={correction.orderId}
+                      correction={correction}
+                      requestedAt={
+                        visit.correctionRequest?.orderId === correction.orderId
+                          ? visit.correctionRequest.requestedAt
+                          : null
+                      }
+                      onSaved={load}
+                    />
+                  ))}
+                  <div className="mt-4 flex flex-wrap gap-2">
+                    {visit.paymentStatus !== "CONFIRMED" && (
+                      <button
+                        className="rounded-lg bg-emerald-700 px-4 py-3 font-black text-white"
+                        onClick={() => void updatePayment(visit, "CONFIRMED")}
+                      >
+                        Contacto validado y pago confirmado
+                      </button>
+                    )}
+                    {visit.paymentStatus === "PENDING" && (
+                      <button
+                        className="rounded-lg border-2 border-red-600 px-4 py-3 font-bold text-red-700"
+                        onClick={() => void updatePayment(visit, "REJECTED")}
+                      >
+                        Rechazar pago
+                      </button>
+                    )}
+                    {visit.paymentStatus === "CONFIRMED" && (
+                      <button
+                        disabled={!visit.canHandoffDelivery}
+                        className="rounded-lg bg-violet-800 px-4 py-3 font-bold text-white disabled:cursor-not-allowed disabled:opacity-40"
+                        onClick={() => void handoffDelivery(visit.id)}
+                      >
+                        {visit.canHandoffDelivery
+                          ? "Entregar a repartidor y cerrar"
+                          : "Preparación o entrega pendiente"}
+                      </button>
+                    )}
+                  </div>
+                </article>
+              ))}
+            </div>
+          </section>
+        )}
+        {items.length === 0 && (
+          <p className="rounded-xl border bg-white p-8 text-center text-lg">
+            {pendingDeliveryVisits.length
+              ? "No hay productos liberados para esta estación. Confirme el contacto y el pago del pedido externo mostrado arriba."
+              : "No hay pedidos pendientes para esta estación."}
+          </p>
+        )}
+        {station === "BAR" && visits.some((visit) => visit.occupiesTable) && (
+          <section className="rounded-xl border-2 border-violet-400 bg-violet-50 p-5">
+            <h2 className="text-xl font-black text-violet-950">
+              Cuentas bajo mi responsabilidad
+            </h2>
+            <div className="mt-3 grid gap-3 md:grid-cols-2">
+              {visits
+                .filter((visit) => visit.occupiesTable)
+                .map((visit) => (
+                  <article
+                    key={visit.id}
+                    className="rounded-lg bg-white p-4 shadow-sm"
+                  >
+                    <p className="font-bold">{visit.table.name}</p>
+                    {visit.table.kind === "DINING" && (
+                      <p className="mt-1 inline-flex rounded-full bg-amber-100 px-3 py-1 text-xs font-black text-amber-950 ring-1 ring-amber-300">
+                        COBERTURA TEMPORAL DE SALÓN
+                      </p>
+                    )}
+                    <p className="text-sm text-slate-600">
+                      Responsable: {visit.responsibleStaff?.name ?? "Sin asignar"}
+                    </p>
+                    <StaffAccountDetail visit={visit} />
+                    {visit.staffCorrections.map((correction) => (
+                      <StaffOrderCorrection
+                        key={correction.orderId}
+                        correction={correction}
+                        requestedAt={
+                          visit.correctionRequest?.orderId ===
+                          correction.orderId
+                            ? visit.correctionRequest.requestedAt
+                            : null
+                        }
+                        onSaved={load}
+                      />
+                    ))}
+                    <button
+                      disabled={!visit.canClose}
+                      className="mt-3 rounded bg-violet-800 px-4 py-2 font-bold text-white disabled:opacity-40"
+                      onClick={() => setClosingVisitId(visit.id)}
+                    >
+                      {visit.canClose ? "Cerrar cuenta" : "Entregas pendientes"}
+                    </button>
+                    <label className="mt-3 block text-sm font-semibold">
+                      Trasladar a otra posición
+                      <select
+                        className="mt-1 w-full rounded border bg-white p-2"
+                        defaultValue=""
+                        onChange={(event) => {
+                          const destinationId = event.target.value;
+                          event.target.value = "";
+                          if (destinationId) {
+                            void transferVisit(visit.id, destinationId);
+                          }
+                        }}
+                      >
+                        <option value="">Seleccione destino</option>
+                        {visit.transferDestinations.map((destination) => (
+                          <option key={destination.id} value={destination.id}>
+                            {destination.name}
+                            {destination.activeAccountCount
+                              ? ` · ${destination.activeAccountCount} cuenta(s)`
+                              : ""}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                  </article>
+                ))}
+            </div>
+          </section>
+        )}
+        {items.map(({ order, item }) => (
+          <article
+            key={item.id}
+            className={`rounded-xl border bg-white p-5 shadow-sm ${order.isDelayed ? "border-red-500 ring-2 ring-red-200" : ""}`}
+          >
+            {order.isDelayed && (
+              <p className="mb-3 rounded bg-red-100 p-3 font-bold text-red-900">
+                Atención: esta orden superó el umbral interno de espera.
+                Priorice y coordine con el mesero.
+              </p>
+            )}
+            <div className="flex flex-wrap items-center justify-between gap-4">
+              <div>
+                <p className="text-2xl font-bold">{order.table.name}</p>
+                <p className="mt-1 text-xl">
+                  {item.quantity} × {item.name}
+                </p>
+                <span
+                  className={`mt-3 inline-flex rounded-full px-4 py-2 text-lg font-black ${
+                    item.fulfillment === "DELIVERY"
+                      ? "bg-violet-100 text-violet-900 ring-2 ring-violet-300"
+                      : item.fulfillment === "TAKEOUT"
+                        ? "bg-fuchsia-100 text-fuchsia-900 ring-2 ring-fuchsia-300"
+                        : "bg-sky-100 text-sky-900 ring-2 ring-sky-300"
+                  }`}
+                >
+                  {item.fulfillment === "DELIVERY"
+                    ? "ENTREGA A DOMICILIO"
+                    : item.fulfillment === "TAKEOUT"
+                      ? "PARA LLEVAR"
+                      : "CONSUMO EN EL LOCAL"}
+                </span>
+                <p className="mt-2 text-sm text-slate-600">
+                  {labels[item.status] ?? item.status} · recibido a las{" "}
+                  {new Date(order.createdAt).toLocaleTimeString()}
+                </p>
+                {station === "KITCHEN" && (
+                  <p
+                    className={`mt-3 inline-flex rounded-lg px-4 py-2 text-lg font-black ${
+                      order.thresholdMinutes &&
+                      (new Date(item.handedOffAt ?? now).getTime() -
+                        new Date(order.createdAt).getTime()) /
+                        60_000 >=
+                        order.thresholdMinutes
+                        ? "bg-red-100 text-red-900 ring-2 ring-red-400"
+                        : order.thresholdMinutes &&
+                            (new Date(item.handedOffAt ?? now).getTime() -
+                              new Date(order.createdAt).getTime()) /
+                              60_000 >=
+                              order.thresholdMinutes * 0.75
+                          ? "bg-amber-100 text-amber-950 ring-2 ring-amber-400"
+                          : "bg-emerald-100 text-emerald-950 ring-2 ring-emerald-400"
+                    }`}
+                  >
+                    Tiempo de cocina:{" "}
+                    {formatElapsed(
+                      new Date(item.handedOffAt ?? now).getTime() -
+                        new Date(order.createdAt).getTime(),
+                    )}
+                    {item.handedOffAt ? " · entregado al responsable" : ""}
+                  </p>
+                )}
+              </div>
+              {item.serviceAction ? (
+                <button
+                  className="rounded-lg bg-violet-700 px-5 py-4 font-bold text-white"
+                  onClick={() => void deliver(item.id)}
+                >
+                  Confirmar entregado
+                </button>
+              ) : (
+                <span className="rounded-lg bg-amber-100 px-5 py-4 font-bold text-amber-900">
+                  Pendiente de entrega por el responsable de la cuenta
+                </span>
+              )}
+            </div>
+          </article>
+        ))}
+      </section>
+      <PaymentMethodDialog
+        open={Boolean(closingVisitId)}
+        onCancel={() => setClosingVisitId(null)}
+        onConfirm={(payment) => {
+          if (closingVisitId) return closeVisit(closingVisitId, payment);
+        }}
+      />
+    </main>
+  );
+}

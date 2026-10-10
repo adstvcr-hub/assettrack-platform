@@ -10,7 +10,8 @@
     "dev": "turbo run dev",
     "build": "turbo run build",
     "start": "pnpm --filter @assettrack/api start", 
-    "lint": "turbo run lint",
+    "lint": "node scripts/check-encoding.mjs && turbo run lint",
+    "check:encoding": "node scripts/check-encoding.mjs",
     "test": "turbo run test",
     "format": "prettier --write .",
     "format:check": "prettier --check ."

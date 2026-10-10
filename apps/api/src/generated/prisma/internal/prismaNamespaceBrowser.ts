@@ -52,8 +52,40 @@ export const AnyNull = runtime.AnyNull
 
 export const ModelName = {
   Organization: 'Organization',
+  RestaurantTable: 'RestaurantTable',
+  RestaurantVisit: 'RestaurantVisit',
+  RestaurantQrAccess: 'RestaurantQrAccess',
+  RestaurantLoyaltyMember: 'RestaurantLoyaltyMember',
+  RestaurantLoyaltyActivity: 'RestaurantLoyaltyActivity',
+  RestaurantRewardProgram: 'RestaurantRewardProgram',
+  RestaurantVisitTransfer: 'RestaurantVisitTransfer',
+  PlatformAdminEvent: 'PlatformAdminEvent',
+  RestaurantAnalyticsDaily: 'RestaurantAnalyticsDaily',
+  RestaurantAnalyticsProductDaily: 'RestaurantAnalyticsProductDaily',
+  UserManagementEvent: 'UserManagementEvent',
+  RestaurantMenuItem: 'RestaurantMenuItem',
+  RestaurantOrder: 'RestaurantOrder',
+  RestaurantOrderItem: 'RestaurantOrderItem',
+  RestaurantCashRegister: 'RestaurantCashRegister',
+  RestaurantCashSession: 'RestaurantCashSession',
+  RestaurantCashDayClose: 'RestaurantCashDayClose',
+  RestaurantSupplierInvoice: 'RestaurantSupplierInvoice',
+  RestaurantEmployeePayment: 'RestaurantEmployeePayment',
+  RestaurantInventoryCategory: 'RestaurantInventoryCategory',
+  RestaurantInventoryProduct: 'RestaurantInventoryProduct',
+  RestaurantRecipeIngredient: 'RestaurantRecipeIngredient',
+  RestaurantInventoryMovement: 'RestaurantInventoryMovement',
+  RestaurantLiquorWeighing: 'RestaurantLiquorWeighing',
+  RestaurantPromotion: 'RestaurantPromotion',
+  RestaurantItemEvent: 'RestaurantItemEvent',
+  RestaurantStaffEvent: 'RestaurantStaffEvent',
+  RestaurantStaffSession: 'RestaurantStaffSession',
   OrganizationLocation: 'OrganizationLocation',
   User: 'User',
+  ServiceFeedbackCampaign: 'ServiceFeedbackCampaign',
+  ServiceFeedbackPromoter: 'ServiceFeedbackPromoter',
+  ServiceFeedbackVote: 'ServiceFeedbackVote',
+  StaffAccessCode: 'StaffAccessCode',
   Asset: 'Asset',
   QrCode: 'QrCode',
   ScanEvent: 'ScanEvent',
@@ -81,10 +113,526 @@ export const OrganizationScalarFieldEnum = {
   name: 'name',
   slug: 'slug',
   createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
+  updatedAt: 'updatedAt',
+  restaurantTaxRateBps: 'restaurantTaxRateBps',
+  restaurantTaxIncluded: 'restaurantTaxIncluded',
+  restaurantServiceRateBps: 'restaurantServiceRateBps',
+  restaurantAccessEnabled: 'restaurantAccessEnabled',
+  restaurantDisplayName: 'restaurantDisplayName',
+  restaurantHeaderImageData: 'restaurantHeaderImageData',
+  restaurantUseHeaderImage: 'restaurantUseHeaderImage',
+  restaurantMenuBackgroundImageData: 'restaurantMenuBackgroundImageData',
+  restaurantMenuBackgroundEnabled: 'restaurantMenuBackgroundEnabled',
+  restaurantMenuBackgroundPosition: 'restaurantMenuBackgroundPosition',
+  restaurantMenuBackgroundSize: 'restaurantMenuBackgroundSize',
+  restaurantLatitude: 'restaurantLatitude',
+  restaurantLongitude: 'restaurantLongitude',
+  restaurantOrderRadiusMeters: 'restaurantOrderRadiusMeters',
+  restaurantOrderCorrectionMinutes: 'restaurantOrderCorrectionMinutes',
+  restaurantRetentionDays: 'restaurantRetentionDays'
 } as const
 
 export type OrganizationScalarFieldEnum = (typeof OrganizationScalarFieldEnum)[keyof typeof OrganizationScalarFieldEnum]
+
+
+export const RestaurantTableScalarFieldEnum = {
+  id: 'id',
+  organizationId: 'organizationId',
+  name: 'name',
+  code: 'code',
+  active: 'active',
+  createdAt: 'createdAt',
+  waiterId: 'waiterId',
+  serviceChargeEnabled: 'serviceChargeEnabled',
+  kind: 'kind'
+} as const
+
+export type RestaurantTableScalarFieldEnum = (typeof RestaurantTableScalarFieldEnum)[keyof typeof RestaurantTableScalarFieldEnum]
+
+
+export const RestaurantVisitScalarFieldEnum = {
+  id: 'id',
+  organizationId: 'organizationId',
+  tableId: 'tableId',
+  accessCode: 'accessCode',
+  status: 'status',
+  openedAt: 'openedAt',
+  closedAt: 'closedAt',
+  closedById: 'closedById',
+  closedByRole: 'closedByRole',
+  taxRateBps: 'taxRateBps',
+  taxIncluded: 'taxIncluded',
+  serviceRateBps: 'serviceRateBps',
+  serviceChargeEnabled: 'serviceChargeEnabled',
+  occupiesTable: 'occupiesTable',
+  deliveryPhone: 'deliveryPhone',
+  deliveryAddress: 'deliveryAddress',
+  paymentStatus: 'paymentStatus',
+  paymentConfirmedAt: 'paymentConfirmedAt',
+  paymentConfirmedById: 'paymentConfirmedById',
+  paymentMethod: 'paymentMethod',
+  paymentReference: 'paymentReference',
+  deliveryHandedOffAt: 'deliveryHandedOffAt',
+  deliveryHandedOffById: 'deliveryHandedOffById',
+  invoiceRequestStatus: 'invoiceRequestStatus',
+  invoiceRequestedAt: 'invoiceRequestedAt',
+  invoiceName: 'invoiceName',
+  invoiceEmail: 'invoiceEmail',
+  invoicePhone: 'invoicePhone',
+  invoiceTaxId: 'invoiceTaxId',
+  invoiceReference: 'invoiceReference',
+  responsibleStaffId: 'responsibleStaffId',
+  fallbackStaffId: 'fallbackStaffId',
+  receiptNumber: 'receiptNumber',
+  openedAnalyticsConsolidatedAt: 'openedAnalyticsConsolidatedAt',
+  closedAnalyticsConsolidatedAt: 'closedAnalyticsConsolidatedAt'
+} as const
+
+export type RestaurantVisitScalarFieldEnum = (typeof RestaurantVisitScalarFieldEnum)[keyof typeof RestaurantVisitScalarFieldEnum]
+
+
+export const RestaurantQrAccessScalarFieldEnum = {
+  id: 'id',
+  organizationId: 'organizationId',
+  tableId: 'tableId',
+  sessionKey: 'sessionKey',
+  insideLocal: 'insideLocal',
+  distanceMeters: 'distanceMeters',
+  accuracyMeters: 'accuracyMeters',
+  createdAt: 'createdAt',
+  analyticsConsolidatedAt: 'analyticsConsolidatedAt'
+} as const
+
+export type RestaurantQrAccessScalarFieldEnum = (typeof RestaurantQrAccessScalarFieldEnum)[keyof typeof RestaurantQrAccessScalarFieldEnum]
+
+
+export const RestaurantLoyaltyMemberScalarFieldEnum = {
+  id: 'id',
+  email: 'email',
+  nickname: 'nickname',
+  marketingOptIn: 'marketingOptIn',
+  marketingConsentAt: 'marketingConsentAt',
+  joinedAt: 'joinedAt',
+  updatedAt: 'updatedAt',
+  deletedAt: 'deletedAt',
+  assettrackPoints: 'assettrackPoints',
+  vipTier: 'vipTier'
+} as const
+
+export type RestaurantLoyaltyMemberScalarFieldEnum = (typeof RestaurantLoyaltyMemberScalarFieldEnum)[keyof typeof RestaurantLoyaltyMemberScalarFieldEnum]
+
+
+export const RestaurantLoyaltyActivityScalarFieldEnum = {
+  id: 'id',
+  memberId: 'memberId',
+  organizationId: 'organizationId',
+  visitId: 'visitId',
+  type: 'type',
+  points: 'points',
+  metadata: 'metadata',
+  createdAt: 'createdAt'
+} as const
+
+export type RestaurantLoyaltyActivityScalarFieldEnum = (typeof RestaurantLoyaltyActivityScalarFieldEnum)[keyof typeof RestaurantLoyaltyActivityScalarFieldEnum]
+
+
+export const RestaurantRewardProgramScalarFieldEnum = {
+  id: 'id',
+  organizationId: 'organizationId',
+  sponsor: 'sponsor',
+  name: 'name',
+  description: 'description',
+  pointsRequired: 'pointsRequired',
+  rewardType: 'rewardType',
+  menuItemId: 'menuItemId',
+  discountBps: 'discountBps',
+  maxDiscountAmount: 'maxDiscountAmount',
+  vipTier: 'vipTier',
+  active: 'active',
+  startsAt: 'startsAt',
+  endsAt: 'endsAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type RestaurantRewardProgramScalarFieldEnum = (typeof RestaurantRewardProgramScalarFieldEnum)[keyof typeof RestaurantRewardProgramScalarFieldEnum]
+
+
+export const RestaurantVisitTransferScalarFieldEnum = {
+  id: 'id',
+  visitId: 'visitId',
+  fromTableId: 'fromTableId',
+  toTableId: 'toTableId',
+  actorId: 'actorId',
+  createdAt: 'createdAt'
+} as const
+
+export type RestaurantVisitTransferScalarFieldEnum = (typeof RestaurantVisitTransferScalarFieldEnum)[keyof typeof RestaurantVisitTransferScalarFieldEnum]
+
+
+export const PlatformAdminEventScalarFieldEnum = {
+  id: 'id',
+  actorId: 'actorId',
+  action: 'action',
+  organizationId: 'organizationId',
+  targetUserId: 'targetUserId',
+  reason: 'reason',
+  metadata: 'metadata',
+  createdAt: 'createdAt'
+} as const
+
+export type PlatformAdminEventScalarFieldEnum = (typeof PlatformAdminEventScalarFieldEnum)[keyof typeof PlatformAdminEventScalarFieldEnum]
+
+
+export const RestaurantAnalyticsDailyScalarFieldEnum = {
+  id: 'id',
+  organizationId: 'organizationId',
+  date: 'date',
+  qrAccesses: 'qrAccesses',
+  uniqueQrSessions: 'uniqueQrSessions',
+  visitsOpened: 'visitsOpened',
+  visitsClosed: 'visitsClosed',
+  orders: 'orders',
+  grossSubtotal: 'grossSubtotal',
+  promotionCredit: 'promotionCredit',
+  subtotal: 'subtotal',
+  tax: 'tax',
+  service: 'service',
+  total: 'total',
+  itemsSold: 'itemsSold',
+  itemsCancelled: 'itemsCancelled',
+  dineInOrders: 'dineInOrders',
+  takeoutOrders: 'takeoutOrders',
+  deliveryOrders: 'deliveryOrders',
+  demandByHour: 'demandByHour',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type RestaurantAnalyticsDailyScalarFieldEnum = (typeof RestaurantAnalyticsDailyScalarFieldEnum)[keyof typeof RestaurantAnalyticsDailyScalarFieldEnum]
+
+
+export const RestaurantAnalyticsProductDailyScalarFieldEnum = {
+  id: 'id',
+  organizationId: 'organizationId',
+  date: 'date',
+  productName: 'productName',
+  quantity: 'quantity'
+} as const
+
+export type RestaurantAnalyticsProductDailyScalarFieldEnum = (typeof RestaurantAnalyticsProductDailyScalarFieldEnum)[keyof typeof RestaurantAnalyticsProductDailyScalarFieldEnum]
+
+
+export const UserManagementEventScalarFieldEnum = {
+  id: 'id',
+  organizationId: 'organizationId',
+  actorId: 'actorId',
+  targetUserId: 'targetUserId',
+  action: 'action',
+  metadata: 'metadata',
+  createdAt: 'createdAt'
+} as const
+
+export type UserManagementEventScalarFieldEnum = (typeof UserManagementEventScalarFieldEnum)[keyof typeof UserManagementEventScalarFieldEnum]
+
+
+export const RestaurantMenuItemScalarFieldEnum = {
+  id: 'id',
+  organizationId: 'organizationId',
+  name: 'name',
+  description: 'description',
+  price: 'price',
+  station: 'station',
+  course: 'course',
+  active: 'active',
+  productType: 'productType',
+  categories: 'categories',
+  origin: 'origin',
+  prepMinutes: 'prepMinutes',
+  alcoholic: 'alcoholic',
+  imageData: 'imageData',
+  createdAt: 'createdAt'
+} as const
+
+export type RestaurantMenuItemScalarFieldEnum = (typeof RestaurantMenuItemScalarFieldEnum)[keyof typeof RestaurantMenuItemScalarFieldEnum]
+
+
+export const RestaurantOrderScalarFieldEnum = {
+  id: 'id',
+  organizationId: 'organizationId',
+  tableId: 'tableId',
+  visitId: 'visitId',
+  accessCode: 'accessCode',
+  requestId: 'requestId',
+  createdAt: 'createdAt',
+  fulfillment: 'fulfillment',
+  promotionId: 'promotionId',
+  promotionTitle: 'promotionTitle',
+  promotionCredit: 'promotionCredit',
+  expectedMinutes: 'expectedMinutes',
+  thresholdMinutes: 'thresholdMinutes',
+  delayedAt: 'delayedAt',
+  analyticsConsolidatedAt: 'analyticsConsolidatedAt',
+  correctionCount: 'correctionCount',
+  lastCorrectionRequestId: 'lastCorrectionRequestId',
+  correctionRequestedAt: 'correctionRequestedAt',
+  correctionRequestNote: 'correctionRequestNote'
+} as const
+
+export type RestaurantOrderScalarFieldEnum = (typeof RestaurantOrderScalarFieldEnum)[keyof typeof RestaurantOrderScalarFieldEnum]
+
+
+export const RestaurantOrderItemScalarFieldEnum = {
+  id: 'id',
+  orderId: 'orderId',
+  menuItemId: 'menuItemId',
+  name: 'name',
+  price: 'price',
+  station: 'station',
+  course: 'course',
+  quantity: 'quantity',
+  fulfillment: 'fulfillment',
+  prepMinutes: 'prepMinutes',
+  status: 'status',
+  acceptedAt: 'acceptedAt',
+  readyAt: 'readyAt',
+  deliveredAt: 'deliveredAt',
+  handedOffAt: 'handedOffAt',
+  cancelledByGuestCorrection: 'cancelledByGuestCorrection'
+} as const
+
+export type RestaurantOrderItemScalarFieldEnum = (typeof RestaurantOrderItemScalarFieldEnum)[keyof typeof RestaurantOrderItemScalarFieldEnum]
+
+
+export const RestaurantCashRegisterScalarFieldEnum = {
+  id: 'id',
+  organizationId: 'organizationId',
+  name: 'name',
+  active: 'active',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type RestaurantCashRegisterScalarFieldEnum = (typeof RestaurantCashRegisterScalarFieldEnum)[keyof typeof RestaurantCashRegisterScalarFieldEnum]
+
+
+export const RestaurantCashSessionScalarFieldEnum = {
+  id: 'id',
+  organizationId: 'organizationId',
+  cashRegisterId: 'cashRegisterId',
+  responsibleUserId: 'responsibleUserId',
+  startedAt: 'startedAt',
+  endedAt: 'endedAt',
+  status: 'status',
+  openGuard: 'openGuard',
+  accountCount: 'accountCount',
+  salesTotal: 'salesTotal',
+  openingCash: 'openingCash',
+  expectedCash: 'expectedCash',
+  countedCash: 'countedCash',
+  discrepancy: 'discrepancy',
+  closeNote: 'closeNote'
+} as const
+
+export type RestaurantCashSessionScalarFieldEnum = (typeof RestaurantCashSessionScalarFieldEnum)[keyof typeof RestaurantCashSessionScalarFieldEnum]
+
+
+export const RestaurantCashDayCloseScalarFieldEnum = {
+  id: 'id',
+  organizationId: 'organizationId',
+  cashRegisterId: 'cashRegisterId',
+  businessDate: 'businessDate',
+  responsibleUserId: 'responsibleUserId',
+  closedAt: 'closedAt',
+  accountCount: 'accountCount',
+  salesTotal: 'salesTotal',
+  sessionCount: 'sessionCount',
+  openingCash: 'openingCash',
+  cashSales: 'cashSales',
+  sinpeSales: 'sinpeSales',
+  cardSales: 'cardSales',
+  otherSales: 'otherSales',
+  supplierInvoicesTotal: 'supplierInvoicesTotal',
+  supplierPaymentsTotal: 'supplierPaymentsTotal',
+  employeePaymentsTotal: 'employeePaymentsTotal',
+  expectedCash: 'expectedCash',
+  countedCash: 'countedCash',
+  discrepancy: 'discrepancy',
+  note: 'note'
+} as const
+
+export type RestaurantCashDayCloseScalarFieldEnum = (typeof RestaurantCashDayCloseScalarFieldEnum)[keyof typeof RestaurantCashDayCloseScalarFieldEnum]
+
+
+export const RestaurantSupplierInvoiceScalarFieldEnum = {
+  id: 'id',
+  organizationId: 'organizationId',
+  cashSessionId: 'cashSessionId',
+  recordedById: 'recordedById',
+  supplierName: 'supplierName',
+  invoiceNumber: 'invoiceNumber',
+  invoiceDate: 'invoiceDate',
+  amount: 'amount',
+  status: 'status',
+  paymentMethod: 'paymentMethod',
+  paidAt: 'paidAt',
+  note: 'note',
+  createdAt: 'createdAt'
+} as const
+
+export type RestaurantSupplierInvoiceScalarFieldEnum = (typeof RestaurantSupplierInvoiceScalarFieldEnum)[keyof typeof RestaurantSupplierInvoiceScalarFieldEnum]
+
+
+export const RestaurantEmployeePaymentScalarFieldEnum = {
+  id: 'id',
+  organizationId: 'organizationId',
+  cashSessionId: 'cashSessionId',
+  employeeId: 'employeeId',
+  recordedById: 'recordedById',
+  amount: 'amount',
+  paymentMethod: 'paymentMethod',
+  note: 'note',
+  paidAt: 'paidAt'
+} as const
+
+export type RestaurantEmployeePaymentScalarFieldEnum = (typeof RestaurantEmployeePaymentScalarFieldEnum)[keyof typeof RestaurantEmployeePaymentScalarFieldEnum]
+
+
+export const RestaurantInventoryCategoryScalarFieldEnum = {
+  id: 'id',
+  organizationId: 'organizationId',
+  name: 'name',
+  active: 'active',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type RestaurantInventoryCategoryScalarFieldEnum = (typeof RestaurantInventoryCategoryScalarFieldEnum)[keyof typeof RestaurantInventoryCategoryScalarFieldEnum]
+
+
+export const RestaurantInventoryProductScalarFieldEnum = {
+  id: 'id',
+  organizationId: 'organizationId',
+  categoryId: 'categoryId',
+  menuItemId: 'menuItemId',
+  name: 'name',
+  productType: 'productType',
+  presentation: 'presentation',
+  stockUnit: 'stockUnit',
+  unitsPerPresentation: 'unitsPerPresentation',
+  quantity: 'quantity',
+  minimumQuantity: 'minimumQuantity',
+  unitCost: 'unitCost',
+  receivedAt: 'receivedAt',
+  liquorBrand: 'liquorBrand',
+  liquorInitialTareGrams: 'liquorInitialTareGrams',
+  active: 'active',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type RestaurantInventoryProductScalarFieldEnum = (typeof RestaurantInventoryProductScalarFieldEnum)[keyof typeof RestaurantInventoryProductScalarFieldEnum]
+
+
+export const RestaurantRecipeIngredientScalarFieldEnum = {
+  id: 'id',
+  organizationId: 'organizationId',
+  menuItemId: 'menuItemId',
+  productId: 'productId',
+  quantityPerMenuItem: 'quantityPerMenuItem',
+  active: 'active',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type RestaurantRecipeIngredientScalarFieldEnum = (typeof RestaurantRecipeIngredientScalarFieldEnum)[keyof typeof RestaurantRecipeIngredientScalarFieldEnum]
+
+
+export const RestaurantInventoryMovementScalarFieldEnum = {
+  id: 'id',
+  organizationId: 'organizationId',
+  productId: 'productId',
+  orderItemId: 'orderItemId',
+  type: 'type',
+  quantityDelta: 'quantityDelta',
+  unitCost: 'unitCost',
+  occurredAt: 'occurredAt',
+  note: 'note'
+} as const
+
+export type RestaurantInventoryMovementScalarFieldEnum = (typeof RestaurantInventoryMovementScalarFieldEnum)[keyof typeof RestaurantInventoryMovementScalarFieldEnum]
+
+
+export const RestaurantLiquorWeighingScalarFieldEnum = {
+  id: 'id',
+  organizationId: 'organizationId',
+  productId: 'productId',
+  grossWeightGrams: 'grossWeightGrams',
+  netWeightGrams: 'netWeightGrams',
+  previousNetWeightGrams: 'previousNetWeightGrams',
+  consumedWeightGrams: 'consumedWeightGrams',
+  relatedOrderQuantity: 'relatedOrderQuantity',
+  measuredAt: 'measuredAt',
+  note: 'note'
+} as const
+
+export type RestaurantLiquorWeighingScalarFieldEnum = (typeof RestaurantLiquorWeighingScalarFieldEnum)[keyof typeof RestaurantLiquorWeighingScalarFieldEnum]
+
+
+export const RestaurantPromotionScalarFieldEnum = {
+  id: 'id',
+  organizationId: 'organizationId',
+  title: 'title',
+  productType: 'productType',
+  menuItemId: 'menuItemId',
+  creditAmount: 'creditAmount',
+  startsAt: 'startsAt',
+  endsAt: 'endsAt',
+  active: 'active',
+  createdById: 'createdById',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type RestaurantPromotionScalarFieldEnum = (typeof RestaurantPromotionScalarFieldEnum)[keyof typeof RestaurantPromotionScalarFieldEnum]
+
+
+export const RestaurantItemEventScalarFieldEnum = {
+  id: 'id',
+  itemId: 'itemId',
+  actorId: 'actorId',
+  status: 'status',
+  note: 'note',
+  createdAt: 'createdAt'
+} as const
+
+export type RestaurantItemEventScalarFieldEnum = (typeof RestaurantItemEventScalarFieldEnum)[keyof typeof RestaurantItemEventScalarFieldEnum]
+
+
+export const RestaurantStaffEventScalarFieldEnum = {
+  id: 'id',
+  organizationId: 'organizationId',
+  userId: 'userId',
+  actorId: 'actorId',
+  availability: 'availability',
+  reason: 'reason',
+  createdAt: 'createdAt'
+} as const
+
+export type RestaurantStaffEventScalarFieldEnum = (typeof RestaurantStaffEventScalarFieldEnum)[keyof typeof RestaurantStaffEventScalarFieldEnum]
+
+
+export const RestaurantStaffSessionScalarFieldEnum = {
+  id: 'id',
+  organizationId: 'organizationId',
+  userId: 'userId',
+  initialAvailability: 'initialAvailability',
+  startedAt: 'startedAt',
+  lastSeenAt: 'lastSeenAt',
+  endedAt: 'endedAt'
+} as const
+
+export type RestaurantStaffSessionScalarFieldEnum = (typeof RestaurantStaffSessionScalarFieldEnum)[keyof typeof RestaurantStaffSessionScalarFieldEnum]
 
 
 export const OrganizationLocationScalarFieldEnum = {
@@ -115,11 +663,77 @@ export const UserScalarFieldEnum = {
   name: 'name',
   passwordHash: 'passwordHash',
   role: 'role',
+  restaurantRole: 'restaurantRole',
+  restaurantAvailability: 'restaurantAvailability',
+  restaurantCashAuthorized: 'restaurantCashAuthorized',
+  restaurantPayPeriod: 'restaurantPayPeriod',
+  restaurantPayRate: 'restaurantPayRate',
+  restaurantStandardMinutesPerDay: 'restaurantStandardMinutesPerDay',
+  restaurantWorkDaysPerMonth: 'restaurantWorkDaysPerMonth',
+  restaurantCcssDeductionEnabled: 'restaurantCcssDeductionEnabled',
+  restaurantCcssDeductionBps: 'restaurantCcssDeductionBps',
+  active: 'active',
+  deactivatedAt: 'deactivatedAt',
+  sessionVersion: 'sessionVersion',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
 
 export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
+
+
+export const ServiceFeedbackCampaignScalarFieldEnum = {
+  id: 'id',
+  organizationId: 'organizationId',
+  createdById: 'createdById',
+  name: 'name',
+  question: 'question',
+  active: 'active',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ServiceFeedbackCampaignScalarFieldEnum = (typeof ServiceFeedbackCampaignScalarFieldEnum)[keyof typeof ServiceFeedbackCampaignScalarFieldEnum]
+
+
+export const ServiceFeedbackPromoterScalarFieldEnum = {
+  id: 'id',
+  organizationId: 'organizationId',
+  campaignId: 'campaignId',
+  name: 'name',
+  code: 'code',
+  active: 'active',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ServiceFeedbackPromoterScalarFieldEnum = (typeof ServiceFeedbackPromoterScalarFieldEnum)[keyof typeof ServiceFeedbackPromoterScalarFieldEnum]
+
+
+export const ServiceFeedbackVoteScalarFieldEnum = {
+  id: 'id',
+  organizationId: 'organizationId',
+  campaignId: 'campaignId',
+  promoterId: 'promoterId',
+  rating: 'rating',
+  createdAt: 'createdAt'
+} as const
+
+export type ServiceFeedbackVoteScalarFieldEnum = (typeof ServiceFeedbackVoteScalarFieldEnum)[keyof typeof ServiceFeedbackVoteScalarFieldEnum]
+
+
+export const StaffAccessCodeScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  code: 'code',
+  active: 'active',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  lastUsedAt: 'lastUsedAt',
+  revokedAt: 'revokedAt'
+} as const
+
+export type StaffAccessCodeScalarFieldEnum = (typeof StaffAccessCodeScalarFieldEnum)[keyof typeof StaffAccessCodeScalarFieldEnum]
 
 
 export const AssetScalarFieldEnum = {
@@ -174,6 +788,7 @@ export type ScanEventScalarFieldEnum = (typeof ScanEventScalarFieldEnum)[keyof t
 export const RefreshTokenScalarFieldEnum = {
   id: 'id',
   userId: 'userId',
+  restaurantStaffSessionId: 'restaurantStaffSessionId',
   tokenHash: 'tokenHash',
   expiresAt: 'expiresAt',
   createdAt: 'createdAt',
@@ -191,6 +806,14 @@ export const SortOrder = {
 export type SortOrder = (typeof SortOrder)[keyof typeof SortOrder]
 
 
+export const NullableJsonNullValueInput = {
+  DbNull: DbNull,
+  JsonNull: JsonNull
+} as const
+
+export type NullableJsonNullValueInput = (typeof NullableJsonNullValueInput)[keyof typeof NullableJsonNullValueInput]
+
+
 export const QueryMode = {
   default: 'default',
   insensitive: 'insensitive'
@@ -205,4 +828,13 @@ export const NullsOrder = {
 } as const
 
 export type NullsOrder = (typeof NullsOrder)[keyof typeof NullsOrder]
+
+
+export const JsonNullValueFilter = {
+  DbNull: DbNull,
+  JsonNull: JsonNull,
+  AnyNull: AnyNull
+} as const
+
+export type JsonNullValueFilter = (typeof JsonNullValueFilter)[keyof typeof JsonNullValueFilter]
 

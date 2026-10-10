@@ -1,12 +1,14 @@
 ﻿import {
   IsEmail,
+  IsBoolean,
   IsEnum,
   IsNotEmpty,
+  IsOptional,
   IsString,
   MaxLength,
   MinLength,
-} from 'class-validator';
-import { UserRole } from '../../generated/prisma/enums';
+} from "class-validator";
+import { RestaurantStaffRole, UserRole } from "../../generated/prisma/enums";
 
 export class CreateUserDto {
   @IsEmail()
@@ -25,4 +27,12 @@ export class CreateUserDto {
 
   @IsEnum(UserRole)
   role: UserRole = UserRole.USER;
+
+  @IsOptional()
+  @IsEnum(RestaurantStaffRole)
+  restaurantRole?: RestaurantStaffRole;
+
+  @IsOptional()
+  @IsBoolean()
+  createStaffAccessQr?: boolean;
 }
