@@ -186,6 +186,15 @@ export class RestaurantStaffController {
     return this.cash.daily(req.user, date);
   }
 
+  @Get("cash-registers/history")
+  cashHistory(
+    @Req() req: StaffRequest,
+    @Query("from") from?: string,
+    @Query("to") to?: string,
+  ) {
+    return this.cash.history(req.user, from, to);
+  }
+
   @Post("cash-registers/supplier-invoices")
   addSupplierInvoice(
     @Req() req: StaffRequest,

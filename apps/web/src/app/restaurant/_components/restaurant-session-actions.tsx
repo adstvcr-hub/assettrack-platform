@@ -2,7 +2,7 @@
 
 import { removeSessionValue } from "@/lib/session";
 import { API_URL, authenticatedFetch } from "@/lib/api";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 type SessionProfile = {
@@ -47,6 +47,7 @@ export function RestaurantSessionActions({
   admin?: boolean;
 }) {
   const router = useRouter();
+  const pathname = usePathname();
   const [choosing, setChoosing] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -186,7 +187,15 @@ export function RestaurantSessionActions({
         <button
           type="button"
           className="rounded border border-amber-300 px-4 py-2 font-semibold text-amber-200"
-          onClick={() => router.push("/restaurant/cashier")}
+          onClick={() => {
+            if (pathname !== "/restaurant/cashier") {
+              window.sessionStorage.setItem(
+                "restaurantCashReturnTo",
+                pathname,
+              );
+            }
+            router.push("/restaurant/cashier");
+          }}
         >
           {cashState.currentUserIsResponsible
             ? cashState.register.name

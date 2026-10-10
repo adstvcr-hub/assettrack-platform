@@ -922,6 +922,84 @@ export class RestaurantCashService {
     };
   }
 
+  async history(
+    actor: RestaurantActor,
+    requestedFrom?: string,
+    requestedTo?: string,
+  ) {
+    const user = await this.currentUser(actor);
+    if (!this.canAssume(actor, user)) {
+      throw new ForbiddenException("Cash register access required");
+    }
+    const timezone = await this.timezone(actor.organizationId);
+    const today = this.localDate(new Date(), timezone);
+    const to = requestedTo ?? today;
+    const defaultFromDate = new Date(`${to}T12:00:00.000Z`);
+    defaultFromDate.setUTCDate(defaultFromDate.getUTCDate() - 29);
+    const from = requestedFrom ?? defaultFromDate.toISOString().slice(0, 10);
+    const datePattern = /^\d{4}-\d{2}-\d{2}$/;
+    const fromDate = new Date(`${from}T00:00:00.000Z`);
+    const toDate = new Date(`${to}T00:00:00.000Z`);
+    if (
+      !datePattern.test(from) ||
+      !datePattern.test(to) ||
+      Number.isNaN(fromDate.getTime()) ||
+      Number.isNaN(toDate.getTime()) ||
+      fromDate.toISOString().slice(0, 10) !== from ||
+      toDate.toISOString().slice(0, 10) !== to
+    ) {
+      throw new BadRequestException("Use dates in YYYY-MM-DD format");
+    }
+    if (from > to) {
+      throw new BadRequestException(
+        "La fecha inicial no puede ser posterior a la fecha final",
+      );
+    }
+    const rangeDays =
+      Math.floor((toDate.getTime() - fromDate.getTime()) / 86400000) + 1;
+    if (rangeDays > 366) {
+      throw new BadRequestException(
+        "El historial permite consultar un máximo de 366 días",
+      );
+    }
+
+    const closes = await this.prisma.restaurantCashDayClose.findMany({
+      where: {
+        organizationId: actor.organizationId,
+        businessDate: { gte: from, lte: to },
+      },
+      include: {
+        cashRegister: { select: { id: true, name: true } },
+        responsibleUser: {
+          select: { id: true, name: true, restaurantRole: true },
+        },
+      },
+      orderBy: [{ businessDate: "desc" }, { closedAt: "desc" }],
+    });
+    const totals = closes.reduce(
+      (summary, close) => ({
+        accountCount: summary.accountCount + close.accountCount,
+        salesTotal: summary.salesTotal + close.salesTotal,
+        cashSales: summary.cashSales + close.cashSales,
+        sinpeSales: summary.sinpeSales + close.sinpeSales,
+        cardSales: summary.cardSales + close.cardSales,
+        otherSales: summary.otherSales + close.otherSales,
+        discrepancy: summary.discrepancy + close.discrepancy,
+      }),
+      {
+        accountCount: 0,
+        salesTotal: 0,
+        cashSales: 0,
+        sinpeSales: 0,
+        cardSales: 0,
+        otherSales: 0,
+        discrepancy: 0,
+      },
+    );
+
+    return { from, to, timezone, closes, totals };
+  }
+
   async employeeDaily(
     actor: RestaurantActor,
     requestedDate?: string,

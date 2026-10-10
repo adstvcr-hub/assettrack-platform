@@ -2,7 +2,7 @@
 
 import { API_URL, authenticatedFetch } from "@/lib/api";
 import { useRouter } from "next/navigation";
-import { FormEvent, useCallback, useEffect, useState } from "react";
+import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
 import { RestaurantSessionActions } from "../_components/restaurant-session-actions";
 
 type PaymentMethod = "CASH" | "SINPE" | "CARD" | "OTHER";
@@ -162,6 +162,44 @@ type Employee = {
   restaurantRole?: string | null;
 };
 
+type CashCloseHistory = {
+  from: string;
+  to: string;
+  timezone: string;
+  closes: Array<{
+    id: string;
+    businessDate: string;
+    closedAt: string;
+    accountCount: number;
+    salesTotal: number;
+    sessionCount: number;
+    openingCash: number;
+    cashSales: number;
+    sinpeSales: number;
+    cardSales: number;
+    otherSales: number;
+    expectedCash: number;
+    countedCash: number;
+    discrepancy: number;
+    note?: string | null;
+    cashRegister: { id: string; name: string };
+    responsibleUser: {
+      id: string;
+      name: string;
+      restaurantRole?: string | null;
+    };
+  }>;
+  totals: {
+    accountCount: number;
+    salesTotal: number;
+    cashSales: number;
+    sinpeSales: number;
+    cardSales: number;
+    otherSales: number;
+    discrepancy: number;
+  };
+};
+
 const paymentLabels: Record<PaymentMethod, string> = {
   CASH: "Efectivo",
   SINPE: "SINPE",
@@ -180,6 +218,12 @@ function money(value: number) {
 function todayInput() {
   const now = new Date();
   return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+}
+
+function daysAgoInput(days: number) {
+  const date = new Date();
+  date.setDate(date.getDate() - days);
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
 }
 
 function Metric({ label, value }: { label: string; value: string | number }) {
@@ -215,6 +259,12 @@ export default function RestaurantCashierPage() {
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
+  const [historyFrom, setHistoryFrom] = useState(daysAgoInput(29));
+  const [historyTo, setHistoryTo] = useState(todayInput());
+  const [closeHistory, setCloseHistory] = useState<CashCloseHistory | null>(null);
+  const [historyError, setHistoryError] = useState("");
+  const [historyBusy, setHistoryBusy] = useState(false);
+  const historyLoaded = useRef(false);
 
   const load = useCallback(async () => {
     const profileResponse = await authenticatedFetch(`${API_URL}/api/v1/restaurant/profile`);
@@ -263,6 +313,34 @@ export default function RestaurantCashierPage() {
     const timer = window.setInterval(() => void load(), 10000);
     return () => window.clearInterval(timer);
   }, [load]);
+
+  const loadCloseHistory = useCallback(
+    async (from: string, to: string) => {
+      setHistoryBusy(true);
+      setHistoryError("");
+      const response = await authenticatedFetch(
+        `${API_URL}/api/v1/restaurant/cash-registers/history?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`,
+      );
+      const body = await response.json().catch(() => ({}));
+      setHistoryBusy(false);
+      if (response.status === 401) {
+        router.replace("/");
+        return;
+      }
+      if (!response.ok) {
+        setHistoryError(body.message ?? "No se pudo consultar el historial de cierres.");
+        return;
+      }
+      setCloseHistory(body as CashCloseHistory);
+    },
+    [router],
+  );
+
+  useEffect(() => {
+    if (!cash?.canAccess || historyLoaded.current) return;
+    historyLoaded.current = true;
+    void loadCloseHistory(historyFrom, historyTo);
+  }, [cash?.canAccess, historyFrom, historyTo, loadCloseHistory]);
 
   async function runMutation(
     path: string,
@@ -365,6 +443,16 @@ export default function RestaurantCashierPage() {
   const expectedCash = cash?.currentReconciliation?.expectedCash ?? 0;
   const liveDiscrepancy = countedCash === "" ? null : Number(countedCash) - expectedCash;
 
+  function returnToOrigin() {
+    const stored = window.sessionStorage.getItem("restaurantCashReturnTo");
+    const destination =
+      stored?.startsWith("/restaurant/") && stored !== "/restaurant/cashier"
+        ? stored
+        : "/restaurant/staff";
+    window.sessionStorage.removeItem("restaurantCashReturnTo");
+    router.push(destination);
+  }
+
   return (
     <main className="min-h-screen bg-slate-100 text-slate-950">
       <header className="bg-slate-950 px-5 py-5 text-white">
@@ -373,7 +461,16 @@ export default function RestaurantCashierPage() {
             <p className="text-xs font-bold uppercase tracking-[0.2em] text-amber-300">RESPONSABILIDAD DE CAJA</p>
             <h1 className="text-2xl font-black">{cash?.register.name ?? "Caja"}</h1>
           </div>
-          <RestaurantSessionActions />
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              onClick={returnToOrigin}
+              className="rounded border border-white/50 px-4 py-2 font-bold text-white"
+            >
+              Volver al módulo anterior
+            </button>
+            <RestaurantSessionActions />
+          </div>
         </div>
       </header>
 
@@ -439,6 +536,81 @@ export default function RestaurantCashierPage() {
                 <div className="mt-5 rounded-xl bg-emerald-50 p-4 text-emerald-950">
                   <p className="font-black">Cierre general registrado</p><p>Responsable: {cash.dayClose.responsibleUser.name}</p><p>{cash.dayClose.accountCount} cuentas · {money(cash.dayClose.salesTotal)}</p><p>Efectivo contado: {money(cash.dayClose.countedCash)} · Diferencia: {money(cash.dayClose.discrepancy)}</p>
                 </div>
+              )}
+            </section>
+
+            <section className="rounded-2xl border bg-white p-6 shadow-sm">
+              <div className="flex flex-wrap items-start justify-between gap-4">
+                <div>
+                  <h2 className="text-xl font-black">Historial de cierres</h2>
+                  <p className="mt-1 text-sm text-slate-600">
+                    Consulte los cierres generales registrados dentro de un rango de fechas.
+                  </p>
+                </div>
+                {closeHistory && (
+                  <span className="rounded-full bg-slate-100 px-3 py-1 text-sm font-bold">
+                    {closeHistory.closes.length} cierre(s)
+                  </span>
+                )}
+              </div>
+              <form
+                className="mt-4 flex flex-wrap items-end gap-3"
+                onSubmit={(event) => {
+                  event.preventDefault();
+                  void loadCloseHistory(historyFrom, historyTo);
+                }}
+              >
+                <label className="font-semibold">
+                  Desde
+                  <input type="date" required value={historyFrom} onChange={(event) => setHistoryFrom(event.target.value)} className="mt-1 block rounded border p-3" />
+                </label>
+                <label className="font-semibold">
+                  Hasta
+                  <input type="date" required value={historyTo} onChange={(event) => setHistoryTo(event.target.value)} className="mt-1 block rounded border p-3" />
+                </label>
+                <button disabled={historyBusy} className="rounded-xl bg-slate-950 px-5 py-3 font-black text-white disabled:opacity-40">
+                  {historyBusy ? "Consultando…" : "Consultar cierres"}
+                </button>
+              </form>
+              {historyError && <p role="alert" className="mt-4 rounded-xl bg-red-100 p-4 font-semibold text-red-900">{historyError}</p>}
+              {closeHistory && (
+                <>
+                  <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                    <Metric label="Cuentas cerradas" value={closeHistory.totals.accountCount} />
+                    <Metric label="Ventas del rango" value={money(closeHistory.totals.salesTotal)} />
+                    <Metric label="Ventas en efectivo" value={money(closeHistory.totals.cashSales)} />
+                    <Metric label="Diferencia acumulada" value={money(closeHistory.totals.discrepancy)} />
+                  </div>
+                  <div className="mt-5 overflow-x-auto">
+                    <table className="w-full min-w-[1500px] text-left text-sm">
+                      <thead className="bg-slate-100">
+                        <tr><th className="p-3">Fecha</th><th className="p-3">Caja</th><th className="p-3">Responsable</th><th className="p-3">Hora de cierre</th><th className="p-3">Cuentas</th><th className="p-3">Ventas</th><th className="p-3">Efectivo</th><th className="p-3">SINPE</th><th className="p-3">Tarjeta</th><th className="p-3">Otros</th><th className="p-3">Inicial</th><th className="p-3">Esperado</th><th className="p-3">Contado</th><th className="p-3">Diferencia</th><th className="p-3">Observación</th></tr>
+                      </thead>
+                      <tbody>
+                        {closeHistory.closes.map((close) => (
+                          <tr key={close.id} className="border-t align-top">
+                            <td className="p-3 font-bold">{close.businessDate}</td>
+                            <td className="p-3">{close.cashRegister.name}</td>
+                            <td className="p-3">{close.responsibleUser.name}</td>
+                            <td className="p-3">{new Date(close.closedAt).toLocaleString("es-CR")}</td>
+                            <td className="p-3">{close.accountCount}</td>
+                            <td className="p-3 font-bold">{money(close.salesTotal)}</td>
+                            <td className="p-3">{money(close.cashSales)}</td>
+                            <td className="p-3">{money(close.sinpeSales)}</td>
+                            <td className="p-3">{money(close.cardSales)}</td>
+                            <td className="p-3">{money(close.otherSales)}</td>
+                            <td className="p-3">{money(close.openingCash)}</td>
+                            <td className="p-3">{money(close.expectedCash)}</td>
+                            <td className="p-3">{money(close.countedCash)}</td>
+                            <td className={`p-3 font-black ${close.discrepancy === 0 ? "text-emerald-700" : "text-red-700"}`}>{money(close.discrepancy)}</td>
+                            <td className="max-w-64 whitespace-normal p-3">{close.note ?? "—"}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                    {closeHistory.closes.length === 0 && <p className="p-4 text-sm text-slate-500">No existen cierres generales en el rango seleccionado.</p>}
+                  </div>
+                </>
               )}
             </section>
 
