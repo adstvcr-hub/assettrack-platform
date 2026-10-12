@@ -250,6 +250,152 @@ function Metric({ label, value }: { label: string; value: string | number }) {
   );
 }
 
+const historyMetricStyles = {
+  neutral: "border-slate-200 bg-slate-50 text-slate-950",
+  green: "border-emerald-200 bg-emerald-50 text-emerald-950",
+  blue: "border-blue-200 bg-blue-50 text-blue-950",
+  amber: "border-amber-200 bg-amber-50 text-amber-950",
+  red: "border-red-200 bg-red-50 text-red-950",
+};
+
+function HistoryMetric({
+  label,
+  value,
+  tone = "neutral",
+  note,
+}: {
+  label: string;
+  value: string | number;
+  tone?: keyof typeof historyMetricStyles;
+  note?: string;
+}) {
+  return (
+    <div className={`rounded-xl border p-4 ${historyMetricStyles[tone]}`}>
+      <p className="text-xs font-bold uppercase tracking-wide opacity-70">{label}</p>
+      <p className="mt-2 text-2xl font-black">{value}</p>
+      {note && <p className="mt-1 text-xs font-semibold opacity-70">{note}</p>}
+    </div>
+  );
+}
+
+function CashCloseHistoryCard({
+  close,
+  initiallyOpen,
+}: {
+  close: CashCloseHistory["closes"][number];
+  initiallyOpen: boolean;
+}) {
+  const totalCashOutflows = Math.max(
+    0,
+    close.openingCash + close.cashSales - close.expectedCash,
+  );
+  const otherCashOutflows = Math.max(
+    0,
+    totalCashOutflows - close.employeePaymentSummary.cashEmployeePayments,
+  );
+  const reconciled = close.discrepancy === 0;
+
+  return (
+    <details open={initiallyOpen} className="group overflow-hidden rounded-2xl border border-slate-300 bg-white shadow-sm">
+      <summary className="flex cursor-pointer list-none flex-wrap items-start justify-between gap-4 bg-slate-950 p-5 text-white marker:hidden">
+        <div>
+          <p className="text-xs font-black uppercase tracking-[0.16em] text-emerald-400">{close.cashRegister.name}</p>
+          <h3 className="mt-1 text-xl font-black">Cierre del {close.businessDate}</h3>
+          <p className="mt-2 text-sm text-slate-300">Responsable: {close.responsibleUser.name}</p>
+          <p className="text-sm text-slate-300">Registrado: {new Date(close.closedAt).toLocaleString("es-CR")}</p>
+        </div>
+        <div className="flex flex-col items-end gap-2">
+          <span className={`rounded-full px-3 py-1 text-xs font-black ${reconciled ? "bg-emerald-100 text-emerald-800" : "bg-red-100 text-red-800"}`}>
+            {reconciled ? "Cierre conciliado" : "Revisar diferencia"}
+          </span>
+          <span className="text-sm font-bold text-slate-300 group-open:hidden">Mostrar detalle</span>
+          <span className="hidden text-sm font-bold text-slate-300 group-open:inline">Ocultar detalle</span>
+        </div>
+      </summary>
+
+      <div className="space-y-6 p-5">
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <HistoryMetric label="Ventas totales" value={money(close.salesTotal)} tone="blue" note={`${close.accountCount} cuenta(s)`} />
+          <HistoryMetric label="Pagos inmediatos" value={money(close.employeePaymentSummary.employeePaymentsTotal)} tone="amber" note="Personal" />
+          <HistoryMetric label="Efectivo esperado" value={money(close.expectedCash)} tone="green" />
+          <HistoryMetric label="Diferencia" value={money(close.discrepancy)} tone={reconciled ? "green" : "red"} />
+        </div>
+
+        <section>
+          <h4 className="font-black">Ventas por método de cobro</h4>
+          <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <HistoryMetric label="Efectivo" value={money(close.cashSales)} tone="green" />
+            <HistoryMetric label="SINPE" value={money(close.sinpeSales)} tone="blue" />
+            <HistoryMetric label="Tarjeta" value={money(close.cardSales)} tone="neutral" />
+            <HistoryMetric label="Otros" value={money(close.otherSales)} tone="neutral" />
+          </div>
+        </section>
+
+        <section>
+          <h4 className="font-black">Conciliación del efectivo</h4>
+          <p className="mt-1 text-sm text-slate-600">Solo los movimientos físicos modifican el efectivo esperado.</p>
+          <div className="mt-3 grid gap-4 lg:grid-cols-[1.4fr_.6fr]">
+            <div className="overflow-hidden rounded-xl border">
+              <div className="flex justify-between gap-4 border-b p-3"><span>Efectivo inicial</span><strong>{money(close.openingCash)}</strong></div>
+              <div className="flex justify-between gap-4 border-b p-3 text-emerald-800"><span>Ventas en efectivo</span><strong>+ {money(close.cashSales)}</strong></div>
+              <div className="flex justify-between gap-4 border-b bg-red-50 p-3 text-red-800"><span>Pagos al personal en efectivo</span><strong>− {close.employeePaymentSummary.breakdownComplete ? money(close.employeePaymentSummary.cashEmployeePayments) : "Sin desglose"}</strong></div>
+              <div className="flex justify-between gap-4 border-b bg-red-50 p-3 text-red-800"><span>Otros egresos en efectivo</span><strong>− {close.employeePaymentSummary.breakdownComplete ? money(otherCashOutflows) : money(totalCashOutflows)}</strong></div>
+              <div className="flex justify-between gap-4 bg-slate-950 p-4 text-white"><span className="font-black">Efectivo esperado</span><strong className="text-lg">{money(close.expectedCash)}</strong></div>
+            </div>
+            <div className={`grid content-center rounded-xl border p-5 text-center ${reconciled ? "border-emerald-200 bg-emerald-50 text-emerald-950" : "border-red-200 bg-red-50 text-red-950"}`}>
+              <span className="text-sm font-bold opacity-70">Efectivo contado</span>
+              <strong className="my-2 text-3xl">{money(close.countedCash)}</strong>
+              <span className="text-sm font-black">Diferencia: {money(close.discrepancy)}</span>
+            </div>
+          </div>
+        </section>
+
+        <section>
+          <h4 className="font-black">Pagos inmediatos al personal</h4>
+          <p className="mt-1 text-sm text-slate-600">El método determina si el pago reduce el efectivo físico de la caja.</p>
+          <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+            <HistoryMetric label="Efectivo" value={money(close.employeePaymentSummary.cashEmployeePayments)} tone="green" note="Reduce la caja" />
+            <HistoryMetric label="SINPE" value={money(close.employeePaymentSummary.sinpeEmployeePayments)} tone="blue" note="No afecta efectivo" />
+            <HistoryMetric label="Tarjeta" value={money(close.employeePaymentSummary.cardEmployeePayments)} note="No afecta efectivo" />
+            <HistoryMetric label="Otros" value={money(close.employeePaymentSummary.otherEmployeePayments)} note="No afecta efectivo" />
+            <HistoryMetric label="Total pagado" value={money(close.employeePaymentSummary.employeePaymentsTotal)} tone="amber" />
+          </div>
+
+          {close.employeePayments.length > 0 && (
+            <div className="mt-4 overflow-x-auto rounded-xl border">
+              <table className="w-full min-w-[900px] text-left text-sm">
+                <thead className="bg-slate-100">
+                  <tr><th className="p-3">Empleado</th><th className="p-3">Fecha y hora</th><th className="p-3">Monto</th><th className="p-3">Método</th><th className="p-3">Impacto en efectivo</th><th className="p-3">Registró</th><th className="p-3">Detalle</th></tr>
+                </thead>
+                <tbody>
+                  {close.employeePayments.map((payment) => (
+                    <tr key={payment.id} className="border-t">
+                      <td className="p-3 font-bold">{payment.employee.name}</td>
+                      <td className="p-3">{new Date(payment.paidAt).toLocaleString("es-CR")}</td>
+                      <td className="p-3 font-bold">{money(payment.amount)}</td>
+                      <td className="p-3"><span className={`rounded-full px-2 py-1 text-xs font-black ${payment.paymentMethod === "CASH" ? "bg-emerald-100 text-emerald-800" : payment.paymentMethod === "SINPE" ? "bg-blue-100 text-blue-800" : "bg-slate-100 text-slate-700"}`}>{paymentLabels[payment.paymentMethod]}</span></td>
+                      <td className={`p-3 font-bold ${payment.paymentMethod === "CASH" ? "text-red-700" : "text-slate-600"}`}>{payment.paymentMethod === "CASH" ? `Resta ${money(payment.amount)}` : "No afecta efectivo"}</td>
+                      <td className="p-3">{payment.recordedBy.name}</td>
+                      <td className="p-3">{payment.note ?? "—"}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+
+          {!close.employeePaymentSummary.breakdownComplete && (
+            <p className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm font-semibold text-amber-950">El cierre conserva el total pagado, pero parte del detalle individual ya no está disponible. El saldo sin método conocido no se atribuye automáticamente al efectivo.</p>
+          )}
+          {close.employeePaymentSummary.employeePaymentsTotal === 0 && <p className="mt-4 rounded-xl border border-dashed p-4 text-sm text-slate-500">No se registraron pagos inmediatos al personal en este cierre.</p>}
+        </section>
+
+        {close.note && <p className="rounded-xl bg-slate-100 p-4 text-sm"><strong>Observación:</strong> {close.note}</p>}
+      </div>
+    </details>
+  );
+}
+
 export default function RestaurantCashierPage() {
   const router = useRouter();
   const [profile, setProfile] = useState<{ id: string; name: string } | null>(null);
@@ -569,7 +715,7 @@ export default function RestaurantCashierPage() {
                 )}
               </div>
               <form
-                className="mt-4 flex flex-wrap items-end gap-3"
+                className="mt-4 grid gap-3 rounded-xl border border-slate-200 bg-slate-50 p-4 sm:grid-cols-2 lg:grid-cols-[1fr_1fr_auto]"
                 onSubmit={(event) => {
                   event.preventDefault();
                   void loadCloseHistory(historyFrom, historyTo);
@@ -577,13 +723,13 @@ export default function RestaurantCashierPage() {
               >
                 <label className="font-semibold">
                   Desde
-                  <input type="date" required value={historyFrom} onChange={(event) => setHistoryFrom(event.target.value)} className="mt-1 block rounded border p-3" />
+                  <input type="date" required value={historyFrom} onChange={(event) => setHistoryFrom(event.target.value)} className="mt-1 block w-full rounded border bg-white p-3" />
                 </label>
                 <label className="font-semibold">
                   Hasta
-                  <input type="date" required value={historyTo} onChange={(event) => setHistoryTo(event.target.value)} className="mt-1 block rounded border p-3" />
+                  <input type="date" required value={historyTo} onChange={(event) => setHistoryTo(event.target.value)} className="mt-1 block w-full rounded border bg-white p-3" />
                 </label>
-                <button disabled={historyBusy} className="rounded-xl bg-slate-950 px-5 py-3 font-black text-white disabled:opacity-40">
+                <button disabled={historyBusy} className="rounded-xl bg-slate-950 px-5 py-3 font-black text-white disabled:opacity-40 lg:self-end">
                   {historyBusy ? "Consultando…" : "Consultar cierres"}
                 </button>
               </form>
@@ -591,105 +737,26 @@ export default function RestaurantCashierPage() {
               {closeHistory && (
                 <>
                   <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                    <Metric label="Cuentas cerradas" value={closeHistory.totals.accountCount} />
-                    <Metric label="Ventas del rango" value={money(closeHistory.totals.salesTotal)} />
-                    <Metric label="Ventas en efectivo" value={money(closeHistory.totals.cashSales)} />
-                    <Metric label="Pagos inmediatos al personal" value={money(closeHistory.totals.employeePaymentsTotal)} />
-                    <Metric label="Pagos identificados en efectivo" value={money(closeHistory.totals.cashEmployeePayments)} />
-                    <Metric label="Pagos identificados por otras vías" value={money(closeHistory.totals.sinpeEmployeePayments + closeHistory.totals.cardEmployeePayments + closeHistory.totals.otherEmployeePayments)} />
-                    <Metric label="Diferencia acumulada" value={money(closeHistory.totals.discrepancy)} />
+                    <HistoryMetric label="Cuentas cerradas" value={closeHistory.totals.accountCount} />
+                    <HistoryMetric label="Ventas del rango" value={money(closeHistory.totals.salesTotal)} tone="blue" />
+                    <HistoryMetric label="Ventas en efectivo" value={money(closeHistory.totals.cashSales)} tone="green" />
+                    <HistoryMetric label="Pagos inmediatos al personal" value={money(closeHistory.totals.employeePaymentsTotal)} tone="amber" />
+                    <HistoryMetric label="Pagos al personal en efectivo" value={money(closeHistory.totals.cashEmployeePayments)} tone="red" note="Reducen la caja" />
+                    <HistoryMetric label="Pagos por otras vías" value={money(closeHistory.totals.sinpeEmployeePayments + closeHistory.totals.cardEmployeePayments + closeHistory.totals.otherEmployeePayments)} tone="blue" note="No afectan el efectivo" />
+                    <HistoryMetric label="Diferencia acumulada" value={money(closeHistory.totals.discrepancy)} tone={closeHistory.totals.discrepancy === 0 ? "green" : "red"} />
                   </div>
                   {closeHistory.totals.incompleteEmployeePaymentBreakdowns > 0 && (
                     <p className="mt-4 rounded-xl bg-amber-50 p-4 text-sm font-semibold text-amber-950">
                       {closeHistory.totals.incompleteEmployeePaymentBreakdowns} cierre(s) conservan el total pagado al personal, pero no todo su desglose individual está disponible. Esos montos no se clasifican como efectivo sin evidencia del método utilizado.
                     </p>
                   )}
-                  <div className="mt-5 overflow-x-auto">
-                    <table className="w-full min-w-[1700px] text-left text-sm">
-                      <thead className="bg-slate-100">
-                        <tr><th className="p-3">Fecha</th><th className="p-3">Caja</th><th className="p-3">Responsable</th><th className="p-3">Hora de cierre</th><th className="p-3">Cuentas</th><th className="p-3">Ventas</th><th className="p-3">Efectivo</th><th className="p-3">SINPE</th><th className="p-3">Tarjeta</th><th className="p-3">Otros</th><th className="p-3">Pagos al personal</th><th className="p-3">Resta al efectivo</th><th className="p-3">Inicial</th><th className="p-3">Esperado</th><th className="p-3">Contado</th><th className="p-3">Diferencia</th><th className="p-3">Observación</th></tr>
-                      </thead>
-                      <tbody>
-                        {closeHistory.closes.map((close) => (
-                          <tr key={close.id} className="border-t align-top">
-                            <td className="p-3 font-bold">{close.businessDate}</td>
-                            <td className="p-3">{close.cashRegister.name}</td>
-                            <td className="p-3">{close.responsibleUser.name}</td>
-                            <td className="p-3">{new Date(close.closedAt).toLocaleString("es-CR")}</td>
-                            <td className="p-3">{close.accountCount}</td>
-                            <td className="p-3 font-bold">{money(close.salesTotal)}</td>
-                            <td className="p-3">{money(close.cashSales)}</td>
-                            <td className="p-3">{money(close.sinpeSales)}</td>
-                            <td className="p-3">{money(close.cardSales)}</td>
-                            <td className="p-3">{money(close.otherSales)}</td>
-                            <td className="p-3 font-bold">{money(close.employeePaymentSummary.employeePaymentsTotal)}</td>
-                            <td className="p-3 font-bold text-red-700">{close.employeePaymentSummary.breakdownComplete ? money(close.employeePaymentSummary.cashEmployeePayments) : "Sin desglose"}</td>
-                            <td className="p-3">{money(close.openingCash)}</td>
-                            <td className="p-3">{money(close.expectedCash)}</td>
-                            <td className="p-3">{money(close.countedCash)}</td>
-                            <td className={`p-3 font-black ${close.discrepancy === 0 ? "text-emerald-700" : "text-red-700"}`}>{money(close.discrepancy)}</td>
-                            <td className="max-w-64 whitespace-normal p-3">{close.note ?? "—"}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                    {closeHistory.closes.length === 0 && <p className="p-4 text-sm text-slate-500">No existen cierres generales en el rango seleccionado.</p>}
-                  </div>
-                  <div className="mt-6">
-                    <h3 className="text-lg font-black">Detalle de pagos inmediatos al personal</h3>
-                    <p className="mt-1 text-sm text-slate-600">
-                      Los pagos en efectivo reducen el efectivo esperado. SINPE, tarjeta y otros medios se registran como egresos sin alterar el dinero físico de la caja.
-                    </p>
-                    <div className="mt-4 space-y-3">
-                      {closeHistory.closes
-                        .filter((close) => close.employeePaymentSummary.employeePaymentsTotal > 0)
-                        .map((close) => (
-                          <details key={close.id} className="rounded-xl border bg-slate-50 p-4">
-                            <summary className="cursor-pointer font-black">
-                              {close.businessDate} · {close.cashRegister.name} · {money(close.employeePaymentSummary.employeePaymentsTotal)} pagados
-                            </summary>
-                            <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
-                              <Metric label="Efectivo" value={money(close.employeePaymentSummary.cashEmployeePayments)} />
-                              <Metric label="SINPE" value={money(close.employeePaymentSummary.sinpeEmployeePayments)} />
-                              <Metric label="Tarjeta" value={money(close.employeePaymentSummary.cardEmployeePayments)} />
-                              <Metric label="Otros" value={money(close.employeePaymentSummary.otherEmployeePayments)} />
-                              <Metric label="Total del cierre" value={money(close.employeePaymentSummary.employeePaymentsTotal)} />
-                            </div>
-                            {close.employeePayments.length > 0 && (
-                              <div className="mt-4 overflow-x-auto rounded-xl border bg-white">
-                                <table className="w-full min-w-[900px] text-left text-sm">
-                                  <thead className="bg-slate-100">
-                                    <tr><th className="p-3">Empleado</th><th className="p-3">Fecha y hora</th><th className="p-3">Monto</th><th className="p-3">Método</th><th className="p-3">Impacto en efectivo</th><th className="p-3">Registró</th><th className="p-3">Detalle</th></tr>
-                                  </thead>
-                                  <tbody>
-                                    {close.employeePayments.map((payment) => (
-                                      <tr key={payment.id} className="border-t">
-                                        <td className="p-3 font-bold">{payment.employee.name}</td>
-                                        <td className="p-3">{new Date(payment.paidAt).toLocaleString("es-CR")}</td>
-                                        <td className="p-3 font-bold">{money(payment.amount)}</td>
-                                        <td className="p-3">{paymentLabels[payment.paymentMethod]}</td>
-                                        <td className={`p-3 font-bold ${payment.paymentMethod === "CASH" ? "text-red-700" : "text-slate-600"}`}>
-                                          {payment.paymentMethod === "CASH" ? `Resta ${money(payment.amount)}` : "No afecta efectivo"}
-                                        </td>
-                                        <td className="p-3">{payment.recordedBy.name}</td>
-                                        <td className="p-3">{payment.note ?? "—"}</td>
-                                      </tr>
-                                    ))}
-                                  </tbody>
-                                </table>
-                              </div>
-                            )}
-                            {!close.employeePaymentSummary.breakdownComplete && (
-                              <p className="mt-4 rounded-lg bg-amber-50 p-3 text-sm text-amber-900">
-                                El cierre conserva el total pagado, pero parte del detalle individual ya no está disponible. El sistema no atribuye ese saldo a efectivo sin conocer el método original.
-                              </p>
-                            )}
-                          </details>
-                        ))}
-                      {closeHistory.closes.every((close) => close.employeePaymentSummary.employeePaymentsTotal === 0) && (
-                        <p className="rounded-xl border border-dashed p-4 text-sm text-slate-500">No existen pagos inmediatos al personal en los cierres del rango seleccionado.</p>
-                      )}
-                    </div>
+                  <div className="mt-6 space-y-5">
+                    {closeHistory.closes.map((close, index) => (
+                      <CashCloseHistoryCard key={close.id} close={close} initiallyOpen={index === 0} />
+                    ))}
+                    {closeHistory.closes.length === 0 && (
+                      <p className="rounded-xl border border-dashed p-5 text-sm text-slate-500">No existen cierres generales en el rango seleccionado.</p>
+                    )}
                   </div>
                 </>
               )}
