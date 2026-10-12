@@ -183,6 +183,34 @@ export class RestaurantCashService {
     };
   }
 
+  private summarizeEmployeePayments(
+    payments: Array<{
+      amount: number;
+      paymentMethod: RestaurantPaymentMethod;
+    }>,
+  ) {
+    const summary = {
+      employeePaymentsTotal: 0,
+      cashEmployeePayments: 0,
+      sinpeEmployeePayments: 0,
+      cardEmployeePayments: 0,
+      otherEmployeePayments: 0,
+    };
+    for (const payment of payments) {
+      summary.employeePaymentsTotal += payment.amount;
+      if (payment.paymentMethod === RestaurantPaymentMethod.CASH) {
+        summary.cashEmployeePayments += payment.amount;
+      } else if (payment.paymentMethod === RestaurantPaymentMethod.SINPE) {
+        summary.sinpeEmployeePayments += payment.amount;
+      } else if (payment.paymentMethod === RestaurantPaymentMethod.CARD) {
+        summary.cardEmployeePayments += payment.amount;
+      } else {
+        summary.otherEmployeePayments += payment.amount;
+      }
+    }
+    return summary;
+  }
+
   private async cashMovements(
     organizationId: string,
     start: Date,
@@ -222,6 +250,8 @@ export class RestaurantCashService {
     const invoicePaidInRange = supplierInvoices.filter(
       (invoice) => invoice.paidAt && invoice.paidAt >= start && invoice.paidAt < end,
     );
+    const employeePaymentSummary =
+      this.summarizeEmployeePayments(employeePayments);
     return {
       supplierInvoices,
       employeePayments,
@@ -236,13 +266,7 @@ export class RestaurantCashService {
       cashSupplierPayments: invoicePaidInRange
         .filter((invoice) => invoice.paymentMethod === RestaurantPaymentMethod.CASH)
         .reduce((sum, invoice) => sum + invoice.amount, 0),
-      employeePaymentsTotal: employeePayments.reduce(
-        (sum, payment) => sum + payment.amount,
-        0,
-      ),
-      cashEmployeePayments: employeePayments
-        .filter((payment) => payment.paymentMethod === RestaurantPaymentMethod.CASH)
-        .reduce((sum, payment) => sum + payment.amount, 0),
+      ...employeePaymentSummary,
     };
   }
 
@@ -963,18 +987,71 @@ export class RestaurantCashService {
       );
     }
 
-    const closes = await this.prisma.restaurantCashDayClose.findMany({
-      where: {
-        organizationId: actor.organizationId,
-        businessDate: { gte: from, lte: to },
-      },
-      include: {
-        cashRegister: { select: { id: true, name: true } },
-        responsibleUser: {
-          select: { id: true, name: true, restaurantRole: true },
+    const { start: historyStart } = getUtcDateRangeForLocalDate(
+      from,
+      timezone,
+    );
+    const { end: historyEnd } = getUtcDateRangeForLocalDate(to, timezone);
+    const [storedCloses, employeePayments] = await Promise.all([
+      this.prisma.restaurantCashDayClose.findMany({
+        where: {
+          organizationId: actor.organizationId,
+          businessDate: { gte: from, lte: to },
         },
-      },
-      orderBy: [{ businessDate: "desc" }, { closedAt: "desc" }],
+        include: {
+          cashRegister: { select: { id: true, name: true } },
+          responsibleUser: {
+            select: { id: true, name: true, restaurantRole: true },
+          },
+        },
+        orderBy: [{ businessDate: "desc" }, { closedAt: "desc" }],
+      }),
+      this.prisma.restaurantEmployeePayment.findMany({
+        where: {
+          organizationId: actor.organizationId,
+          paidAt: { gte: historyStart, lt: historyEnd },
+        },
+        include: {
+          cashSession: { select: { cashRegisterId: true } },
+          employee: {
+            select: { id: true, name: true, restaurantRole: true },
+          },
+          recordedBy: { select: { id: true, name: true } },
+        },
+        orderBy: { paidAt: "asc" },
+      }),
+    ]);
+    const paymentsByClose = new Map<string, typeof employeePayments>();
+    for (const payment of employeePayments) {
+      const key = `${payment.cashSession.cashRegisterId}:${this.localDate(payment.paidAt, timezone)}`;
+      const group = paymentsByClose.get(key) ?? [];
+      group.push(payment);
+      paymentsByClose.set(key, group);
+    }
+    const closes = storedCloses.map((close) => {
+      const payments =
+        paymentsByClose.get(`${close.cashRegisterId}:${close.businessDate}`) ??
+        [];
+      const detailSummary = this.summarizeEmployeePayments(payments);
+      const breakdownComplete =
+        detailSummary.employeePaymentsTotal === close.employeePaymentsTotal;
+      return {
+        ...close,
+        employeePayments: payments.map((payment) => ({
+          id: payment.id,
+          amount: payment.amount,
+          paymentMethod: payment.paymentMethod,
+          note: payment.note,
+          paidAt: payment.paidAt,
+          employee: payment.employee,
+          recordedBy: payment.recordedBy,
+        })),
+        employeePaymentSummary: {
+          ...detailSummary,
+          employeePaymentsTotal: close.employeePaymentsTotal,
+          breakdownComplete,
+        },
+      };
     });
     const totals = closes.reduce(
       (summary, close) => ({
@@ -984,6 +1061,24 @@ export class RestaurantCashService {
         sinpeSales: summary.sinpeSales + close.sinpeSales,
         cardSales: summary.cardSales + close.cardSales,
         otherSales: summary.otherSales + close.otherSales,
+        employeePaymentsTotal:
+          summary.employeePaymentsTotal +
+          close.employeePaymentSummary.employeePaymentsTotal,
+        cashEmployeePayments:
+          summary.cashEmployeePayments +
+          close.employeePaymentSummary.cashEmployeePayments,
+        sinpeEmployeePayments:
+          summary.sinpeEmployeePayments +
+          close.employeePaymentSummary.sinpeEmployeePayments,
+        cardEmployeePayments:
+          summary.cardEmployeePayments +
+          close.employeePaymentSummary.cardEmployeePayments,
+        otherEmployeePayments:
+          summary.otherEmployeePayments +
+          close.employeePaymentSummary.otherEmployeePayments,
+        incompleteEmployeePaymentBreakdowns:
+          summary.incompleteEmployeePaymentBreakdowns +
+          (close.employeePaymentSummary.breakdownComplete ? 0 : 1),
         discrepancy: summary.discrepancy + close.discrepancy,
       }),
       {
@@ -993,6 +1088,12 @@ export class RestaurantCashService {
         sinpeSales: 0,
         cardSales: 0,
         otherSales: 0,
+        employeePaymentsTotal: 0,
+        cashEmployeePayments: 0,
+        sinpeEmployeePayments: 0,
+        cardEmployeePayments: 0,
+        otherEmployeePayments: 0,
+        incompleteEmployeePaymentBreakdowns: 0,
         discrepancy: 0,
       },
     );

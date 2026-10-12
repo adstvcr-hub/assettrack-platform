@@ -188,6 +188,15 @@ type CashCloseHistory = {
       name: string;
       restaurantRole?: string | null;
     };
+    employeePaymentSummary: {
+      employeePaymentsTotal: number;
+      cashEmployeePayments: number;
+      sinpeEmployeePayments: number;
+      cardEmployeePayments: number;
+      otherEmployeePayments: number;
+      breakdownComplete: boolean;
+    };
+    employeePayments: EmployeePayment[];
   }>;
   totals: {
     accountCount: number;
@@ -196,6 +205,12 @@ type CashCloseHistory = {
     sinpeSales: number;
     cardSales: number;
     otherSales: number;
+    employeePaymentsTotal: number;
+    cashEmployeePayments: number;
+    sinpeEmployeePayments: number;
+    cardEmployeePayments: number;
+    otherEmployeePayments: number;
+    incompleteEmployeePaymentBreakdowns: number;
     discrepancy: number;
   };
 };
@@ -579,12 +594,20 @@ export default function RestaurantCashierPage() {
                     <Metric label="Cuentas cerradas" value={closeHistory.totals.accountCount} />
                     <Metric label="Ventas del rango" value={money(closeHistory.totals.salesTotal)} />
                     <Metric label="Ventas en efectivo" value={money(closeHistory.totals.cashSales)} />
+                    <Metric label="Pagos inmediatos al personal" value={money(closeHistory.totals.employeePaymentsTotal)} />
+                    <Metric label="Pagos identificados en efectivo" value={money(closeHistory.totals.cashEmployeePayments)} />
+                    <Metric label="Pagos identificados por otras vías" value={money(closeHistory.totals.sinpeEmployeePayments + closeHistory.totals.cardEmployeePayments + closeHistory.totals.otherEmployeePayments)} />
                     <Metric label="Diferencia acumulada" value={money(closeHistory.totals.discrepancy)} />
                   </div>
+                  {closeHistory.totals.incompleteEmployeePaymentBreakdowns > 0 && (
+                    <p className="mt-4 rounded-xl bg-amber-50 p-4 text-sm font-semibold text-amber-950">
+                      {closeHistory.totals.incompleteEmployeePaymentBreakdowns} cierre(s) conservan el total pagado al personal, pero no todo su desglose individual está disponible. Esos montos no se clasifican como efectivo sin evidencia del método utilizado.
+                    </p>
+                  )}
                   <div className="mt-5 overflow-x-auto">
-                    <table className="w-full min-w-[1500px] text-left text-sm">
+                    <table className="w-full min-w-[1700px] text-left text-sm">
                       <thead className="bg-slate-100">
-                        <tr><th className="p-3">Fecha</th><th className="p-3">Caja</th><th className="p-3">Responsable</th><th className="p-3">Hora de cierre</th><th className="p-3">Cuentas</th><th className="p-3">Ventas</th><th className="p-3">Efectivo</th><th className="p-3">SINPE</th><th className="p-3">Tarjeta</th><th className="p-3">Otros</th><th className="p-3">Inicial</th><th className="p-3">Esperado</th><th className="p-3">Contado</th><th className="p-3">Diferencia</th><th className="p-3">Observación</th></tr>
+                        <tr><th className="p-3">Fecha</th><th className="p-3">Caja</th><th className="p-3">Responsable</th><th className="p-3">Hora de cierre</th><th className="p-3">Cuentas</th><th className="p-3">Ventas</th><th className="p-3">Efectivo</th><th className="p-3">SINPE</th><th className="p-3">Tarjeta</th><th className="p-3">Otros</th><th className="p-3">Pagos al personal</th><th className="p-3">Resta al efectivo</th><th className="p-3">Inicial</th><th className="p-3">Esperado</th><th className="p-3">Contado</th><th className="p-3">Diferencia</th><th className="p-3">Observación</th></tr>
                       </thead>
                       <tbody>
                         {closeHistory.closes.map((close) => (
@@ -599,6 +622,8 @@ export default function RestaurantCashierPage() {
                             <td className="p-3">{money(close.sinpeSales)}</td>
                             <td className="p-3">{money(close.cardSales)}</td>
                             <td className="p-3">{money(close.otherSales)}</td>
+                            <td className="p-3 font-bold">{money(close.employeePaymentSummary.employeePaymentsTotal)}</td>
+                            <td className="p-3 font-bold text-red-700">{close.employeePaymentSummary.breakdownComplete ? money(close.employeePaymentSummary.cashEmployeePayments) : "Sin desglose"}</td>
                             <td className="p-3">{money(close.openingCash)}</td>
                             <td className="p-3">{money(close.expectedCash)}</td>
                             <td className="p-3">{money(close.countedCash)}</td>
@@ -609,6 +634,62 @@ export default function RestaurantCashierPage() {
                       </tbody>
                     </table>
                     {closeHistory.closes.length === 0 && <p className="p-4 text-sm text-slate-500">No existen cierres generales en el rango seleccionado.</p>}
+                  </div>
+                  <div className="mt-6">
+                    <h3 className="text-lg font-black">Detalle de pagos inmediatos al personal</h3>
+                    <p className="mt-1 text-sm text-slate-600">
+                      Los pagos en efectivo reducen el efectivo esperado. SINPE, tarjeta y otros medios se registran como egresos sin alterar el dinero físico de la caja.
+                    </p>
+                    <div className="mt-4 space-y-3">
+                      {closeHistory.closes
+                        .filter((close) => close.employeePaymentSummary.employeePaymentsTotal > 0)
+                        .map((close) => (
+                          <details key={close.id} className="rounded-xl border bg-slate-50 p-4">
+                            <summary className="cursor-pointer font-black">
+                              {close.businessDate} · {close.cashRegister.name} · {money(close.employeePaymentSummary.employeePaymentsTotal)} pagados
+                            </summary>
+                            <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+                              <Metric label="Efectivo" value={money(close.employeePaymentSummary.cashEmployeePayments)} />
+                              <Metric label="SINPE" value={money(close.employeePaymentSummary.sinpeEmployeePayments)} />
+                              <Metric label="Tarjeta" value={money(close.employeePaymentSummary.cardEmployeePayments)} />
+                              <Metric label="Otros" value={money(close.employeePaymentSummary.otherEmployeePayments)} />
+                              <Metric label="Total del cierre" value={money(close.employeePaymentSummary.employeePaymentsTotal)} />
+                            </div>
+                            {close.employeePayments.length > 0 && (
+                              <div className="mt-4 overflow-x-auto rounded-xl border bg-white">
+                                <table className="w-full min-w-[900px] text-left text-sm">
+                                  <thead className="bg-slate-100">
+                                    <tr><th className="p-3">Empleado</th><th className="p-3">Fecha y hora</th><th className="p-3">Monto</th><th className="p-3">Método</th><th className="p-3">Impacto en efectivo</th><th className="p-3">Registró</th><th className="p-3">Detalle</th></tr>
+                                  </thead>
+                                  <tbody>
+                                    {close.employeePayments.map((payment) => (
+                                      <tr key={payment.id} className="border-t">
+                                        <td className="p-3 font-bold">{payment.employee.name}</td>
+                                        <td className="p-3">{new Date(payment.paidAt).toLocaleString("es-CR")}</td>
+                                        <td className="p-3 font-bold">{money(payment.amount)}</td>
+                                        <td className="p-3">{paymentLabels[payment.paymentMethod]}</td>
+                                        <td className={`p-3 font-bold ${payment.paymentMethod === "CASH" ? "text-red-700" : "text-slate-600"}`}>
+                                          {payment.paymentMethod === "CASH" ? `Resta ${money(payment.amount)}` : "No afecta efectivo"}
+                                        </td>
+                                        <td className="p-3">{payment.recordedBy.name}</td>
+                                        <td className="p-3">{payment.note ?? "—"}</td>
+                                      </tr>
+                                    ))}
+                                  </tbody>
+                                </table>
+                              </div>
+                            )}
+                            {!close.employeePaymentSummary.breakdownComplete && (
+                              <p className="mt-4 rounded-lg bg-amber-50 p-3 text-sm text-amber-900">
+                                El cierre conserva el total pagado, pero parte del detalle individual ya no está disponible. El sistema no atribuye ese saldo a efectivo sin conocer el método original.
+                              </p>
+                            )}
+                          </details>
+                        ))}
+                      {closeHistory.closes.every((close) => close.employeePaymentSummary.employeePaymentsTotal === 0) && (
+                        <p className="rounded-xl border border-dashed p-4 text-sm text-slate-500">No existen pagos inmediatos al personal en los cierres del rango seleccionado.</p>
+                      )}
+                    </div>
                   </div>
                 </>
               )}
