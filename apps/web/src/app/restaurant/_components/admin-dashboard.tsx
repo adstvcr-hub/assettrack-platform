@@ -493,6 +493,15 @@ export default function RestaurantAdminDashboard({
   const [tableKind, setTableKind] = useState<
     "DINING" | "BAR_SEAT" | "TAKEOUT_STATION"
   >("DINING");
+  const [tableSearch, setTableSearch] = useState("");
+  const [tableKindFilter, setTableKindFilter] = useState<
+    "ALL" | Table["kind"]
+  >("ALL");
+  const [tableAction, setTableAction] = useState<string | null>(null);
+  const [tableNotice, setTableNotice] = useState<{
+    tone: "success" | "info";
+    message: string;
+  } | null>(null);
   const [itemName, setItemName] = useState("");
   const [itemDescription, setItemDescription] = useState("");
   const [editingItemId, setEditingItemId] = useState<string | null>(null);
@@ -1054,16 +1063,52 @@ export default function RestaurantAdminDashboard({
     );
   }
   async function showQr(id: string) {
+    setTableAction(`qr:${id}`);
+    setTableNotice(null);
     try {
       const response = await authenticatedFetch(
         `${API_URL}/api/v1/restaurant/tables/${id}/qr`,
       );
-      if (!response.ok) throw new Error("QR unavailable");
+      if (!response.ok) throw new Error("Código QR no disponible");
       setQr(await response.json());
       setQrNotice("");
+      setTableNotice({
+        tone: "info",
+        message: "Código QR cargado y listo para descargar o imprimir.",
+      });
     } catch (err) {
-      setError(err instanceof Error ? err.message : "QR unavailable");
+      setError(err instanceof Error ? err.message : "Código QR no disponible");
+    } finally {
+      setTableAction(null);
     }
+  }
+
+  async function createTablePosition() {
+    const created = await runTableAction(
+      "create",
+      "tables",
+      { name: tableName, kind: tableKind },
+      "POST",
+      `${tableName} fue creada correctamente.`,
+    );
+    if (created) setTableName("");
+  }
+
+  async function runTableAction(
+    action: string,
+    path: string,
+    payload: object,
+    method: string,
+    successMessage: string,
+  ) {
+    setTableAction(action);
+    setTableNotice(null);
+    const succeeded = await post(path, payload, method);
+    if (succeeded) {
+      setTableNotice({ tone: "success", message: successMessage });
+    }
+    setTableAction(null);
+    return succeeded;
   }
 
   async function copyQrUrl() {
@@ -1113,6 +1158,7 @@ export default function RestaurantAdminDashboard({
       printWindow.focus();
       printWindow.print();
     };
+    setQrNotice("Ventana de impresión abierta.");
   }
 
   async function generateStaffQr(user: StaffUser) {
@@ -1284,6 +1330,25 @@ export default function RestaurantAdminDashboard({
   const availableWaiters = waiters.filter(
     (user) => user.restaurantAvailability === "AVAILABLE",
   );
+  const normalizedTableSearch = tableSearch.trim().toLocaleLowerCase();
+  const filteredTables = tables.filter(
+    (table) =>
+      (tableKindFilter === "ALL" || table.kind === tableKindFilter) &&
+      (!normalizedTableSearch ||
+        table.name.toLocaleLowerCase().includes(normalizedTableSearch) ||
+        table.waiter?.name
+          .toLocaleLowerCase()
+          .includes(normalizedTableSearch)),
+  );
+  const diningTableCount = tables.filter(
+    (table) => table.kind === "DINING",
+  ).length;
+  const barSeatCount = tables.filter(
+    (table) => table.kind === "BAR_SEAT",
+  ).length;
+  const takeoutStationCount = tables.filter(
+    (table) => table.kind === "TAKEOUT_STATION",
+  ).length;
   const normalizedMenuSearch = menuSearch.trim().toLocaleLowerCase();
   const filteredMenu = menu.filter((item) => {
     const matchesSearch =
@@ -2626,172 +2691,519 @@ export default function RestaurantAdminDashboard({
             }
           >
             <div className={section === "tables" ? "block" : "hidden"}>
-              <h2 className="text-xl font-bold">Tables & QR codes</h2>
-              <form
-                className="my-3 flex gap-2"
-                onSubmit={(event) => {
-                  event.preventDefault();
-                  void post("tables", {
-                    name: tableName,
-                    kind: tableKind,
-                  }).then(() => setTableName(""));
-                }}
-              >
-                <input
-                  required
-                  maxLength={60}
-                  className="min-w-0 flex-1 rounded border p-2"
-                  placeholder="Table name"
-                  value={tableName}
-                  onChange={(event) => setTableName(event.target.value)}
-                />
-                <select
-                  className="rounded border bg-white p-2"
-                  value={tableKind}
-                  onChange={(event) =>
-                    setTableKind(
-                      event.target.value as
-                        "DINING" | "BAR_SEAT" | "TAKEOUT_STATION",
-                    )
-                  }
-                >
-                  <option value="DINING">Mesa de salón</option>
-                  <option value="BAR_SEAT">
-                    Posición de barra (sin servicio)
-                  </option>
-                  <option value="TAKEOUT_STATION">Estación para llevar</option>
-                </select>
-                <button className="rounded bg-slate-900 px-3 text-white">
-                  Add table
-                </button>
-              </form>
-              {tables.map((table) => (
-                <div
-                  key={table.id}
-                  className="grid gap-2 border-b py-3 sm:grid-cols-[1fr_220px_auto] sm:items-center"
-                >
-                  <span>{table.name}</span>
-                  {table.kind === "DINING" ? (
-                    <select
-                      aria-label={`Mesero asignado a ${table.name}`}
-                      className="rounded border p-2"
-                      value={table.waiterId ?? ""}
-                      onChange={(event) =>
-                        void post(
-                          `tables/${table.id}/waiter`,
-                          { waiterId: event.target.value || null },
-                          "PATCH",
-                        )
-                      }
-                    >
-                      <option value="">Sin mesero asignado</option>
-                      {availableWaiters.map((waiter) => (
-                        <option key={waiter.id} value={waiter.id}>
-                          {waiter.name}
-                        </option>
-                      ))}
-                    </select>
-                  ) : table.kind === "BAR_SEAT" ? (
-                    <span className="rounded bg-violet-50 p-2 text-sm font-semibold text-violet-900">
-                      Barra · atención del bartender
-                    </span>
-                  ) : (
-                    <span className="rounded bg-amber-50 p-2 text-sm font-semibold">
-                      Pedidos para llevar
-                    </span>
-                  )}
-                  <button
-                    className="text-emerald-700 underline"
-                    onClick={() => void showQr(table.id)}
-                  >
-                    Show QR
-                  </button>
-                  <label className="col-span-full flex items-center gap-2 text-sm">
-                    <input
-                      type="checkbox"
-                      checked={table.serviceChargeEnabled}
-                      disabled={table.kind === "BAR_SEAT"}
-                      onChange={(event) =>
-                        void post(
-                          `tables/${table.id}/billing`,
-                          { serviceChargeEnabled: event.target.checked },
-                          "PATCH",
-                        )
-                      }
-                    />
-                    Aplicar servicio de mesa
-                  </label>
-                </div>
-              ))}
-              {qr && (
-                <div className="my-3 rounded border p-4">
-                  <div className="flex items-start justify-between gap-3">
+              <div className="overflow-hidden rounded-3xl border border-slate-200 bg-slate-50 shadow-sm">
+                <div className="border-b border-slate-200 bg-white px-5 py-6 sm:px-7">
+                  <div className="flex flex-wrap items-start justify-between gap-4">
                     <div>
-                      <h3 className="font-bold">{qr.tableName}</h3>
-                      <p className="text-sm text-slate-600">
-                        {qr.tableKind === "DINING"
-                          ? "Mesa de salón"
-                          : qr.tableKind === "BAR_SEAT"
-                            ? "Posición de barra"
-                            : "Estación para llevar"}
+                      <p className="text-xs font-black uppercase tracking-[0.2em] text-emerald-700">
+                        Organización del salón
+                      </p>
+                      <h2 className="mt-1 text-2xl font-black text-slate-950">
+                        Mesas, posiciones y códigos QR
+                      </h2>
+                      <p className="mt-2 max-w-2xl text-sm text-slate-600">
+                        Cree cada punto de atención, asigne responsables y
+                        prepare sus códigos de acceso para impresión.
                       </p>
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => setQr(null)}
-                      className="rounded border px-3 py-1 font-bold"
-                      aria-label="Cerrar código QR"
-                    >
-                      ×
-                    </button>
+                    <span className="inline-flex items-center gap-2 rounded-full bg-emerald-50 px-4 py-2 text-sm font-bold text-emerald-800">
+                      <span className="h-2.5 w-2.5 rounded-full bg-emerald-500" />
+                      {tables.length} posiciones configuradas
+                    </span>
                   </div>
-                  <Image
-                    src={qr.image}
-                    alt={`Código QR de ${qr.tableName}`}
-                    width={260}
-                    height={260}
-                    unoptimized
-                    className="mt-3"
-                  />
-                  <a
-                    className="break-all text-emerald-700 underline"
-                    href={qr.url}
-                    target="_blank"
-                    rel="noreferrer"
+
+                  <div className="mt-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
+                    {[
+                      ["Total", tables.length, "bg-slate-950 text-white"],
+                      ["Mesas", diningTableCount, "bg-emerald-50 text-emerald-950"],
+                      ["Barra", barSeatCount, "bg-violet-50 text-violet-950"],
+                      [
+                        "Para llevar",
+                        takeoutStationCount,
+                        "bg-amber-50 text-amber-950",
+                      ],
+                    ].map(([label, value, color]) => (
+                      <div
+                        key={String(label)}
+                        className={`rounded-2xl p-4 ${String(color)}`}
+                      >
+                        <p className="text-xs font-bold uppercase tracking-wider opacity-70">
+                          {label}
+                        </p>
+                        <p className="mt-1 text-3xl font-black">{value}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="grid gap-6 p-4 sm:p-6 xl:grid-cols-[minmax(280px,360px)_1fr]">
+                  <form
+                    className="h-fit rounded-2xl border border-slate-200 bg-white p-5 shadow-sm xl:sticky xl:top-4"
+                    onSubmit={(event) => {
+                      event.preventDefault();
+                      void createTablePosition();
+                    }}
                   >
-                    {qr.url}
-                  </a>
-                  <p className="mt-2 text-sm">
-                    Este código es permanente: descargarlo o imprimirlo no
-                    cambia el acceso de la posición.
-                  </p>
-                  {qrNotice && (
-                    <p className="mt-2 text-sm font-semibold text-emerald-700">
-                      {qrNotice}
+                    <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-100 text-xl">
+                      ＋
+                    </div>
+                    <h3 className="mt-4 text-lg font-black text-slate-950">
+                      Crear una nueva posición
+                    </h3>
+                    <p className="mt-1 text-sm text-slate-600">
+                      Seleccione el tipo y asígnele un nombre fácil de
+                      reconocer.
                     </p>
-                  )}
-                  <div className="mt-4 flex flex-wrap gap-2">
-                    <a
-                      href={qr.image}
-                      download={`qr-${qr.tableName.replaceAll(" ", "-")}.png`}
-                      className="rounded bg-emerald-700 px-4 py-2 font-semibold text-white"
-                    >
-                      Descargar PNG
-                    </a>
+
+                    <label className="mt-5 block text-sm font-bold text-slate-800">
+                      Nombre visible
+                      <input
+                        required
+                        maxLength={60}
+                        className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 outline-none transition focus:border-emerald-600 focus:ring-4 focus:ring-emerald-100"
+                        placeholder="Ejemplo: Mesa 08"
+                        value={tableName}
+                        onChange={(event) => setTableName(event.target.value)}
+                      />
+                    </label>
+
+                    <fieldset className="mt-5">
+                      <legend className="text-sm font-bold text-slate-800">
+                        Tipo de posición
+                      </legend>
+                      <div className="mt-2 grid gap-2">
+                        {[
+                          ["DINING", "🍽️", "Mesa de salón", "Con mesero y servicio configurable"],
+                          ["BAR_SEAT", "🍸", "Posición de barra", "Atendida por bartender, sin servicio"],
+                          ["TAKEOUT_STATION", "🛍️", "Estación para llevar", "Retiro de pedidos sin ocupar mesa"],
+                        ].map(([value, icon, label, description]) => {
+                          const selected = tableKind === value;
+                          return (
+                            <button
+                              key={value}
+                              type="button"
+                              aria-pressed={selected}
+                              onClick={() =>
+                                setTableKind(value as Table["kind"])
+                              }
+                              className={`flex items-center gap-3 rounded-xl border p-3 text-left transition ${
+                                selected
+                                  ? "border-emerald-600 bg-emerald-50 ring-2 ring-emerald-100"
+                                  : "border-slate-200 hover:border-slate-400 hover:bg-slate-50"
+                              }`}
+                            >
+                              <span className="text-xl" aria-hidden="true">
+                                {icon}
+                              </span>
+                              <span className="min-w-0 flex-1">
+                                <span className="block text-sm font-black text-slate-900">
+                                  {label}
+                                </span>
+                                <span className="block text-xs text-slate-500">
+                                  {description}
+                                </span>
+                              </span>
+                              <span
+                                className={`h-4 w-4 rounded-full border-4 ${
+                                  selected
+                                    ? "border-emerald-600 bg-white"
+                                    : "border-slate-300 bg-white"
+                                }`}
+                              />
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </fieldset>
+
                     <button
-                      type="button"
-                      onClick={printTableQr}
-                      className="rounded bg-slate-950 px-4 py-2 font-semibold text-white"
+                      disabled={tableAction === "create"}
+                      className="mt-5 w-full rounded-xl bg-slate-950 px-4 py-3 font-black text-white shadow-sm transition hover:bg-emerald-700 disabled:cursor-wait disabled:opacity-60"
                     >
-                      Imprimir
+                      {tableAction === "create"
+                        ? "Creando posición…"
+                        : "Crear posición y generar QR"}
                     </button>
-                    <button
-                      type="button"
-                      onClick={() => void copyQrUrl()}
-                      className="rounded border border-slate-300 px-4 py-2 font-semibold text-slate-700"
-                    >
-                      Copiar enlace
-                    </button>
+                  </form>
+
+                  <div className="min-w-0">
+                    {tableNotice && (
+                      <div
+                        aria-live="polite"
+                        className={`mb-4 flex items-start gap-3 rounded-2xl border px-4 py-3 text-sm font-semibold ${
+                          tableNotice.tone === "success"
+                            ? "border-emerald-200 bg-emerald-50 text-emerald-900"
+                            : "border-blue-200 bg-blue-50 text-blue-900"
+                        }`}
+                      >
+                        <span
+                          className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-xs text-white ${
+                            tableNotice.tone === "success"
+                              ? "bg-emerald-600"
+                              : "bg-blue-600"
+                          }`}
+                          aria-hidden="true"
+                        >
+                          ✓
+                        </span>
+                        <span>{tableNotice.message}</span>
+                      </div>
+                    )}
+
+                    <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+                      <div className="flex flex-col gap-3 lg:flex-row">
+                        <label className="relative min-w-0 flex-1">
+                          <span className="sr-only">Buscar posición</span>
+                          <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
+                            ⌕
+                          </span>
+                          <input
+                            type="search"
+                            value={tableSearch}
+                            onChange={(event) =>
+                              setTableSearch(event.target.value)
+                            }
+                            placeholder="Buscar por nombre o mesero…"
+                            className="w-full rounded-xl border border-slate-300 py-3 pl-11 pr-4 outline-none focus:border-emerald-600 focus:ring-4 focus:ring-emerald-100"
+                          />
+                        </label>
+                        <div className="flex gap-2 overflow-x-auto pb-1 lg:pb-0">
+                          {[
+                            ["ALL", "Todas"],
+                            ["DINING", "Mesas"],
+                            ["BAR_SEAT", "Barra"],
+                            ["TAKEOUT_STATION", "Para llevar"],
+                          ].map(([value, label]) => (
+                            <button
+                              key={value}
+                              type="button"
+                              onClick={() =>
+                                setTableKindFilter(
+                                  value as "ALL" | Table["kind"],
+                                )
+                              }
+                              className={`whitespace-nowrap rounded-xl px-4 py-3 text-sm font-bold transition ${
+                                tableKindFilter === value
+                                  ? "bg-slate-950 text-white"
+                                  : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                              }`}
+                            >
+                              {label}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="mt-4 grid gap-4 lg:grid-cols-2">
+                      {filteredTables.map((table) => {
+                        const isDining = table.kind === "DINING";
+                        const isBar = table.kind === "BAR_SEAT";
+                        const typeLabel = isDining
+                          ? "Mesa de salón"
+                          : isBar
+                            ? "Posición de barra"
+                            : "Estación para llevar";
+                        const typeIcon = isDining ? "🍽️" : isBar ? "🍸" : "🛍️";
+                        const accentClass = isDining
+                          ? "border-t-emerald-500"
+                          : isBar
+                            ? "border-t-violet-500"
+                            : "border-t-amber-500";
+                        const badgeClass = isDining
+                          ? "bg-emerald-50 text-emerald-800"
+                          : isBar
+                            ? "bg-violet-50 text-violet-800"
+                            : "bg-amber-50 text-amber-800";
+                        const waiterAction = `waiter:${table.id}`;
+                        const billingAction = `billing:${table.id}`;
+                        const qrAction = `qr:${table.id}`;
+                        return (
+                          <article
+                            key={table.id}
+                            className={`overflow-hidden rounded-2xl border border-t-4 border-slate-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md ${accentClass}`}
+                          >
+                            <div className="p-5">
+                              <div className="flex items-start justify-between gap-3">
+                                <div className="min-w-0">
+                                  <span
+                                    className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold ${badgeClass}`}
+                                  >
+                                    <span aria-hidden="true">{typeIcon}</span>
+                                    {typeLabel}
+                                  </span>
+                                  <h3 className="mt-3 truncate text-xl font-black text-slate-950">
+                                    {table.name}
+                                  </h3>
+                                </div>
+                                <span className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-700">
+                                  <span className="h-2 w-2 rounded-full bg-emerald-500" />
+                                  Activa
+                                </span>
+                              </div>
+
+                              <div className="mt-5 min-h-20 rounded-xl bg-slate-50 p-3">
+                                {isDining ? (
+                                  <label className="block text-xs font-bold uppercase tracking-wide text-slate-500">
+                                    Mesero responsable
+                                    <select
+                                      aria-label={`Mesero asignado a ${table.name}`}
+                                      className="mt-2 w-full rounded-lg border border-slate-300 bg-white p-2.5 text-sm font-semibold text-slate-900 outline-none focus:border-emerald-600"
+                                      value={table.waiterId ?? ""}
+                                      disabled={tableAction === waiterAction}
+                                      onChange={(event) => {
+                                        const waiterId = event.target.value;
+                                        const waiterName = waiters.find(
+                                          (candidate) =>
+                                            candidate.id === waiterId,
+                                        )?.name;
+                                        void runTableAction(
+                                          waiterAction,
+                                          `tables/${table.id}/waiter`,
+                                          { waiterId: waiterId || null },
+                                          "PATCH",
+                                          waiterName
+                                            ? `${waiterName} quedó a cargo de ${table.name}.`
+                                            : `${table.name} quedó sin mesero asignado.`,
+                                        );
+                                      }}
+                                    >
+                                      <option value="">
+                                        Sin mesero asignado
+                                      </option>
+                                      {availableWaiters.map((waiter) => (
+                                        <option key={waiter.id} value={waiter.id}>
+                                          {waiter.name}
+                                        </option>
+                                      ))}
+                                    </select>
+                                    {tableAction === waiterAction && (
+                                      <span className="mt-2 block normal-case text-emerald-700">
+                                        Guardando asignación…
+                                      </span>
+                                    )}
+                                  </label>
+                                ) : (
+                                  <div className="flex items-center gap-3 text-sm">
+                                    <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-white shadow-sm">
+                                      {isBar ? "B" : "R"}
+                                    </span>
+                                    <div>
+                                      <p className="font-black text-slate-900">
+                                        {isBar
+                                          ? "Atención del bartender"
+                                          : "Punto de retiro"}
+                                      </p>
+                                      <p className="text-xs text-slate-500">
+                                        {isBar
+                                          ? "No requiere asignación de mesero"
+                                          : "Preparado para pedidos para llevar"}
+                                      </p>
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+
+                              <div className="mt-4 flex items-center justify-between gap-3 rounded-xl border border-slate-200 px-3 py-2.5">
+                                <div>
+                                  <p className="text-sm font-bold text-slate-900">
+                                    Servicio de mesa
+                                  </p>
+                                  <p className="text-xs text-slate-500">
+                                    {isBar
+                                      ? "No aplica en barra"
+                                      : table.serviceChargeEnabled
+                                        ? "Se incluye en la cuenta"
+                                        : "No se cobra en esta posición"}
+                                  </p>
+                                </div>
+                                <button
+                                  type="button"
+                                  role="switch"
+                                  aria-checked={table.serviceChargeEnabled}
+                                  aria-label={`Servicio de mesa para ${table.name}`}
+                                  disabled={isBar || tableAction === billingAction}
+                                  onClick={() =>
+                                    void runTableAction(
+                                      billingAction,
+                                      `tables/${table.id}/billing`,
+                                      {
+                                        serviceChargeEnabled:
+                                          !table.serviceChargeEnabled,
+                                      },
+                                      "PATCH",
+                                      `Servicio de mesa ${
+                                        table.serviceChargeEnabled
+                                          ? "desactivado"
+                                          : "activado"
+                                      } para ${table.name}.`,
+                                    )
+                                  }
+                                  className={`relative h-7 w-12 shrink-0 rounded-full transition disabled:cursor-not-allowed disabled:opacity-40 ${
+                                    table.serviceChargeEnabled
+                                      ? "bg-emerald-600"
+                                      : "bg-slate-300"
+                                  }`}
+                                >
+                                  <span
+                                    className={`absolute top-1 h-5 w-5 rounded-full bg-white shadow transition ${
+                                      table.serviceChargeEnabled
+                                        ? "left-6"
+                                        : "left-1"
+                                    }`}
+                                  />
+                                </button>
+                              </div>
+                            </div>
+
+                            <button
+                              type="button"
+                              disabled={tableAction === qrAction}
+                              className="flex w-full items-center justify-center gap-2 border-t border-slate-200 bg-slate-50 px-4 py-3.5 text-sm font-black text-slate-800 transition hover:bg-slate-950 hover:text-white disabled:cursor-wait disabled:opacity-60"
+                              onClick={() => void showQr(table.id)}
+                            >
+                              <span aria-hidden="true">▦</span>
+                              {tableAction === qrAction
+                                ? "Preparando QR…"
+                                : "Ver, descargar o imprimir QR"}
+                            </button>
+                          </article>
+                        );
+                      })}
+                    </div>
+
+                    {filteredTables.length === 0 && (
+                      <div className="mt-4 rounded-2xl border border-dashed border-slate-300 bg-white px-6 py-12 text-center">
+                        <div className="text-4xl" aria-hidden="true">
+                          ⌕
+                        </div>
+                        <h3 className="mt-3 font-black text-slate-900">
+                          No se encontraron posiciones
+                        </h3>
+                        <p className="mt-1 text-sm text-slate-500">
+                          Cambie el filtro o escriba otro término de búsqueda.
+                        </p>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setTableSearch("");
+                            setTableKindFilter("ALL");
+                          }}
+                          className="mt-4 rounded-xl border border-slate-300 px-4 py-2 text-sm font-bold"
+                        >
+                          Limpiar filtros
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {qr && (
+                <div
+                  className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 p-4 backdrop-blur-sm"
+                  role="dialog"
+                  aria-modal="true"
+                  aria-labelledby="table-qr-title"
+                  onMouseDown={(event) => {
+                    if (event.target === event.currentTarget) setQr(null);
+                  }}
+                >
+                  <div className="max-h-[92vh] w-full max-w-lg overflow-y-auto rounded-3xl bg-white shadow-2xl">
+                    <div className="flex items-start justify-between gap-3 border-b border-slate-200 px-5 py-4 sm:px-6">
+                      <div>
+                        <p className="text-xs font-black uppercase tracking-wider text-emerald-700">
+                          Código de acceso permanente
+                        </p>
+                        <h3
+                          id="table-qr-title"
+                          className="mt-1 text-xl font-black text-slate-950"
+                        >
+                          {qr.tableName}
+                        </h3>
+                        <p className="text-sm text-slate-500">
+                          {qr.tableKind === "DINING"
+                            ? "Mesa de salón"
+                            : qr.tableKind === "BAR_SEAT"
+                              ? "Posición de barra"
+                              : "Estación para llevar"}
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setQr(null)}
+                        className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 text-xl font-bold text-slate-700 transition hover:bg-slate-200"
+                        aria-label="Cerrar código QR"
+                      >
+                        ×
+                      </button>
+                    </div>
+
+                    <div className="p-5 sm:p-6">
+                      <div className="mx-auto w-fit rounded-3xl border border-slate-200 bg-white p-4 shadow-sm ring-8 ring-slate-50">
+                        <Image
+                          src={qr.image}
+                          alt={`Código QR de ${qr.tableName}`}
+                          width={280}
+                          height={280}
+                          unoptimized
+                          className="h-auto w-full max-w-70"
+                        />
+                      </div>
+                      <p className="mx-auto mt-5 max-w-sm text-center text-sm text-slate-600">
+                        Este QR es permanente. Puede descargarlo o imprimirlo
+                        sin cambiar el acceso de la posición.
+                      </p>
+                      <a
+                        className="mt-3 block truncate rounded-xl bg-slate-50 px-3 py-2 text-center text-xs font-semibold text-emerald-700 underline"
+                        href={qr.url}
+                        target="_blank"
+                        rel="noreferrer"
+                        title={qr.url}
+                      >
+                        {qr.url}
+                      </a>
+                      {qrNotice && (
+                        <p
+                          aria-live="polite"
+                          className="mt-3 rounded-xl bg-emerald-50 px-3 py-2 text-center text-sm font-bold text-emerald-800"
+                        >
+                          ✓ {qrNotice}
+                        </p>
+                      )}
+                      <div className="mt-5 grid gap-2 sm:grid-cols-2">
+                        <a
+                          href={qr.image}
+                          download={`qr-${qr.tableName.replaceAll(" ", "-")}.png`}
+                          onClick={() => setQrNotice("Descarga iniciada.")}
+                          className="rounded-xl bg-emerald-700 px-4 py-3 text-center font-black text-white transition hover:bg-emerald-800"
+                        >
+                          Descargar PNG
+                        </a>
+                        <button
+                          type="button"
+                          onClick={printTableQr}
+                          className="rounded-xl bg-slate-950 px-4 py-3 font-black text-white transition hover:bg-slate-800"
+                        >
+                          Imprimir código
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => void copyQrUrl()}
+                          className="rounded-xl border border-slate-300 px-4 py-3 font-bold text-slate-700 transition hover:bg-slate-50"
+                        >
+                          Copiar enlace
+                        </button>
+                        <a
+                          href={qr.url}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="rounded-xl border border-slate-300 px-4 py-3 text-center font-bold text-slate-700 transition hover:bg-slate-50"
+                        >
+                          Probar acceso ↗
+                        </a>
+                      </div>
+                    </div>
                   </div>
                 </div>
               )}
