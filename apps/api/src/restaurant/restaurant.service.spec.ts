@@ -111,6 +111,7 @@ function createService() {
       findFirst: vi.fn(),
       findMany: vi.fn().mockResolvedValue([menuItem]),
       findUnique: vi.fn(),
+      update: vi.fn(),
       updateMany: vi.fn(),
       delete: vi.fn(),
     },
@@ -119,7 +120,9 @@ function createService() {
       findMany: vi.fn().mockResolvedValue([]),
       create: vi.fn(),
       update: vi.fn(),
+      updateMany: vi.fn(),
     },
+    restaurantRewardProgram: { updateMany: vi.fn() },
     restaurantOrder: {
       findFirst: vi.fn(),
       findUnique: vi.fn().mockResolvedValue(null),
@@ -154,6 +157,7 @@ function createService() {
       findMany: vi.fn().mockResolvedValue([]),
       deleteMany: vi.fn(),
       createMany: vi.fn(),
+      updateMany: vi.fn(),
     },
     restaurantInventoryMovement: {
       findUnique: vi.fn().mockResolvedValue(null),
@@ -769,6 +773,7 @@ describe("RestaurantService", () => {
         id: { in: [itemId] },
         organizationId: "org-a",
         active: true,
+        deletedAt: null,
         station: { in: ["KITCHEN", "BAR"] },
       },
     });
@@ -2605,7 +2610,7 @@ describe("RestaurantService", () => {
     });
   });
 
-  it("deletes only menu products without order history", async () => {
+  it("removes menu products from the catalog while preserving order history", async () => {
     const { prisma, service } = createService();
     const admin = {
       id: "admin-a",
@@ -2615,19 +2620,30 @@ describe("RestaurantService", () => {
       restaurantAvailability: RestaurantStaffAvailability.AVAILABLE,
     };
     prisma.restaurantMenuItem.findFirst.mockResolvedValue({ id: itemId });
-    prisma.restaurantOrderItem.count.mockResolvedValue(0);
 
     await expect(service.deleteMenuItem(admin, itemId)).resolves.toEqual({
       deleted: true,
     });
-    expect(prisma.restaurantMenuItem.delete).toHaveBeenCalledWith({
+    expect(prisma.restaurantMenuItem.update).toHaveBeenCalledWith({
       where: { id: itemId },
+      data: { active: false, deletedAt: expect.any(Date) },
     });
-
-    prisma.restaurantOrderItem.count.mockResolvedValue(1);
-    await expect(service.deleteMenuItem(admin, itemId)).rejects.toBeInstanceOf(
-      ConflictException,
-    );
+    expect(prisma.restaurantPromotion.updateMany).toHaveBeenCalledWith({
+      where: { organizationId: "org-a", menuItemId: itemId },
+      data: { active: false },
+    });
+    expect(prisma.restaurantRewardProgram.updateMany).toHaveBeenCalledWith({
+      where: { organizationId: "org-a", menuItemId: itemId },
+      data: { active: false },
+    });
+    expect(prisma.restaurantRecipeIngredient.updateMany).toHaveBeenCalledWith({
+      where: { organizationId: "org-a", menuItemId: itemId },
+      data: { active: false },
+    });
+    expect(prisma.restaurantInventoryProduct.updateMany).toHaveBeenCalledWith({
+      where: { organizationId: "org-a", menuItemId: itemId },
+      data: { menuItemId: null },
+    });
   });
 
   it("reports products at or below their minimum as inventory alerts", async () => {

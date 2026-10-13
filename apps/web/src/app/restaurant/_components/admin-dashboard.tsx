@@ -2,7 +2,6 @@
 
 import { getSessionValue } from "@/lib/session";
 
-
 import { API_URL, authenticatedFetch } from "@/lib/api";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -23,7 +22,8 @@ type Table = {
   serviceChargeEnabled: boolean;
   kind: "DINING" | "BAR_SEAT" | "TAKEOUT_STATION";
 };
-type RestaurantRole = "RESTAURANT_ADMIN" | "KITCHEN" | "BAR" | "WAITER" | "CASHIER";
+type RestaurantRole =
+  "RESTAURANT_ADMIN" | "KITCHEN" | "BAR" | "WAITER" | "CASHIER";
 type InventoryAlert = {
   productId: string;
   name: string;
@@ -507,6 +507,10 @@ export default function RestaurantAdminDashboard({
   const [prepMinutes, setPrepMinutes] = useState("10");
   const [alcoholic, setAlcoholic] = useState(false);
   const [imageData, setImageData] = useState<string | null>(null);
+  const [menuSearch, setMenuSearch] = useState("");
+  const [menuStatusFilter, setMenuStatusFilter] = useState<
+    "ALL" | "ACTIVE" | "SUSPENDED"
+  >("ALL");
   const [promotions, setPromotions] = useState<Promotion[]>([]);
   const [invoiceRequests, setInvoiceRequests] = useState<InvoiceRequest[]>([]);
   const [promotionTitle, setPromotionTitle] = useState("");
@@ -641,8 +645,7 @@ export default function RestaurantAdminDashboard({
       const orderingAreaData = data["ordering-area-settings"] as
         OrderingAreaSettings | undefined;
       const inventoryData = data.inventory as
-        | { alerts: InventoryAlert[] }
-        | undefined;
+        { alerts: InventoryAlert[] } | undefined;
 
       if (tableData) setTables(tableData);
       if (menuData) setMenu(menuData);
@@ -976,6 +979,25 @@ export default function RestaurantAdminDashboard({
     setImageData(item.imageData ?? null);
   }
 
+  function toggleSuggestedCategory(category: string) {
+    const values = categories
+      .split(",")
+      .map((value) => value.trim())
+      .filter(Boolean);
+    const contains = values.some(
+      (value) => value.toLocaleLowerCase() === category.toLocaleLowerCase(),
+    );
+    setCategories(
+      (contains
+        ? values.filter(
+            (value) =>
+              value.toLocaleLowerCase() !== category.toLocaleLowerCase(),
+          )
+        : [...values, category]
+      ).join(", "),
+    );
+  }
+
   function setAnalyticsDays(days: number) {
     const end = new Date();
     const start = new Date();
@@ -1240,6 +1262,31 @@ export default function RestaurantAdminDashboard({
   const availableWaiters = waiters.filter(
     (user) => user.restaurantAvailability === "AVAILABLE",
   );
+  const normalizedMenuSearch = menuSearch.trim().toLocaleLowerCase();
+  const filteredMenu = menu.filter((item) => {
+    const matchesSearch =
+      !normalizedMenuSearch ||
+      [item.name, item.description ?? "", item.productType, ...item.categories]
+        .join(" ")
+        .toLocaleLowerCase()
+        .includes(normalizedMenuSearch);
+    const matchesStatus =
+      menuStatusFilter === "ALL" ||
+      (menuStatusFilter === "ACTIVE" && item.active) ||
+      (menuStatusFilter === "SUSPENDED" && !item.active);
+    return matchesSearch && matchesStatus;
+  });
+  const selectedCategories = categories
+    .split(",")
+    .map((value) => value.trim().toLocaleLowerCase())
+    .filter(Boolean);
+  const suggestedCategories = [
+    "Favoritos",
+    "Promoción",
+    "Vegetariano",
+    "Sin gluten",
+    "Menú rápido",
+  ];
   return (
     <main className="mx-auto max-w-6xl px-4 py-8 text-slate-900">
       <header className="mb-6 flex flex-wrap items-center justify-between gap-4">
@@ -1450,12 +1497,16 @@ export default function RestaurantAdminDashboard({
           </div>
           <div className="mt-4 grid gap-3 lg:grid-cols-2">
             {onsiteVisits.map((visit) => (
-              <article key={visit.id} className="rounded-xl bg-white p-4 shadow">
+              <article
+                key={visit.id}
+                className="rounded-xl bg-white p-4 shadow"
+              >
                 <div className="flex items-start justify-between gap-3">
                   <div>
                     <p className="text-lg font-black">{visit.table.name}</p>
                     <p className="text-sm text-slate-600">
-                      Responsable: {visit.responsibleStaff?.name ?? "Sin asignar"}
+                      Responsable:{" "}
+                      {visit.responsibleStaff?.name ?? "Sin asignar"}
                     </p>
                     {visit.table.kind === "DINING" &&
                       visit.responsibleStaff?.restaurantRole === "BAR" && (
@@ -1479,9 +1530,7 @@ export default function RestaurantAdminDashboard({
                   className="mt-3 rounded-lg bg-slate-900 px-4 py-3 font-bold text-white disabled:cursor-not-allowed disabled:opacity-40"
                   onClick={() => visit.canClose && setClosingVisitId(visit.id)}
                 >
-                  {visit.canClose
-                    ? "Cerrar cuenta"
-                    : "Entregas pendientes"}
+                  {visit.canClose ? "Cerrar cuenta" : "Entregas pendientes"}
                 </button>
               </article>
             ))}
@@ -1702,10 +1751,12 @@ export default function RestaurantAdminDashboard({
                   : `IVA ${billing.restaurantTaxRateBps / 100}% ${
                       billing.restaurantTaxIncluded ? "incluido" : "agregado"
                     }`}
-                ; servicio {billing.restaurantServiceRateBps / 100}%.
-                {" "}Corrección: {billing.restaurantOrderCorrectionMinutes
+                ; servicio {billing.restaurantServiceRateBps / 100}%.{" "}
+                Corrección:{" "}
+                {billing.restaurantOrderCorrectionMinutes
                   ? `${billing.restaurantOrderCorrectionMinutes} min o hasta la aceptación`
-                  : "desactivada"}.
+                  : "desactivada"}
+                .
               </p>
             )}
           </section>
@@ -2150,8 +2201,8 @@ export default function RestaurantAdminDashboard({
                               Orden de las{" "}
                               {new Date(
                                 correction.orderCreatedAt,
-                              ).toLocaleTimeString("es-CR")} ·{" "}
-                              {correction.correctionCount} cambio(s)
+                              ).toLocaleTimeString("es-CR")}{" "}
+                              · {correction.correctionCount} cambio(s)
                             </summary>
                             <p className="mt-2 text-sm">
                               Último cambio:{" "}
@@ -2163,7 +2214,7 @@ export default function RestaurantAdminDashboard({
                               {" · "}
                               {correction.source === "CUSTOMER"
                                 ? "Cliente"
-                                : correction.correctedBy?.name ?? "Empleado"}
+                                : (correction.correctedBy?.name ?? "Empleado")}
                             </p>
                             {correction.reason && (
                               <p className="text-sm">
@@ -2716,217 +2767,536 @@ export default function RestaurantAdminDashboard({
               )}
             </div>
             <div className={section === "menu" ? "block" : "hidden"}>
-              <h2 className="text-xl font-bold">
-                {editingItemId ? "Editar producto" : "Menú"}
-              </h2>
-              <form
-                className="my-3 space-y-2"
-                onSubmit={(event) => {
-                  event.preventDefault();
-                  const value = Number(price);
-                  if (!Number.isInteger(value) || value < 0) {
-                    setError("Enter a valid price in colones");
-                    return;
-                  }
-                  const payload = {
-                    name: itemName,
-                    description: itemDescription || undefined,
-                    price: value,
-                    station: itemStation,
-                    course,
-                    productType,
-                    categories: categories
-                      .split(",")
-                      .map((value) => value.trim())
-                      .filter(Boolean),
-                    origin,
-                    prepMinutes:
-                      origin === "HOUSE_MADE" ? Number(prepMinutes) : undefined,
-                    alcoholic,
-                    imageData,
-                  };
-                  void post(
-                    editingItemId ? `menu/${editingItemId}` : "menu",
-                    payload,
-                    editingItemId ? "PATCH" : "POST",
-                  ).then((saved) => {
-                    if (saved) resetMenuForm();
-                  });
-                }}
-              >
-                <input
-                  required
-                  maxLength={100}
-                  className="w-full rounded border p-2"
-                  placeholder="Item name"
-                  value={itemName}
-                  onChange={(event) => setItemName(event.target.value)}
-                />
-                <textarea
-                  maxLength={500}
-                  className="w-full rounded border p-2"
-                  placeholder="Descripción del producto"
-                  value={itemDescription}
-                  onChange={(event) => setItemDescription(event.target.value)}
-                />
-                <input
-                  required
-                  maxLength={60}
-                  className="w-full rounded border p-2"
-                  placeholder="Tipo de producto: Postres, Platos fuertes..."
-                  value={productType}
-                  onChange={(event) => setProductType(event.target.value)}
-                />
-                <input
-                  className="w-full rounded border p-2"
-                  placeholder="Categorías adicionales, separadas por coma"
-                  value={categories}
-                  onChange={(event) => setCategories(event.target.value)}
-                />
-                <div className="grid gap-2 sm:grid-cols-3">
-                  <select
-                    className="rounded border bg-white p-2"
-                    value={origin}
-                    onChange={(event) =>
-                      setOrigin(
-                        event.target.value as "HOUSE_MADE" | "THIRD_PARTY",
-                      )
-                    }
-                  >
-                    <option value="HOUSE_MADE">Hecho en casa</option>
-                    <option value="THIRD_PARTY">De terceros</option>
-                  </select>
-                  <input
-                    disabled={origin === "THIRD_PARTY"}
-                    required={origin === "HOUSE_MADE"}
-                    min="5"
-                    max="15"
-                    type="number"
-                    className="rounded border p-2"
-                    placeholder="Minutos de elaboración"
-                    value={prepMinutes}
-                    onChange={(event) => setPrepMinutes(event.target.value)}
-                  />
-                  <label className="flex items-center gap-2 rounded border p-2">
-                    <input
-                      type="checkbox"
-                      checked={alcoholic}
-                      onChange={(event) => setAlcoholic(event.target.checked)}
-                    />{" "}
-                    Contiene alcohol
-                  </label>
+              <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <p className="text-xs font-black uppercase tracking-[0.18em] text-emerald-700">
+                    Catálogo del restaurante
+                  </p>
+                  <h2 className="mt-1 text-2xl font-black">
+                    Productos del menú
+                  </h2>
+                  <p className="mt-1 text-sm text-slate-600">
+                    Agregue, edite, suspenda o retire productos sin perder el
+                    historial de ventas.
+                  </p>
                 </div>
-                <label className="block rounded border p-2 text-sm">
-                  Imagen del producto (JPEG, PNG o WebP; máximo 2 MB y 1600 ×
-                  1600)
-                  <input
-                    className="mt-2 block w-full"
-                    type="file"
-                    accept="image/jpeg,image/png,image/webp"
-                    onChange={(event) =>
-                      void selectProductImage(event.target.files?.[0])
-                    }
-                  />
-                  {imageData && (
-                    <button
-                      type="button"
-                      className="mt-2 text-red-700 underline"
-                      onClick={() => setImageData(null)}
-                    >
-                      Quitar imagen
-                    </button>
-                  )}
-                </label>
-                <input
-                  required
-                  min="0"
-                  step="1"
-                  type="number"
-                  className="w-full rounded border p-2"
-                  placeholder="Price in colones"
-                  value={price}
-                  onChange={(event) => setPrice(event.target.value)}
-                />
-                <div className="flex gap-2">
-                  <select
-                    className="rounded border p-2"
-                    value={itemStation}
-                    onChange={(event) =>
-                      setItemStation(event.target.value as Station)
-                    }
-                  >
-                    <option value="KITCHEN">Kitchen</option>
-                    <option value="BAR">Bar</option>
-                  </select>
-                  <select
-                    className="rounded border p-2"
-                    value={course}
-                    onChange={(event) => setCourse(event.target.value)}
-                  >
-                    <option value="DRINK">Drink</option>
-                    <option value="STARTER">Starter</option>
-                    <option value="MAIN">Main</option>
-                    <option value="OTHER">Other</option>
-                  </select>
-                  <button className="rounded bg-slate-900 px-3 py-2 text-white">
-                    {editingItemId ? "Guardar cambios" : "Agregar producto"}
-                  </button>
-                  {editingItemId && (
-                    <button
-                      type="button"
-                      className="rounded border px-3 py-2"
-                      onClick={resetMenuForm}
-                    >
-                      Cancelar edición
-                    </button>
-                  )}
-                </div>
-              </form>
-              {menu.map((item) => (
-                <div
-                  key={item.id}
-                  className="flex items-center justify-between gap-2 border-b py-2"
+                <button
+                  type="button"
+                  onClick={resetMenuForm}
+                  className="rounded-xl bg-emerald-700 px-5 py-3 font-black text-white shadow-sm"
                 >
-                  <span>
-                    {item.name} · ₡{item.price.toLocaleString()} ·{" "}
-                    {item.productType} {item.active ? "" : "(unavailable)"}
-                  </span>
-                  <div className="flex flex-wrap justify-end gap-3 text-sm">
-                    <button
-                      className="text-sky-700 underline"
-                      onClick={() => editMenuItem(item)}
-                    >
-                      Editar
-                    </button>
-                    <button
-                      className="text-emerald-700 underline"
-                      onClick={() =>
-                        void post(
-                          `menu/${item.id}`,
-                          { active: !item.active },
-                          "PATCH",
+                  + Nuevo producto
+                </button>
+              </div>
+
+              <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,0.9fr)_minmax(520px,1.1fr)]">
+                <section className="overflow-hidden rounded-2xl border bg-white shadow-sm">
+                  <div className="flex flex-wrap items-center justify-between gap-3 border-b p-5">
+                    <div>
+                      <h3 className="text-lg font-black">Catálogo actual</h3>
+                      <p className="text-sm text-slate-500">
+                        Seleccione un producto para editarlo.
+                      </p>
+                    </div>
+                    <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-black text-slate-700">
+                      {menu.length} producto(s)
+                    </span>
+                  </div>
+                  <div className="grid gap-3 border-b bg-slate-50 p-4 sm:grid-cols-[1fr_auto]">
+                    <input
+                      className="w-full rounded-xl border bg-white p-3"
+                      placeholder="Buscar por nombre, tipo o categoría…"
+                      value={menuSearch}
+                      onChange={(event) => setMenuSearch(event.target.value)}
+                    />
+                    <select
+                      className="rounded-xl border bg-white p-3 font-semibold"
+                      value={menuStatusFilter}
+                      onChange={(event) =>
+                        setMenuStatusFilter(
+                          event.target.value as "ALL" | "ACTIVE" | "SUSPENDED",
                         )
                       }
                     >
-                      {item.active ? "Archivar" : "Restaurar"}
-                    </button>
-                    <button
-                      className="text-red-700 underline"
-                      onClick={() => {
-                        if (
-                          window.confirm(
-                            "Solo se eliminará si el producto nunca se utilizó en una orden. ¿Continuar?",
-                          )
-                        ) {
-                          void remove(`menu/${item.id}`);
-                        }
-                      }}
-                    >
-                      Eliminar definitivamente
-                    </button>
+                      <option value="ALL">Todos</option>
+                      <option value="ACTIVE">Disponibles</option>
+                      <option value="SUSPENDED">Suspendidos</option>
+                    </select>
                   </div>
-                </div>
-              ))}
+                  <div className="max-h-[900px] space-y-3 overflow-y-auto p-4">
+                    {filteredMenu.map((item) => (
+                      <article
+                        key={item.id}
+                        className={`grid grid-cols-[88px_1fr] gap-3 rounded-2xl border p-3 transition ${
+                          editingItemId === item.id
+                            ? "border-emerald-600 bg-emerald-50 ring-1 ring-emerald-600"
+                            : "bg-white hover:border-slate-400 hover:shadow-sm"
+                        } ${item.active ? "" : "opacity-70"}`}
+                      >
+                        <div className="relative grid h-28 place-items-center overflow-hidden rounded-xl bg-gradient-to-br from-amber-100 to-rose-100 text-3xl">
+                          {item.imageData ? (
+                            <Image
+                              src={item.imageData}
+                              alt={item.name}
+                              fill
+                              sizes="88px"
+                              className="object-cover"
+                              unoptimized
+                            />
+                          ) : (
+                            <span aria-hidden="true">🍽️</span>
+                          )}
+                        </div>
+                        <div className="min-w-0">
+                          <div className="flex items-start justify-between gap-2">
+                            <h4 className="font-black leading-tight">
+                              {item.name}
+                            </h4>
+                            <strong className="whitespace-nowrap text-emerald-800">
+                              ₡{item.price.toLocaleString()}
+                            </strong>
+                          </div>
+                          <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-slate-600">
+                            {item.description || "Sin descripción"}
+                          </p>
+                          <div className="mt-2 flex flex-wrap gap-1.5 text-[11px] font-bold">
+                            <span className="rounded-full bg-indigo-50 px-2 py-1 text-indigo-700">
+                              {item.productType}
+                            </span>
+                            <span
+                              className={`rounded-full px-2 py-1 ${item.active ? "bg-emerald-100 text-emerald-800" : "bg-amber-100 text-amber-900"}`}
+                            >
+                              {item.active ? "Disponible" : "Suspendido"}
+                            </span>
+                            <span className="rounded-full bg-slate-100 px-2 py-1 text-slate-700">
+                              {item.station === "KITCHEN" ? "Cocina" : "Bar"}
+                            </span>
+                          </div>
+                          <div className="mt-3 flex flex-wrap gap-3 text-xs font-black">
+                            <button
+                              type="button"
+                              className="text-sky-700"
+                              onClick={() => editMenuItem(item)}
+                            >
+                              Editar
+                            </button>
+                            <button
+                              type="button"
+                              className={
+                                item.active
+                                  ? "text-amber-700"
+                                  : "text-emerald-700"
+                              }
+                              onClick={() =>
+                                void post(
+                                  `menu/${item.id}`,
+                                  { active: !item.active },
+                                  "PATCH",
+                                )
+                              }
+                            >
+                              {item.active ? "Suspender" : "Restaurar"}
+                            </button>
+                            <button
+                              type="button"
+                              className="text-red-700"
+                              onClick={() => {
+                                if (
+                                  window.confirm(
+                                    `¿Eliminar definitivamente “${item.name}” del catálogo? Dejará de aparecer en el menú y no podrá restaurarse. Las órdenes y ventas anteriores se conservarán.`,
+                                  )
+                                ) {
+                                  void remove(`menu/${item.id}`).then(
+                                    (deleted) => {
+                                      if (deleted && editingItemId === item.id)
+                                        resetMenuForm();
+                                    },
+                                  );
+                                }
+                              }}
+                            >
+                              Eliminar definitivamente
+                            </button>
+                          </div>
+                        </div>
+                      </article>
+                    ))}
+                    {filteredMenu.length === 0 && (
+                      <p className="rounded-xl border border-dashed p-6 text-center text-sm text-slate-500">
+                        No se encontraron productos con esos filtros.
+                      </p>
+                    )}
+                  </div>
+                </section>
+
+                <section className="overflow-hidden rounded-2xl border bg-white shadow-sm xl:sticky xl:top-4">
+                  <div className="flex items-start justify-between gap-3 bg-slate-950 p-5 text-white">
+                    <div>
+                      <p className="text-xs font-black uppercase tracking-[0.16em] text-emerald-400">
+                        Editor guiado
+                      </p>
+                      <h3 className="mt-1 text-xl font-black">
+                        {editingItemId ? "Editar producto" : "Nuevo producto"}
+                      </h3>
+                      <p className="mt-1 text-sm text-slate-300">
+                        Complete los datos y revise cómo lo verá el cliente.
+                      </p>
+                    </div>
+                    <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-black text-emerald-900">
+                      {editingItemId ? "EDITANDO" : "CREANDO"}
+                    </span>
+                  </div>
+
+                  <form
+                    className="space-y-5 p-5"
+                    onSubmit={(event) => {
+                      event.preventDefault();
+                      const value = Number(price);
+                      if (!Number.isInteger(value) || value < 0) {
+                        setError("Ingrese un precio válido en colones");
+                        return;
+                      }
+                      const payload = {
+                        name: itemName,
+                        description: itemDescription || undefined,
+                        price: value,
+                        station: itemStation,
+                        course,
+                        productType,
+                        categories: categories
+                          .split(",")
+                          .map((category) => category.trim())
+                          .filter(Boolean),
+                        origin,
+                        prepMinutes:
+                          origin === "HOUSE_MADE"
+                            ? Number(prepMinutes)
+                            : undefined,
+                        alcoholic,
+                        imageData,
+                      };
+                      void post(
+                        editingItemId ? `menu/${editingItemId}` : "menu",
+                        payload,
+                        editingItemId ? "PATCH" : "POST",
+                      ).then((saved) => {
+                        if (saved) resetMenuForm();
+                      });
+                    }}
+                  >
+                    <fieldset className="rounded-2xl border">
+                      <legend className="ml-3 px-2 text-sm font-black">
+                        1 · Información principal
+                      </legend>
+                      <div className="grid gap-3 p-4 sm:grid-cols-2">
+                        <label className="font-semibold">
+                          Nombre del producto
+                          <input
+                            required
+                            maxLength={100}
+                            className="mt-1 w-full rounded-xl border p-3"
+                            placeholder="Ej. Pizza Margarita"
+                            value={itemName}
+                            onChange={(event) =>
+                              setItemName(event.target.value)
+                            }
+                          />
+                        </label>
+                        <label className="font-semibold">
+                          Precio en colones
+                          <input
+                            required
+                            min="0"
+                            step="1"
+                            type="number"
+                            className="mt-1 w-full rounded-xl border p-3"
+                            placeholder="4500"
+                            value={price}
+                            onChange={(event) => setPrice(event.target.value)}
+                          />
+                        </label>
+                        <label className="font-semibold sm:col-span-2">
+                          Descripción
+                          <textarea
+                            maxLength={500}
+                            className="mt-1 min-h-24 w-full rounded-xl border p-3"
+                            placeholder="Ingredientes, presentación o características…"
+                            value={itemDescription}
+                            onChange={(event) =>
+                              setItemDescription(event.target.value)
+                            }
+                          />
+                          <span className="mt-1 block text-xs font-normal text-slate-500">
+                            Esta información aparece en el menú del cliente.
+                          </span>
+                        </label>
+                      </div>
+                    </fieldset>
+
+                    <fieldset className="rounded-2xl border">
+                      <legend className="ml-3 px-2 text-sm font-black">
+                        2 · Clasificación y ubicación
+                      </legend>
+                      <div className="space-y-3 p-4">
+                        <div className="grid gap-3 sm:grid-cols-2">
+                          <label className="font-semibold">
+                            Tipo de producto
+                            <input
+                              required
+                              maxLength={60}
+                              className="mt-1 w-full rounded-xl border p-3"
+                              placeholder="Postres, platos fuertes…"
+                              value={productType}
+                              onChange={(event) =>
+                                setProductType(event.target.value)
+                              }
+                            />
+                          </label>
+                          <label className="font-semibold">
+                            Estación responsable
+                            <select
+                              className="mt-1 w-full rounded-xl border bg-white p-3"
+                              value={itemStation}
+                              onChange={(event) =>
+                                setItemStation(event.target.value as Station)
+                              }
+                            >
+                              <option value="KITCHEN">Cocina</option>
+                              <option value="BAR">Bar</option>
+                            </select>
+                          </label>
+                        </div>
+                        <label className="block font-semibold">
+                          Categorías adicionales
+                          <input
+                            className="mt-1 w-full rounded-xl border p-3"
+                            placeholder="Separadas por coma"
+                            value={categories}
+                            onChange={(event) =>
+                              setCategories(event.target.value)
+                            }
+                          />
+                        </label>
+                        <div className="flex flex-wrap gap-2">
+                          {suggestedCategories.map((category) => {
+                            const selected = selectedCategories.includes(
+                              category.toLocaleLowerCase(),
+                            );
+                            return (
+                              <button
+                                key={category}
+                                type="button"
+                                onClick={() =>
+                                  toggleSuggestedCategory(category)
+                                }
+                                className={`rounded-full border px-3 py-1.5 text-xs font-bold ${selected ? "border-violet-400 bg-violet-100 text-violet-800" : "bg-white text-slate-600"}`}
+                              >
+                                {category}
+                              </button>
+                            );
+                          })}
+                        </div>
+                        <label className="block font-semibold">
+                          Orden de servicio
+                          <select
+                            className="mt-1 w-full rounded-xl border bg-white p-3"
+                            value={course}
+                            onChange={(event) => setCourse(event.target.value)}
+                          >
+                            <option value="DRINK">Bebida</option>
+                            <option value="STARTER">Entrada</option>
+                            <option value="MAIN">Plato principal</option>
+                            <option value="OTHER">Otro</option>
+                          </select>
+                        </label>
+                      </div>
+                    </fieldset>
+
+                    <fieldset className="rounded-2xl border">
+                      <legend className="ml-3 px-2 text-sm font-black">
+                        3 · Preparación y condiciones
+                      </legend>
+                      <div className="space-y-3 p-4">
+                        <div className="grid gap-3 sm:grid-cols-2">
+                          <label
+                            className={`cursor-pointer rounded-xl border p-3 ${origin === "HOUSE_MADE" ? "border-emerald-600 bg-emerald-50 ring-1 ring-emerald-600" : ""}`}
+                          >
+                            <span className="flex items-start gap-2">
+                              <input
+                                type="radio"
+                                checked={origin === "HOUSE_MADE"}
+                                onChange={() => setOrigin("HOUSE_MADE")}
+                              />
+                              <span>
+                                <strong className="block">Hecho en casa</strong>
+                                <small className="font-normal text-slate-500">
+                                  Se prepara en el restaurante.
+                                </small>
+                              </span>
+                            </span>
+                          </label>
+                          <label
+                            className={`cursor-pointer rounded-xl border p-3 ${origin === "THIRD_PARTY" ? "border-emerald-600 bg-emerald-50 ring-1 ring-emerald-600" : ""}`}
+                          >
+                            <span className="flex items-start gap-2">
+                              <input
+                                type="radio"
+                                checked={origin === "THIRD_PARTY"}
+                                onChange={() => setOrigin("THIRD_PARTY")}
+                              />
+                              <span>
+                                <strong className="block">
+                                  Producto de terceros
+                                </strong>
+                                <small className="font-normal text-slate-500">
+                                  Se recibe listo para vender.
+                                </small>
+                              </span>
+                            </span>
+                          </label>
+                        </div>
+                        <div className="grid gap-3 sm:grid-cols-2">
+                          <label className="font-semibold">
+                            Minutos de preparación
+                            <input
+                              disabled={origin === "THIRD_PARTY"}
+                              required={origin === "HOUSE_MADE"}
+                              min="5"
+                              max="15"
+                              type="number"
+                              className="mt-1 w-full rounded-xl border p-3 disabled:bg-slate-100 disabled:text-slate-400"
+                              value={prepMinutes}
+                              onChange={(event) =>
+                                setPrepMinutes(event.target.value)
+                              }
+                            />
+                          </label>
+                          <label className="flex items-center gap-3 rounded-xl border bg-slate-50 p-3 font-semibold">
+                            <input
+                              type="checkbox"
+                              checked={alcoholic}
+                              onChange={(event) =>
+                                setAlcoholic(event.target.checked)
+                              }
+                            />
+                            Contiene alcohol
+                          </label>
+                        </div>
+                      </div>
+                    </fieldset>
+
+                    <fieldset className="rounded-2xl border">
+                      <legend className="ml-3 px-2 text-sm font-black">
+                        4 · Imagen del producto
+                      </legend>
+                      <div className="grid gap-4 p-4 sm:grid-cols-[190px_1fr]">
+                        <div className="relative grid min-h-52 place-items-center overflow-hidden rounded-2xl border-2 border-dashed bg-gradient-to-br from-slate-50 to-indigo-50 text-center text-slate-400">
+                          {imageData ? (
+                            <Image
+                              src={imageData}
+                              alt="Vista previa del producto"
+                              fill
+                              sizes="190px"
+                              className="object-cover"
+                              unoptimized
+                            />
+                          ) : (
+                            <span>
+                              <span className="block text-4xl">🖼️</span>
+                              <strong className="mt-2 block text-sm">
+                                Vista previa
+                              </strong>
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex flex-col justify-center gap-3 rounded-2xl border p-4">
+                          <div>
+                            <strong>Seleccione una imagen clara</strong>
+                            <p className="mt-1 text-xs leading-relaxed text-slate-500">
+                              JPEG, PNG o WebP; máximo 2 MB y 1600 × 1600. En
+                              móviles se recorta proporcionalmente.
+                            </p>
+                          </div>
+                          <input
+                            className="block w-full text-sm"
+                            type="file"
+                            accept="image/jpeg,image/png,image/webp"
+                            onChange={(event) =>
+                              void selectProductImage(event.target.files?.[0])
+                            }
+                          />
+                          {imageData && (
+                            <button
+                              type="button"
+                              className="self-start text-sm font-bold text-red-700"
+                              onClick={() => setImageData(null)}
+                            >
+                              Quitar imagen
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    </fieldset>
+
+                    <section className="rounded-2xl border border-blue-200 bg-blue-50 p-4">
+                      <p className="text-xs font-black uppercase tracking-[0.14em] text-blue-700">
+                        Vista previa para el cliente
+                      </p>
+                      <div className="mx-auto mt-3 grid max-w-md grid-cols-[110px_1fr] overflow-hidden rounded-2xl border border-blue-200 bg-white shadow-sm">
+                        <div className="relative grid min-h-40 place-items-center overflow-hidden bg-gradient-to-br from-amber-200 to-rose-300 text-4xl">
+                          {imageData ? (
+                            <Image
+                              src={imageData}
+                              alt=""
+                              fill
+                              sizes="110px"
+                              className="object-cover"
+                              unoptimized
+                            />
+                          ) : (
+                            <span aria-hidden="true">🍽️</span>
+                          )}
+                        </div>
+                        <div className="p-4">
+                          <h4 className="font-black">
+                            {itemName.trim() || "Nombre del producto"}
+                          </h4>
+                          <p className="mt-1 line-clamp-3 text-xs leading-relaxed text-slate-600">
+                            {itemDescription.trim() ||
+                              "La descripción del producto aparecerá en este espacio."}
+                          </p>
+                          <span className="mt-2 inline-block rounded-full bg-indigo-50 px-2 py-1 text-[11px] font-bold text-indigo-700">
+                            {productType || "Tipo de producto"}
+                          </span>
+                          <div className="mt-3 flex items-center justify-between gap-2">
+                            <strong className="text-lg">
+                              ₡{Number(price || 0).toLocaleString()}
+                            </strong>
+                            <span className="rounded-lg bg-emerald-700 px-3 py-2 text-xs font-black text-white">
+                              Agregar
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </section>
+
+                    <div className="flex flex-wrap justify-end gap-2 border-t pt-4">
+                      {editingItemId && (
+                        <button
+                          type="button"
+                          className="rounded-xl border px-4 py-3 font-bold"
+                          onClick={resetMenuForm}
+                        >
+                          Cancelar edición
+                        </button>
+                      )}
+                      <button className="rounded-xl bg-emerald-700 px-5 py-3 font-black text-white">
+                        {editingItemId ? "Guardar cambios" : "Agregar producto"}
+                      </button>
+                    </div>
+                  </form>
+                </section>
+              </div>
             </div>
           </section>
         </>

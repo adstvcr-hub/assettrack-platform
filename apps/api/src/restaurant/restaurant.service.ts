@@ -2195,7 +2195,7 @@ export class RestaurantService {
   menu(actor: RestaurantActor) {
     this.requireRestaurantAdmin(actor);
     return this.prisma.restaurantMenuItem.findMany({
-      where: { organizationId: actor.organizationId },
+      where: { organizationId: actor.organizationId, deletedAt: null },
       orderBy: { createdAt: "asc" },
     });
   }
@@ -2350,7 +2350,7 @@ export class RestaurantService {
       throw new BadRequestException("Product type required");
     }
     const result = await this.prisma.restaurantMenuItem.updateMany({
-      where: { id, organizationId: actor.organizationId },
+      where: { id, organizationId: actor.organizationId, deletedAt: null },
       data,
     });
     if (!result.count) throw new NotFoundException("Menu item not found");
@@ -2360,19 +2360,32 @@ export class RestaurantService {
   async deleteMenuItem(actor: RestaurantActor, id: string) {
     this.requireRestaurantAdmin(actor);
     const item = await this.prisma.restaurantMenuItem.findFirst({
-      where: { id, organizationId: actor.organizationId },
+      where: { id, organizationId: actor.organizationId, deletedAt: null },
       select: { id: true },
     });
     if (!item) throw new NotFoundException("Menu item not found");
-    const historicalOrders = await this.prisma.restaurantOrderItem.count({
-      where: { menuItemId: id },
+    await this.prisma.$transaction(async (tx) => {
+      await tx.restaurantMenuItem.update({
+        where: { id },
+        data: { active: false, deletedAt: new Date() },
+      });
+      await tx.restaurantPromotion.updateMany({
+        where: { organizationId: actor.organizationId, menuItemId: id },
+        data: { active: false },
+      });
+      await tx.restaurantRewardProgram.updateMany({
+        where: { organizationId: actor.organizationId, menuItemId: id },
+        data: { active: false },
+      });
+      await tx.restaurantRecipeIngredient.updateMany({
+        where: { organizationId: actor.organizationId, menuItemId: id },
+        data: { active: false },
+      });
+      await tx.restaurantInventoryProduct.updateMany({
+        where: { organizationId: actor.organizationId, menuItemId: id },
+        data: { menuItemId: null },
+      });
     });
-    if (historicalOrders > 0) {
-      throw new ConflictException(
-        "This product has order history and must be archived instead",
-      );
-    }
-    await this.prisma.restaurantMenuItem.delete({ where: { id } });
     return { deleted: true };
   }
 
@@ -2394,7 +2407,11 @@ export class RestaurantService {
         orderBy: [{ active: "desc" }, { name: "asc" }],
       }),
       this.prisma.restaurantMenuItem.findMany({
-        where: { organizationId: actor.organizationId, active: true },
+        where: {
+          organizationId: actor.organizationId,
+          active: true,
+          deletedAt: null,
+        },
         select: { id: true, name: true },
         orderBy: { name: "asc" },
       }),
@@ -2493,7 +2510,11 @@ export class RestaurantService {
       }),
       dto.menuItemId
         ? this.prisma.restaurantMenuItem.findFirst({
-            where: { id: dto.menuItemId, organizationId: actor.organizationId },
+            where: {
+              id: dto.menuItemId,
+              organizationId: actor.organizationId,
+              deletedAt: null,
+            },
           })
         : Promise.resolve(null),
     ]);
@@ -2555,7 +2576,11 @@ export class RestaurantService {
     }
     if (dto.menuItemId) {
       const menuItem = await this.prisma.restaurantMenuItem.findFirst({
-        where: { id: dto.menuItemId, organizationId: actor.organizationId },
+        where: {
+          id: dto.menuItemId,
+          organizationId: actor.organizationId,
+          deletedAt: null,
+        },
       });
       if (!menuItem) throw new NotFoundException("Menu item not found");
     }
@@ -2669,7 +2694,11 @@ export class RestaurantService {
     }
     const [menuItem, products] = await Promise.all([
       this.prisma.restaurantMenuItem.findFirst({
-        where: { id: menuItemId, organizationId: actor.organizationId },
+        where: {
+          id: menuItemId,
+          organizationId: actor.organizationId,
+          deletedAt: null,
+        },
         select: { id: true, name: true },
       }),
       productIds.length
@@ -3098,6 +3127,7 @@ export class RestaurantService {
           where: {
             organizationId: table.organizationId,
             active: true,
+            deletedAt: null,
           },
           orderBy: { createdAt: "asc" },
         }),
@@ -3315,6 +3345,7 @@ export class RestaurantService {
         id: { in: ids },
         organizationId: table.organizationId,
         active: true,
+        deletedAt: null,
         station: { in: stations },
       },
     });
@@ -3704,6 +3735,7 @@ export class RestaurantService {
         id: { in: ids },
         organizationId: visit.organizationId,
         active: true,
+        deletedAt: null,
         station: { in: stations },
       },
     });
@@ -3921,6 +3953,7 @@ export class RestaurantService {
         id: { in: ids },
         organizationId: actor.organizationId,
         active: true,
+        deletedAt: null,
         ...(isDeliveredCorrection ? {} : { station: { in: stations } }),
       },
     });
@@ -4207,7 +4240,11 @@ export class RestaurantService {
         orderBy: [{ startsAt: "desc" }, { createdAt: "desc" }],
       }),
       this.prisma.restaurantMenuItem.findMany({
-        where: { organizationId: visit.organizationId, active: true },
+        where: {
+          organizationId: visit.organizationId,
+          active: true,
+          deletedAt: null,
+        },
       }),
       this.availableStations(visit.organizationId),
     ]);
@@ -4633,6 +4670,7 @@ export class RestaurantService {
         where: {
           organizationId: actor.organizationId,
           active: true,
+          deletedAt: null,
           station: { in: stations },
         },
         select: {
@@ -4960,7 +4998,11 @@ export class RestaurantService {
         orderBy: { name: "asc" },
       }),
       this.prisma.restaurantMenuItem.findMany({
-        where: { organizationId: actor.organizationId, active: true },
+        where: {
+          organizationId: actor.organizationId,
+          active: true,
+          deletedAt: null,
+        },
         select: {
           id: true,
           name: true,

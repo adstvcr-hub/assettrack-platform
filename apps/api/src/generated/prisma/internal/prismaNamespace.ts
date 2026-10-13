@@ -3623,6 +3623,7 @@ export const RestaurantMenuItemScalarFieldEnum = {
   prepMinutes: 'prepMinutes',
   alcoholic: 'alcoholic',
   imageData: 'imageData',
+  deletedAt: 'deletedAt',
   createdAt: 'createdAt'
 } as const
 

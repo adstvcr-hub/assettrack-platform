@@ -488,6 +488,7 @@ model RestaurantMenuItem {
   prepMinutes      Int?
   alcoholic        Boolean                     @default(false)
   imageData        String?
+  deletedAt        DateTime?
   createdAt        DateTime                    @default(now())
   organization     Organization                @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   orderItems       RestaurantOrderItem[]
@@ -496,6 +497,7 @@ model RestaurantMenuItem {
   recipeIngredients RestaurantRecipeIngredient[]
 
   @@index([organizationId, active])
+  @@index([organizationId, deletedAt])
   @@map("restaurant_menu_items")
 }
 
