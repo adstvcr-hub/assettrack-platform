@@ -125,6 +125,7 @@ function createService() {
       create: vi.fn(),
       update: vi.fn(),
       updateMany: vi.fn(),
+      delete: vi.fn(),
     },
     restaurantRewardProgram: { updateMany: vi.fn() },
     restaurantOrder: {
@@ -2647,6 +2648,31 @@ describe("RestaurantService", () => {
     expect(prisma.restaurantInventoryProduct.updateMany).toHaveBeenCalledWith({
       where: { organizationId: "org-a", menuItemId: itemId },
       data: { menuItemId: null },
+    });
+  });
+
+  it("permanently deletes only promotions owned by the restaurant", async () => {
+    const { prisma, service } = createService();
+    const admin = {
+      id: "admin-a",
+      organizationId: "org-a",
+      role: UserRole.ADMIN,
+      restaurantRole: null,
+      restaurantAvailability: RestaurantStaffAvailability.AVAILABLE,
+    };
+    prisma.restaurantPromotion.findFirst.mockResolvedValue({
+      id: "promotion-a",
+    });
+
+    await expect(
+      service.deletePromotion(admin, "promotion-a"),
+    ).resolves.toEqual({ deleted: true });
+    expect(prisma.restaurantPromotion.findFirst).toHaveBeenCalledWith({
+      where: { id: "promotion-a", organizationId: "org-a" },
+      select: { id: true },
+    });
+    expect(prisma.restaurantPromotion.delete).toHaveBeenCalledWith({
+      where: { id: "promotion-a" },
     });
   });
 

@@ -584,6 +584,7 @@ export const RestaurantPromotionScalarFieldEnum = {
   id: 'id',
   organizationId: 'organizationId',
   title: 'title',
+  imageData: 'imageData',
   productType: 'productType',
   menuItemId: 'menuItemId',
   creditAmount: 'creditAmount',

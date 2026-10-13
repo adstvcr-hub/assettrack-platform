@@ -69,6 +69,12 @@ type Order = {
       productType: string;
     };
   }>;
+  exitPromotions: Array<{
+    id: string;
+    title: string;
+    imageData: string;
+    endsAt: string;
+  }>;
   correction: {
     orderId: string | null;
     deadline: string | null;
@@ -151,6 +157,9 @@ export default function RestaurantOrderPage() {
   const [promotionMessage, setPromotionMessage] = useState("");
   const [showExitOptions, setShowExitOptions] = useState(false);
   const [visitEnded, setVisitEnded] = useState(false);
+  const [exitPromotion, setExitPromotion] = useState<
+    Order["exitPromotions"][number] | null
+  >(null);
   const [loyaltyForm, setLoyaltyForm] = useState({
     nickname: "",
     email: "",
@@ -451,6 +460,16 @@ export default function RestaurantOrderPage() {
   function finishVisit() {
     if (order) {
       clearStoredAccountReferences(accessCode);
+      const available = (order.exitPromotions ?? []).filter(
+        (promotion) =>
+          Boolean(promotion.imageData) &&
+          new Date(promotion.endsAt).getTime() > Date.now(),
+      );
+      setExitPromotion(
+        available.length
+          ? available[Math.floor(Math.random() * available.length)]
+          : null,
+      );
     }
     setVisitEnded(true);
   }
@@ -463,6 +482,30 @@ export default function RestaurantOrderPage() {
         <p className="mt-4 text-slate-600">
           La sesión de esta mesa fue retirada de este dispositivo.
         </p>
+        {exitPromotion && (
+          <section className="mt-8 overflow-hidden rounded-3xl border border-fuchsia-200 bg-white text-left shadow-xl">
+            <Image
+              src={exitPromotion.imageData}
+              alt={exitPromotion.title}
+              width={1200}
+              height={750}
+              unoptimized
+              priority
+              className="aspect-[16/10] w-full object-cover"
+            />
+            <div className="bg-gradient-to-r from-fuchsia-950 to-violet-800 p-5 text-white">
+              <p className="text-xs font-black uppercase tracking-[0.2em] text-fuchsia-200">
+                Promoción vigente
+              </p>
+              <h3 className="mt-1 text-2xl font-black">
+                {exitPromotion.title}
+              </h3>
+              <p className="mt-2 text-sm text-fuchsia-100">
+                Esperamos verle nuevamente muy pronto.
+              </p>
+            </div>
+          </section>
+        )}
       </main>
     );
   }

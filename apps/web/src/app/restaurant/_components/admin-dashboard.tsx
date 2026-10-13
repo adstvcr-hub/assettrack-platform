@@ -137,6 +137,7 @@ type MenuItem = {
 type Promotion = {
   id: string;
   title: string;
+  imageData?: string | null;
   productType?: string | null;
   menuItemId?: string | null;
   creditAmount: number;
@@ -529,6 +530,11 @@ export default function RestaurantAdminDashboard({
   const [promotionCredit, setPromotionCredit] = useState("0");
   const [promotionStart, setPromotionStart] = useState("");
   const [promotionEnd, setPromotionEnd] = useState("");
+  const [promotionImageData, setPromotionImageData] = useState<string | null>(
+    null,
+  );
+  const [promotionAction, setPromotionAction] = useState<string | null>(null);
+  const [promotionNotice, setPromotionNotice] = useState("");
   const [qr, setQr] = useState<{
     tableName: string;
     tableKind: Table["kind"];
@@ -1263,6 +1269,122 @@ export default function RestaurantAdminDashboard({
     setError("");
   }
 
+  async function readPromotionImage(file: File) {
+    if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
+      throw new Error("La imagen debe ser JPEG, PNG o WebP");
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      throw new Error("La imagen supera el límite de 2 MB");
+    }
+    const dataUrl = await new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onerror = () => reject(new Error("No se pudo leer la imagen"));
+      reader.onload = () => resolve(String(reader.result));
+      reader.readAsDataURL(file);
+    });
+    const dimensions = await new Promise<{ width: number; height: number }>(
+      (resolve, reject) => {
+        const image = new window.Image();
+        image.onerror = () => reject(new Error("La imagen no es válida"));
+        image.onload = () =>
+          resolve({ width: image.width, height: image.height });
+        image.src = dataUrl;
+      },
+    );
+    if (dimensions.width > 1600 || dimensions.height > 1600) {
+      throw new Error("La resolución máxima es 1600 × 1600 píxeles");
+    }
+    return dataUrl;
+  }
+
+  async function selectPromotionImage(file?: File) {
+    if (!file) return;
+    try {
+      setPromotionImageData(await readPromotionImage(file));
+      setError("");
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "No se pudo leer la imagen",
+      );
+    }
+  }
+
+  async function replacePromotionImage(promotion: Promotion, file?: File) {
+    if (!file) return;
+    const action = `image:${promotion.id}`;
+    setPromotionAction(action);
+    setPromotionNotice("");
+    try {
+      const nextImage = await readPromotionImage(file);
+      if (
+        await post(
+          `promotions/${promotion.id}`,
+          { imageData: nextImage },
+          "PATCH",
+        )
+      ) {
+        setPromotionNotice(`Imagen de ${promotion.title} actualizada.`);
+      }
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "No se pudo leer la imagen",
+      );
+    } finally {
+      setPromotionAction(null);
+    }
+  }
+
+  async function deletePromotion(promotion: Promotion) {
+    if (
+      !window.confirm(
+        `¿Eliminar definitivamente “${promotion.title}”? Esta acción elimina también su imagen y no se puede deshacer.`,
+      )
+    ) {
+      return;
+    }
+    const action = `delete:${promotion.id}`;
+    setPromotionAction(action);
+    setPromotionNotice("");
+    if (await post(`promotions/${promotion.id}`, {}, "DELETE")) {
+      setPromotionNotice(`${promotion.title} fue eliminada definitivamente.`);
+    }
+    setPromotionAction(null);
+  }
+
+  async function togglePromotion(promotion: Promotion) {
+    const action = `toggle:${promotion.id}`;
+    setPromotionAction(action);
+    setPromotionNotice("");
+    if (
+      await post(
+        `promotions/${promotion.id}`,
+        { active: !promotion.active },
+        "PATCH",
+      )
+    ) {
+      setPromotionNotice(
+        `${promotion.title} fue ${promotion.active ? "desactivada" : "activada"}.`,
+      );
+    }
+    setPromotionAction(null);
+  }
+
+  async function removePromotionImage(promotion: Promotion) {
+    const action = `image:${promotion.id}`;
+    setPromotionAction(action);
+    setPromotionNotice("");
+    if (
+      await post(
+        `promotions/${promotion.id}`,
+        { imageData: null },
+        "PATCH",
+      )
+    ) {
+      setPromotionNotice(`Imagen de ${promotion.title} eliminada.`);
+    }
+    setPromotionAction(null);
+  }
+
   async function selectBrandImage(
     file: File | undefined,
     target: "header" | "background",
@@ -1348,6 +1470,20 @@ export default function RestaurantAdminDashboard({
   ).length;
   const takeoutStationCount = tables.filter(
     (table) => table.kind === "TAKEOUT_STATION",
+  ).length;
+  const promotionNow = Date.now();
+  const currentPromotionCount = promotions.filter(
+    (promotion) =>
+      promotion.active &&
+      new Date(promotion.startsAt).getTime() <= promotionNow &&
+      new Date(promotion.endsAt).getTime() > promotionNow,
+  ).length;
+  const scheduledPromotionCount = promotions.filter(
+    (promotion) =>
+      promotion.active && new Date(promotion.startsAt).getTime() > promotionNow,
+  ).length;
+  const expiredPromotionCount = promotions.filter(
+    (promotion) => new Date(promotion.endsAt).getTime() <= promotionNow,
   ).length;
   const normalizedMenuSearch = menuSearch.trim().toLocaleLowerCase();
   const filteredMenu = menu.filter((item) => {
@@ -3780,128 +3916,419 @@ export default function RestaurantAdminDashboard({
         <div
           className={
             section === "promotions"
-              ? "rounded-xl border bg-white p-5"
+              ? "overflow-hidden rounded-3xl border border-slate-200 bg-slate-50 shadow-sm"
               : "hidden"
           }
         >
-          <h2 className="text-xl font-bold">Promociones</h2>
-          <p className="mt-1 text-sm text-slate-600">
-            Una promoción vigente podrá mostrarse al iniciar una orden
-            adicional. El precio de catálogo no cambia; el beneficio se aplica
-            como crédito.
-          </p>
-          <form
-            className="mt-4 space-y-2"
-            onSubmit={(event) => {
-              event.preventDefault();
-              void post("promotions", {
-                title: promotionTitle,
-                menuItemId: promotionItemId,
-                productType:
-                  menu.find((item) => item.id === promotionItemId)
-                    ?.productType ?? promotionType,
-                creditAmount: Number(promotionCredit),
-                startsAt: new Date(promotionStart).toISOString(),
-                endsAt: new Date(promotionEnd).toISOString(),
-              }).then(() => {
-                setPromotionTitle("");
-                setPromotionItemId("");
-                setPromotionCredit("0");
-              });
-            }}
-          >
-            <input
-              required
-              className="w-full rounded border p-2"
-              placeholder="Nombre de la promoción"
-              value={promotionTitle}
-              onChange={(event) => setPromotionTitle(event.target.value)}
-            />
-            <select
-              required
-              className="w-full rounded border p-2"
-              value={promotionItemId}
-              onChange={(event) => {
-                setPromotionItemId(event.target.value);
-                setPromotionType(
-                  menu.find((item) => item.id === event.target.value)
-                    ?.productType ?? "",
-                );
+          <div className="border-b border-slate-200 bg-gradient-to-r from-fuchsia-950 via-fuchsia-800 to-violet-800 px-5 py-7 text-white sm:px-7">
+            <p className="text-xs font-black uppercase tracking-[0.2em] text-fuchsia-200">
+              Campañas del restaurante
+            </p>
+            <h2 className="mt-1 text-3xl font-black">Promociones</h2>
+            <p className="mt-2 max-w-2xl text-sm text-fuchsia-100">
+              Cree ofertas con vigencia controlada. Las promociones con imagen
+              también podrán mostrarse aleatoriamente al finalizar una visita.
+            </p>
+            <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
+              {[
+                ["Total", promotions.length],
+                ["Vigentes", currentPromotionCount],
+                ["Programadas", scheduledPromotionCount],
+                ["Vencidas", expiredPromotionCount],
+              ].map(([label, value]) => (
+                <div
+                  key={String(label)}
+                  className="rounded-2xl bg-white/10 p-4 backdrop-blur-sm"
+                >
+                  <p className="text-xs font-bold uppercase tracking-wider text-fuchsia-100">
+                    {label}
+                  </p>
+                  <p className="mt-1 text-3xl font-black">{value}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {promotionNotice && (
+            <p
+              aria-live="polite"
+              className="mx-4 mt-4 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 font-semibold text-emerald-900 sm:mx-6"
+            >
+              ✓ {promotionNotice}
+            </p>
+          )}
+
+          <div className="grid gap-6 p-4 sm:p-6 xl:grid-cols-[380px_1fr]">
+            <form
+              className="h-fit rounded-2xl border border-slate-200 bg-white p-5 shadow-sm xl:sticky xl:top-4"
+              onSubmit={(event) => {
+                event.preventDefault();
+                void (async () => {
+                  setPromotionAction("create");
+                  setPromotionNotice("");
+                  const created = await post("promotions", {
+                    title: promotionTitle,
+                    imageData: promotionImageData,
+                    menuItemId: promotionItemId,
+                    productType:
+                      menu.find((item) => item.id === promotionItemId)
+                        ?.productType ?? promotionType,
+                    creditAmount: Number(promotionCredit),
+                    startsAt: new Date(promotionStart).toISOString(),
+                    endsAt: new Date(promotionEnd).toISOString(),
+                  });
+                  if (created) {
+                    setPromotionNotice(
+                      `${promotionTitle} fue creada correctamente.`,
+                    );
+                    setPromotionTitle("");
+                    setPromotionItemId("");
+                    setPromotionType("");
+                    setPromotionCredit("0");
+                    setPromotionStart("");
+                    setPromotionEnd("");
+                    setPromotionImageData(null);
+                  }
+                  setPromotionAction(null);
+                })();
               }}
             >
-              <option value="">Seleccione el producto promocionado</option>
-              {menu
-                .filter((item) => item.active)
-                .map((item) => (
-                  <option key={item.id} value={item.id}>
-                    {item.name} · {item.productType}
-                  </option>
-                ))}
-            </select>
-            <input
-              required
-              min="0"
-              type="number"
-              className="w-full rounded border p-2"
-              placeholder="Crédito en colones"
-              value={promotionCredit}
-              onChange={(event) => setPromotionCredit(event.target.value)}
-            />
-            <div className="grid gap-2 sm:grid-cols-2">
-              <label className="text-sm">
-                Inicio
+              <p className="text-xs font-black uppercase tracking-[0.18em] text-fuchsia-700">
+                Nueva campaña
+              </p>
+              <h3 className="mt-1 text-xl font-black text-slate-950">
+                Crear promoción
+              </h3>
+              <p className="mt-1 text-sm text-slate-500">
+                El precio de catálogo no cambia; el beneficio se registra como
+                crédito en la cuenta.
+              </p>
+
+              <label className="mt-5 block text-sm font-bold text-slate-800">
+                Nombre de la promoción
                 <input
                   required
-                  type="datetime-local"
-                  className="mt-1 w-full rounded border p-2"
-                  value={promotionStart}
-                  onChange={(event) => setPromotionStart(event.target.value)}
+                  maxLength={100}
+                  className="mt-2 w-full rounded-xl border border-slate-300 p-3 outline-none focus:border-fuchsia-600 focus:ring-4 focus:ring-fuchsia-100"
+                  placeholder="Ejemplo: Hora feliz"
+                  value={promotionTitle}
+                  onChange={(event) => setPromotionTitle(event.target.value)}
                 />
               </label>
-              <label className="text-sm">
-                Final
-                <input
+
+              <label className="mt-4 block text-sm font-bold text-slate-800">
+                Producto promocionado
+                <select
                   required
-                  type="datetime-local"
-                  className="mt-1 w-full rounded border p-2"
-                  value={promotionEnd}
-                  onChange={(event) => setPromotionEnd(event.target.value)}
-                />
+                  className="mt-2 w-full rounded-xl border border-slate-300 bg-white p-3 outline-none focus:border-fuchsia-600"
+                  value={promotionItemId}
+                  onChange={(event) => {
+                    setPromotionItemId(event.target.value);
+                    setPromotionType(
+                      menu.find((item) => item.id === event.target.value)
+                        ?.productType ?? "",
+                    );
+                  }}
+                >
+                  <option value="">Seleccione un producto</option>
+                  {menu
+                    .filter((item) => item.active)
+                    .map((item) => (
+                      <option key={item.id} value={item.id}>
+                        {item.name} · {item.productType}
+                      </option>
+                    ))}
+                </select>
               </label>
-            </div>
-            <button className="rounded bg-fuchsia-700 px-4 py-2 font-semibold text-white">
-              Crear promoción
-            </button>
-          </form>
-          <div className="mt-4 space-y-2">
-            {promotions.map((promotion) => (
-              <div key={promotion.id} className="rounded border p-3">
-                <div className="flex items-center justify-between">
-                  <strong>{promotion.title}</strong>
-                  <button
-                    className="text-emerald-700 underline"
-                    onClick={() =>
-                      void post(
-                        `promotions/${promotion.id}`,
-                        { active: !promotion.active },
-                        "PATCH",
-                      )
+
+              <label className="mt-4 block text-sm font-bold text-slate-800">
+                Crédito a favor del cliente
+                <div className="mt-2 flex overflow-hidden rounded-xl border border-slate-300 focus-within:border-fuchsia-600">
+                  <span className="flex items-center bg-slate-100 px-4 font-black text-slate-600">
+                    ₡
+                  </span>
+                  <input
+                    required
+                    min="0"
+                    max="10000000"
+                    type="number"
+                    className="min-w-0 flex-1 p-3 outline-none"
+                    placeholder="0"
+                    value={promotionCredit}
+                    onChange={(event) =>
+                      setPromotionCredit(event.target.value)
                     }
-                  >
-                    {promotion.active ? "Desactivar" : "Activar"}
-                  </button>
+                  />
                 </div>
-                <p className="text-sm">
-                  {menu.find((item) => item.id === promotion.menuItemId)
-                    ?.name ?? promotion.productType}{" "}
-                  · crédito ₡{promotion.creditAmount.toLocaleString()}
-                </p>
-                <p className="text-xs text-slate-500">
-                  {new Date(promotion.startsAt).toLocaleString()} —{" "}
-                  {new Date(promotion.endsAt).toLocaleString()}
-                </p>
+              </label>
+
+              <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-1 2xl:grid-cols-2">
+                <label className="text-sm font-bold text-slate-800">
+                  Fecha de inicio
+                  <input
+                    required
+                    type="datetime-local"
+                    className="mt-2 w-full rounded-xl border border-slate-300 p-3 outline-none focus:border-fuchsia-600"
+                    value={promotionStart}
+                    onChange={(event) => setPromotionStart(event.target.value)}
+                  />
+                </label>
+                <label className="text-sm font-bold text-slate-800">
+                  Fecha de finalización
+                  <input
+                    required
+                    type="datetime-local"
+                    className="mt-2 w-full rounded-xl border border-slate-300 p-3 outline-none focus:border-fuchsia-600"
+                    value={promotionEnd}
+                    onChange={(event) => setPromotionEnd(event.target.value)}
+                  />
+                </label>
               </div>
-            ))}
+
+              <div className="mt-5 rounded-2xl border border-dashed border-fuchsia-300 bg-fuchsia-50 p-3">
+                {promotionImageData ? (
+                  <div>
+                    <Image
+                      src={promotionImageData}
+                      alt="Vista previa de la promoción"
+                      width={800}
+                      height={500}
+                      unoptimized
+                      className="aspect-[16/10] w-full rounded-xl object-cover"
+                    />
+                    <div className="mt-3 flex gap-2">
+                      <label className="flex-1 cursor-pointer rounded-xl bg-fuchsia-700 px-3 py-2 text-center text-sm font-bold text-white">
+                        Cambiar imagen
+                        <input
+                          type="file"
+                          accept="image/jpeg,image/png,image/webp"
+                          className="sr-only"
+                          onChange={(event) =>
+                            void selectPromotionImage(event.target.files?.[0])
+                          }
+                        />
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() => setPromotionImageData(null)}
+                        className="rounded-xl border border-red-200 px-3 py-2 text-sm font-bold text-red-700"
+                      >
+                        Quitar
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <label className="flex cursor-pointer flex-col items-center px-4 py-8 text-center">
+                    <span className="flex h-12 w-12 items-center justify-center rounded-full bg-white text-2xl shadow-sm">
+                      ▧
+                    </span>
+                    <span className="mt-3 font-black text-fuchsia-950">
+                      Agregar imagen promocional
+                    </span>
+                    <span className="mt-1 text-xs text-fuchsia-700">
+                      JPEG, PNG o WebP · máximo 2 MB y 1600 × 1600
+                    </span>
+                    <input
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp"
+                      className="sr-only"
+                      onChange={(event) =>
+                        void selectPromotionImage(event.target.files?.[0])
+                      }
+                    />
+                  </label>
+                )}
+              </div>
+
+              <button
+                disabled={promotionAction === "create"}
+                className="mt-5 w-full rounded-xl bg-fuchsia-700 px-4 py-3 font-black text-white transition hover:bg-fuchsia-800 disabled:cursor-wait disabled:opacity-60"
+              >
+                {promotionAction === "create"
+                  ? "Creando promoción…"
+                  : "Crear promoción"}
+              </button>
+            </form>
+
+            <div className="min-w-0">
+              <div className="mb-4 flex items-end justify-between gap-3">
+                <div>
+                  <h3 className="text-xl font-black text-slate-950">
+                    Promociones configuradas
+                  </h3>
+                  <p className="text-sm text-slate-500">
+                    Administre su vigencia, imagen y permanencia.
+                  </p>
+                </div>
+                <span className="rounded-full bg-white px-3 py-1 text-sm font-bold text-slate-600 shadow-sm">
+                  {promotions.length} registros
+                </span>
+              </div>
+
+              {promotions.length === 0 && (
+                <div className="rounded-2xl border border-dashed border-slate-300 bg-white px-6 py-14 text-center">
+                  <p className="text-4xl" aria-hidden="true">
+                    ✦
+                  </p>
+                  <h4 className="mt-3 font-black text-slate-900">
+                    Aún no hay promociones
+                  </h4>
+                  <p className="mt-1 text-sm text-slate-500">
+                    Cree la primera campaña desde el formulario.
+                  </p>
+                </div>
+              )}
+
+              <div className="grid gap-4 lg:grid-cols-2">
+                {promotions.map((promotion) => {
+                  const startsAt = new Date(promotion.startsAt);
+                  const endsAt = new Date(promotion.endsAt);
+                  const isExpired = endsAt.getTime() <= promotionNow;
+                  const isScheduled = startsAt.getTime() > promotionNow;
+                  const status = !promotion.active
+                    ? "Desactivada"
+                    : isExpired
+                      ? "Vencida"
+                      : isScheduled
+                        ? "Programada"
+                        : "Vigente";
+                  const statusClass =
+                    status === "Vigente"
+                      ? "bg-emerald-100 text-emerald-800"
+                      : status === "Programada"
+                        ? "bg-blue-100 text-blue-800"
+                        : status === "Vencida"
+                          ? "bg-amber-100 text-amber-800"
+                          : "bg-slate-200 text-slate-700";
+                  const imageAction = `image:${promotion.id}`;
+                  const toggleAction = `toggle:${promotion.id}`;
+                  const deleteAction = `delete:${promotion.id}`;
+                  return (
+                    <article
+                      key={promotion.id}
+                      className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm"
+                    >
+                      {promotion.imageData ? (
+                        <Image
+                          src={promotion.imageData}
+                          alt={promotion.title}
+                          width={800}
+                          height={500}
+                          unoptimized
+                          className="aspect-[16/10] w-full object-cover"
+                        />
+                      ) : (
+                        <div className="flex aspect-[16/10] items-center justify-center bg-gradient-to-br from-fuchsia-100 to-violet-100 p-5 text-center">
+                          <div>
+                            <span className="text-4xl" aria-hidden="true">
+                              ✦
+                            </span>
+                            <p className="mt-2 text-sm font-black text-fuchsia-900">
+                              Sin imagen de salida
+                            </p>
+                          </div>
+                        </div>
+                      )}
+                      <div className="p-4">
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="min-w-0">
+                            <h4 className="truncate text-lg font-black text-slate-950">
+                              {promotion.title}
+                            </h4>
+                            <p className="mt-1 text-sm text-slate-600">
+                              {menu.find(
+                                (item) => item.id === promotion.menuItemId,
+                              )?.name ?? promotion.productType}
+                            </p>
+                          </div>
+                          <span
+                            className={`shrink-0 rounded-full px-3 py-1 text-xs font-black ${statusClass}`}
+                          >
+                            {status}
+                          </span>
+                        </div>
+                        <p className="mt-3 text-2xl font-black text-fuchsia-800">
+                          ₡{promotion.creditAmount.toLocaleString()}
+                          <span className="ml-1 text-xs font-bold uppercase tracking-wide text-slate-500">
+                            de crédito
+                          </span>
+                        </p>
+                        <div className="mt-3 rounded-xl bg-slate-50 p-3 text-xs text-slate-600">
+                          <p>
+                            <strong>Inicia:</strong> {startsAt.toLocaleString()}
+                          </p>
+                          <p className="mt-1">
+                            <strong>Finaliza:</strong> {endsAt.toLocaleString()}
+                          </p>
+                        </div>
+
+                        <div className="mt-4 grid grid-cols-2 gap-2">
+                          <button
+                            type="button"
+                            disabled={promotionAction === toggleAction}
+                            onClick={() => void togglePromotion(promotion)}
+                            className={`rounded-xl px-3 py-2.5 text-sm font-black transition disabled:cursor-wait disabled:opacity-60 ${
+                              promotion.active
+                                ? "border border-slate-300 text-slate-700 hover:bg-slate-50"
+                                : "bg-emerald-700 text-white hover:bg-emerald-800"
+                            }`}
+                          >
+                            {promotionAction === toggleAction
+                              ? "Guardando…"
+                              : promotion.active
+                                ? "Desactivar"
+                                : "Activar"}
+                          </button>
+                          <label className="cursor-pointer rounded-xl border border-fuchsia-200 px-3 py-2.5 text-center text-sm font-black text-fuchsia-800 transition hover:bg-fuchsia-50">
+                            {promotionAction === imageAction
+                              ? "Cargando…"
+                              : promotion.imageData
+                                ? "Cambiar imagen"
+                                : "Agregar imagen"}
+                            <input
+                              type="file"
+                              accept="image/jpeg,image/png,image/webp"
+                              className="sr-only"
+                              disabled={promotionAction === imageAction}
+                              onChange={(event) =>
+                                void replacePromotionImage(
+                                  promotion,
+                                  event.target.files?.[0],
+                                )
+                              }
+                            />
+                          </label>
+                          {promotion.imageData && (
+                            <button
+                              type="button"
+                              disabled={promotionAction === imageAction}
+                              onClick={() =>
+                                void removePromotionImage(promotion)
+                              }
+                              className="rounded-xl border border-slate-300 px-3 py-2.5 text-sm font-bold text-slate-600 hover:bg-slate-50 disabled:opacity-60"
+                            >
+                              Quitar imagen
+                            </button>
+                          )}
+                          <button
+                            type="button"
+                            disabled={promotionAction === deleteAction}
+                            onClick={() => void deletePromotion(promotion)}
+                            className={`rounded-xl border border-red-200 px-3 py-2.5 text-sm font-black text-red-700 transition hover:bg-red-50 disabled:cursor-wait disabled:opacity-60 ${
+                              promotion.imageData ? "" : "col-span-2"
+                            }`}
+                          >
+                            {promotionAction === deleteAction
+                              ? "Eliminando…"
+                              : "Eliminar definitivamente"}
+                          </button>
+                        </div>
+                      </div>
+                    </article>
+                  );
+                })}
+              </div>
+            </div>
           </div>
         </div>
         <div

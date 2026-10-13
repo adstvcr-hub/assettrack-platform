@@ -38,6 +38,7 @@ export type RestaurantPromotionMinAggregateOutputType = {
   id: string | null
   organizationId: string | null
   title: string | null
+  imageData: string | null
   productType: string | null
   menuItemId: string | null
   creditAmount: number | null
@@ -53,6 +54,7 @@ export type RestaurantPromotionMaxAggregateOutputType = {
   id: string | null
   organizationId: string | null
   title: string | null
+  imageData: string | null
   productType: string | null
   menuItemId: string | null
   creditAmount: number | null
@@ -68,6 +70,7 @@ export type RestaurantPromotionCountAggregateOutputType = {
   id: number
   organizationId: number
   title: number
+  imageData: number
   productType: number
   menuItemId: number
   creditAmount: number
@@ -93,6 +96,7 @@ export type RestaurantPromotionMinAggregateInputType = {
   id?: true
   organizationId?: true
   title?: true
+  imageData?: true
   productType?: true
   menuItemId?: true
   creditAmount?: true
@@ -108,6 +112,7 @@ export type RestaurantPromotionMaxAggregateInputType = {
   id?: true
   organizationId?: true
   title?: true
+  imageData?: true
   productType?: true
   menuItemId?: true
   creditAmount?: true
@@ -123,6 +128,7 @@ export type RestaurantPromotionCountAggregateInputType = {
   id?: true
   organizationId?: true
   title?: true
+  imageData?: true
   productType?: true
   menuItemId?: true
   creditAmount?: true
@@ -225,6 +231,7 @@ export type RestaurantPromotionGroupByOutputType = {
   id: string
   organizationId: string
   title: string
+  imageData: string | null
   productType: string | null
   menuItemId: string | null
   creditAmount: number
@@ -263,6 +270,7 @@ export type RestaurantPromotionWhereInput = {
   id?: Prisma.StringFilter<"RestaurantPromotion"> | string
   organizationId?: Prisma.StringFilter<"RestaurantPromotion"> | string
   title?: Prisma.StringFilter<"RestaurantPromotion"> | string
+  imageData?: Prisma.StringNullableFilter<"RestaurantPromotion"> | string | null
   productType?: Prisma.StringNullableFilter<"RestaurantPromotion"> | string | null
   menuItemId?: Prisma.StringNullableFilter<"RestaurantPromotion"> | string | null
   creditAmount?: Prisma.IntFilter<"RestaurantPromotion"> | number
@@ -279,6 +287,7 @@ export type RestaurantPromotionOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   organizationId?: Prisma.SortOrder
   title?: Prisma.SortOrder
+  imageData?: Prisma.SortOrderInput | Prisma.SortOrder
   productType?: Prisma.SortOrderInput | Prisma.SortOrder
   menuItemId?: Prisma.SortOrderInput | Prisma.SortOrder
   creditAmount?: Prisma.SortOrder
@@ -298,6 +307,7 @@ export type RestaurantPromotionWhereUniqueInput = Prisma.AtLeast<{
   NOT?: Prisma.RestaurantPromotionWhereInput | Prisma.RestaurantPromotionWhereInput[]
   organizationId?: Prisma.StringFilter<"RestaurantPromotion"> | string
   title?: Prisma.StringFilter<"RestaurantPromotion"> | string
+  imageData?: Prisma.StringNullableFilter<"RestaurantPromotion"> | string | null
   productType?: Prisma.StringNullableFilter<"RestaurantPromotion"> | string | null
   menuItemId?: Prisma.StringNullableFilter<"RestaurantPromotion"> | string | null
   creditAmount?: Prisma.IntFilter<"RestaurantPromotion"> | number
@@ -314,6 +324,7 @@ export type RestaurantPromotionOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   organizationId?: Prisma.SortOrder
   title?: Prisma.SortOrder
+  imageData?: Prisma.SortOrderInput | Prisma.SortOrder
   productType?: Prisma.SortOrderInput | Prisma.SortOrder
   menuItemId?: Prisma.SortOrderInput | Prisma.SortOrder
   creditAmount?: Prisma.SortOrder
@@ -337,6 +348,7 @@ export type RestaurantPromotionScalarWhereWithAggregatesInput = {
   id?: Prisma.StringWithAggregatesFilter<"RestaurantPromotion"> | string
   organizationId?: Prisma.StringWithAggregatesFilter<"RestaurantPromotion"> | string
   title?: Prisma.StringWithAggregatesFilter<"RestaurantPromotion"> | string
+  imageData?: Prisma.StringNullableWithAggregatesFilter<"RestaurantPromotion"> | string | null
   productType?: Prisma.StringNullableWithAggregatesFilter<"RestaurantPromotion"> | string | null
   menuItemId?: Prisma.StringNullableWithAggregatesFilter<"RestaurantPromotion"> | string | null
   creditAmount?: Prisma.IntWithAggregatesFilter<"RestaurantPromotion"> | number
@@ -351,6 +363,7 @@ export type RestaurantPromotionScalarWhereWithAggregatesInput = {
 export type RestaurantPromotionCreateInput = {
   id?: string
   title: string
+  imageData?: string | null
   productType?: string | null
   menuItemId?: string | null
   creditAmount?: number
@@ -367,6 +380,7 @@ export type RestaurantPromotionUncheckedCreateInput = {
   id?: string
   organizationId: string
   title: string
+  imageData?: string | null
   productType?: string | null
   menuItemId?: string | null
   creditAmount?: number
@@ -381,6 +395,7 @@ export type RestaurantPromotionUncheckedCreateInput = {
 export type RestaurantPromotionUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
+  imageData?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   productType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   menuItemId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   creditAmount?: Prisma.IntFieldUpdateOperationsInput | number
@@ -397,6 +412,7 @@ export type RestaurantPromotionUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
+  imageData?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   productType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   menuItemId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   creditAmount?: Prisma.IntFieldUpdateOperationsInput | number
@@ -412,6 +428,7 @@ export type RestaurantPromotionCreateManyInput = {
   id?: string
   organizationId: string
   title: string
+  imageData?: string | null
   productType?: string | null
   menuItemId?: string | null
   creditAmount?: number
@@ -426,6 +443,7 @@ export type RestaurantPromotionCreateManyInput = {
 export type RestaurantPromotionUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
+  imageData?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   productType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   menuItemId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   creditAmount?: Prisma.IntFieldUpdateOperationsInput | number
@@ -441,6 +459,7 @@ export type RestaurantPromotionUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
+  imageData?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   productType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   menuItemId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   creditAmount?: Prisma.IntFieldUpdateOperationsInput | number
@@ -466,6 +485,7 @@ export type RestaurantPromotionCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   organizationId?: Prisma.SortOrder
   title?: Prisma.SortOrder
+  imageData?: Prisma.SortOrder
   productType?: Prisma.SortOrder
   menuItemId?: Prisma.SortOrder
   creditAmount?: Prisma.SortOrder
@@ -485,6 +505,7 @@ export type RestaurantPromotionMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   organizationId?: Prisma.SortOrder
   title?: Prisma.SortOrder
+  imageData?: Prisma.SortOrder
   productType?: Prisma.SortOrder
   menuItemId?: Prisma.SortOrder
   creditAmount?: Prisma.SortOrder
@@ -500,6 +521,7 @@ export type RestaurantPromotionMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   organizationId?: Prisma.SortOrder
   title?: Prisma.SortOrder
+  imageData?: Prisma.SortOrder
   productType?: Prisma.SortOrder
   menuItemId?: Prisma.SortOrder
   creditAmount?: Prisma.SortOrder
@@ -560,6 +582,7 @@ export type RestaurantPromotionUncheckedUpdateManyWithoutOrganizationNestedInput
 export type RestaurantPromotionCreateWithoutOrganizationInput = {
   id?: string
   title: string
+  imageData?: string | null
   productType?: string | null
   menuItemId?: string | null
   creditAmount?: number
@@ -574,6 +597,7 @@ export type RestaurantPromotionCreateWithoutOrganizationInput = {
 export type RestaurantPromotionUncheckedCreateWithoutOrganizationInput = {
   id?: string
   title: string
+  imageData?: string | null
   productType?: string | null
   menuItemId?: string | null
   creditAmount?: number
@@ -618,6 +642,7 @@ export type RestaurantPromotionScalarWhereInput = {
   id?: Prisma.StringFilter<"RestaurantPromotion"> | string
   organizationId?: Prisma.StringFilter<"RestaurantPromotion"> | string
   title?: Prisma.StringFilter<"RestaurantPromotion"> | string
+  imageData?: Prisma.StringNullableFilter<"RestaurantPromotion"> | string | null
   productType?: Prisma.StringNullableFilter<"RestaurantPromotion"> | string | null
   menuItemId?: Prisma.StringNullableFilter<"RestaurantPromotion"> | string | null
   creditAmount?: Prisma.IntFilter<"RestaurantPromotion"> | number
@@ -632,6 +657,7 @@ export type RestaurantPromotionScalarWhereInput = {
 export type RestaurantPromotionCreateManyOrganizationInput = {
   id?: string
   title: string
+  imageData?: string | null
   productType?: string | null
   menuItemId?: string | null
   creditAmount?: number
@@ -646,6 +672,7 @@ export type RestaurantPromotionCreateManyOrganizationInput = {
 export type RestaurantPromotionUpdateWithoutOrganizationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
+  imageData?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   productType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   menuItemId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   creditAmount?: Prisma.IntFieldUpdateOperationsInput | number
@@ -660,6 +687,7 @@ export type RestaurantPromotionUpdateWithoutOrganizationInput = {
 export type RestaurantPromotionUncheckedUpdateWithoutOrganizationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
+  imageData?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   productType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   menuItemId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   creditAmount?: Prisma.IntFieldUpdateOperationsInput | number
@@ -674,6 +702,7 @@ export type RestaurantPromotionUncheckedUpdateWithoutOrganizationInput = {
 export type RestaurantPromotionUncheckedUpdateManyWithoutOrganizationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
+  imageData?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   productType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   menuItemId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   creditAmount?: Prisma.IntFieldUpdateOperationsInput | number
@@ -691,6 +720,7 @@ export type RestaurantPromotionSelect<ExtArgs extends runtime.Types.Extensions.I
   id?: boolean
   organizationId?: boolean
   title?: boolean
+  imageData?: boolean
   productType?: boolean
   menuItemId?: boolean
   creditAmount?: boolean
@@ -707,6 +737,7 @@ export type RestaurantPromotionSelectCreateManyAndReturn<ExtArgs extends runtime
   id?: boolean
   organizationId?: boolean
   title?: boolean
+  imageData?: boolean
   productType?: boolean
   menuItemId?: boolean
   creditAmount?: boolean
@@ -723,6 +754,7 @@ export type RestaurantPromotionSelectUpdateManyAndReturn<ExtArgs extends runtime
   id?: boolean
   organizationId?: boolean
   title?: boolean
+  imageData?: boolean
   productType?: boolean
   menuItemId?: boolean
   creditAmount?: boolean
@@ -739,6 +771,7 @@ export type RestaurantPromotionSelectScalar = {
   id?: boolean
   organizationId?: boolean
   title?: boolean
+  imageData?: boolean
   productType?: boolean
   menuItemId?: boolean
   creditAmount?: boolean
@@ -750,7 +783,7 @@ export type RestaurantPromotionSelectScalar = {
   updatedAt?: boolean
 }
 
-export type RestaurantPromotionOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "organizationId" | "title" | "productType" | "menuItemId" | "creditAmount" | "startsAt" | "endsAt" | "active" | "createdById" | "createdAt" | "updatedAt", ExtArgs["result"]["restaurantPromotion"]>
+export type RestaurantPromotionOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "organizationId" | "title" | "imageData" | "productType" | "menuItemId" | "creditAmount" | "startsAt" | "endsAt" | "active" | "createdById" | "createdAt" | "updatedAt", ExtArgs["result"]["restaurantPromotion"]>
 export type RestaurantPromotionInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
 }
@@ -770,6 +803,7 @@ export type $RestaurantPromotionPayload<ExtArgs extends runtime.Types.Extensions
     id: string
     organizationId: string
     title: string
+    imageData: string | null
     productType: string | null
     menuItemId: string | null
     creditAmount: number
@@ -1206,6 +1240,7 @@ export interface RestaurantPromotionFieldRefs {
   readonly id: Prisma.FieldRef<"RestaurantPromotion", 'String'>
   readonly organizationId: Prisma.FieldRef<"RestaurantPromotion", 'String'>
   readonly title: Prisma.FieldRef<"RestaurantPromotion", 'String'>
+  readonly imageData: Prisma.FieldRef<"RestaurantPromotion", 'String'>
   readonly productType: Prisma.FieldRef<"RestaurantPromotion", 'String'>
   readonly menuItemId: Prisma.FieldRef<"RestaurantPromotion", 'String'>
   readonly creditAmount: Prisma.FieldRef<"RestaurantPromotion", 'Int'>

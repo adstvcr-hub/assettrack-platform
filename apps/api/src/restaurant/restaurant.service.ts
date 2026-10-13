@@ -3009,6 +3009,7 @@ export class RestaurantService {
         organizationId: actor.organizationId,
         createdById: actor.id,
         title: dto.title.trim(),
+        imageData: dto.imageData?.trim() || null,
         productType: dto.productType?.trim() || null,
         menuItemId: dto.menuItemId ?? null,
         creditAmount: dto.creditAmount,
@@ -3040,11 +3041,25 @@ export class RestaurantService {
         ...(dto.startsAt ? { startsAt } : {}),
         ...(dto.endsAt ? { endsAt } : {}),
         ...(dto.title ? { title: dto.title.trim() } : {}),
+        ...(dto.imageData !== undefined
+          ? { imageData: dto.imageData?.trim() || null }
+          : {}),
         ...(dto.productType !== undefined
           ? { productType: dto.productType?.trim() || null }
           : {}),
       },
     });
+  }
+
+  async deletePromotion(actor: RestaurantActor, id: string) {
+    this.requireRestaurantAdmin(actor);
+    const promotion = await this.prisma.restaurantPromotion.findFirst({
+      where: { id, organizationId: actor.organizationId },
+      select: { id: true },
+    });
+    if (!promotion) throw new NotFoundException("Promotion not found");
+    await this.prisma.restaurantPromotion.delete({ where: { id } });
+    return { deleted: true };
   }
 
   async invoiceRequests(actor: RestaurantActor) {
@@ -4366,6 +4381,14 @@ export class RestaurantService {
       items,
       invoiceRequestStatus: visit.invoiceRequestStatus,
       promotions,
+      exitPromotions: promotionRows
+        .filter((promotion) => Boolean(promotion.imageData))
+        .map((promotion) => ({
+          id: promotion.id,
+          title: promotion.title,
+          imageData: promotion.imageData,
+          endsAt: promotion.endsAt,
+        })),
       correction: {
         orderId: latestOrder?.id ?? null,
         deadline: correctionDeadline,

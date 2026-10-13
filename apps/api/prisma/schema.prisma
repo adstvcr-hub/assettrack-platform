@@ -787,6 +787,7 @@ model RestaurantPromotion {
   id             String       @id @default(uuid())
   organizationId String
   title          String
+  imageData      String?
   productType    String?
   menuItemId     String?
   creditAmount   Int          @default(0)

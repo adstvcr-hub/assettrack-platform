@@ -328,6 +328,7 @@ export class UpdateInvoiceRequestDto {
 
 export class CreatePromotionDto {
   @IsString() @MaxLength(100) title!: string;
+  @IsOptional() @IsString() @MaxLength(2800000) imageData?: string;
   @IsOptional() @IsString() @MaxLength(60) productType?: string;
   @IsOptional() @IsUUID() menuItemId?: string;
   @IsInt() @Min(0) @Max(10000000) creditAmount!: number;
@@ -337,6 +338,7 @@ export class CreatePromotionDto {
 
 export class UpdatePromotionDto {
   @IsOptional() @IsString() @MaxLength(100) title?: string;
+  @IsOptional() @IsString() @MaxLength(2800000) imageData?: string | null;
   @IsOptional() @IsString() @MaxLength(60) productType?: string | null;
   @IsOptional() @IsUUID() menuItemId?: string | null;
   @IsOptional() @IsInt() @Min(0) @Max(10000000) creditAmount?: number;

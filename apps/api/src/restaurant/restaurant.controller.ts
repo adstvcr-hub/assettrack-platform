@@ -455,6 +455,11 @@ export class RestaurantStaffController {
     return this.restaurant.updatePromotion(req.user, id, dto);
   }
 
+  @Delete("promotions/:id")
+  deletePromotion(@Req() req: StaffRequest, @Param("id") id: string) {
+    return this.restaurant.deletePromotion(req.user, id);
+  }
+
   @Get("invoice-requests")
   invoiceRequests(@Req() req: StaffRequest) {
     return this.restaurant.invoiceRequests(req.user);
