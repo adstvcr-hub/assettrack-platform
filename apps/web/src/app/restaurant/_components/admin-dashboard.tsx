@@ -500,6 +500,7 @@ export default function RestaurantAdminDashboard({
   const [itemStation, setItemStation] = useState<Station>("KITCHEN");
   const [course, setCourse] = useState("MAIN");
   const [productType, setProductType] = useState("Platos fuertes");
+  const [creatingProductType, setCreatingProductType] = useState(false);
   const [categories, setCategories] = useState("");
   const [origin, setOrigin] = useState<"HOUSE_MADE" | "THIRD_PARTY">(
     "HOUSE_MADE",
@@ -821,6 +822,23 @@ export default function RestaurantAdminDashboard({
     void loadStaffHours();
   }, [loadStaffHours, section]);
 
+  useEffect(() => {
+    if (
+      section !== "menu" ||
+      editingItemId ||
+      creatingProductType ||
+      menu.length === 0
+    ) {
+      return;
+    }
+    const matchesExistingType = menu.some(
+      (item) =>
+        item.productType.trim().toLocaleLowerCase() ===
+        productType.trim().toLocaleLowerCase(),
+    );
+    if (!matchesExistingType) setProductType(menu[0].productType);
+  }, [creatingProductType, editingItemId, menu, productType, section]);
+
   async function downloadSalesHistory() {
     const query = new URLSearchParams({
       from: analyticsFrom,
@@ -950,13 +968,16 @@ export default function RestaurantAdminDashboard({
   }
 
   function resetMenuForm() {
+    const firstExistingType = menu.find((item) => item.productType.trim())
+      ?.productType;
     setEditingItemId(null);
     setItemName("");
     setItemDescription("");
     setPrice("");
     setItemStation("KITCHEN");
     setCourse("MAIN");
-    setProductType("Platos fuertes");
+    setProductType(firstExistingType ?? "");
+    setCreatingProductType(!firstExistingType);
     setCategories("");
     setOrigin("HOUSE_MADE");
     setPrepMinutes("10");
@@ -972,6 +993,7 @@ export default function RestaurantAdminDashboard({
     setItemStation(item.station as Station);
     setCourse(item.course);
     setProductType(item.productType);
+    setCreatingProductType(false);
     setCategories(item.categories.join(", "));
     setOrigin(item.origin);
     setPrepMinutes(String(item.prepMinutes ?? 10));
@@ -1287,6 +1309,14 @@ export default function RestaurantAdminDashboard({
     "Sin gluten",
     "Menú rápido",
   ];
+  const existingProductTypes = Array.from(
+    new Map(
+      menu
+        .map((item) => item.productType.trim())
+        .filter(Boolean)
+        .map((type) => [type.toLocaleLowerCase(), type]),
+    ).values(),
+  ).sort((left, right) => left.localeCompare(right, "es"));
   return (
     <main className="mx-auto max-w-6xl px-4 py-8 text-slate-900">
       <header className="mb-6 flex flex-wrap items-center justify-between gap-4">
@@ -3041,16 +3071,43 @@ export default function RestaurantAdminDashboard({
                         <div className="grid gap-3 sm:grid-cols-2">
                           <label className="font-semibold">
                             Tipo de producto
-                            <input
+                            <select
                               required
-                              maxLength={60}
-                              className="mt-1 w-full rounded-xl border p-3"
-                              placeholder="Postres, platos fuertes…"
-                              value={productType}
-                              onChange={(event) =>
-                                setProductType(event.target.value)
-                              }
-                            />
+                              className="mt-1 w-full rounded-xl border bg-white p-3"
+                              value={creatingProductType ? "__NEW__" : productType}
+                              onChange={(event) => {
+                                if (event.target.value === "__NEW__") {
+                                  setCreatingProductType(true);
+                                  setProductType("");
+                                  return;
+                                }
+                                setCreatingProductType(false);
+                                setProductType(event.target.value);
+                              }}
+                            >
+                              {existingProductTypes.map((type) => (
+                                <option key={type} value={type}>
+                                  {type}
+                                </option>
+                              ))}
+                              <option value="__NEW__">+ Crear un tipo nuevo</option>
+                            </select>
+                            {creatingProductType && (
+                              <input
+                                required
+                                autoFocus
+                                maxLength={60}
+                                className="mt-2 w-full rounded-xl border border-emerald-500 p-3"
+                                placeholder="Nombre del nuevo tipo"
+                                value={productType}
+                                onChange={(event) =>
+                                  setProductType(event.target.value)
+                                }
+                              />
+                            )}
+                            <span className="mt-1 block text-xs font-normal text-slate-500">
+                              Reutilice un tipo existente o cree uno solo cuando sea necesario.
+                            </span>
                           </label>
                           <label className="font-semibold">
                             Estación responsable

@@ -2296,11 +2296,30 @@ export class RestaurantService {
     return null;
   }
 
-  addMenuItem(actor: RestaurantActor, dto: CreateMenuItemDto) {
+  private async canonicalMenuProductType(
+    organizationId: string,
+    requestedType: string,
+  ) {
+    const productType = requestedType.trim();
+    if (!productType) throw new BadRequestException("Product type required");
+    const existing = await this.prisma.restaurantMenuItem.findFirst({
+      where: {
+        organizationId,
+        deletedAt: null,
+        productType: { equals: productType, mode: "insensitive" },
+      },
+      select: { productType: true },
+    });
+    return existing?.productType ?? productType;
+  }
+
+  async addMenuItem(actor: RestaurantActor, dto: CreateMenuItemDto) {
     this.requireRestaurantAdmin(actor);
     if (!dto.name.trim()) throw new BadRequestException("Item name required");
-    const productType = dto.productType.trim();
-    if (!productType) throw new BadRequestException("Product type required");
+    const productType = await this.canonicalMenuProductType(
+      actor.organizationId,
+      dto.productType,
+    );
     if (dto.origin === "HOUSE_MADE" && !dto.prepMinutes) {
       throw new BadRequestException(
         "Preparation time required for house-made products",
@@ -2328,10 +2347,17 @@ export class RestaurantService {
     dto: UpdateMenuItemDto,
   ) {
     this.requireRestaurantAdmin(actor);
+    const normalizedProductType =
+      dto.productType === undefined
+        ? undefined
+        : await this.canonicalMenuProductType(
+            actor.organizationId,
+            dto.productType,
+          );
     const data = {
       ...dto,
-      ...(dto.productType !== undefined
-        ? { productType: dto.productType.trim() }
+      ...(normalizedProductType !== undefined
+        ? { productType: normalizedProductType }
         : {}),
       ...(dto.categories !== undefined
         ? {
@@ -2346,9 +2372,6 @@ export class RestaurantService {
         ? { imageData: this.validateProductImage(dto.imageData) }
         : {}),
     };
-    if (data.productType === "") {
-      throw new BadRequestException("Product type required");
-    }
     const result = await this.prisma.restaurantMenuItem.updateMany({
       where: { id, organizationId: actor.organizationId, deletedAt: null },
       data,

@@ -8,9 +8,12 @@ import { describe, expect, it, vi } from "vitest";
 import { PrismaService } from "../prisma/prisma.service";
 import { RestaurantService } from "./restaurant.service";
 import {
+  RestaurantCourse,
+  RestaurantProductOrigin,
   RestaurantPayPeriod,
   RestaurantInventoryProductType,
   RestaurantPaymentMethod,
+  RestaurantStation,
   RestaurantStaffAvailability,
   RestaurantStaffRole,
   UserRole,
@@ -108,6 +111,7 @@ function createService() {
       count: vi.fn().mockResolvedValue(0),
     },
     restaurantMenuItem: {
+      create: vi.fn(),
       findFirst: vi.fn(),
       findMany: vi.fn().mockResolvedValue([menuItem]),
       findUnique: vi.fn(),
@@ -2643,6 +2647,35 @@ describe("RestaurantService", () => {
     expect(prisma.restaurantInventoryProduct.updateMany).toHaveBeenCalledWith({
       where: { organizationId: "org-a", menuItemId: itemId },
       data: { menuItemId: null },
+    });
+  });
+
+  it("reuses the canonical spelling of an existing product type", async () => {
+    const { prisma, service } = createService();
+    const admin = {
+      id: "admin-a",
+      organizationId: "org-a",
+      role: UserRole.ADMIN,
+      restaurantRole: null,
+      restaurantAvailability: RestaurantStaffAvailability.AVAILABLE,
+    };
+    prisma.restaurantMenuItem.findFirst.mockResolvedValue({
+      productType: "Postres",
+    });
+    prisma.restaurantMenuItem.create.mockResolvedValue({ id: itemId });
+
+    await service.addMenuItem(admin, {
+      name: "Tres leches",
+      price: 2800,
+      station: RestaurantStation.KITCHEN,
+      course: RestaurantCourse.OTHER,
+      productType: " postres ",
+      origin: RestaurantProductOrigin.HOUSE_MADE,
+      prepMinutes: 8,
+    });
+
+    expect(prisma.restaurantMenuItem.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({ productType: "Postres" }),
     });
   });
 
