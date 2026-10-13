@@ -210,6 +210,16 @@ export default function RestaurantTablePage() {
       ?.scrollIntoView({ behavior: "smooth", block: "center" });
   }
 
+  function changeItemQuantity(menuItemId: string, change: number) {
+    setQuantities((current) => ({
+      ...current,
+      [menuItemId]: Math.min(
+        10,
+        Math.max(0, (current[menuItemId] ?? 0) + change),
+      ),
+    }));
+  }
+
   const recentTypes = useMemo(() => {
     if (typeof window === "undefined") return [] as string[];
     return JSON.parse(
@@ -458,22 +468,43 @@ export default function RestaurantTablePage() {
             </p>
           )}
           <div className="mt-4 flex flex-wrap items-center gap-3">
-            <label className="font-semibold">
-              Cantidad{" "}
-              <select
-                className="rounded bg-white px-3 py-2 text-slate-950"
-                value={promotionQuantity}
-                onChange={(event) =>
-                  setPromotionQuantity(Number(event.target.value))
-                }
-              >
-                {Array.from({ length: 10 }, (_, index) => (
-                  <option key={index + 1} value={index + 1}>
-                    {index + 1}
-                  </option>
-                ))}
-              </select>
-            </label>
+            <div className="flex items-center gap-3 font-semibold">
+              <span>Cantidad</span>
+              <div className="grid grid-cols-[44px_42px_44px] items-center overflow-hidden rounded-xl border-2 border-white bg-white text-slate-950 shadow-sm">
+                <button
+                  type="button"
+                  aria-label="Disminuir cantidad de la promoción"
+                  disabled={promotionQuantity <= 1}
+                  onClick={() =>
+                    setPromotionQuantity((current) =>
+                      Math.max(1, current - 1),
+                    )
+                  }
+                  className="h-11 bg-fuchsia-950 text-2xl font-black text-white transition active:scale-90 disabled:bg-fuchsia-200 disabled:text-fuchsia-500"
+                >
+                  −
+                </button>
+                <span
+                  className="text-center text-lg font-black"
+                  aria-live="polite"
+                >
+                  {promotionQuantity}
+                </span>
+                <button
+                  type="button"
+                  aria-label="Aumentar cantidad de la promoción"
+                  disabled={promotionQuantity >= 10}
+                  onClick={() =>
+                    setPromotionQuantity((current) =>
+                      Math.min(10, current + 1),
+                    )
+                  }
+                  className="h-11 bg-fuchsia-950 text-2xl font-black text-white transition active:scale-90 disabled:bg-fuchsia-200 disabled:text-fuchsia-500"
+                >
+                  +
+                </button>
+              </div>
+            </div>
             <button
               type="button"
               onClick={addPromotionToCart}
@@ -624,26 +655,41 @@ export default function RestaurantTablePage() {
                     Temporalmente no disponible. Consulte al personal.
                   </p>
                 )}
-                <label className="mt-3 block">
-                  Cantidad{" "}
-                  <select
-                    className="ml-2 rounded border p-2"
-                    disabled={!item.available}
-                    value={quantities[item.id] ?? 0}
-                    onChange={(event) =>
-                      setQuantities((current) => ({
-                        ...current,
-                        [item.id]: Number(event.target.value),
-                      }))
-                    }
-                  >
-                    {Array.from({ length: 11 }, (_, index) => (
-                      <option key={index} value={index}>
-                        {index}
-                      </option>
-                    ))}
-                  </select>
-                </label>
+                <div className="mt-3 flex items-center justify-between gap-3">
+                  <span className="text-sm font-semibold text-slate-700">
+                    Cantidad
+                  </span>
+                  <div className="grid grid-cols-[44px_42px_44px] items-center overflow-hidden rounded-xl border-2 border-emerald-700 bg-white shadow-sm">
+                    <button
+                      type="button"
+                      aria-label={`Disminuir cantidad de ${item.name}`}
+                      disabled={
+                        !item.available || (quantities[item.id] ?? 0) <= 0
+                      }
+                      onClick={() => changeItemQuantity(item.id, -1)}
+                      className="h-11 bg-emerald-700 text-2xl font-black text-white transition active:scale-90 disabled:bg-slate-200 disabled:text-slate-400"
+                    >
+                      −
+                    </button>
+                    <span
+                      className="text-center text-lg font-black text-slate-950"
+                      aria-live="polite"
+                    >
+                      {quantities[item.id] ?? 0}
+                    </span>
+                    <button
+                      type="button"
+                      aria-label={`Aumentar cantidad de ${item.name}`}
+                      disabled={
+                        !item.available || (quantities[item.id] ?? 0) >= 10
+                      }
+                      onClick={() => changeItemQuantity(item.id, 1)}
+                      className="h-11 bg-emerald-700 text-2xl font-black text-white transition active:scale-90 disabled:bg-slate-200 disabled:text-slate-400"
+                    >
+                      +
+                    </button>
+                  </div>
+                </div>
                 {data?.tableKind !== "TAKEOUT_STATION" &&
                   fulfillment === "DINE_IN" &&
                   (quantities[item.id] ?? 0) > 0 && (
