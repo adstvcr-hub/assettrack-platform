@@ -302,6 +302,17 @@ export default function PlatformAdminPage() {
         )}
         {overview && (
           <>
+            <section className="mt-8 rounded-xl border border-amber-300 bg-slate-950 p-6 text-white" aria-labelledby="promotional-assets-title">
+              <p className="text-sm font-semibold uppercase tracking-widest text-amber-400">AssetTrack · Material promocional</p>
+              <h2 id="promotional-assets-title" className="mt-2 text-xl font-bold">Menú Interactivo · Presentación comercial</h2>
+              <p className="mt-2 text-sm text-slate-300">Asset digital MI-PROMO-001. Gestión desde la administración de AssetTrack; la página y su QR son de acceso público.</p>
+              <div className="mt-5 flex flex-wrap gap-3">
+                <a className="rounded-lg bg-amber-400 px-4 py-3 font-semibold text-slate-950" href="/menu-interactivo.html" target="_blank" rel="noopener noreferrer">Abrir página promocional</a>
+                <a className="rounded-lg border border-slate-600 px-4 py-3 font-semibold" href="/promocional/qr-menu-interactivo.svg" download>Descargar QR</a>
+                <a className="rounded-lg border border-slate-600 px-4 py-3 font-semibold" href="/promocional/tarjeta-jose-alberto-menu-interactivo.svg" download>Descargar tarjeta de presentación</a>
+              </div>
+              <p className="mt-4 text-sm text-slate-300">José Alberto Cortés Gómez · CEO Menú Interactivo SaaS Propietario<br />adstvcr@gmail.com · 7214 7055</p>
+            </section>
             <section className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-6">
               {[
                 ["Restaurantes", overview.organizations],
