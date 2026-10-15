@@ -1,0 +1,16 @@
+{
+  "assetTag": "MI-PROMO-001",
+  "name": "Menú Interactivo · Presentación comercial",
+  "type": "digital-promotional-resource",
+  "url": "https://assettrack-platform-web.vercel.app/menu-interactivo.html",
+  "audience": "public",
+  "management": "/platform/admin",
+  "qr": "/promocional/qr-menu-interactivo.svg",
+  "businessCard": "/promocional/tarjeta-jose-alberto-menu-interactivo.svg",
+  "contact": {
+    "name": "José Alberto Cortés Gómez",
+    "title": "CEO Menú Interactivo SaaS Propietario",
+    "email": "adstvcr@gmail.com",
+    "phone": "72147055"
+  }
+}
