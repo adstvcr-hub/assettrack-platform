@@ -9,6 +9,7 @@ import {
   IsEnum,
   IsInt,
   IsIn,
+  MinLength,
   IsNumber,
   IsOptional,
   IsString,
@@ -421,4 +422,23 @@ export class CloseVisitDto {
   @IsEnum(RestaurantPaymentMethod)
   paymentMethod!: RestaurantPaymentMethod;
   @IsOptional() @IsString() @MaxLength(120) paymentReference?: string;
+}
+
+export class ResolveRestaurantOrphanDto {
+  @IsIn(["DELETE", "CLOSE", "REASSIGN"])
+  action!: "DELETE" | "CLOSE" | "REASSIGN";
+
+  @IsString()
+  @MinLength(3)
+  @MaxLength(240)
+  reason!: string;
+
+  @IsOptional()
+  @IsEnum(RestaurantPaymentMethod)
+  paymentMethod?: RestaurantPaymentMethod;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(120)
+  paymentReference?: string;
 }

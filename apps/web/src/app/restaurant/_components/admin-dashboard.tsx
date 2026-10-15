@@ -361,6 +361,45 @@ type SalesHistory = {
   retentionDays: number;
   maximumRetentionDays: number;
 };
+type OrphanRecordKind =
+  | "DETACHED_ORDER"
+  | "EMPTY_OPEN_ACCOUNT"
+  | "COMPLETED_OPEN_ACCOUNT"
+  | "UNASSIGNED_ACTIVE_ACCOUNT";
+type OrphanRecord = {
+  id: string;
+  kind: OrphanRecordKind;
+  title: string;
+  explanation: string;
+  detectedAt: string;
+  lastActivityAt: string;
+  table: { id: string; name: string; kind: Table["kind"] };
+  responsibleStaff?: {
+    id: string;
+    name: string;
+    active: boolean;
+    restaurantRole: RestaurantRole | null;
+    restaurantAvailability: StaffUser["restaurantAvailability"];
+  } | null;
+  orders: number;
+  items: number;
+  openItems: number;
+  cancelledItems: number;
+  grossSubtotal: number;
+  total: number;
+  allowedActions: Array<"DELETE" | "CLOSE" | "REASSIGN">;
+};
+type OrphanReport = {
+  generatedAt: string;
+  summary: {
+    total: number;
+    detachedOrders: number;
+    emptyAccounts: number;
+    completedAccounts: number;
+    unassignedAccounts: number;
+  };
+  records: OrphanRecord[];
+};
 export type RestaurantAdminSection =
   | "overview"
   | "analytics"
@@ -372,7 +411,8 @@ export type RestaurantAdminSection =
   | "promotions"
   | "invoices"
   | "loyalty"
-  | "staff";
+  | "staff"
+  | "data-quality";
 
 const adminSections: Array<{
   section: RestaurantAdminSection;
@@ -422,6 +462,11 @@ const adminSections: Array<{
     label: "Personal",
     href: "/restaurant/admin/staff",
   },
+  {
+    section: "data-quality",
+    label: "Datos huérfanos",
+    href: "/restaurant/admin/data-quality",
+  },
 ];
 
 const sectionDataPaths: Record<RestaurantAdminSection, string[]> = {
@@ -442,6 +487,7 @@ const sectionDataPaths: Record<RestaurantAdminSection, string[]> = {
   invoices: ["invoice-requests"],
   loyalty: ["loyalty/summary", "loyalty/rewards", "menu"],
   staff: ["staff-users"],
+  "data-quality": ["maintenance/orphans"],
 };
 const nextStatus: Record<string, string | null> = {
   RECEIVED: "ACCEPTED",
@@ -590,6 +636,13 @@ export default function RestaurantAdminDashboard({
   );
   const [salesHistory, setSalesHistory] = useState<SalesHistory | null>(null);
   const [salesSearch, setSalesSearch] = useState("");
+  const [orphanReport, setOrphanReport] = useState<OrphanReport | null>(null);
+  const [orphanSearch, setOrphanSearch] = useState("");
+  const [orphanAction, setOrphanAction] = useState<string | null>(null);
+  const [orphanNotice, setOrphanNotice] = useState("");
+  const [orphanPaymentMethods, setOrphanPaymentMethods] = useState<
+    Record<string, "CASH" | "SINPE" | "CARD" | "OTHER">
+  >({});
   const [staffHours, setStaffHours] = useState<StaffHoursReport | null>(null);
   const [staffHoursFrom, setStaffHoursFrom] = useState(() => {
     const date = new Date();
@@ -662,6 +715,9 @@ export default function RestaurantAdminDashboard({
         OrderingAreaSettings | undefined;
       const inventoryData = data.inventory as
         { alerts: InventoryAlert[] } | undefined;
+      const orphanData = data["maintenance/orphans"] as
+        | OrphanReport
+        | undefined;
 
       if (tableData) setTables(tableData);
       if (menuData) setMenu(menuData);
@@ -669,6 +725,7 @@ export default function RestaurantAdminDashboard({
       if (visitData) setVisits(visitData);
       if (staffData) setStaffUsers(staffData);
       if (inventoryData) setInventoryAlerts(inventoryData.alerts);
+      if (orphanData) setOrphanReport(orphanData);
       if (billingData) setBilling(billingData);
       if (brandingData) setBranding(brandingData);
       if (promotionData) setPromotions(promotionData);
@@ -909,6 +966,79 @@ export default function RestaurantAdminDashboard({
   ) {
     if (await post(`visits/${visitId}/close`, payment, "PATCH")) {
       setClosingVisitId(null);
+    }
+  }
+
+  async function resolveOrphan(
+    record: OrphanRecord,
+    action: "DELETE" | "CLOSE" | "REASSIGN",
+  ) {
+    if (action === "DELETE") {
+      const confirmation = window.prompt(
+        "Esta acción elimina únicamente el registro indicado. Escriba ELIMINAR para continuar.",
+      );
+      if (confirmation !== "ELIMINAR") return;
+    } else if (
+      !window.confirm(
+        action === "CLOSE"
+          ? "¿Confirma el cierre de esta cuenta? La venta se conservará en el historial."
+          : "¿Desea intentar la reasignación automática de esta cuenta?",
+      )
+    ) {
+      return;
+    }
+    const reason = window.prompt(
+      "Indique brevemente el motivo de esta resolución administrativa:",
+    );
+    if (!reason || reason.trim().length < 3) {
+      setError("Debe indicar un motivo de al menos 3 caracteres");
+      return;
+    }
+    setError("");
+    setOrphanNotice("");
+    setOrphanAction(`${record.kind}:${record.id}`);
+    try {
+      const response = await authenticatedFetch(
+        `${API_URL}/api/v1/restaurant/maintenance/orphans/${encodeURIComponent(record.kind)}/${encodeURIComponent(record.id)}/resolve`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            action,
+            reason: reason.trim(),
+            ...(action === "CLOSE"
+              ? {
+                  paymentMethod:
+                    orphanPaymentMethods[record.id] ?? "CASH",
+                }
+              : {}),
+          }),
+        },
+      );
+      const body = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(
+          Array.isArray(body.message)
+            ? body.message.join(", ")
+            : body.message || "No fue posible resolver el registro",
+        );
+      }
+      setOrphanNotice(
+        action === "DELETE"
+          ? "El registro huérfano fue eliminado y la acción quedó auditada."
+          : action === "CLOSE"
+            ? "La cuenta fue cerrada sin eliminar la venta."
+            : "La cuenta fue reasignada a personal disponible.",
+      );
+      await load();
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : "No fue posible resolver el registro",
+      );
+    } finally {
+      setOrphanAction(null);
     }
   }
 
@@ -1447,6 +1577,17 @@ export default function RestaurantAdminDashboard({
   const pendingExternalVisits = externalVisits.filter(
     (visit) => visit.paymentStatus === "PENDING",
   );
+  const normalizedOrphanSearch = orphanSearch.trim().toLocaleLowerCase();
+  const filteredOrphanRecords = (orphanReport?.records ?? []).filter(
+    (record) =>
+      !normalizedOrphanSearch ||
+      record.id.toLocaleLowerCase().includes(normalizedOrphanSearch) ||
+      record.table.name.toLocaleLowerCase().includes(normalizedOrphanSearch) ||
+      record.title.toLocaleLowerCase().includes(normalizedOrphanSearch) ||
+      record.responsibleStaff?.name
+        .toLocaleLowerCase()
+        .includes(normalizedOrphanSearch),
+  );
   const isAdmin = true;
   const waiters = staffUsers.filter((user) => user.restaurantRole === "WAITER");
   const availableWaiters = waiters.filter(
@@ -1559,6 +1700,244 @@ export default function RestaurantAdminDashboard({
         <p role="alert" className="my-4 rounded bg-red-50 p-4 text-red-800">
           {error}
         </p>
+      )}
+      {section === "data-quality" && (
+        <section className="space-y-6">
+          <div className="overflow-hidden rounded-2xl bg-slate-950 text-white shadow-xl">
+            <div className="grid gap-6 p-6 lg:grid-cols-[1fr_auto] lg:items-center">
+              <div>
+                <p className="text-sm font-black uppercase tracking-[0.2em] text-emerald-300">
+                  Integridad operativa
+                </p>
+                <h2 className="mt-2 text-3xl font-black">
+                  Localizar y resolver datos huérfanos
+                </h2>
+                <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-300">
+                  Este diagnóstico separa órdenes sin cuenta, cuentas vacías,
+                  cuentas entregadas sin cierre y cuentas activas sin
+                  responsable. Cada acción se vuelve a validar en el servidor y
+                  deja una auditoría administrativa.
+                </p>
+              </div>
+              <button
+                type="button"
+                className="rounded-xl bg-emerald-400 px-5 py-3 font-black text-slate-950 transition hover:bg-emerald-300"
+                onClick={() => void load()}
+              >
+                Ejecutar diagnóstico
+              </button>
+            </div>
+          </div>
+
+          {orphanReport && (
+            <>
+              <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
+                {[
+                  ["Hallazgos", orphanReport.summary.total, "bg-slate-950 text-white"],
+                  [
+                    "Órdenes sin cuenta",
+                    orphanReport.summary.detachedOrders,
+                    "bg-red-100 text-red-950",
+                  ],
+                  [
+                    "Cuentas vacías",
+                    orphanReport.summary.emptyAccounts,
+                    "bg-amber-100 text-amber-950",
+                  ],
+                  [
+                    "Sin cierre",
+                    orphanReport.summary.completedAccounts,
+                    "bg-sky-100 text-sky-950",
+                  ],
+                  [
+                    "Sin responsable",
+                    orphanReport.summary.unassignedAccounts,
+                    "bg-violet-100 text-violet-950",
+                  ],
+                ].map(([label, value, colors]) => (
+                  <article
+                    key={String(label)}
+                    className={`rounded-xl p-4 shadow-sm ${colors}`}
+                  >
+                    <p className="text-xs font-bold uppercase tracking-wide opacity-75">
+                      {label}
+                    </p>
+                    <p className="mt-2 text-3xl font-black">{value}</p>
+                  </article>
+                ))}
+              </div>
+
+              <div className="flex flex-wrap items-center gap-3 rounded-xl border bg-white p-4 shadow-sm">
+                <label className="min-w-64 flex-1">
+                  <span className="mb-1 block text-sm font-bold">
+                    Buscar por mesa, responsable, tipo o identificador
+                  </span>
+                  <input
+                    value={orphanSearch}
+                    onChange={(event) => setOrphanSearch(event.target.value)}
+                    placeholder="Ejemplo: Mesa 7"
+                    className="w-full rounded-lg border px-4 py-3"
+                  />
+                </label>
+                <p className="self-end pb-3 text-xs text-slate-500">
+                  Diagnóstico: {new Date(orphanReport.generatedAt).toLocaleString()}
+                </p>
+              </div>
+
+              {orphanNotice && (
+                <p
+                  role="status"
+                  className="rounded-xl border border-emerald-300 bg-emerald-50 p-4 font-bold text-emerald-900"
+                >
+                  {orphanNotice}
+                </p>
+              )}
+
+              {filteredOrphanRecords.length === 0 ? (
+                <div className="rounded-2xl border-2 border-emerald-300 bg-emerald-50 p-8 text-center">
+                  <p className="text-2xl font-black text-emerald-950">
+                    No hay registros huérfanos que coincidan
+                  </p>
+                  <p className="mt-2 text-sm text-emerald-800">
+                    Las cuentas válidas y las ventas cerradas no aparecen en esta
+                    herramienta.
+                  </p>
+                </div>
+              ) : (
+                <div className="grid gap-4 lg:grid-cols-2">
+                  {filteredOrphanRecords.map((record) => {
+                    const busy =
+                      orphanAction === `${record.kind}:${record.id}`;
+                    const tone =
+                      record.kind === "DETACHED_ORDER"
+                        ? "border-red-300 bg-red-50"
+                        : record.kind === "EMPTY_OPEN_ACCOUNT"
+                          ? "border-amber-300 bg-amber-50"
+                          : record.kind === "COMPLETED_OPEN_ACCOUNT"
+                            ? "border-sky-300 bg-sky-50"
+                            : "border-violet-300 bg-violet-50";
+                    return (
+                      <article
+                        key={`${record.kind}:${record.id}`}
+                        className={`rounded-2xl border-2 p-5 shadow-sm ${tone}`}
+                      >
+                        <div className="flex flex-wrap items-start justify-between gap-3">
+                          <div>
+                            <p className="text-xs font-black uppercase tracking-wider opacity-70">
+                              {record.kind.replaceAll("_", " ")}
+                            </p>
+                            <h3 className="mt-1 text-xl font-black">
+                              {record.title}
+                            </h3>
+                            <p className="mt-1 font-bold">
+                              {record.table.name}
+                            </p>
+                          </div>
+                          <p className="rounded-full bg-white px-3 py-1 text-sm font-black shadow-sm">
+                            ₡{record.total.toLocaleString()}
+                          </p>
+                        </div>
+                        <p className="mt-4 text-sm leading-6 text-slate-700">
+                          {record.explanation}
+                        </p>
+                        <dl className="mt-4 grid grid-cols-2 gap-3 rounded-xl bg-white/80 p-4 text-sm">
+                          <div>
+                            <dt className="font-bold text-slate-500">Órdenes</dt>
+                            <dd className="text-lg font-black">{record.orders}</dd>
+                          </div>
+                          <div>
+                            <dt className="font-bold text-slate-500">Productos</dt>
+                            <dd className="text-lg font-black">{record.items}</dd>
+                          </div>
+                          <div>
+                            <dt className="font-bold text-slate-500">Pendientes</dt>
+                            <dd className="text-lg font-black">{record.openItems}</dd>
+                          </div>
+                          <div>
+                            <dt className="font-bold text-slate-500">Cancelados</dt>
+                            <dd className="text-lg font-black">
+                              {record.cancelledItems}
+                            </dd>
+                          </div>
+                        </dl>
+                        <p className="mt-3 text-xs text-slate-600">
+                          Responsable: {record.responsibleStaff?.name ?? "Sin asignar"}
+                          {" · "}Última actividad:{" "}
+                          {new Date(record.lastActivityAt).toLocaleString()}
+                        </p>
+                        <p className="mt-1 break-all font-mono text-[11px] text-slate-500">
+                          ID: {record.id}
+                        </p>
+
+                        {record.allowedActions.includes("CLOSE") && (
+                          <label className="mt-4 block text-sm font-bold">
+                            Método de pago para el cierre
+                            <select
+                              className="mt-1 w-full rounded-lg border bg-white px-3 py-2"
+                              value={orphanPaymentMethods[record.id] ?? "CASH"}
+                              onChange={(event) =>
+                                setOrphanPaymentMethods((current) => ({
+                                  ...current,
+                                  [record.id]: event.target.value as
+                                    | "CASH"
+                                    | "SINPE"
+                                    | "CARD"
+                                    | "OTHER",
+                                }))
+                              }
+                            >
+                              <option value="CASH">Efectivo</option>
+                              <option value="SINPE">SINPE</option>
+                              <option value="CARD">Tarjeta</option>
+                              <option value="OTHER">Otro</option>
+                            </select>
+                          </label>
+                        )}
+
+                        <div className="mt-4 flex flex-wrap gap-2">
+                          {record.allowedActions.includes("DELETE") && (
+                            <button
+                              type="button"
+                              disabled={busy}
+                              className="rounded-lg bg-red-700 px-4 py-3 font-black text-white disabled:opacity-50"
+                              onClick={() =>
+                                void resolveOrphan(record, "DELETE")
+                              }
+                            >
+                              {busy ? "Procesando…" : "Eliminar registro huérfano"}
+                            </button>
+                          )}
+                          {record.allowedActions.includes("CLOSE") && (
+                            <button
+                              type="button"
+                              disabled={busy}
+                              className="rounded-lg bg-sky-800 px-4 py-3 font-black text-white disabled:opacity-50"
+                              onClick={() => void resolveOrphan(record, "CLOSE")}
+                            >
+                              {busy ? "Procesando…" : "Cerrar y conservar venta"}
+                            </button>
+                          )}
+                          {record.allowedActions.includes("REASSIGN") && (
+                            <button
+                              type="button"
+                              disabled={busy}
+                              className="rounded-lg bg-violet-800 px-4 py-3 font-black text-white disabled:opacity-50"
+                              onClick={() =>
+                                void resolveOrphan(record, "REASSIGN")
+                              }
+                            >
+                              {busy ? "Procesando…" : "Reasignar responsable"}
+                            </button>
+                          )}
+                        </div>
+                      </article>
+                    );
+                  })}
+                </div>
+              )}
+            </>
+          )}
+        </section>
       )}
       {section === "overview" && inventoryAlerts.length > 0 && (
         <section className="mb-8 flex flex-wrap items-center justify-between gap-4 rounded-xl border-4 border-red-500 bg-amber-50 p-5 shadow-lg">

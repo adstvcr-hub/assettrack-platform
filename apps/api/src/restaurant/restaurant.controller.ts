@@ -41,6 +41,7 @@ import {
   RecordQrAccessDto,
   RequestInvoiceDto,
   RequestGuestOrderCorrectionDto,
+  ResolveRestaurantOrphanDto,
   UpdateItemStatusDto,
   UpdateItemFulfillmentDto,
   UpdateInvoiceRequestDto,
@@ -495,6 +496,21 @@ export class RestaurantStaffController {
   @Get("visits")
   visits(@Req() req: StaffRequest) {
     return this.restaurant.visits(req.user);
+  }
+
+  @Get("maintenance/orphans")
+  orphanRecords(@Req() req: StaffRequest) {
+    return this.restaurant.orphanRecords(req.user);
+  }
+
+  @Post("maintenance/orphans/:kind/:id/resolve")
+  resolveOrphanRecord(
+    @Req() req: StaffRequest,
+    @Param("kind") kind: string,
+    @Param("id") id: string,
+    @Body() dto: ResolveRestaurantOrphanDto,
+  ) {
+    return this.restaurant.resolveOrphanRecord(req.user, kind, id, dto);
   }
 
   @Patch("items/:id/status")

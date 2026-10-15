@@ -46,6 +46,7 @@ import {
   JoinLoyaltyDto,
   RequestInvoiceDto,
   RequestGuestOrderCorrectionDto,
+  ResolveRestaurantOrphanDto,
   UpdateItemStatusDto,
   UpdateItemFulfillmentDto,
   UpdateInvoiceRequestDto,
@@ -4807,6 +4808,393 @@ export class RestaurantService {
       table.code,
       { ...orderDto, accountAccessCode },
       actor,
+    );
+  }
+
+  async orphanRecords(actor: RestaurantActor) {
+    this.requireRestaurantAdmin(actor);
+    const [visits, detachedOrders] = await Promise.all([
+      this.prisma.restaurantVisit.findMany({
+        where: {
+          organizationId: actor.organizationId,
+          status: RestaurantVisitStatus.OPEN,
+        },
+        include: {
+          table: { select: { id: true, name: true, kind: true } },
+          responsibleStaff: {
+            select: {
+              id: true,
+              name: true,
+              active: true,
+              restaurantRole: true,
+              restaurantAvailability: true,
+            },
+          },
+          orders: {
+            orderBy: { createdAt: "asc" },
+            include: { items: true },
+          },
+        },
+        orderBy: { openedAt: "asc" },
+        take: 200,
+      }),
+      this.prisma.restaurantOrder.findMany({
+        where: { organizationId: actor.organizationId, visitId: null },
+        include: {
+          table: { select: { id: true, name: true, kind: true } },
+          items: true,
+        },
+        orderBy: { createdAt: "asc" },
+        take: 200,
+      }),
+    ]);
+
+    const records: Array<{
+      id: string;
+      kind:
+        | "DETACHED_ORDER"
+        | "EMPTY_OPEN_ACCOUNT"
+        | "COMPLETED_OPEN_ACCOUNT"
+        | "UNASSIGNED_ACTIVE_ACCOUNT";
+      title: string;
+      explanation: string;
+      detectedAt: Date;
+      lastActivityAt: Date;
+      table: { id: string; name: string; kind: RestaurantTableKind };
+      responsibleStaff: {
+        id: string;
+        name: string;
+        active: boolean;
+        restaurantRole: RestaurantStaffRole | null;
+        restaurantAvailability: RestaurantStaffAvailability;
+      } | null;
+      orders: number;
+      items: number;
+      openItems: number;
+      cancelledItems: number;
+      grossSubtotal: number;
+      total: number;
+      allowedActions: Array<"DELETE" | "CLOSE" | "REASSIGN">;
+    }> = [];
+
+    for (const order of detachedOrders) {
+      const billableItems = order.items.filter(
+        (item) => item.status !== RestaurantItemStatus.CANCELLED,
+      );
+      const openItems = billableItems.filter(
+        (item) => item.status !== RestaurantItemStatus.DELIVERED,
+      ).length;
+      const grossSubtotal = billableItems.reduce(
+        (sum, item) => sum + item.price * item.quantity,
+        0,
+      );
+      records.push({
+        id: order.id,
+        kind: "DETACHED_ORDER",
+        title: "Orden sin cuenta asociada",
+        explanation:
+          "La orden existe, pero no pertenece a ninguna cuenta. No puede cerrarse por el flujo normal.",
+        detectedAt: order.createdAt,
+        lastActivityAt: order.createdAt,
+        table: order.table,
+        responsibleStaff: null,
+        orders: 1,
+        items: order.items.length,
+        openItems,
+        cancelledItems: order.items.length - billableItems.length,
+        grossSubtotal,
+        total: grossSubtotal,
+        allowedActions: ["DELETE"],
+      });
+    }
+
+    for (const visit of visits) {
+      const allItems = visit.orders.flatMap((order) => order.items);
+      const billableItems = allItems.filter(
+        (item) => item.status !== RestaurantItemStatus.CANCELLED,
+      );
+      const openItems = billableItems.filter(
+        (item) => item.status !== RestaurantItemStatus.DELIVERED,
+      );
+      const lastActivityAt = visit.orders.reduce(
+        (latest, order) =>
+          order.createdAt > latest ? order.createdAt : latest,
+        visit.openedAt,
+      );
+      const billing = this.billingTotals(
+        billableItems,
+        visit,
+        visit.serviceChargeEnabled,
+        visit.orders.reduce(
+          (sum, order) => sum + (order.promotionCredit ?? 0),
+          0,
+        ),
+      );
+      const common = {
+        id: visit.id,
+        detectedAt: visit.openedAt,
+        lastActivityAt,
+        table: visit.table,
+        responsibleStaff: visit.responsibleStaff,
+        orders: visit.orders.length,
+        items: allItems.length,
+        openItems: openItems.length,
+        cancelledItems: allItems.length - billableItems.length,
+        grossSubtotal: billing.grossSubtotal,
+        total: billing.total,
+      };
+
+      if (billableItems.length === 0) {
+        records.push({
+          ...common,
+          kind: "EMPTY_OPEN_ACCOUNT",
+          title: "Cuenta abierta sin productos cobrables",
+          explanation:
+            "La cuenta quedó abierta, pero no contiene productos o todos fueron cancelados. Puede eliminarse sin borrar una venta.",
+          allowedActions: ["DELETE"],
+        });
+        continue;
+      }
+      if (
+        openItems.length === 0 &&
+        (visit.occupiesTable || visit.deliveryHandedOffAt)
+      ) {
+        records.push({
+          ...common,
+          kind: "COMPLETED_OPEN_ACCOUNT",
+          title: "Cuenta terminada sin cierre",
+          explanation:
+            "Todos los productos están entregados, pero la cuenta continúa abierta. El cierre conserva la venta y la facturación.",
+          allowedActions: ["CLOSE"],
+        });
+        continue;
+      }
+      const responsibleAvailable =
+        visit.responsibleStaff?.active === true &&
+        visit.responsibleStaff.restaurantAvailability ===
+          RestaurantStaffAvailability.AVAILABLE;
+      if (!responsibleAvailable) {
+        records.push({
+          ...common,
+          kind: "UNASSIGNED_ACTIVE_ACCOUNT",
+          title: "Cuenta activa sin responsable disponible",
+          explanation:
+            "La cuenta todavía tiene productos pendientes, pero no cuenta con una persona disponible para atenderla.",
+          allowedActions: ["REASSIGN"],
+        });
+      }
+    }
+
+    records.sort(
+      (left, right) =>
+        left.lastActivityAt.getTime() - right.lastActivityAt.getTime(),
+    );
+    return {
+      generatedAt: new Date(),
+      summary: {
+        total: records.length,
+        detachedOrders: records.filter(
+          (record) => record.kind === "DETACHED_ORDER",
+        ).length,
+        emptyAccounts: records.filter(
+          (record) => record.kind === "EMPTY_OPEN_ACCOUNT",
+        ).length,
+        completedAccounts: records.filter(
+          (record) => record.kind === "COMPLETED_OPEN_ACCOUNT",
+        ).length,
+        unassignedAccounts: records.filter(
+          (record) => record.kind === "UNASSIGNED_ACTIVE_ACCOUNT",
+        ).length,
+      },
+      records,
+    };
+  }
+
+  async resolveOrphanRecord(
+    actor: RestaurantActor,
+    kind: string,
+    id: string,
+    dto: ResolveRestaurantOrphanDto,
+  ) {
+    this.requireRestaurantAdmin(actor);
+    const reason = dto.reason.trim();
+
+    if (kind === "DETACHED_ORDER" && dto.action === "DELETE") {
+      return this.prisma.$transaction(async (tx) => {
+        const order = await tx.restaurantOrder.findFirst({
+          where: { id, organizationId: actor.organizationId, visitId: null },
+          include: {
+            table: { select: { id: true, name: true } },
+            items: {
+              select: {
+                id: true,
+                name: true,
+                quantity: true,
+                price: true,
+                status: true,
+              },
+            },
+          },
+        });
+        if (!order) {
+          throw new ConflictException(
+            "La orden ya no está huérfana o fue resuelta",
+          );
+        }
+        await tx.restaurantOrder.delete({ where: { id: order.id } });
+        await tx.platformAdminEvent.create({
+          data: {
+            actorId: actor.id,
+            action: "RESTAURANT_ORPHAN_ORDER_DELETED",
+            organizationId: actor.organizationId,
+            reason,
+            metadata: {
+              orderId: order.id,
+              tableId: order.table.id,
+              tableName: order.table.name,
+              createdAt: order.createdAt.toISOString(),
+              items: order.items,
+            },
+          },
+        });
+        return { id: order.id, action: dto.action, resolved: true };
+      });
+    }
+
+    if (kind === "EMPTY_OPEN_ACCOUNT" && dto.action === "DELETE") {
+      return this.prisma.$transaction(async (tx) => {
+        const visit = await tx.restaurantVisit.findFirst({
+          where: {
+            id,
+            organizationId: actor.organizationId,
+            status: RestaurantVisitStatus.OPEN,
+          },
+          include: {
+            table: { select: { id: true, name: true } },
+            orders: { include: { items: true } },
+          },
+        });
+        if (!visit) throw new NotFoundException("Cuenta abierta no encontrada");
+        const billableItems = visit.orders
+          .flatMap((order) => order.items)
+          .filter((item) => item.status !== RestaurantItemStatus.CANCELLED);
+        if (billableItems.length > 0) {
+          throw new ConflictException(
+            "La cuenta contiene productos cobrables y no puede eliminarse",
+          );
+        }
+        await tx.restaurantVisit.delete({ where: { id: visit.id } });
+        await tx.platformAdminEvent.create({
+          data: {
+            actorId: actor.id,
+            action: "RESTAURANT_EMPTY_ACCOUNT_DELETED",
+            organizationId: actor.organizationId,
+            reason,
+            metadata: {
+              visitId: visit.id,
+              tableId: visit.table.id,
+              tableName: visit.table.name,
+              openedAt: visit.openedAt.toISOString(),
+              orders: visit.orders.length,
+              cancelledItems: visit.orders.reduce(
+                (sum, order) => sum + order.items.length,
+                0,
+              ),
+            },
+          },
+        });
+        return { id: visit.id, action: dto.action, resolved: true };
+      });
+    }
+
+    if (kind === "COMPLETED_OPEN_ACCOUNT" && dto.action === "CLOSE") {
+      const visit = await this.closeVisit(
+        actor,
+        id,
+        dto.paymentMethod ?? RestaurantPaymentMethod.CASH,
+        dto.paymentReference,
+      );
+      await this.prisma.platformAdminEvent.create({
+        data: {
+          actorId: actor.id,
+          action: "RESTAURANT_ORPHAN_ACCOUNT_CLOSED",
+          organizationId: actor.organizationId,
+          reason,
+          metadata: {
+            visitId: id,
+            paymentMethod: dto.paymentMethod ?? RestaurantPaymentMethod.CASH,
+          },
+        },
+      });
+      return { id, action: dto.action, resolved: true, visit };
+    }
+
+    if (kind === "UNASSIGNED_ACTIVE_ACCOUNT" && dto.action === "REASSIGN") {
+      return this.prisma.$transaction(async (tx) => {
+        const visit = await tx.restaurantVisit.findFirst({
+          where: {
+            id,
+            organizationId: actor.organizationId,
+            status: RestaurantVisitStatus.OPEN,
+          },
+          include: {
+            table: { select: { name: true, kind: true } },
+            responsibleStaff: {
+              select: { active: true, restaurantAvailability: true },
+            },
+          },
+        });
+        if (!visit) throw new NotFoundException("Cuenta abierta no encontrada");
+        const responsibleAvailable =
+          visit.responsibleStaff?.active === true &&
+          visit.responsibleStaff.restaurantAvailability ===
+            RestaurantStaffAvailability.AVAILABLE;
+        if (responsibleAvailable) {
+          throw new ConflictException(
+            "La cuenta ya tiene una persona responsable disponible",
+          );
+        }
+        const candidate = await this.selectAccountCoverageStaff(
+          tx,
+          actor.organizationId,
+          visit.table.kind,
+          visit.responsibleStaffId ?? undefined,
+        );
+        if (!candidate) {
+          throw new ConflictException(
+            "No hay personal disponible para reasignar esta cuenta",
+          );
+        }
+        await tx.restaurantVisit.update({
+          where: { id: visit.id },
+          data: { responsibleStaffId: candidate.id },
+        });
+        await tx.platformAdminEvent.create({
+          data: {
+            actorId: actor.id,
+            action: "RESTAURANT_ORPHAN_ACCOUNT_REASSIGNED",
+            organizationId: actor.organizationId,
+            reason,
+            targetUserId: candidate.id,
+            metadata: {
+              visitId: visit.id,
+              tableName: visit.table.name,
+              previousResponsibleStaffId: visit.responsibleStaffId,
+              responsibleStaffId: candidate.id,
+            },
+          },
+        });
+        return {
+          id: visit.id,
+          action: dto.action,
+          resolved: true,
+          responsibleStaffId: candidate.id,
+        };
+      });
+    }
+
+    throw new BadRequestException(
+      "La acción no corresponde al tipo de registro huérfano",
     );
   }
 

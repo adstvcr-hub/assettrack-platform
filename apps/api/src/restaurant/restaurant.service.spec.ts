@@ -109,6 +109,7 @@ function createService() {
       update: vi.fn(),
       updateMany: vi.fn(),
       count: vi.fn().mockResolvedValue(0),
+      delete: vi.fn(),
     },
     restaurantMenuItem: {
       create: vi.fn(),
@@ -136,6 +137,7 @@ function createService() {
       create: vi.fn().mockResolvedValue(order),
       update: vi.fn(),
       updateMany: vi.fn(),
+      delete: vi.fn(),
     },
     restaurantOrderItem: {
       findFirst: vi.fn(),
@@ -182,6 +184,7 @@ function createService() {
     restaurantStaffSession: {
       findMany: vi.fn().mockResolvedValue([]),
     },
+    platformAdminEvent: { create: vi.fn() },
     restaurantCashSession: {
       findFirst: vi.fn().mockResolvedValue(null),
       findUnique: vi.fn().mockResolvedValue(null),
@@ -558,6 +561,144 @@ describe("RestaurantService", () => {
         responsibleStaff: expect.objectContaining({ id: "bar-a" }),
       }),
     );
+  });
+
+  it("diagnoses detached orders and empty open accounts without modifying them", async () => {
+    const { prisma, service } = createService();
+    const administrator = {
+      id: "admin-a",
+      organizationId: "org-a",
+      role: UserRole.ADMIN,
+      restaurantRole: RestaurantStaffRole.RESTAURANT_ADMIN,
+      restaurantAvailability: RestaurantStaffAvailability.AVAILABLE,
+    };
+    const openedAt = new Date("2026-10-15T10:00:00.000Z");
+    prisma.restaurantVisit.findMany.mockResolvedValue([
+      {
+        id: "visit-empty",
+        openedAt,
+        occupiesTable: true,
+        deliveryHandedOffAt: null,
+        taxRateBps: 1300,
+        taxIncluded: false,
+        serviceRateBps: 1000,
+        serviceChargeEnabled: true,
+        table: { id: "table-a", name: "Mesa 7", kind: "DINING" },
+        responsibleStaff: null,
+        orders: [],
+      },
+    ]);
+    prisma.restaurantOrder.findMany.mockResolvedValue([
+      {
+        id: "order-detached",
+        createdAt: openedAt,
+        table: { id: "table-a", name: "Mesa 7", kind: "DINING" },
+        items: [
+          {
+            id: "item-detached",
+            name: "Pizza",
+            quantity: 1,
+            price: 6000,
+            status: "RECEIVED",
+          },
+        ],
+      },
+    ]);
+
+    const result = await service.orphanRecords(administrator);
+
+    expect(result.summary).toEqual(
+      expect.objectContaining({ total: 2, detachedOrders: 1, emptyAccounts: 1 }),
+    );
+    expect(result.records.map((record) => record.kind)).toEqual([
+      "DETACHED_ORDER",
+      "EMPTY_OPEN_ACCOUNT",
+    ]);
+    expect(prisma.restaurantOrder.delete).not.toHaveBeenCalled();
+    expect(prisma.restaurantVisit.delete).not.toHaveBeenCalled();
+  });
+
+  it("deletes only a revalidated detached order and records an audit event", async () => {
+    const { prisma, service } = createService();
+    const administrator = {
+      id: "admin-a",
+      organizationId: "org-a",
+      role: UserRole.ADMIN,
+      restaurantRole: RestaurantStaffRole.RESTAURANT_ADMIN,
+      restaurantAvailability: RestaurantStaffAvailability.AVAILABLE,
+    };
+    prisma.restaurantOrder.findFirst.mockResolvedValue({
+      id: "order-detached",
+      createdAt: new Date("2026-10-15T10:00:00.000Z"),
+      table: { id: "table-a", name: "Mesa 7" },
+      items: [
+        {
+          id: "item-detached",
+          name: "Pizza",
+          quantity: 1,
+          price: 6000,
+          status: "RECEIVED",
+        },
+      ],
+    });
+
+    await service.resolveOrphanRecord(
+      administrator,
+      "DETACHED_ORDER",
+      "order-detached",
+      { action: "DELETE", reason: "Orden duplicada durante la prueba" },
+    );
+
+    expect(prisma.restaurantOrder.delete).toHaveBeenCalledWith({
+      where: { id: "order-detached" },
+    });
+    expect(prisma.platformAdminEvent.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({
+        actorId: "admin-a",
+        action: "RESTAURANT_ORPHAN_ORDER_DELETED",
+        organizationId: "org-a",
+        reason: "Orden duplicada durante la prueba",
+      }),
+    });
+  });
+
+  it("refuses to delete an empty account after billable items appear", async () => {
+    const { prisma, service } = createService();
+    const administrator = {
+      id: "admin-a",
+      organizationId: "org-a",
+      role: UserRole.ADMIN,
+      restaurantRole: RestaurantStaffRole.RESTAURANT_ADMIN,
+      restaurantAvailability: RestaurantStaffAvailability.AVAILABLE,
+    };
+    prisma.restaurantVisit.findFirst.mockResolvedValue({
+      id: "visit-now-active",
+      openedAt: new Date(),
+      table: { id: "table-a", name: "Mesa 7" },
+      orders: [
+        {
+          items: [
+            {
+              id: "item-new",
+              name: "Pizza",
+              quantity: 1,
+              price: 6000,
+              status: "RECEIVED",
+            },
+          ],
+        },
+      ],
+    });
+
+    await expect(
+      service.resolveOrphanRecord(
+        administrator,
+        "EMPTY_OPEN_ACCOUNT",
+        "visit-now-active",
+        { action: "DELETE", reason: "Limpieza solicitada" },
+      ),
+    ).rejects.toThrow(ConflictException);
+    expect(prisma.restaurantVisit.delete).not.toHaveBeenCalled();
   });
 
   it("keeps an unassigned delivery visible for administrative intervention", async () => {
