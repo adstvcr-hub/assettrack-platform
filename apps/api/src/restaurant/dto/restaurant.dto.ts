@@ -131,6 +131,55 @@ export class SaveInventoryRecipeDto {
   @ValidateNested({ each: true })
   @Type(() => InventoryRecipeIngredientDto)
   ingredients!: InventoryRecipeIngredientDto[];
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(240)
+  reason?: string;
+}
+
+export class MenuComboComponentDto {
+  @IsUUID() menuItemId!: string;
+  @IsInt() @Min(1) @Max(20) quantity!: number;
+}
+
+export class SaveMenuComboDto {
+  @IsArray()
+  @ArrayMaxSize(20)
+  @ValidateNested({ each: true })
+  @Type(() => MenuComboComponentDto)
+  components!: MenuComboComponentDto[];
+}
+
+export class InventoryRecipeConversionDto {
+  @IsUUID() menuItemId!: string;
+  @IsInt() @Min(1) @Max(100000000) quantityPerMenuItem!: number;
+}
+
+export class ConvertInventoryUnitDto {
+  @IsEnum(RestaurantInventoryUnit)
+  stockUnit!: RestaurantInventoryUnit;
+
+  @IsInt() @Min(1) @Max(100000000)
+  unitsPerPresentation!: number;
+
+  @IsInt() @Min(0) @Max(100000000)
+  quantity!: number;
+
+  @IsInt() @Min(0) @Max(100000000)
+  minimumQuantity!: number;
+
+  @IsInt() @Min(0) @Max(100000000)
+  unitCost!: number;
+
+  @IsString() @MinLength(3) @MaxLength(240)
+  reason!: string;
+
+  @IsArray()
+  @ArrayMaxSize(100)
+  @ValidateNested({ each: true })
+  @Type(() => InventoryRecipeConversionDto)
+  recipeUpdates!: InventoryRecipeConversionDto[];
 }
 
 export class CreateLiquorWeighingDto {

@@ -35,6 +35,7 @@ type ClosedVisit = {
       price: number;
       quantity: number;
       status: string;
+      comboParentId: string | null;
     }>;
   }>;
 };
@@ -98,7 +99,9 @@ export class RestaurantDataLifecycleService
   }
 
   private billing(visit: ClosedVisit) {
-    const items = visit.orders.flatMap((order) => order.items);
+    const items = visit.orders.flatMap((order) =>
+      order.items.filter((item) => !item.comboParentId),
+    );
     const grossSubtotal = items
       .filter((item) => item.status !== RestaurantItemStatus.CANCELLED)
       .reduce((sum, item) => sum + item.price * item.quantity, 0);
@@ -250,6 +253,7 @@ export class RestaurantDataLifecycleService
                   price: true,
                   quantity: true,
                   status: true,
+                  comboParentId: true,
                 },
               },
             },

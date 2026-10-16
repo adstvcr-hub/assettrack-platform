@@ -135,6 +135,12 @@ function createService() {
       findMany: vi.fn().mockResolvedValue([]),
       count: vi.fn().mockResolvedValue(0),
       create: vi.fn().mockResolvedValue(order),
+      findUniqueOrThrow: vi.fn().mockResolvedValue({
+        ...order,
+        items: [],
+        table: { name: "Mesa 1", kind: "DINING" },
+        visit: { accessCode: "visit-secret" },
+      }),
       update: vi.fn(),
       updateMany: vi.fn(),
       delete: vi.fn(),
@@ -156,15 +162,28 @@ function createService() {
     restaurantInventoryProduct: {
       findFirst: vi.fn(),
       findMany: vi.fn().mockResolvedValue([]),
+      findUnique: vi.fn(),
       create: vi.fn(),
       update: vi.fn(),
       updateMany: vi.fn(),
     },
     restaurantRecipeIngredient: {
       findMany: vi.fn().mockResolvedValue([]),
+      count: vi.fn().mockResolvedValue(0),
       deleteMany: vi.fn(),
       createMany: vi.fn(),
       updateMany: vi.fn(),
+    },
+    restaurantRecipeRevision: {
+      findMany: vi.fn().mockResolvedValue([]),
+      findFirst: vi.fn().mockResolvedValue(null),
+      create: vi.fn(),
+    },
+    restaurantMenuComboComponent: {
+      findMany: vi.fn().mockResolvedValue([]),
+      count: vi.fn().mockResolvedValue(0),
+      deleteMany: vi.fn(),
+      createMany: vi.fn(),
     },
     restaurantInventoryMovement: {
       findUnique: vi.fn().mockResolvedValue(null),
@@ -256,13 +275,10 @@ describe("RestaurantService", () => {
         }),
       }),
     );
-    expect(prisma.restaurantOrder.create).toHaveBeenCalledWith(
+    expect(prisma.restaurantOrderItem.create).toHaveBeenCalledWith(
       expect.objectContaining({
         data: expect.objectContaining({
           fulfillment: "DELIVERY",
-          items: {
-            create: [expect.objectContaining({ fulfillment: "DELIVERY" })],
-          },
         }),
       }),
     );
@@ -930,16 +946,16 @@ describe("RestaurantService", () => {
           tableId: "table-a",
           visitId: "visit-a",
           requestId,
-          items: {
-            create: [
-              expect.objectContaining({
-                name: "Coffee",
-                price: 1200,
-                quantity: 2,
-                station: "BAR",
-              }),
-            ],
-          },
+        }),
+      }),
+    );
+    expect(prisma.restaurantOrderItem.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          name: "Coffee",
+          price: 1200,
+          quantity: 2,
+          station: "BAR",
         }),
       }),
     );
@@ -2196,6 +2212,7 @@ describe("RestaurantService", () => {
         quantity: true,
         unitCost: true,
         active: true,
+        stockUnit: true,
       },
     });
     expect(prisma.restaurantInventoryProduct.updateMany).toHaveBeenCalledWith({
@@ -2917,6 +2934,126 @@ describe("RestaurantService", () => {
           productId: "cheese-a",
           quantityPerMenuItem: 125,
         },
+      ],
+    });
+  });
+
+  it("stores a new immutable recipe version when a recipe changes", async () => {
+    const { prisma, service } = createService();
+    const admin = {
+      id: "admin-a",
+      organizationId: "org-a",
+      role: UserRole.ADMIN,
+      restaurantRole: null,
+      restaurantAvailability: RestaurantStaffAvailability.AVAILABLE,
+    };
+    prisma.restaurantMenuItem.findFirst.mockResolvedValue({ id: itemId, name: "Cacique sour" });
+    prisma.restaurantInventoryProduct.findMany.mockResolvedValue([
+      { id: "cacique-a", name: "CACIQUE", stockUnit: "MILLILITER" },
+      { id: "lime-a", name: "Limón", stockUnit: "GRAM" },
+    ]);
+    prisma.restaurantRecipeRevision.findFirst.mockResolvedValue({ version: 3 });
+
+    await service.saveInventoryRecipe(admin, itemId, {
+      reason: "Nueva medida estándar",
+      ingredients: [
+        { productId: "cacique-a", quantityPerMenuItem: 45 },
+        { productId: "lime-a", quantityPerMenuItem: 20 },
+      ],
+    });
+
+    expect(prisma.restaurantRecipeRevision.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({
+        menuItemId: itemId,
+        version: 4,
+        reason: "Nueva medida estándar",
+        ingredients: [
+          expect.objectContaining({ productId: "cacique-a", quantityPerMenuItem: 45 }),
+          expect.objectContaining({ productId: "lime-a", quantityPerMenuItem: 20 }),
+        ],
+      }),
+    });
+  });
+
+  it("converts an inventory unit while preserving old movement units and updating recipes", async () => {
+    const { prisma, service } = createService();
+    const admin = {
+      id: "admin-a",
+      organizationId: "org-a",
+      role: UserRole.ADMIN,
+      restaurantRole: null,
+      restaurantAvailability: RestaurantStaffAvailability.AVAILABLE,
+    };
+    const cacique = {
+      id: "cacique-a",
+      name: "CACIQUE",
+      organizationId: "org-a",
+      active: true,
+      stockUnit: "UNIT",
+      unitsPerPresentation: 1,
+      quantity: 2,
+      minimumQuantity: 1,
+      unitCost: 8000,
+      recipeIngredients: [{ menuItemId: itemId, quantityPerMenuItem: 1 }],
+    };
+    prisma.restaurantInventoryProduct.findFirst.mockResolvedValueOnce(cacique).mockResolvedValueOnce(cacique);
+    prisma.restaurantRecipeIngredient.findMany.mockResolvedValue([
+      { product: { id: "cacique-a", name: "CACIQUE", stockUnit: "MILLILITER" }, quantityPerMenuItem: 45 },
+    ]);
+    prisma.restaurantRecipeRevision.findFirst.mockResolvedValue({ version: 1 });
+    prisma.restaurantInventoryProduct.findUnique.mockResolvedValue({ id: "cacique-a", stockUnit: "MILLILITER" });
+
+    await service.convertInventoryUnit(admin, "cacique-a", {
+      stockUnit: "MILLILITER",
+      unitsPerPresentation: 1000,
+      quantity: 2000,
+      minimumQuantity: 500,
+      unitCost: 8,
+      reason: "Control por medida real",
+      recipeUpdates: [{ menuItemId: itemId, quantityPerMenuItem: 45 }],
+    });
+
+    expect(prisma.restaurantInventoryMovement.create).toHaveBeenNthCalledWith(1, {
+      data: expect.objectContaining({ quantityDelta: -2, unitSnapshot: "UNIT" }),
+    });
+    expect(prisma.restaurantInventoryMovement.create).toHaveBeenNthCalledWith(2, {
+      data: expect.objectContaining({ quantityDelta: 2000, unitSnapshot: "MILLILITER" }),
+    });
+    expect(prisma.restaurantRecipeIngredient.updateMany).toHaveBeenCalledWith(
+      expect.objectContaining({ data: { quantityPerMenuItem: 45 } }),
+    );
+    expect(prisma.platformAdminEvent.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({ action: "RESTAURANT_INVENTORY_UNIT_CONVERTED" }),
+    });
+  });
+
+  it("saves a combo made of products assigned to different stations", async () => {
+    const { prisma, service } = createService();
+    const admin = {
+      id: "admin-a",
+      organizationId: "org-a",
+      role: UserRole.ADMIN,
+      restaurantRole: null,
+      restaurantAvailability: RestaurantStaffAvailability.AVAILABLE,
+    };
+    prisma.restaurantMenuItem.findFirst.mockResolvedValue({ id: "combo-a", name: "Combo cena" });
+    prisma.restaurantMenuItem.findMany.mockResolvedValue([
+      { id: "pizza-a" },
+      { id: "beer-a" },
+    ]);
+    prisma.restaurantMenuComboComponent.findMany.mockResolvedValue([]);
+
+    await service.saveMenuCombo(admin, "combo-a", {
+      components: [
+        { menuItemId: "pizza-a", quantity: 1 },
+        { menuItemId: "beer-a", quantity: 2 },
+      ],
+    });
+
+    expect(prisma.restaurantMenuComboComponent.createMany).toHaveBeenCalledWith({
+      data: [
+        { organizationId: "org-a", parentMenuItemId: "combo-a", componentMenuItemId: "pizza-a", quantity: 1 },
+        { organizationId: "org-a", parentMenuItemId: "combo-a", componentMenuItemId: "beer-a", quantity: 2 },
       ],
     });
   });

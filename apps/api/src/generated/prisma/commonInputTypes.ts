@@ -616,11 +616,69 @@ export type EnumRestaurantInventoryUnitWithAggregatesFilter<$PrismaModel = never
   _max?: Prisma.NestedEnumRestaurantInventoryUnitFilter<$PrismaModel>
 }
 
+export type JsonFilter<$PrismaModel = never> =
+| Prisma.PatchUndefined<
+    Prisma.Either<Required<JsonFilterBase<$PrismaModel>>, Exclude<keyof Required<JsonFilterBase<$PrismaModel>>, 'path'>>,
+    Required<JsonFilterBase<$PrismaModel>>
+  >
+| Prisma.OptionalFlat<Omit<Required<JsonFilterBase<$PrismaModel>>, 'path'>>
+
+export type JsonFilterBase<$PrismaModel = never> = {
+  equals?: runtime.InputJsonValue | Prisma.JsonFieldRefInput<$PrismaModel> | Prisma.JsonNullValueFilter
+  path?: string[]
+  mode?: Prisma.QueryMode | Prisma.EnumQueryModeFieldRefInput<$PrismaModel>
+  string_contains?: string | Prisma.StringFieldRefInput<$PrismaModel>
+  string_starts_with?: string | Prisma.StringFieldRefInput<$PrismaModel>
+  string_ends_with?: string | Prisma.StringFieldRefInput<$PrismaModel>
+  array_starts_with?: runtime.InputJsonValue | Prisma.JsonFieldRefInput<$PrismaModel> | null
+  array_ends_with?: runtime.InputJsonValue | Prisma.JsonFieldRefInput<$PrismaModel> | null
+  array_contains?: runtime.InputJsonValue | Prisma.JsonFieldRefInput<$PrismaModel> | null
+  lt?: runtime.InputJsonValue | Prisma.JsonFieldRefInput<$PrismaModel>
+  lte?: runtime.InputJsonValue | Prisma.JsonFieldRefInput<$PrismaModel>
+  gt?: runtime.InputJsonValue | Prisma.JsonFieldRefInput<$PrismaModel>
+  gte?: runtime.InputJsonValue | Prisma.JsonFieldRefInput<$PrismaModel>
+  not?: runtime.InputJsonValue | Prisma.JsonFieldRefInput<$PrismaModel> | Prisma.JsonNullValueFilter
+}
+
+export type JsonWithAggregatesFilter<$PrismaModel = never> =
+| Prisma.PatchUndefined<
+    Prisma.Either<Required<JsonWithAggregatesFilterBase<$PrismaModel>>, Exclude<keyof Required<JsonWithAggregatesFilterBase<$PrismaModel>>, 'path'>>,
+    Required<JsonWithAggregatesFilterBase<$PrismaModel>>
+  >
+| Prisma.OptionalFlat<Omit<Required<JsonWithAggregatesFilterBase<$PrismaModel>>, 'path'>>
+
+export type JsonWithAggregatesFilterBase<$PrismaModel = never> = {
+  equals?: runtime.InputJsonValue | Prisma.JsonFieldRefInput<$PrismaModel> | Prisma.JsonNullValueFilter
+  path?: string[]
+  mode?: Prisma.QueryMode | Prisma.EnumQueryModeFieldRefInput<$PrismaModel>
+  string_contains?: string | Prisma.StringFieldRefInput<$PrismaModel>
+  string_starts_with?: string | Prisma.StringFieldRefInput<$PrismaModel>
+  string_ends_with?: string | Prisma.StringFieldRefInput<$PrismaModel>
+  array_starts_with?: runtime.InputJsonValue | Prisma.JsonFieldRefInput<$PrismaModel> | null
+  array_ends_with?: runtime.InputJsonValue | Prisma.JsonFieldRefInput<$PrismaModel> | null
+  array_contains?: runtime.InputJsonValue | Prisma.JsonFieldRefInput<$PrismaModel> | null
+  lt?: runtime.InputJsonValue | Prisma.JsonFieldRefInput<$PrismaModel>
+  lte?: runtime.InputJsonValue | Prisma.JsonFieldRefInput<$PrismaModel>
+  gt?: runtime.InputJsonValue | Prisma.JsonFieldRefInput<$PrismaModel>
+  gte?: runtime.InputJsonValue | Prisma.JsonFieldRefInput<$PrismaModel>
+  not?: runtime.InputJsonValue | Prisma.JsonFieldRefInput<$PrismaModel> | Prisma.JsonNullValueFilter
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedJsonFilter<$PrismaModel>
+  _max?: Prisma.NestedJsonFilter<$PrismaModel>
+}
+
 export type EnumRestaurantInventoryMovementTypeFilter<$PrismaModel = never> = {
   equals?: $Enums.RestaurantInventoryMovementType | Prisma.EnumRestaurantInventoryMovementTypeFieldRefInput<$PrismaModel>
   in?: $Enums.RestaurantInventoryMovementType[] | Prisma.ListEnumRestaurantInventoryMovementTypeFieldRefInput<$PrismaModel>
   notIn?: $Enums.RestaurantInventoryMovementType[] | Prisma.ListEnumRestaurantInventoryMovementTypeFieldRefInput<$PrismaModel>
   not?: Prisma.NestedEnumRestaurantInventoryMovementTypeFilter<$PrismaModel> | $Enums.RestaurantInventoryMovementType
+}
+
+export type EnumRestaurantInventoryUnitNullableFilter<$PrismaModel = never> = {
+  equals?: $Enums.RestaurantInventoryUnit | Prisma.EnumRestaurantInventoryUnitFieldRefInput<$PrismaModel> | null
+  in?: $Enums.RestaurantInventoryUnit[] | Prisma.ListEnumRestaurantInventoryUnitFieldRefInput<$PrismaModel> | null
+  notIn?: $Enums.RestaurantInventoryUnit[] | Prisma.ListEnumRestaurantInventoryUnitFieldRefInput<$PrismaModel> | null
+  not?: Prisma.NestedEnumRestaurantInventoryUnitNullableFilter<$PrismaModel> | $Enums.RestaurantInventoryUnit | null
 }
 
 export type EnumRestaurantInventoryMovementTypeWithAggregatesFilter<$PrismaModel = never> = {
@@ -631,6 +689,16 @@ export type EnumRestaurantInventoryMovementTypeWithAggregatesFilter<$PrismaModel
   _count?: Prisma.NestedIntFilter<$PrismaModel>
   _min?: Prisma.NestedEnumRestaurantInventoryMovementTypeFilter<$PrismaModel>
   _max?: Prisma.NestedEnumRestaurantInventoryMovementTypeFilter<$PrismaModel>
+}
+
+export type EnumRestaurantInventoryUnitNullableWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.RestaurantInventoryUnit | Prisma.EnumRestaurantInventoryUnitFieldRefInput<$PrismaModel> | null
+  in?: $Enums.RestaurantInventoryUnit[] | Prisma.ListEnumRestaurantInventoryUnitFieldRefInput<$PrismaModel> | null
+  notIn?: $Enums.RestaurantInventoryUnit[] | Prisma.ListEnumRestaurantInventoryUnitFieldRefInput<$PrismaModel> | null
+  not?: Prisma.NestedEnumRestaurantInventoryUnitNullableWithAggregatesFilter<$PrismaModel> | $Enums.RestaurantInventoryUnit | null
+  _count?: Prisma.NestedIntNullableFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumRestaurantInventoryUnitNullableFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumRestaurantInventoryUnitNullableFilter<$PrismaModel>
 }
 
 export type EnumRestaurantStaffAvailabilityFilter<$PrismaModel = never> = {
@@ -1323,11 +1391,42 @@ export type NestedEnumRestaurantInventoryUnitWithAggregatesFilter<$PrismaModel =
   _max?: Prisma.NestedEnumRestaurantInventoryUnitFilter<$PrismaModel>
 }
 
+export type NestedJsonFilter<$PrismaModel = never> =
+| Prisma.PatchUndefined<
+    Prisma.Either<Required<NestedJsonFilterBase<$PrismaModel>>, Exclude<keyof Required<NestedJsonFilterBase<$PrismaModel>>, 'path'>>,
+    Required<NestedJsonFilterBase<$PrismaModel>>
+  >
+| Prisma.OptionalFlat<Omit<Required<NestedJsonFilterBase<$PrismaModel>>, 'path'>>
+
+export type NestedJsonFilterBase<$PrismaModel = never> = {
+  equals?: runtime.InputJsonValue | Prisma.JsonFieldRefInput<$PrismaModel> | Prisma.JsonNullValueFilter
+  path?: string[]
+  mode?: Prisma.QueryMode | Prisma.EnumQueryModeFieldRefInput<$PrismaModel>
+  string_contains?: string | Prisma.StringFieldRefInput<$PrismaModel>
+  string_starts_with?: string | Prisma.StringFieldRefInput<$PrismaModel>
+  string_ends_with?: string | Prisma.StringFieldRefInput<$PrismaModel>
+  array_starts_with?: runtime.InputJsonValue | Prisma.JsonFieldRefInput<$PrismaModel> | null
+  array_ends_with?: runtime.InputJsonValue | Prisma.JsonFieldRefInput<$PrismaModel> | null
+  array_contains?: runtime.InputJsonValue | Prisma.JsonFieldRefInput<$PrismaModel> | null
+  lt?: runtime.InputJsonValue | Prisma.JsonFieldRefInput<$PrismaModel>
+  lte?: runtime.InputJsonValue | Prisma.JsonFieldRefInput<$PrismaModel>
+  gt?: runtime.InputJsonValue | Prisma.JsonFieldRefInput<$PrismaModel>
+  gte?: runtime.InputJsonValue | Prisma.JsonFieldRefInput<$PrismaModel>
+  not?: runtime.InputJsonValue | Prisma.JsonFieldRefInput<$PrismaModel> | Prisma.JsonNullValueFilter
+}
+
 export type NestedEnumRestaurantInventoryMovementTypeFilter<$PrismaModel = never> = {
   equals?: $Enums.RestaurantInventoryMovementType | Prisma.EnumRestaurantInventoryMovementTypeFieldRefInput<$PrismaModel>
   in?: $Enums.RestaurantInventoryMovementType[] | Prisma.ListEnumRestaurantInventoryMovementTypeFieldRefInput<$PrismaModel>
   notIn?: $Enums.RestaurantInventoryMovementType[] | Prisma.ListEnumRestaurantInventoryMovementTypeFieldRefInput<$PrismaModel>
   not?: Prisma.NestedEnumRestaurantInventoryMovementTypeFilter<$PrismaModel> | $Enums.RestaurantInventoryMovementType
+}
+
+export type NestedEnumRestaurantInventoryUnitNullableFilter<$PrismaModel = never> = {
+  equals?: $Enums.RestaurantInventoryUnit | Prisma.EnumRestaurantInventoryUnitFieldRefInput<$PrismaModel> | null
+  in?: $Enums.RestaurantInventoryUnit[] | Prisma.ListEnumRestaurantInventoryUnitFieldRefInput<$PrismaModel> | null
+  notIn?: $Enums.RestaurantInventoryUnit[] | Prisma.ListEnumRestaurantInventoryUnitFieldRefInput<$PrismaModel> | null
+  not?: Prisma.NestedEnumRestaurantInventoryUnitNullableFilter<$PrismaModel> | $Enums.RestaurantInventoryUnit | null
 }
 
 export type NestedEnumRestaurantInventoryMovementTypeWithAggregatesFilter<$PrismaModel = never> = {
@@ -1338,6 +1437,16 @@ export type NestedEnumRestaurantInventoryMovementTypeWithAggregatesFilter<$Prism
   _count?: Prisma.NestedIntFilter<$PrismaModel>
   _min?: Prisma.NestedEnumRestaurantInventoryMovementTypeFilter<$PrismaModel>
   _max?: Prisma.NestedEnumRestaurantInventoryMovementTypeFilter<$PrismaModel>
+}
+
+export type NestedEnumRestaurantInventoryUnitNullableWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.RestaurantInventoryUnit | Prisma.EnumRestaurantInventoryUnitFieldRefInput<$PrismaModel> | null
+  in?: $Enums.RestaurantInventoryUnit[] | Prisma.ListEnumRestaurantInventoryUnitFieldRefInput<$PrismaModel> | null
+  notIn?: $Enums.RestaurantInventoryUnit[] | Prisma.ListEnumRestaurantInventoryUnitFieldRefInput<$PrismaModel> | null
+  not?: Prisma.NestedEnumRestaurantInventoryUnitNullableWithAggregatesFilter<$PrismaModel> | $Enums.RestaurantInventoryUnit | null
+  _count?: Prisma.NestedIntNullableFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumRestaurantInventoryUnitNullableFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumRestaurantInventoryUnitNullableFilter<$PrismaModel>
 }
 
 export type NestedEnumRestaurantStaffAvailabilityFilter<$PrismaModel = never> = {

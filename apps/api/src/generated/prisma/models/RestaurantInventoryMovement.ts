@@ -43,6 +43,7 @@ export type RestaurantInventoryMovementMinAggregateOutputType = {
   orderItemId: string | null
   type: $Enums.RestaurantInventoryMovementType | null
   quantityDelta: number | null
+  unitSnapshot: $Enums.RestaurantInventoryUnit | null
   unitCost: number | null
   occurredAt: Date | null
   note: string | null
@@ -55,6 +56,7 @@ export type RestaurantInventoryMovementMaxAggregateOutputType = {
   orderItemId: string | null
   type: $Enums.RestaurantInventoryMovementType | null
   quantityDelta: number | null
+  unitSnapshot: $Enums.RestaurantInventoryUnit | null
   unitCost: number | null
   occurredAt: Date | null
   note: string | null
@@ -67,6 +69,7 @@ export type RestaurantInventoryMovementCountAggregateOutputType = {
   orderItemId: number
   type: number
   quantityDelta: number
+  unitSnapshot: number
   unitCost: number
   occurredAt: number
   note: number
@@ -91,6 +94,7 @@ export type RestaurantInventoryMovementMinAggregateInputType = {
   orderItemId?: true
   type?: true
   quantityDelta?: true
+  unitSnapshot?: true
   unitCost?: true
   occurredAt?: true
   note?: true
@@ -103,6 +107,7 @@ export type RestaurantInventoryMovementMaxAggregateInputType = {
   orderItemId?: true
   type?: true
   quantityDelta?: true
+  unitSnapshot?: true
   unitCost?: true
   occurredAt?: true
   note?: true
@@ -115,6 +120,7 @@ export type RestaurantInventoryMovementCountAggregateInputType = {
   orderItemId?: true
   type?: true
   quantityDelta?: true
+  unitSnapshot?: true
   unitCost?: true
   occurredAt?: true
   note?: true
@@ -214,6 +220,7 @@ export type RestaurantInventoryMovementGroupByOutputType = {
   orderItemId: string | null
   type: $Enums.RestaurantInventoryMovementType
   quantityDelta: number
+  unitSnapshot: $Enums.RestaurantInventoryUnit | null
   unitCost: number | null
   occurredAt: Date
   note: string | null
@@ -249,6 +256,7 @@ export type RestaurantInventoryMovementWhereInput = {
   orderItemId?: Prisma.StringNullableFilter<"RestaurantInventoryMovement"> | string | null
   type?: Prisma.EnumRestaurantInventoryMovementTypeFilter<"RestaurantInventoryMovement"> | $Enums.RestaurantInventoryMovementType
   quantityDelta?: Prisma.IntFilter<"RestaurantInventoryMovement"> | number
+  unitSnapshot?: Prisma.EnumRestaurantInventoryUnitNullableFilter<"RestaurantInventoryMovement"> | $Enums.RestaurantInventoryUnit | null
   unitCost?: Prisma.IntNullableFilter<"RestaurantInventoryMovement"> | number | null
   occurredAt?: Prisma.DateTimeFilter<"RestaurantInventoryMovement"> | Date | string
   note?: Prisma.StringNullableFilter<"RestaurantInventoryMovement"> | string | null
@@ -264,6 +272,7 @@ export type RestaurantInventoryMovementOrderByWithRelationInput = {
   orderItemId?: Prisma.SortOrderInput | Prisma.SortOrder
   type?: Prisma.SortOrder
   quantityDelta?: Prisma.SortOrder
+  unitSnapshot?: Prisma.SortOrderInput | Prisma.SortOrder
   unitCost?: Prisma.SortOrderInput | Prisma.SortOrder
   occurredAt?: Prisma.SortOrder
   note?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -283,6 +292,7 @@ export type RestaurantInventoryMovementWhereUniqueInput = Prisma.AtLeast<{
   orderItemId?: Prisma.StringNullableFilter<"RestaurantInventoryMovement"> | string | null
   type?: Prisma.EnumRestaurantInventoryMovementTypeFilter<"RestaurantInventoryMovement"> | $Enums.RestaurantInventoryMovementType
   quantityDelta?: Prisma.IntFilter<"RestaurantInventoryMovement"> | number
+  unitSnapshot?: Prisma.EnumRestaurantInventoryUnitNullableFilter<"RestaurantInventoryMovement"> | $Enums.RestaurantInventoryUnit | null
   unitCost?: Prisma.IntNullableFilter<"RestaurantInventoryMovement"> | number | null
   occurredAt?: Prisma.DateTimeFilter<"RestaurantInventoryMovement"> | Date | string
   note?: Prisma.StringNullableFilter<"RestaurantInventoryMovement"> | string | null
@@ -298,6 +308,7 @@ export type RestaurantInventoryMovementOrderByWithAggregationInput = {
   orderItemId?: Prisma.SortOrderInput | Prisma.SortOrder
   type?: Prisma.SortOrder
   quantityDelta?: Prisma.SortOrder
+  unitSnapshot?: Prisma.SortOrderInput | Prisma.SortOrder
   unitCost?: Prisma.SortOrderInput | Prisma.SortOrder
   occurredAt?: Prisma.SortOrder
   note?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -318,6 +329,7 @@ export type RestaurantInventoryMovementScalarWhereWithAggregatesInput = {
   orderItemId?: Prisma.StringNullableWithAggregatesFilter<"RestaurantInventoryMovement"> | string | null
   type?: Prisma.EnumRestaurantInventoryMovementTypeWithAggregatesFilter<"RestaurantInventoryMovement"> | $Enums.RestaurantInventoryMovementType
   quantityDelta?: Prisma.IntWithAggregatesFilter<"RestaurantInventoryMovement"> | number
+  unitSnapshot?: Prisma.EnumRestaurantInventoryUnitNullableWithAggregatesFilter<"RestaurantInventoryMovement"> | $Enums.RestaurantInventoryUnit | null
   unitCost?: Prisma.IntNullableWithAggregatesFilter<"RestaurantInventoryMovement"> | number | null
   occurredAt?: Prisma.DateTimeWithAggregatesFilter<"RestaurantInventoryMovement"> | Date | string
   note?: Prisma.StringNullableWithAggregatesFilter<"RestaurantInventoryMovement"> | string | null
@@ -327,6 +339,7 @@ export type RestaurantInventoryMovementCreateInput = {
   id?: string
   type: $Enums.RestaurantInventoryMovementType
   quantityDelta: number
+  unitSnapshot?: $Enums.RestaurantInventoryUnit | null
   unitCost?: number | null
   occurredAt?: Date | string
   note?: string | null
@@ -342,6 +355,7 @@ export type RestaurantInventoryMovementUncheckedCreateInput = {
   orderItemId?: string | null
   type: $Enums.RestaurantInventoryMovementType
   quantityDelta: number
+  unitSnapshot?: $Enums.RestaurantInventoryUnit | null
   unitCost?: number | null
   occurredAt?: Date | string
   note?: string | null
@@ -351,6 +365,7 @@ export type RestaurantInventoryMovementUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   type?: Prisma.EnumRestaurantInventoryMovementTypeFieldUpdateOperationsInput | $Enums.RestaurantInventoryMovementType
   quantityDelta?: Prisma.IntFieldUpdateOperationsInput | number
+  unitSnapshot?: Prisma.NullableEnumRestaurantInventoryUnitFieldUpdateOperationsInput | $Enums.RestaurantInventoryUnit | null
   unitCost?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   occurredAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -366,6 +381,7 @@ export type RestaurantInventoryMovementUncheckedUpdateInput = {
   orderItemId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   type?: Prisma.EnumRestaurantInventoryMovementTypeFieldUpdateOperationsInput | $Enums.RestaurantInventoryMovementType
   quantityDelta?: Prisma.IntFieldUpdateOperationsInput | number
+  unitSnapshot?: Prisma.NullableEnumRestaurantInventoryUnitFieldUpdateOperationsInput | $Enums.RestaurantInventoryUnit | null
   unitCost?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   occurredAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -378,6 +394,7 @@ export type RestaurantInventoryMovementCreateManyInput = {
   orderItemId?: string | null
   type: $Enums.RestaurantInventoryMovementType
   quantityDelta: number
+  unitSnapshot?: $Enums.RestaurantInventoryUnit | null
   unitCost?: number | null
   occurredAt?: Date | string
   note?: string | null
@@ -387,6 +404,7 @@ export type RestaurantInventoryMovementUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   type?: Prisma.EnumRestaurantInventoryMovementTypeFieldUpdateOperationsInput | $Enums.RestaurantInventoryMovementType
   quantityDelta?: Prisma.IntFieldUpdateOperationsInput | number
+  unitSnapshot?: Prisma.NullableEnumRestaurantInventoryUnitFieldUpdateOperationsInput | $Enums.RestaurantInventoryUnit | null
   unitCost?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   occurredAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -399,6 +417,7 @@ export type RestaurantInventoryMovementUncheckedUpdateManyInput = {
   orderItemId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   type?: Prisma.EnumRestaurantInventoryMovementTypeFieldUpdateOperationsInput | $Enums.RestaurantInventoryMovementType
   quantityDelta?: Prisma.IntFieldUpdateOperationsInput | number
+  unitSnapshot?: Prisma.NullableEnumRestaurantInventoryUnitFieldUpdateOperationsInput | $Enums.RestaurantInventoryUnit | null
   unitCost?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   occurredAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -427,6 +446,7 @@ export type RestaurantInventoryMovementCountOrderByAggregateInput = {
   orderItemId?: Prisma.SortOrder
   type?: Prisma.SortOrder
   quantityDelta?: Prisma.SortOrder
+  unitSnapshot?: Prisma.SortOrder
   unitCost?: Prisma.SortOrder
   occurredAt?: Prisma.SortOrder
   note?: Prisma.SortOrder
@@ -444,6 +464,7 @@ export type RestaurantInventoryMovementMaxOrderByAggregateInput = {
   orderItemId?: Prisma.SortOrder
   type?: Prisma.SortOrder
   quantityDelta?: Prisma.SortOrder
+  unitSnapshot?: Prisma.SortOrder
   unitCost?: Prisma.SortOrder
   occurredAt?: Prisma.SortOrder
   note?: Prisma.SortOrder
@@ -456,6 +477,7 @@ export type RestaurantInventoryMovementMinOrderByAggregateInput = {
   orderItemId?: Prisma.SortOrder
   type?: Prisma.SortOrder
   quantityDelta?: Prisma.SortOrder
+  unitSnapshot?: Prisma.SortOrder
   unitCost?: Prisma.SortOrder
   occurredAt?: Prisma.SortOrder
   note?: Prisma.SortOrder
@@ -596,10 +618,15 @@ export type EnumRestaurantInventoryMovementTypeFieldUpdateOperationsInput = {
   set?: $Enums.RestaurantInventoryMovementType
 }
 
+export type NullableEnumRestaurantInventoryUnitFieldUpdateOperationsInput = {
+  set?: $Enums.RestaurantInventoryUnit | null
+}
+
 export type RestaurantInventoryMovementCreateWithoutOrganizationInput = {
   id?: string
   type: $Enums.RestaurantInventoryMovementType
   quantityDelta: number
+  unitSnapshot?: $Enums.RestaurantInventoryUnit | null
   unitCost?: number | null
   occurredAt?: Date | string
   note?: string | null
@@ -613,6 +640,7 @@ export type RestaurantInventoryMovementUncheckedCreateWithoutOrganizationInput =
   orderItemId?: string | null
   type: $Enums.RestaurantInventoryMovementType
   quantityDelta: number
+  unitSnapshot?: $Enums.RestaurantInventoryUnit | null
   unitCost?: number | null
   occurredAt?: Date | string
   note?: string | null
@@ -654,6 +682,7 @@ export type RestaurantInventoryMovementScalarWhereInput = {
   orderItemId?: Prisma.StringNullableFilter<"RestaurantInventoryMovement"> | string | null
   type?: Prisma.EnumRestaurantInventoryMovementTypeFilter<"RestaurantInventoryMovement"> | $Enums.RestaurantInventoryMovementType
   quantityDelta?: Prisma.IntFilter<"RestaurantInventoryMovement"> | number
+  unitSnapshot?: Prisma.EnumRestaurantInventoryUnitNullableFilter<"RestaurantInventoryMovement"> | $Enums.RestaurantInventoryUnit | null
   unitCost?: Prisma.IntNullableFilter<"RestaurantInventoryMovement"> | number | null
   occurredAt?: Prisma.DateTimeFilter<"RestaurantInventoryMovement"> | Date | string
   note?: Prisma.StringNullableFilter<"RestaurantInventoryMovement"> | string | null
@@ -663,6 +692,7 @@ export type RestaurantInventoryMovementCreateWithoutOrderItemInput = {
   id?: string
   type: $Enums.RestaurantInventoryMovementType
   quantityDelta: number
+  unitSnapshot?: $Enums.RestaurantInventoryUnit | null
   unitCost?: number | null
   occurredAt?: Date | string
   note?: string | null
@@ -676,6 +706,7 @@ export type RestaurantInventoryMovementUncheckedCreateWithoutOrderItemInput = {
   productId: string
   type: $Enums.RestaurantInventoryMovementType
   quantityDelta: number
+  unitSnapshot?: $Enums.RestaurantInventoryUnit | null
   unitCost?: number | null
   occurredAt?: Date | string
   note?: string | null
@@ -711,6 +742,7 @@ export type RestaurantInventoryMovementCreateWithoutProductInput = {
   id?: string
   type: $Enums.RestaurantInventoryMovementType
   quantityDelta: number
+  unitSnapshot?: $Enums.RestaurantInventoryUnit | null
   unitCost?: number | null
   occurredAt?: Date | string
   note?: string | null
@@ -724,6 +756,7 @@ export type RestaurantInventoryMovementUncheckedCreateWithoutProductInput = {
   orderItemId?: string | null
   type: $Enums.RestaurantInventoryMovementType
   quantityDelta: number
+  unitSnapshot?: $Enums.RestaurantInventoryUnit | null
   unitCost?: number | null
   occurredAt?: Date | string
   note?: string | null
@@ -761,6 +794,7 @@ export type RestaurantInventoryMovementCreateManyOrganizationInput = {
   orderItemId?: string | null
   type: $Enums.RestaurantInventoryMovementType
   quantityDelta: number
+  unitSnapshot?: $Enums.RestaurantInventoryUnit | null
   unitCost?: number | null
   occurredAt?: Date | string
   note?: string | null
@@ -770,6 +804,7 @@ export type RestaurantInventoryMovementUpdateWithoutOrganizationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   type?: Prisma.EnumRestaurantInventoryMovementTypeFieldUpdateOperationsInput | $Enums.RestaurantInventoryMovementType
   quantityDelta?: Prisma.IntFieldUpdateOperationsInput | number
+  unitSnapshot?: Prisma.NullableEnumRestaurantInventoryUnitFieldUpdateOperationsInput | $Enums.RestaurantInventoryUnit | null
   unitCost?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   occurredAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -783,6 +818,7 @@ export type RestaurantInventoryMovementUncheckedUpdateWithoutOrganizationInput =
   orderItemId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   type?: Prisma.EnumRestaurantInventoryMovementTypeFieldUpdateOperationsInput | $Enums.RestaurantInventoryMovementType
   quantityDelta?: Prisma.IntFieldUpdateOperationsInput | number
+  unitSnapshot?: Prisma.NullableEnumRestaurantInventoryUnitFieldUpdateOperationsInput | $Enums.RestaurantInventoryUnit | null
   unitCost?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   occurredAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -794,6 +830,7 @@ export type RestaurantInventoryMovementUncheckedUpdateManyWithoutOrganizationInp
   orderItemId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   type?: Prisma.EnumRestaurantInventoryMovementTypeFieldUpdateOperationsInput | $Enums.RestaurantInventoryMovementType
   quantityDelta?: Prisma.IntFieldUpdateOperationsInput | number
+  unitSnapshot?: Prisma.NullableEnumRestaurantInventoryUnitFieldUpdateOperationsInput | $Enums.RestaurantInventoryUnit | null
   unitCost?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   occurredAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -805,6 +842,7 @@ export type RestaurantInventoryMovementCreateManyOrderItemInput = {
   productId: string
   type: $Enums.RestaurantInventoryMovementType
   quantityDelta: number
+  unitSnapshot?: $Enums.RestaurantInventoryUnit | null
   unitCost?: number | null
   occurredAt?: Date | string
   note?: string | null
@@ -814,6 +852,7 @@ export type RestaurantInventoryMovementUpdateWithoutOrderItemInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   type?: Prisma.EnumRestaurantInventoryMovementTypeFieldUpdateOperationsInput | $Enums.RestaurantInventoryMovementType
   quantityDelta?: Prisma.IntFieldUpdateOperationsInput | number
+  unitSnapshot?: Prisma.NullableEnumRestaurantInventoryUnitFieldUpdateOperationsInput | $Enums.RestaurantInventoryUnit | null
   unitCost?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   occurredAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -827,6 +866,7 @@ export type RestaurantInventoryMovementUncheckedUpdateWithoutOrderItemInput = {
   productId?: Prisma.StringFieldUpdateOperationsInput | string
   type?: Prisma.EnumRestaurantInventoryMovementTypeFieldUpdateOperationsInput | $Enums.RestaurantInventoryMovementType
   quantityDelta?: Prisma.IntFieldUpdateOperationsInput | number
+  unitSnapshot?: Prisma.NullableEnumRestaurantInventoryUnitFieldUpdateOperationsInput | $Enums.RestaurantInventoryUnit | null
   unitCost?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   occurredAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -838,6 +878,7 @@ export type RestaurantInventoryMovementUncheckedUpdateManyWithoutOrderItemInput 
   productId?: Prisma.StringFieldUpdateOperationsInput | string
   type?: Prisma.EnumRestaurantInventoryMovementTypeFieldUpdateOperationsInput | $Enums.RestaurantInventoryMovementType
   quantityDelta?: Prisma.IntFieldUpdateOperationsInput | number
+  unitSnapshot?: Prisma.NullableEnumRestaurantInventoryUnitFieldUpdateOperationsInput | $Enums.RestaurantInventoryUnit | null
   unitCost?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   occurredAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -849,6 +890,7 @@ export type RestaurantInventoryMovementCreateManyProductInput = {
   orderItemId?: string | null
   type: $Enums.RestaurantInventoryMovementType
   quantityDelta: number
+  unitSnapshot?: $Enums.RestaurantInventoryUnit | null
   unitCost?: number | null
   occurredAt?: Date | string
   note?: string | null
@@ -858,6 +900,7 @@ export type RestaurantInventoryMovementUpdateWithoutProductInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   type?: Prisma.EnumRestaurantInventoryMovementTypeFieldUpdateOperationsInput | $Enums.RestaurantInventoryMovementType
   quantityDelta?: Prisma.IntFieldUpdateOperationsInput | number
+  unitSnapshot?: Prisma.NullableEnumRestaurantInventoryUnitFieldUpdateOperationsInput | $Enums.RestaurantInventoryUnit | null
   unitCost?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   occurredAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -871,6 +914,7 @@ export type RestaurantInventoryMovementUncheckedUpdateWithoutProductInput = {
   orderItemId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   type?: Prisma.EnumRestaurantInventoryMovementTypeFieldUpdateOperationsInput | $Enums.RestaurantInventoryMovementType
   quantityDelta?: Prisma.IntFieldUpdateOperationsInput | number
+  unitSnapshot?: Prisma.NullableEnumRestaurantInventoryUnitFieldUpdateOperationsInput | $Enums.RestaurantInventoryUnit | null
   unitCost?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   occurredAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -882,6 +926,7 @@ export type RestaurantInventoryMovementUncheckedUpdateManyWithoutProductInput = 
   orderItemId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   type?: Prisma.EnumRestaurantInventoryMovementTypeFieldUpdateOperationsInput | $Enums.RestaurantInventoryMovementType
   quantityDelta?: Prisma.IntFieldUpdateOperationsInput | number
+  unitSnapshot?: Prisma.NullableEnumRestaurantInventoryUnitFieldUpdateOperationsInput | $Enums.RestaurantInventoryUnit | null
   unitCost?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   occurredAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -896,6 +941,7 @@ export type RestaurantInventoryMovementSelect<ExtArgs extends runtime.Types.Exte
   orderItemId?: boolean
   type?: boolean
   quantityDelta?: boolean
+  unitSnapshot?: boolean
   unitCost?: boolean
   occurredAt?: boolean
   note?: boolean
@@ -911,6 +957,7 @@ export type RestaurantInventoryMovementSelectCreateManyAndReturn<ExtArgs extends
   orderItemId?: boolean
   type?: boolean
   quantityDelta?: boolean
+  unitSnapshot?: boolean
   unitCost?: boolean
   occurredAt?: boolean
   note?: boolean
@@ -926,6 +973,7 @@ export type RestaurantInventoryMovementSelectUpdateManyAndReturn<ExtArgs extends
   orderItemId?: boolean
   type?: boolean
   quantityDelta?: boolean
+  unitSnapshot?: boolean
   unitCost?: boolean
   occurredAt?: boolean
   note?: boolean
@@ -941,12 +989,13 @@ export type RestaurantInventoryMovementSelectScalar = {
   orderItemId?: boolean
   type?: boolean
   quantityDelta?: boolean
+  unitSnapshot?: boolean
   unitCost?: boolean
   occurredAt?: boolean
   note?: boolean
 }
 
-export type RestaurantInventoryMovementOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "organizationId" | "productId" | "orderItemId" | "type" | "quantityDelta" | "unitCost" | "occurredAt" | "note", ExtArgs["result"]["restaurantInventoryMovement"]>
+export type RestaurantInventoryMovementOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "organizationId" | "productId" | "orderItemId" | "type" | "quantityDelta" | "unitSnapshot" | "unitCost" | "occurredAt" | "note", ExtArgs["result"]["restaurantInventoryMovement"]>
 export type RestaurantInventoryMovementInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
   product?: boolean | Prisma.RestaurantInventoryProductDefaultArgs<ExtArgs>
@@ -977,6 +1026,7 @@ export type $RestaurantInventoryMovementPayload<ExtArgs extends runtime.Types.Ex
     orderItemId: string | null
     type: $Enums.RestaurantInventoryMovementType
     quantityDelta: number
+    unitSnapshot: $Enums.RestaurantInventoryUnit | null
     unitCost: number | null
     occurredAt: Date
     note: string | null
@@ -1412,6 +1462,7 @@ export interface RestaurantInventoryMovementFieldRefs {
   readonly orderItemId: Prisma.FieldRef<"RestaurantInventoryMovement", 'String'>
   readonly type: Prisma.FieldRef<"RestaurantInventoryMovement", 'RestaurantInventoryMovementType'>
   readonly quantityDelta: Prisma.FieldRef<"RestaurantInventoryMovement", 'Int'>
+  readonly unitSnapshot: Prisma.FieldRef<"RestaurantInventoryMovement", 'RestaurantInventoryUnit'>
   readonly unitCost: Prisma.FieldRef<"RestaurantInventoryMovement", 'Int'>
   readonly occurredAt: Prisma.FieldRef<"RestaurantInventoryMovement", 'DateTime'>
   readonly note: Prisma.FieldRef<"RestaurantInventoryMovement", 'String'>

@@ -32,7 +32,9 @@ import {
   CreateInventoryProductDto,
   CreateLiquorWeighingDto,
   CreateSupplierInvoiceDto,
+  ConvertInventoryUnitDto,
   SaveInventoryRecipeDto,
+  SaveMenuComboDto,
   CorrectGuestOrderDto,
   CorrectStaffOrderDto,
   CreateTableDto,
@@ -392,6 +394,15 @@ export class RestaurantStaffController {
     return this.restaurant.updateInventoryProduct(req.user, id, dto);
   }
 
+  @Post("inventory/products/:id/convert-unit")
+  convertInventoryUnit(
+    @Req() req: StaffRequest,
+    @Param("id") id: string,
+    @Body() dto: ConvertInventoryUnitDto,
+  ) {
+    return this.restaurant.convertInventoryUnit(req.user, id, dto);
+  }
+
   @Post("inventory/products/:id/movements")
   addInventoryMovement(
     @Req() req: StaffRequest,
@@ -417,6 +428,15 @@ export class RestaurantStaffController {
     @Body() dto: SaveInventoryRecipeDto,
   ) {
     return this.restaurant.saveInventoryRecipe(req.user, menuItemId, dto);
+  }
+
+  @Patch("inventory/combos/:menuItemId")
+  saveMenuCombo(
+    @Req() req: StaffRequest,
+    @Param("menuItemId") menuItemId: string,
+    @Body() dto: SaveMenuComboDto,
+  ) {
+    return this.restaurant.saveMenuCombo(req.user, menuItemId, dto);
   }
 
   @Get("promotions")

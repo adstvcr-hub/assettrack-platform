@@ -9,6 +9,7 @@ import {
 import { PrismaService } from "../prisma/prisma.service";
 import * as QRCode from "qrcode";
 import {
+  RestaurantCourse,
   RestaurantFulfillment,
   RestaurantInvoiceRequestStatus,
   RestaurantItemStatus,
@@ -34,7 +35,9 @@ import {
   CreateInventoryMovementDto,
   CreateInventoryProductDto,
   CreateLiquorWeighingDto,
+  ConvertInventoryUnitDto,
   SaveInventoryRecipeDto,
+  SaveMenuComboDto,
   CorrectGuestOrderDto,
   CorrectStaffOrderDto,
   CreatePromotionDto,
@@ -796,6 +799,7 @@ export class RestaurantService {
                   price: true,
                   quantity: true,
                   status: true,
+                  comboParentId: true,
                 },
               },
             },
@@ -851,7 +855,9 @@ export class RestaurantService {
       >(),
     };
     for (const visit of summaryVisits) {
-      const items = visit.orders.flatMap((order) => order.items);
+      const items = visit.orders.flatMap((order) =>
+        order.items.filter((item) => !item.comboParentId),
+      );
       const billing = this.billingTotals(
         items,
         visit,
@@ -904,7 +910,11 @@ export class RestaurantService {
       items: visits.map((visit) => {
         const items = visit.orders.flatMap((order) =>
           order.items
-            .filter((item) => item.status !== RestaurantItemStatus.CANCELLED)
+            .filter(
+              (item) =>
+                !item.comboParentId &&
+                item.status !== RestaurantItemStatus.CANCELLED,
+            )
             .map((item) => ({
             id: item.id,
             orderCreatedAt: order.createdAt,
@@ -921,10 +931,14 @@ export class RestaurantService {
           .filter((order) => order.correctionCount > 0)
           .map((order) => {
             const replacedItems = order.items.filter(
-              (item) => item.cancelledByGuestCorrection,
+              (item) =>
+                !item.comboParentId &&
+                item.cancelledByGuestCorrection,
             );
             const effectiveItems = order.items.filter(
-              (item) => item.status !== RestaurantItemStatus.CANCELLED,
+              (item) =>
+                !item.comboParentId &&
+                item.status !== RestaurantItemStatus.CANCELLED,
             );
             const correctionEvents = replacedItems
               .flatMap((item) => item.events ?? [])
@@ -2415,7 +2429,14 @@ export class RestaurantService {
 
   async inventory(actor: RestaurantActor) {
     const role = this.requireInventoryAccess(actor);
-    const [categories, products, menuItems, recipes] = await Promise.all([
+    const [
+      categories,
+      products,
+      menuItems,
+      recipes,
+      recipeRevisions,
+      comboComponents,
+    ] = await Promise.all([
       this.prisma.restaurantInventoryCategory.findMany({
         where: { organizationId: actor.organizationId, active: true },
         orderBy: { name: "asc" },
@@ -2436,7 +2457,7 @@ export class RestaurantService {
           active: true,
           deletedAt: null,
         },
-        select: { id: true, name: true },
+        select: { id: true, name: true, station: true, active: true },
         orderBy: { name: "asc" },
       }),
       this.prisma.restaurantRecipeIngredient.findMany({
@@ -2454,6 +2475,32 @@ export class RestaurantService {
           },
         },
         orderBy: [{ menuItem: { name: "asc" } }, { product: { name: "asc" } }],
+      }),
+      this.prisma.restaurantRecipeRevision.findMany({
+        where: { organizationId: actor.organizationId },
+        select: {
+          id: true,
+          menuItemId: true,
+          version: true,
+          ingredients: true,
+          reason: true,
+          createdAt: true,
+        },
+        orderBy: [{ menuItemId: "asc" }, { version: "desc" }],
+        take: 500,
+      }),
+      this.prisma.restaurantMenuComboComponent.findMany({
+        where: { organizationId: actor.organizationId },
+        include: {
+          parentMenuItem: { select: { id: true, name: true } },
+          componentMenuItem: {
+            select: { id: true, name: true, station: true, active: true },
+          },
+        },
+        orderBy: [
+          { parentMenuItem: { name: "asc" } },
+          { componentMenuItem: { name: "asc" } },
+        ],
       }),
     ]);
     const alerts = products
@@ -2473,6 +2520,8 @@ export class RestaurantService {
       products,
       menuItems,
       recipes,
+      recipeRevisions,
+      comboComponents,
       alerts,
       summary: {
         activeProducts: products.filter((product) => product.active).length,
@@ -2573,6 +2622,7 @@ export class RestaurantService {
             type: RestaurantInventoryMovementType.ENTRY,
             quantityDelta: dto.quantity,
             unitCost: dto.unitCost,
+            unitSnapshot: dto.stockUnit,
             occurredAt: new Date(dto.receivedAt),
             note: "Inventario inicial",
           },
@@ -2648,6 +2698,164 @@ export class RestaurantService {
     });
   }
 
+  async convertInventoryUnit(
+    actor: RestaurantActor,
+    id: string,
+    dto: ConvertInventoryUnitDto,
+  ) {
+    this.requireRestaurantAdmin(actor);
+    const product = await this.prisma.restaurantInventoryProduct.findFirst({
+      where: { id, organizationId: actor.organizationId, active: true },
+      include: {
+        recipeIngredients: {
+          where: { active: true },
+          select: { menuItemId: true, quantityPerMenuItem: true },
+        },
+      },
+    });
+    if (!product) throw new NotFoundException("Producto de inventario no encontrado");
+    if (dto.stockUnit === product.stockUnit) {
+      throw new BadRequestException(
+        "Seleccione una unidad distinta para realizar la conversión",
+      );
+    }
+    const affectedMenuIds = [
+      ...new Set(product.recipeIngredients.map((ingredient) => ingredient.menuItemId)),
+    ].sort();
+    const suppliedUpdates = new Map(
+      dto.recipeUpdates.map((update) => [update.menuItemId, update.quantityPerMenuItem]),
+    );
+    if (
+      suppliedUpdates.size !== dto.recipeUpdates.length ||
+      affectedMenuIds.length !== suppliedUpdates.size ||
+      affectedMenuIds.some((menuItemId) => !suppliedUpdates.has(menuItemId))
+    ) {
+      throw new BadRequestException(
+        "Debe indicar la nueva cantidad para cada receta que utiliza este producto",
+      );
+    }
+
+    return this.prisma.$transaction(async (tx) => {
+      const current = await tx.restaurantInventoryProduct.findFirst({
+        where: { id, organizationId: actor.organizationId, active: true },
+      });
+      if (!current || current.stockUnit !== product.stockUnit) {
+        throw new ConflictException(
+          "El producto cambió mientras se preparaba la conversión",
+        );
+      }
+      const occurredAt = new Date();
+      if (current.quantity > 0) {
+        await tx.restaurantInventoryMovement.create({
+          data: {
+            organizationId: actor.organizationId,
+            productId: id,
+            type: RestaurantInventoryMovementType.ADJUSTMENT,
+            quantityDelta: -current.quantity,
+            unitCost: current.unitCost,
+            unitSnapshot: current.stockUnit,
+            occurredAt,
+            note: `Conversión de medida: salida de ${current.quantity} ${current.stockUnit}. ${dto.reason.trim()}`,
+          },
+        });
+      }
+      await tx.restaurantInventoryProduct.update({
+        where: { id },
+        data: {
+          stockUnit: dto.stockUnit,
+          unitsPerPresentation: dto.unitsPerPresentation,
+          quantity: dto.quantity,
+          minimumQuantity: dto.minimumQuantity,
+          unitCost: dto.unitCost,
+        },
+      });
+      if (dto.quantity > 0) {
+        await tx.restaurantInventoryMovement.create({
+          data: {
+            organizationId: actor.organizationId,
+            productId: id,
+            type: RestaurantInventoryMovementType.ADJUSTMENT,
+            quantityDelta: dto.quantity,
+            unitCost: dto.unitCost,
+            unitSnapshot: dto.stockUnit,
+            occurredAt,
+            note: `Conversión de medida: ingreso de ${dto.quantity} ${dto.stockUnit}. ${dto.reason.trim()}`,
+          },
+        });
+      }
+      for (const menuItemId of affectedMenuIds) {
+        await tx.restaurantRecipeIngredient.updateMany({
+          where: {
+            organizationId: actor.organizationId,
+            menuItemId,
+            productId: id,
+            active: true,
+          },
+          data: { quantityPerMenuItem: suppliedUpdates.get(menuItemId)! },
+        });
+        const [latestRevision, ingredients] = await Promise.all([
+          tx.restaurantRecipeRevision.findFirst({
+            where: { organizationId: actor.organizationId, menuItemId },
+            orderBy: { version: "desc" },
+            select: { version: true },
+          }),
+          tx.restaurantRecipeIngredient.findMany({
+            where: { organizationId: actor.organizationId, menuItemId, active: true },
+            include: {
+              product: {
+                select: { id: true, name: true, stockUnit: true },
+              },
+            },
+            orderBy: { product: { name: "asc" } },
+          }),
+        ]);
+        await tx.restaurantRecipeRevision.create({
+          data: {
+            organizationId: actor.organizationId,
+            menuItemId,
+            version: (latestRevision?.version ?? 0) + 1,
+            createdById: actor.id,
+            reason: `Conversión de ${current.name}: ${dto.reason.trim()}`,
+            ingredients: ingredients.map((ingredient) => ({
+              productId: ingredient.product.id,
+              productName: ingredient.product.name,
+              stockUnit: ingredient.product.stockUnit,
+              quantityPerMenuItem: ingredient.quantityPerMenuItem,
+            })),
+          },
+        });
+      }
+      await tx.platformAdminEvent.create({
+        data: {
+          actorId: actor.id,
+          action: "RESTAURANT_INVENTORY_UNIT_CONVERTED",
+          organizationId: actor.organizationId,
+          reason: dto.reason.trim(),
+          metadata: {
+            productId: id,
+            productName: current.name,
+            from: {
+              stockUnit: current.stockUnit,
+              quantity: current.quantity,
+              unitsPerPresentation: current.unitsPerPresentation,
+              minimumQuantity: current.minimumQuantity,
+              unitCost: current.unitCost,
+            },
+            to: {
+              stockUnit: dto.stockUnit,
+              quantity: dto.quantity,
+              unitsPerPresentation: dto.unitsPerPresentation,
+              minimumQuantity: dto.minimumQuantity,
+              unitCost: dto.unitCost,
+            },
+            affectedMenuItemIds: affectedMenuIds,
+          },
+        },
+      });
+      return tx.restaurantInventoryProduct.findUnique({ where: { id } });
+    });
+  }
+
   async addInventoryMovement(
     actor: RestaurantActor,
     productId: string,
@@ -2695,6 +2903,7 @@ export class RestaurantService {
           type: dto.type,
           quantityDelta,
           unitCost: dto.unitCost,
+          unitSnapshot: product.stockUnit,
           occurredAt: dto.occurredAt ? new Date(dto.occurredAt) : new Date(),
           note:
             dto.note?.trim() ||
@@ -2732,7 +2941,7 @@ export class RestaurantService {
               organizationId: actor.organizationId,
               active: true,
             },
-            select: { id: true },
+            select: { id: true, name: true, stockUnit: true },
           })
         : Promise.resolve([]),
     ]);
@@ -2740,6 +2949,14 @@ export class RestaurantService {
     if (products.length !== productIds.length) {
       throw new BadRequestException(
         "Uno de los ingredientes no existe o está inactivo",
+      );
+    }
+    const comboCount = await this.prisma.restaurantMenuComboComponent.count({
+      where: { organizationId: actor.organizationId, parentMenuItemId: menuItemId },
+    });
+    if (comboCount > 0 && dto.ingredients.length > 0) {
+      throw new ConflictException(
+        "Un combo consume inventario mediante sus componentes y no puede tener una receta directa",
       );
     }
     return this.prisma.$transaction(async (tx) => {
@@ -2756,7 +2973,31 @@ export class RestaurantService {
           })),
         });
       }
-      return tx.restaurantRecipeIngredient.findMany({
+      const latestRevision = await tx.restaurantRecipeRevision.findFirst({
+        where: { organizationId: actor.organizationId, menuItemId },
+        orderBy: { version: "desc" },
+        select: { version: true },
+      });
+      const productById = new Map(products.map((product) => [product.id, product]));
+      const revision = await tx.restaurantRecipeRevision.create({
+        data: {
+          organizationId: actor.organizationId,
+          menuItemId,
+          version: (latestRevision?.version ?? 0) + 1,
+          createdById: actor.id,
+          reason: dto.reason?.trim() || "Actualización administrativa de receta",
+          ingredients: dto.ingredients.map((ingredient) => {
+            const product = productById.get(ingredient.productId)!;
+            return {
+              productId: ingredient.productId,
+              productName: product.name,
+              stockUnit: product.stockUnit,
+              quantityPerMenuItem: ingredient.quantityPerMenuItem,
+            };
+          }),
+        },
+      });
+      const ingredients = await tx.restaurantRecipeIngredient.findMany({
         where: { organizationId: actor.organizationId, menuItemId },
         include: {
           menuItem: { select: { id: true, name: true } },
@@ -2772,29 +3013,418 @@ export class RestaurantService {
         },
         orderBy: { product: { name: "asc" } },
       });
+      return { revision, ingredients };
+    });
+  }
+
+  async saveMenuCombo(
+    actor: RestaurantActor,
+    menuItemId: string,
+    dto: SaveMenuComboDto,
+  ) {
+    this.requireRestaurantAdmin(actor);
+    const componentIds = dto.components.map((component) => component.menuItemId);
+    if (new Set(componentIds).size !== componentIds.length) {
+      throw new BadRequestException("No repita productos dentro del combo");
+    }
+    if (componentIds.includes(menuItemId)) {
+      throw new BadRequestException("Un combo no puede incluirse a sí mismo");
+    }
+    const [parent, components, recipeCount, nestedComboCount] = await Promise.all([
+      this.prisma.restaurantMenuItem.findFirst({
+        where: {
+          id: menuItemId,
+          organizationId: actor.organizationId,
+          active: true,
+          deletedAt: null,
+        },
+        select: { id: true, name: true },
+      }),
+      componentIds.length
+        ? this.prisma.restaurantMenuItem.findMany({
+            where: {
+              id: { in: componentIds },
+              organizationId: actor.organizationId,
+              active: true,
+              deletedAt: null,
+            },
+            select: { id: true },
+          })
+        : Promise.resolve([]),
+      this.prisma.restaurantRecipeIngredient.count({
+        where: {
+          organizationId: actor.organizationId,
+          menuItemId,
+          active: true,
+        },
+      }),
+      componentIds.length
+        ? this.prisma.restaurantMenuComboComponent.count({
+            where: {
+              organizationId: actor.organizationId,
+              parentMenuItemId: { in: componentIds },
+            },
+          })
+        : Promise.resolve(0),
+    ]);
+    if (!parent) throw new NotFoundException("Producto del menú no encontrado");
+    if (components.length !== componentIds.length) {
+      throw new BadRequestException("Uno de los componentes no está disponible");
+    }
+    if (recipeCount > 0 && dto.components.length > 0) {
+      throw new ConflictException(
+        "Elimine la receta directa antes de convertir este producto en combo",
+      );
+    }
+    if (nestedComboCount > 0) {
+      throw new ConflictException(
+        "Un combo no puede contener otro combo; seleccione sus productos finales",
+      );
+    }
+    return this.prisma.$transaction(async (tx) => {
+      await tx.restaurantMenuComboComponent.deleteMany({
+        where: { organizationId: actor.organizationId, parentMenuItemId: menuItemId },
+      });
+      if (dto.components.length) {
+        await tx.restaurantMenuComboComponent.createMany({
+          data: dto.components.map((component) => ({
+            organizationId: actor.organizationId,
+            parentMenuItemId: menuItemId,
+            componentMenuItemId: component.menuItemId,
+            quantity: component.quantity,
+          })),
+        });
+      }
+      return tx.restaurantMenuComboComponent.findMany({
+        where: { organizationId: actor.organizationId, parentMenuItemId: menuItemId },
+        include: {
+          componentMenuItem: {
+            select: { id: true, name: true, station: true, active: true },
+          },
+        },
+        orderBy: { componentMenuItem: { name: "asc" } },
+      });
+    });
+  }
+
+  private async inventorySnapshotForMenuItem(
+    tx: Prisma.TransactionClient,
+    organizationId: string,
+    menuItemId: string,
+  ) {
+    const revision = await tx.restaurantRecipeRevision.findFirst({
+      where: { organizationId, menuItemId },
+      orderBy: { version: "desc" },
+      select: { id: true, ingredients: true },
+    });
+    if (revision && Array.isArray(revision.ingredients)) {
+      return {
+        recipeRevisionId: revision.id,
+        inventoryRecipeSnapshot: revision.ingredients,
+      };
+    }
+    const ingredients = await tx.restaurantRecipeIngredient.findMany({
+      where: { organizationId, menuItemId, active: true },
+      include: {
+        product: {
+          select: { id: true, name: true, stockUnit: true, active: true },
+        },
+      },
+      orderBy: { product: { name: "asc" } },
+    });
+    if (ingredients.length) {
+      return {
+        recipeRevisionId: null,
+        inventoryRecipeSnapshot: ingredients.map((ingredient) => ({
+          productId: ingredient.product.id,
+          productName: ingredient.product.name,
+          stockUnit: ingredient.product.stockUnit,
+          quantityPerMenuItem: ingredient.quantityPerMenuItem,
+        })),
+      };
+    }
+    const directProduct = await tx.restaurantInventoryProduct.findFirst({
+      where: {
+        organizationId,
+        menuItemId,
+        active: true,
+        stockUnit: RestaurantInventoryUnit.UNIT,
+      },
+      select: { id: true, name: true, stockUnit: true },
+    });
+    return {
+      recipeRevisionId: null,
+      inventoryRecipeSnapshot: directProduct
+        ? [
+            {
+              productId: directProduct.id,
+              productName: directProduct.name,
+              stockUnit: directProduct.stockUnit,
+              quantityPerMenuItem: 1,
+            },
+          ]
+        : undefined,
+    };
+  }
+
+  private async createOrderSelection(
+    tx: Prisma.TransactionClient,
+    organizationId: string,
+    orderId: string,
+    selection: {
+      menuItemId: string;
+      quantity: number;
+      fulfillment: RestaurantFulfillment;
+      item: {
+        id: string;
+        name: string;
+        price: number;
+        station: RestaurantStation;
+        course: RestaurantCourse;
+        prepMinutes: number | null;
+      };
+    },
+    eventNote?: string,
+    status: RestaurantItemStatus = RestaurantItemStatus.RECEIVED,
+    actorId?: string,
+  ) {
+    const components = await tx.restaurantMenuComboComponent.findMany({
+      where: {
+        organizationId,
+        parentMenuItemId: selection.menuItemId,
+      },
+      include: {
+        componentMenuItem: true,
+      },
+      orderBy: { componentMenuItem: { name: "asc" } },
+    });
+    const occurredAt = new Date();
+    if (!components.length) {
+      const snapshot = await this.inventorySnapshotForMenuItem(
+        tx,
+        organizationId,
+        selection.menuItemId,
+      );
+      return [
+        await tx.restaurantOrderItem.create({
+          data: {
+            orderId,
+            menuItemId: selection.menuItemId,
+            quantity: selection.quantity,
+            name: selection.item.name,
+            price: selection.item.price,
+            station: selection.item.station,
+            course: selection.item.course,
+            fulfillment: selection.fulfillment,
+            prepMinutes: selection.item.prepMinutes,
+            status,
+            ...(status === RestaurantItemStatus.DELIVERED
+              ? { deliveredAt: occurredAt }
+              : {}),
+            ...snapshot,
+            events: {
+              create: {
+                actorId,
+                status,
+                note: eventNote,
+              },
+            },
+          },
+        }),
+      ];
+    }
+    const parent = await tx.restaurantOrderItem.create({
+      data: {
+        orderId,
+        menuItemId: selection.menuItemId,
+        quantity: selection.quantity,
+        name: selection.item.name,
+        price: selection.item.price,
+        station: selection.item.station,
+        course: selection.item.course,
+        fulfillment: selection.fulfillment,
+        prepMinutes: Math.max(
+          selection.item.prepMinutes ?? 0,
+          ...components.map(
+            (component) => component.componentMenuItem.prepMinutes ?? 0,
+          ),
+        ),
+        status,
+        isComboParent: true,
+        ...(status === RestaurantItemStatus.DELIVERED
+          ? { deliveredAt: occurredAt }
+          : {}),
+        events: {
+          create: { actorId, status, note: eventNote },
+        },
+      },
+    });
+    const created = [parent];
+    for (const component of components) {
+      if (!component.componentMenuItem.active || component.componentMenuItem.deletedAt) {
+        throw new ConflictException(
+          `El componente ${component.componentMenuItem.name} no está disponible`,
+        );
+      }
+      const snapshot = await this.inventorySnapshotForMenuItem(
+        tx,
+        organizationId,
+        component.componentMenuItemId,
+      );
+      created.push(
+        await tx.restaurantOrderItem.create({
+          data: {
+            orderId,
+            menuItemId: component.componentMenuItemId,
+            quantity: selection.quantity * component.quantity,
+            name: `${selection.item.name} · ${component.componentMenuItem.name}`,
+            price: 0,
+            station: component.componentMenuItem.station,
+            course: component.componentMenuItem.course,
+            fulfillment: selection.fulfillment,
+            prepMinutes: component.componentMenuItem.prepMinutes,
+            status,
+            comboParentId: parent.id,
+            ...(status === RestaurantItemStatus.DELIVERED
+              ? { deliveredAt: occurredAt }
+              : {}),
+            ...snapshot,
+            events: {
+              create: { actorId, status, note: eventNote },
+            },
+          },
+        }),
+      );
+    }
+    return created;
+  }
+
+  private async syncComboParentStatus(
+    tx: Prisma.TransactionClient,
+    comboParentId: string | null,
+    actorId?: string,
+  ) {
+    if (!comboParentId) return;
+    const parent = await tx.restaurantOrderItem.findUnique({
+      where: { id: comboParentId },
+      include: { comboChildren: { select: { status: true } } },
+    });
+    if (!parent?.isComboParent || !parent.comboChildren.length) return;
+    const statuses = parent.comboChildren.map((child) => child.status);
+    const nextStatus = statuses.every(
+      (status) => status === RestaurantItemStatus.CANCELLED,
+    )
+      ? RestaurantItemStatus.CANCELLED
+      : statuses.every(
+            (status) =>
+              status === RestaurantItemStatus.DELIVERED ||
+              status === RestaurantItemStatus.CANCELLED,
+          )
+        ? RestaurantItemStatus.DELIVERED
+        : statuses.some((status) => status === RestaurantItemStatus.READY)
+          ? RestaurantItemStatus.READY
+          : statuses.some((status) => status === RestaurantItemStatus.PREPARING)
+            ? RestaurantItemStatus.PREPARING
+            : statuses.some((status) => status === RestaurantItemStatus.ACCEPTED)
+              ? RestaurantItemStatus.ACCEPTED
+              : RestaurantItemStatus.RECEIVED;
+    if (parent.status === nextStatus) return;
+    const updatedAt = new Date();
+    await tx.restaurantOrderItem.update({
+      where: { id: parent.id },
+      data: {
+        status: nextStatus,
+        ...(nextStatus === RestaurantItemStatus.DELIVERED
+          ? { deliveredAt: updatedAt }
+          : {}),
+      },
+    });
+    await tx.restaurantItemEvent.create({
+      data: {
+        itemId: parent.id,
+        actorId,
+        status: nextStatus,
+        note: "Estado actualizado desde los componentes del combo",
+      },
     });
   }
 
   private async consumeInventoryForOrderItem(
     tx: Prisma.TransactionClient,
     organizationId: string,
-    item: { id: string; menuItemId: string; name: string; quantity: number },
+    item: {
+      id: string;
+      menuItemId: string;
+      name: string;
+      quantity: number;
+      inventoryRecipeSnapshot?: Prisma.JsonValue | null;
+    },
   ) {
-    const recipeIngredients = await tx.restaurantRecipeIngredient.findMany({
-      where: { organizationId, menuItemId: item.menuItemId, active: true },
-      include: {
-        product: {
+    const snapshotRows = Array.isArray(item.inventoryRecipeSnapshot)
+      ? item.inventoryRecipeSnapshot.filter(
+          (entry): entry is Prisma.JsonObject =>
+            typeof entry === "object" && entry !== null && !Array.isArray(entry),
+        )
+      : [];
+    const snapshotIngredients = snapshotRows
+      .map((entry) => ({
+        productId: typeof entry.productId === "string" ? entry.productId : "",
+        quantityPerMenuItem:
+          typeof entry.quantityPerMenuItem === "number"
+            ? entry.quantityPerMenuItem
+            : 0,
+        stockUnit:
+          typeof entry.stockUnit === "string"
+            ? (entry.stockUnit as RestaurantInventoryUnit)
+            : null,
+      }))
+      .filter(
+        (entry) => entry.productId && Number.isSafeInteger(entry.quantityPerMenuItem),
+      );
+    const snapshotProducts = snapshotIngredients.length
+      ? await tx.restaurantInventoryProduct.findMany({
+          where: {
+            organizationId,
+            id: { in: snapshotIngredients.map((entry) => entry.productId) },
+          },
           select: {
             id: true,
             name: true,
             quantity: true,
             unitCost: true,
+            stockUnit: true,
             active: true,
           },
-        },
-      },
-      orderBy: { productId: "asc" },
-    });
+        })
+      : [];
+    const snapshotProductById = new Map(
+      snapshotProducts.map((product) => [product.id, product]),
+    );
+    const recipeIngredients = snapshotIngredients.length
+      ? snapshotIngredients
+          .filter((ingredient) => snapshotProductById.has(ingredient.productId))
+          .map((ingredient) => ({
+            productId: ingredient.productId,
+            quantityPerMenuItem: ingredient.quantityPerMenuItem,
+            stockUnit: ingredient.stockUnit,
+            product: snapshotProductById.get(ingredient.productId)!,
+          }))
+      : await tx.restaurantRecipeIngredient.findMany({
+          where: { organizationId, menuItemId: item.menuItemId, active: true },
+          include: {
+            product: {
+              select: {
+                id: true,
+                name: true,
+                quantity: true,
+                unitCost: true,
+                stockUnit: true,
+                active: true,
+              },
+            },
+          },
+          orderBy: { productId: "asc" },
+        });
     let ingredients: Array<{
       productId: string;
       quantityPerMenuItem: number;
@@ -2803,8 +3433,10 @@ export class RestaurantService {
         name: string;
         quantity: number;
         unitCost: number;
+        stockUnit: RestaurantInventoryUnit;
         active: boolean;
       };
+      stockUnit?: RestaurantInventoryUnit | null;
     }> = recipeIngredients;
     if (ingredients.length === 0) {
       const directlyLinkedProduct =
@@ -2819,6 +3451,7 @@ export class RestaurantService {
             name: true,
             quantity: true,
             unitCost: true,
+            stockUnit: true,
             active: true,
           },
         });
@@ -2827,6 +3460,7 @@ export class RestaurantService {
           {
             productId: directlyLinkedProduct.id,
             quantityPerMenuItem: 1,
+            stockUnit: directlyLinkedProduct.stockUnit,
             product: directlyLinkedProduct,
           },
         ];
@@ -2877,6 +3511,7 @@ export class RestaurantService {
           type: RestaurantInventoryMovementType.CONSUMPTION,
           quantityDelta: -required,
           unitCost: ingredient.product.unitCost,
+          unitSnapshot: ingredient.stockUnit ?? ingredient.product.stockUnit,
           note: `Consumo automático: ${item.quantity} × ${item.name}`,
         },
       });
@@ -2922,6 +3557,7 @@ export class RestaurantService {
           type: RestaurantInventoryMovementType.REVERSAL,
           quantityDelta: restored,
           unitCost: consumption.unitCost,
+          unitSnapshot: consumption.unitSnapshot,
           note: "Reversión automática por corrección de orden entregada",
         },
       });
@@ -3597,6 +4233,38 @@ export class RestaurantService {
             };
           },
         );
+        const selectedComboComponents =
+          await tx.restaurantMenuComboComponent.findMany({
+            where: {
+              organizationId: table.organizationId,
+              parentMenuItemId: {
+                in: selectedItems.map((selected) => selected.menuItemId),
+              },
+            },
+            include: {
+              componentMenuItem: {
+                select: {
+                  id: true,
+                  name: true,
+                  station: true,
+                  prepMinutes: true,
+                  active: true,
+                  deletedAt: true,
+                },
+              },
+            },
+          });
+        const unavailableComponent = selectedComboComponents.find(
+          (component) =>
+            !component.componentMenuItem.active ||
+            component.componentMenuItem.deletedAt !== null ||
+            !stations.includes(component.componentMenuItem.station),
+        );
+        if (unavailableComponent) {
+          throw new ConflictException(
+            `El componente ${unavailableComponent.componentMenuItem.name} del combo no está disponible`,
+          );
+        }
         const eligibleSubtotal = promotion
           ? selectedItems
               .filter(
@@ -3616,9 +4284,13 @@ export class RestaurantService {
         const baseMinutes = Math.max(
           5,
           ...selectedItems.map(({ item }) => item.prepMinutes ?? 5),
+          ...selectedComboComponents.map(
+            (component) => component.componentMenuItem.prepMinutes ?? 5,
+          ),
         );
         const activeWork = await tx.restaurantOrderItem.count({
           where: {
+            isComboParent: false,
             order: {
               organizationId: table.organizationId,
               OR: [
@@ -3665,29 +4337,21 @@ export class RestaurantService {
             promotionCredit,
             expectedMinutes,
             thresholdMinutes,
-            items: {
-              create: selectedItems.map(
-                ({ item, menuItemId, quantity, fulfillment }) => {
-                  return {
-                    menuItemId,
-                    quantity,
-                    name: item.name,
-                    price: item.price,
-                    station: item.station,
-                    course: item.course,
-                    fulfillment,
-                    prepMinutes: item.prepMinutes,
-                    events: {
-                      create: { status: RestaurantItemStatus.RECEIVED },
-                    },
-                  };
-                },
-              ),
-            },
           },
+        });
+        for (const selected of selectedItems) {
+          await this.createOrderSelection(
+            tx,
+            table.organizationId,
+            created.id,
+            selected,
+          );
+        }
+        const completed = await tx.restaurantOrder.findUniqueOrThrow({
+          where: { id: created.id },
           include,
         });
-        return { ...created, accessCode: visit.accessCode };
+        return { ...completed, accessCode: visit.accessCode };
       });
     } catch (error) {
       const existing = await this.prisma.restaurantOrder.findUnique({
@@ -3748,7 +4412,9 @@ export class RestaurantService {
       );
     }
     const activeItems = latest.items.filter(
-      (item) => item.status !== RestaurantItemStatus.CANCELLED,
+      (item) =>
+        !item.comboParentId &&
+        item.status !== RestaurantItemStatus.CANCELLED,
     );
     if (
       activeItems.length === 0 ||
@@ -3791,7 +4457,9 @@ export class RestaurantService {
       if (!current) throw new NotFoundException("Pedido no encontrado");
       if (current.lastCorrectionRequestId === dto.requestId) return;
       const currentActive = current.items.filter(
-        (item) => item.status !== RestaurantItemStatus.CANCELLED,
+        (item) =>
+          !item.comboParentId &&
+          item.status !== RestaurantItemStatus.CANCELLED,
       );
       if (
         currentActive.length === 0 ||
@@ -3803,9 +4471,15 @@ export class RestaurantService {
           "El pedido ya fue aceptado; solicite ayuda al mesero",
         );
       }
+      const childItems = current.items.filter(
+        (item) =>
+          Boolean(item.comboParentId) &&
+          currentActive.some((parent) => parent.id === item.comboParentId),
+      );
+      const cancelledItems = [...currentActive, ...childItems];
       const cancelled = await tx.restaurantOrderItem.updateMany({
         where: {
-          id: { in: currentActive.map((item) => item.id) },
+          id: { in: cancelledItems.map((item) => item.id) },
           status: RestaurantItemStatus.RECEIVED,
         },
         data: {
@@ -3813,13 +4487,13 @@ export class RestaurantService {
           cancelledByGuestCorrection: true,
         },
       });
-      if (cancelled.count !== currentActive.length) {
+      if (cancelled.count !== cancelledItems.length) {
         throw new ConflictException(
           "El pedido fue aceptado mientras se corregía; solicite ayuda al mesero",
         );
       }
       await tx.restaurantItemEvent.createMany({
-        data: currentActive.map((item) => ({
+        data: cancelledItems.map((item) => ({
           itemId: item.id,
           status: RestaurantItemStatus.CANCELLED,
           note: "Cancelado por corrección del cliente",
@@ -3841,25 +4515,13 @@ export class RestaurantService {
         }),
       );
       for (const selected of selectedItems) {
-        await tx.restaurantOrderItem.create({
-          data: {
-            orderId: current.id,
-            menuItemId: selected.menuItemId,
-            quantity: selected.quantity,
-            name: selected.item.name,
-            price: selected.item.price,
-            station: selected.item.station,
-            course: selected.item.course,
-            fulfillment: selected.fulfillment,
-            prepMinutes: selected.item.prepMinutes,
-            events: {
-              create: {
-                status: RestaurantItemStatus.RECEIVED,
-                note: "Producto agregado por corrección del cliente",
-              },
-            },
-          },
-        });
+        await this.createOrderSelection(
+          tx,
+          visit.organizationId,
+          current.id,
+          selected,
+          "Producto agregado por corrección del cliente",
+        );
       }
       const promotion = current.promotionId
         ? await tx.restaurantPromotion.findFirst({
@@ -3954,7 +4616,9 @@ export class RestaurantService {
       return { id: order.id, correctionCount: order.correctionCount };
     }
     const activeItems = order.items.filter(
-      (item) => item.status !== RestaurantItemStatus.CANCELLED,
+      (item) =>
+        !item.comboParentId &&
+        item.status !== RestaurantItemStatus.CANCELLED,
     );
     const pendingEditableStatuses: RestaurantItemStatus[] = [
       RestaurantItemStatus.RECEIVED,
@@ -4012,7 +4676,9 @@ export class RestaurantService {
         return { id: current.id, correctionCount: current.correctionCount };
       }
       const currentActive = current.items.filter(
-        (item) => item.status !== RestaurantItemStatus.CANCELLED,
+        (item) =>
+          !item.comboParentId &&
+          item.status !== RestaurantItemStatus.CANCELLED,
       );
       const currentIsPending =
         currentActive.length > 0 &&
@@ -4032,9 +4698,15 @@ export class RestaurantService {
       const replaceableStatuses = currentIsDelivered
         ? [RestaurantItemStatus.DELIVERED]
         : pendingEditableStatuses;
+      const childItems = current.items.filter(
+        (item) =>
+          Boolean(item.comboParentId) &&
+          currentActive.some((parent) => parent.id === item.comboParentId),
+      );
+      const cancelledItems = [...currentActive, ...childItems];
       const cancelled = await tx.restaurantOrderItem.updateMany({
         where: {
-          id: { in: currentActive.map((item) => item.id) },
+          id: { in: cancelledItems.map((item) => item.id) },
           status: { in: replaceableStatuses },
         },
         data: {
@@ -4042,13 +4714,13 @@ export class RestaurantService {
           cancelledByGuestCorrection: true,
         },
       });
-      if (cancelled.count !== currentActive.length) {
+      if (cancelled.count !== cancelledItems.length) {
         throw new ConflictException(
           "El estado del pedido cambió mientras se modificaba",
         );
       }
       await tx.restaurantItemEvent.createMany({
-        data: currentActive.map((item) => ({
+        data: cancelledItems.map((item) => ({
           itemId: item.id,
           actorId: actor.id,
           status: RestaurantItemStatus.CANCELLED,
@@ -4056,7 +4728,7 @@ export class RestaurantService {
         })),
       });
       if (currentIsDelivered) {
-        for (const item of currentActive) {
+        for (const item of cancelledItems) {
           await this.reverseInventoryForOrderItem(
             tx,
             actor.organizationId,
@@ -4082,37 +4754,28 @@ export class RestaurantService {
       const replacementStatus = currentIsDelivered
         ? RestaurantItemStatus.DELIVERED
         : RestaurantItemStatus.RECEIVED;
-      const correctedAt = new Date();
       for (const selected of selectedItems) {
-        const createdItem = await tx.restaurantOrderItem.create({
-          data: {
-            orderId: current.id,
-            menuItemId: selected.menuItemId,
-            quantity: selected.quantity,
-            name: selected.item.name,
-            price: selected.item.price,
-            station: selected.item.station,
-            course: selected.item.course,
-            fulfillment: selected.fulfillment,
-            prepMinutes: selected.item.prepMinutes,
-            status: replacementStatus,
-            ...(currentIsDelivered ? { deliveredAt: correctedAt } : {}),
-            events: {
-              create: {
-                actorId: actor.id,
-                status: replacementStatus,
-                note: `Producto agregado por corrección del empleado${reason ? `: ${reason}` : ""}`,
-              },
-            },
-          },
-        });
+        const createdItems = await this.createOrderSelection(
+          tx,
+          actor.organizationId,
+          current.id,
+          selected,
+          `Producto agregado por corrección del empleado${reason ? `: ${reason}` : ""}`,
+          replacementStatus,
+          actor.id,
+        );
         if (currentIsDelivered) {
-          await this.consumeInventoryForOrderItem(tx, actor.organizationId, {
-            id: createdItem.id,
-            menuItemId: selected.menuItemId,
-            name: selected.item.name,
-            quantity: selected.quantity,
-          });
+          for (const createdItem of createdItems.filter(
+            (item) => !item.isComboParent,
+          )) {
+            await this.consumeInventoryForOrderItem(tx, actor.organizationId, {
+              id: createdItem.id,
+              menuItemId: createdItem.menuItemId,
+              name: createdItem.name,
+              quantity: createdItem.quantity,
+              inventoryRecipeSnapshot: createdItem.inventoryRecipeSnapshot,
+            });
+          }
         }
       }
       const promotion = current.promotionId
@@ -4306,6 +4969,7 @@ export class RestaurantService {
       ...order,
       items: order.items.filter(
         (item) =>
+          !item.comboParentId &&
           item.status !== RestaurantItemStatus.CANCELLED &&
           !item.cancelledByGuestCorrection,
       ),
@@ -4316,7 +4980,9 @@ export class RestaurantService {
     const latestOrder = visit.orders.at(-1) ?? null;
     const latestActiveItems =
       latestOrder?.items.filter(
-        (item) => item.status !== RestaurantItemStatus.CANCELLED,
+        (item) =>
+          !item.comboParentId &&
+          item.status !== RestaurantItemStatus.CANCELLED,
       ) ?? [];
     const correctionMinutes =
       visit.organization?.restaurantOrderCorrectionMinutes ?? 2;
@@ -5212,6 +5878,7 @@ export class RestaurantService {
         ? {
             items: {
               some: {
+                isComboParent: false,
                 status: { in: openStatuses },
                 station: RestaurantStation.KITCHEN,
               },
@@ -5223,6 +5890,7 @@ export class RestaurantService {
                 {
                   items: {
                     some: {
+                      isComboParent: false,
                       status: { in: openStatuses },
                       station: RestaurantStation.BAR,
                     },
@@ -5231,7 +5899,10 @@ export class RestaurantService {
                 {
                   visit: { responsibleStaffId: actor.id },
                   items: {
-                    some: { status: { in: openStatuses } },
+                    some: {
+                      isComboParent: false,
+                      status: { in: openStatuses },
+                    },
                   },
                 },
               ],
@@ -5272,6 +5943,7 @@ export class RestaurantService {
       include: {
         items: {
           where: {
+            isComboParent: false,
             status: { in: openStatuses },
             ...(role === RestaurantStaffRole.KITCHEN
               ? { station: RestaurantStation.KITCHEN }
@@ -5451,7 +6123,11 @@ export class RestaurantService {
     return visits.map((visit) => {
       const items = visit.orders.flatMap((order) =>
         order.items
-          .filter((item) => item.status !== RestaurantItemStatus.CANCELLED)
+          .filter(
+            (item) =>
+              !item.comboParentId &&
+              item.status !== RestaurantItemStatus.CANCELLED,
+          )
           .map((item) => ({
           ...item,
           orderId: order.id,
@@ -5465,7 +6141,9 @@ export class RestaurantService {
       ];
       const staffCorrections = visit.orders.map((order) => {
         const activeItems = order.items.filter(
-          (item) => item.status !== RestaurantItemStatus.CANCELLED,
+          (item) =>
+            !item.comboParentId &&
+            item.status !== RestaurantItemStatus.CANCELLED,
         );
         const isPending =
           activeItems.length > 0 &&
@@ -5667,8 +6345,10 @@ export class RestaurantService {
           menuItemId: item.menuItemId,
           name: item.name,
           quantity: item.quantity,
+          inventoryRecipeSnapshot: item.inventoryRecipeSnapshot,
         });
       }
+      await this.syncComboParentStatus(tx, item.comboParentId, actor.id);
       return tx.restaurantOrderItem.findUnique({ where: { id } });
     });
   }
