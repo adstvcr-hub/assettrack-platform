@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Menú Interactivo | Demo para bares y restaurantes</title>
+<style>
+:root{--bg:#0d1117;--card:#161d26;--card2:#202a36;--text:#f6f7f9;--muted:#a9b5c4;--accent:#ffb000;--ok:#43d17a;--line:rgba(255,255,255,.09)}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif;background:linear-gradient(180deg,#0b0f14,#111821 55%,#0b0f14);color:var(--text)}
+a{text-decoration:none;color:inherit}.wrap{width:min(1160px,92vw);margin:auto}
+nav{position:sticky;top:0;z-index:20;background:rgba(8,12,17,.82);backdrop-filter:blur(16px);border-bottom:1px solid var(--line)}
+.nav{min-height:70px;display:flex;justify-content:space-between;align-items:center;gap:20px}.brand{font-weight:850;display:flex;align-items:center;gap:10px}.logo{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;background:linear-gradient(135deg,#ffbe2e,#ff7a00);color:#17120a;font-weight:900}.navlinks{display:flex;gap:22px;color:var(--muted);font-size:.92rem}.pill{padding:10px 15px;border:1px solid var(--line);border-radius:999px}
+.hero{padding:78px 0 52px;display:grid;grid-template-columns:1.05fr .95fr;gap:44px;align-items:center}.eyebrow{display:inline-block;padding:8px 12px;border-radius:999px;background:rgba(255,176,0,.1);color:#ffd36a;font-weight:750;font-size:.88rem}
+h1{font-size:clamp(2.7rem,6vw,5.1rem);line-height:.98;letter-spacing:-.055em;margin:18px 0}.lead{font-size:1.12rem;line-height:1.7;color:var(--muted);max-width:700px}.actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:24px}.btn{border:0;border-radius:14px;padding:14px 18px;font-weight:800;cursor:pointer}.primary{background:linear-gradient(135deg,#ffb000,#ff7a00);color:#181007}.secondary{background:var(--card2);color:#fff;border:1px solid var(--line)}
+.stats{display:flex;gap:26px;flex-wrap:wrap;margin-top:32px}.stat strong{display:block;font-size:1.25rem}.stat span{font-size:.83rem;color:var(--muted)}
+.phone{width:min(390px,100%);margin:auto;background:#05080c;border:1px solid rgba(255,255,255,.13);padding:13px;border-radius:34px;box-shadow:0 24px 70px rgba(0,0,0,.45)}.screen{position:relative;overflow:hidden;border-radius:25px;background:#f4efe8;color:#1f1914;min-height:690px}.cover{height:165px;background:linear-gradient(180deg,transparent,rgba(0,0,0,.65)),url('https://images.unsplash.com/photo-1514933651103-005eec06c04b?auto=format&fit=crop&w=900&q=80') center/cover;display:flex;align-items:end;padding:17px;color:white}.cover h3{margin:2px 0 0;font-size:1.5rem}.menuhead{padding:15px 16px 8px}.menuhead h4{margin:0 0 4px}.menuhead p{margin:0;color:#766d64;font-size:.8rem}.chips{display:flex;gap:7px;padding:10px 16px;overflow:auto}.chip{white-space:nowrap;border:1px solid #ddd1c5;background:white;border-radius:999px;padding:7px 11px;cursor:pointer;font-size:.78rem}.chip.active{background:#201b17;color:#fff;border-color:#201b17}.list{padding:0 12px 88px}.dish{display:grid;grid-template-columns:1fr 88px;gap:10px;padding:11px;background:white;border-radius:15px;margin:9px 0;box-shadow:0 8px 20px rgba(68,49,32,.08)}.dish h5{margin:0 0 4px;font-size:.95rem}.dish p{margin:0 0 7px;color:#746a60;font-size:.75rem;line-height:1.35}.dish img{width:88px;height:88px;object-fit:cover;border-radius:11px}.price{font-weight:900}.tag{display:inline-block;margin-left:6px;background:#eaf6e9;color:#28703b;padding:3px 6px;border-radius:999px;font-size:.63rem}.cart{position:absolute;left:22px;right:22px;bottom:20px;background:#17120f;color:#fff;border-radius:15px;padding:13px 14px;display:flex;justify-content:space-between;align-items:center;box-shadow:0 12px 28px rgba(0,0,0,.27)}
+section{padding:72px 0}.kicker{font-size:.82rem;letter-spacing:.12em;text-transform:uppercase;color:#ffd36a;font-weight:850}.title{font-size:clamp(2rem,4vw,3.5rem);line-height:1.02;letter-spacing:-.045em;margin:10px 0 14px}.copy{max-width:760px;color:var(--muted);line-height:1.7}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:32px}.card{background:linear-gradient(180deg,rgba(255,255,255,.055),rgba(255,255,255,.022));border:1px solid var(--line);padding:23px;border-radius:21px;min-height:205px}.icon{width:42px;height:42px;border-radius:12px;display:grid;place-items:center;background:rgba(255,176,0,.11);color:#ffd36a;margin-bottom:16px;font-weight:900}.card h3{margin:0 0 9px;font-size:1.08rem}.card p{margin:0;color:var(--muted);line-height:1.58;font-size:.92rem}
+.highlight{display:grid;grid-template-columns:1fr 1fr;gap:30px;align-items:center;padding:34px;border-radius:27px;background:linear-gradient(135deg,rgba(255,176,0,.11),rgba(255,255,255,.025));border:1px solid rgba(255,176,0,.18)}.highlight ul{padding-left:20px;color:var(--muted);line-height:1.9}
+.dashboard{background:var(--card);border:1px solid var(--line);border-radius:21px;padding:22px}.dashTop{display:flex;justify-content:space-between;gap:10px}.live{color:var(--ok);font-weight:800}.metrics{display:grid;grid-template-columns:repeat(2,1fr);gap:11px;margin-top:17px}.metric{background:var(--card2);padding:15px;border-radius:14px}.metric strong{display:block;font-size:1.35rem}.metric span{font-size:.78rem;color:var(--muted)}.activity{border-top:1px solid var(--line);margin-top:14px;padding-top:14px;color:var(--muted);line-height:1.7;font-size:.88rem}
+.cta{text-align:center;padding:70px 24px;border:1px solid var(--line);border-radius:27px;background:linear-gradient(180deg,rgba(255,176,0,.08),rgba(255,255,255,.02))}.cta p{max-width:680px;margin:0 auto 22px;color:var(--muted);line-height:1.7}
+footer{padding:32px 0 40px;color:#7e8a99;font-size:.84rem}.foot{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap}
+@media(max-width:900px){.hero,.highlight{grid-template-columns:1fr}.grid{grid-template-columns:1fr 1fr}.navlinks{display:none}}
+@media(max-width:620px){.grid{grid-template-columns:1fr}.hero{padding-top:48px}.stats{gap:14px}.stat{width:45%}.highlight{padding:22px}}
+
+.quantity{display:flex;align-items:center;gap:9px;margin-bottom:10px}.quantity button{width:32px;height:32px;border:1px solid #d7c8b9;border-radius:9px;background:#fff4da;color:#201b17;font-size:20px;cursor:pointer}.quantity output{min-width:16px;text-align:center;font-weight:800}.comparison,.stations{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;margin-top:28px}.comparison h3{margin-top:14px}.comparison ol{padding-left:22px;line-height:1.8;color:var(--text)}.connected{border-color:#ffb00066;background:linear-gradient(140deg,#ffb00013,#ffffff05)}.stations .dashboard{transition:background .4s,border-color .4s;overflow-wrap:anywhere}.stations .received{border-color:var(--accent);background:#292517}.stations h3{margin:10px 0 18px}.stations small{color:var(--muted)}.lineitem{display:flex;justify-content:space-between;gap:14px;padding:10px 0;border-bottom:1px solid var(--line)}.billTotal{font-size:2rem;font-weight:850;color:var(--accent);margin:16px 0}.route{margin:30px 0 10px;color:var(--muted);font-size:.8rem;letter-spacing:.06em;line-height:2}.route span{color:var(--accent);padding:0 10px}#status{color:#ffd36a;min-height:24px;line-height:1.6}button:disabled{opacity:.4;cursor:not-allowed}a:focus-visible,button:focus-visible{outline:3px solid #43d17a;outline-offset:4px}section,[id=pedido]{scroll-margin-top:90px}.dish{position:relative}.screen{min-height:810px}.brand>span{display:none}@media(max-width:620px){.comparison,.stations{grid-template-columns:1fr}.brand{font-size:.9rem}.nav{gap:10px}.pill{white-space:nowrap}.route{font-size:.7rem}.actions .btn{text-align:center}.screen{min-height:850px}}@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{transition:none!important}}
+.contact-intro{margin-top:28px;padding-top:20px;border-top:1px solid var(--line)}.contact-intro>p{color:#ffd36a;font-weight:700}.contact-actions{gap:10px;margin:16px 0}.contact-actions .btn{font-size:.9rem;line-height:1.4}.contact-details{color:var(--muted);line-height:1.8;font-size:.9rem;overflow-wrap:anywhere}.contact-details strong{color:var(--text)}.contact-details a{text-decoration:underline;text-underline-offset:3px}.cta .contact-actions{justify-content:center}.cta .contact-details{margin:20px auto 30px}@media(max-width:620px){.contact-actions .btn{width:100%;text-align:center}}
+</style>
+</head>
+<body>
+<nav><div class="wrap nav"><div class="brand"><div class="logo" style="width:auto;padding:0 14px;font-size:.95rem">Menú Interactivo</div></div><div class="navlinks"><a href="#menu">Menú interactivo</a><a href="#operacion">Operación</a><a href="#valor">Diferenciadores</a></div><a class="pill" href="#demo">Ver demo</a></div></nav>
+
+<main>
+<div class="wrap hero">
+  <div>
+    <div class="eyebrow">Plataforma SaaS para bares y restaurantes</div>
+    <h1>El menú deja de ser una lista. Se convierte en una experiencia.</h1>
+    <p class="lead">Administración integral donde el cliente explora, personaliza y ordena desde un menú interactivo conectado con cocina, bar, inventario, personal, cuenta y cierre operativo.</p>
+    <div class="actions"><a class="btn primary" href="#menu">Explorar menú interactivo</a><a class="btn secondary" href="#operacion">Ver operación integrada</a></div>
+    <div class="contact-intro"><p>Más información e instalación asistida</p><div class="actions contact-actions"><a class="btn primary" href="mailto:adstvcr@gmail.com?subject=Informaci%C3%B3n%20sobre%20Men%C3%BA%20Interactivo">Solicitar información</a><a class="btn secondary" href="mailto:adstvcr@gmail.com?subject=Instalaci%C3%B3n%20asistida%20de%20Men%C3%BA%20Interactivo">Solicitar instalación asistida</a><a class="btn secondary" href="tel:72147055">Llamar · 7214 7055</a></div><p class="contact-details"><strong>José Alberto Cortés Gómez</strong><br>CEO Menú Interactivo SaaS Propietario<br><a href="mailto:adstvcr@gmail.com">adstvcr@gmail.com</a> · <a href="tel:72147055">7214 7055</a></p></div>
+    <div class="stats"><div class="stat"><strong>QR + Web</strong><span>sin instalar app</span></div><div class="stat"><strong>Tiempo real</strong><span>estado y disponibilidad</span></div><div class="stat"><strong>Cuenta viva</strong><span>pedido a cierre</span></div></div>
+  </div>
+
+  <div class="phone" id="pedido">
+    <div class="screen">
+      <div class="cover"><div><small>Mesa 12 · Demo simulada</small><h3>Casa Central</h3></div></div>
+      <div class="menuhead"><h4>¿Qué te provoca hoy?</h4><p>Demostración simulada · Precios ilustrativos</p></div>
+      <div class="chips"><button class="chip active" data-filter="all">Para ti</button><button class="chip" data-filter="food">Platos</button><button class="chip" data-filter="drink">Bebidas</button><button class="chip" data-filter="veg">Vegetariano</button></div>
+      <div class="list">
+        <article class="dish" data-cat="food"><div><div class="quantity"><button type="button" data-item="food" data-delta="-1" aria-label="Quitar Burger Brasa">−</button><output id="qty-food">0</output><button type="button" data-item="food" data-delta="1" aria-label="Agregar Burger Brasa">+</button></div><h5>Burger Brasa</h5><p>Carne a la parrilla, cheddar, cebolla caramelizada y salsa de la casa.</p><span class="price">₡6.900</span><span class="tag">Disponible</span></div><img alt="Hamburguesa" src="https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=300&q=80"></article>
+        <article class="dish" data-cat="drink"><div><div class="quantity"><button type="button" data-item="drink" data-delta="-1" aria-label="Quitar Maracuyá Fizz">−</button><output id="qty-drink">0</output><button type="button" data-item="drink" data-delta="1" aria-label="Agregar Maracuyá Fizz">+</button></div><h5>Maracuyá Fizz</h5><p>Maracuyá, cítricos, soda y hierbas frescas. Disponible sin azúcar.</p><span class="price">₡3.400</span><span class="tag">Disponible</span></div><img alt="Bebida" src="https://images.unsplash.com/photo-1544145945-f90425340c7e?auto=format&fit=crop&w=300&q=80"></article>
+        <article class="dish" data-cat="veg"><div><div class="quantity"><button type="button" data-item="veg" data-delta="-1" aria-label="Quitar Bowl Verde">−</button><output id="qty-veg">0</output><button type="button" data-item="veg" data-delta="1" aria-label="Agregar Bowl Verde">+</button></div><h5>Bowl Verde</h5><p>Quinoa, aguacate, vegetales rostizados, garbanzos y aderezo de limón.</p><span class="price">₡5.800</span><span class="tag">Vegetariano</span></div><img alt="Bowl vegetariano" src="https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=300&q=80"></article>
+      </div>
+      <a class="cart" href="#demo" aria-label="Selección sin enviar: ir a Pruébalo, demostración simulada"><span><strong id="cartCount">0 productos</strong><br><small style="opacity:.7">Selección sin enviar →</small></span><strong id="cartTotal">₡0</strong></a>
+    </div>
+  </div>
+</div>
+
+
+<section id="conexion"><div class="wrap">
+<div class="kicker">El pedido nace en el menú</div>
+<h2 class="title">Un pedido. Una sola captura.<br><span style="color:var(--accent)">Todo el restaurante conectado.</span></h2>
+<p class="copy">El cliente elige directamente en el menú. Menú Interactivo distribuye los productos a las áreas correspondientes y mantiene la cuenta y la administración conectadas, convirtiendo la orden del cliente en la comanda maestra, seguimiento de principio a fin.</p>
+<div class="comparison"><article class="card"><div class="kicker">Un flujo tradicional posible</div><h3>La información pasa de mano en mano</h3><ol><li>El cliente consulta la carta y comunica su pedido.</li><li>El personal toma una nota.</li><li>Se buscan productos o se digitan datos en el sistema.</li><li>Se comunica la orden a cocina y bar.</li><li>Se concilian consumos y cuenta.</li></ol><p>Este ejemplo corresponde a operaciones con captura y comunicación separadas. Las funciones varían entre sistemas POS y establecimientos.</p></article>
+<article class="card connected"><div class="kicker">Con Menú Interactivo · Flujo propuesto</div><h3>Una selección, varias áreas informadas</h3><ol><li>El cliente selecciona y confirma desde el menú.</li><li>Menú Interactivo distribuye el pedido a cocina y bar.</li><li>Cuenta y administración reflejan el mismo pedido.</li></ol><p>Menos recaptura de datos y una referencia común para quienes intervienen en el servicio.</p></article></div>
+</div></section>
+<section id="demo"><div class="wrap"><div class="kicker">Pruébalo · Demostración simulada</div><h2 class="title">Del menú a la cocina, al bar, a caja.</h2><p class="copy">En el menú de la portada, agrega una hamburguesa y una bebida con los botones +/−. Después, confirma aquí para ver cómo viaja el pedido. También puedes cargar esa selección de ejemplo.</p>
+<div class="actions"><a class="btn secondary" href="#pedido">Elegir en el menú ↑</a><button class="btn secondary" id="example">Cargar hamburguesa + bebida</button><button class="btn primary" id="send" disabled>Confirmar pedido simulado</button><button class="btn secondary" id="reset">Reiniciar demo</button></div>
+<p id="status" role="status" aria-live="polite">Agrega productos para comenzar. No se enviará ningún pedido real.</p>
+<div class="route" aria-hidden="true">CLIENTE <span>→</span> Menú Interactivo <span>→</span> COCINA · BAR · CUENTA · ADMINISTRACIÓN</div>
+<div class="stations"><article class="dashboard" id="kitchen"><div class="kicker">01 · Cocina</div><h3>Preparación de platos</h3><div id="kitchenItems">Sin pedidos en esta demo.</div></article><article class="dashboard" id="bar"><div class="kicker">02 · Bar</div><h3>Preparación de bebidas</h3><div id="barItems">Sin pedidos en esta demo.</div></article><article class="dashboard" id="bill"><div class="kicker">03 · Cuenta de mesa 12</div><h3>Consumo confirmado</h3><div id="billItems">Sin consumos confirmados.</div><p class="billTotal" id="billTotal">₡0</p><small>Importes ilustrativos; no se procesan pagos.</small></article><article class="dashboard" id="admin"><div class="kicker">04 · Administración</div><h3>Visibilidad del pedido</h3><div id="adminItems">0 pedidos · 0 productos<br>Esperando confirmación.</div></article></div>
+<p class="copy"><small>Simulación local en este navegador. No conecta con cocina, bar, inventario, sistemas de venta ni datos reales. Los paneles se actualizan al confirmar. Reiniciar borra la demostración.</small></p></div></section>
+<section id="menu"><div class="wrap">
+  <div class="kicker">Elemento diferenciador</div>
+  <h2 class="title">Un menú que participa activamente en la venta.</h2>
+  <p class="copy">No es una carta impresa trasladada a una pantalla. El menú interactivo está conectado a la operación del restaurante y responde al contexto del cliente, la disponibilidad real y la capacidad de preparación.</p>
+  <div class="grid">
+    <div class="card"><div class="icon">◎</div><h3>Disponibilidad en tiempo real</h3><p>Productos, variantes y sustituciones pueden responder al inventario y a la capacidad de cada estación.</p></div>
+    <div class="card"><div class="icon">✦</div><h3>Venta sugerida contextual</h3><p>Complementos, bebidas y acompañamientos aparecen en el momento adecuado para aumentar el valor de la cuenta.</p></div>
+    <div class="card"><div class="icon">≡</div><h3>Personalización</h3><p>Tamaños, términos, extras e instrucciones viajan con el pedido sin perder trazabilidad.</p></div>
+    <div class="card"><div class="icon">QR</div><h3>Contexto por QR</h3><p>El sistema reconoce mesa, barra o modalidad y enlaza el pedido a la cuenta correcta.</p></div>
+    <div class="card"><div class="icon">◷</div><h3>Tiempo de preparación</h3><p>La experiencia puede mostrar referencias de cocina y bar y adaptarse a la carga operativa.</p></div>
+    <div class="card"><div class="icon">✓</div><h3>Cuenta viva</h3><p>El cliente consulta consumo y estado de pedidos sin depender continuamente del personal.</p></div>
+  </div>
+</div></section>
+
+<section id="operacion"><div class="wrap highlight">
+  <div>
+    <div class="kicker">Operación conectada</div>
+    <h2 class="title" style="font-size:clamp(2rem,3vw,3rem)">Del clic del cliente al cierre del día.</h2>
+    <p class="copy">Cada pedido alimenta automáticamente los procesos internos del restaurante.</p>
+    <ul>
+      <li>Pedidos separados entre cocina y bar.</li>
+      <li>Cuenta acumulada por cliente, mesa o modalidad.</li>
+      <li>Meseros, bartender, cocina, caja y administración con vistas diferenciadas.</li>
+      <li>Inventario conectado con recetas y ventas.</li>
+      <li>Responsables de caja y cierres operativos.</li>
+      <li>Preparado para integrar pagos electrónicos como módulo opcional.</li>
+    </ul>
+  </div>
+  <div class="dashboard"><div class="kicker">Una misma información</div><h3>El pedido como punto de encuentro.</h3><p class="copy">Cocina recibe platos. Bar recibe bebidas. La cuenta reúne el consumo y administración consulta el movimiento.</p><a class="btn secondary" href="#demo">Verlo en la demo ↑</a></div>
+</div></section>
+
+<section id="valor"><div class="wrap">
+  <div class="kicker">Propuesta de valor</div>
+  <h2 class="title">El menú conectado con la operación.</h2>
+  <p class="copy">La diferenciación nace de integrar la experiencia digital del cliente con la operación real del restaurante en una sola plataforma.</p>
+  <div class="grid">
+    <div class="card"><div class="icon">01</div><h3>Experiencia del cliente</h3><p>Menú visual, navegación móvil, pedidos directos, cuenta consultable y menos fricción durante el servicio.</p></div>
+    <div class="card"><div class="icon">02</div><h3>Control del negocio</h3><p>Ventas, cuentas, personal, estaciones, inventario, caja y trazabilidad dentro de un mismo ecosistema.</p></div>
+    <div class="card"><div class="icon">03</div><h3>Arquitectura SaaS</h3><p>Cada restaurante opera de forma independiente dentro de una plataforma preparada para crecer a múltiples establecimientos.</p></div>
+  </div>
+</div></section>
+
+<section><div class="wrap cta">
+  <div class="kicker">Demo conceptual</div>
+  <h2 class="title">Administración y experiencia del cliente, conectadas.</h2>
+  <p>Este prototipo representa la dirección de desarrollo de una plataforma para bares y restaurantes donde el menú interactivo funciona como punto de entrada a todo el ecosistema operativo.</p>
+  <h3>Conversemos sobre tu bar o restaurante.</h3><p>Escríbenos para conocer Menú Interactivo o solicitar una instalación asistida.</p><div class="actions contact-actions"><a class="btn primary" href="mailto:adstvcr@gmail.com?subject=Informaci%C3%B3n%20sobre%20Men%C3%BA%20Interactivo">Solicitar información</a><a class="btn secondary" href="mailto:adstvcr@gmail.com?subject=Instalaci%C3%B3n%20asistida%20de%20Men%C3%BA%20Interactivo">Solicitar instalación asistida</a><a class="btn secondary" href="tel:72147055">Llamar · 7214 7055</a></div><p class="contact-details"><strong>José Alberto Cortés Gómez</strong><br>CEO Menú Interactivo SaaS Propietario<br><a href="mailto:adstvcr@gmail.com">adstvcr@gmail.com</a> · <a href="tel:72147055">7214 7055</a></p><a class="pill" href="#demo">Volver a la demostración</a>
+</div></section>
+</main>
+
+<footer><div class="wrap foot"><div>© 2026 Menú Interactivo · Demo de producto</div><div>Administración · Menú interactivo · QR · Operación en tiempo real</div></div></footer>
+<script>
+document.querySelectorAll('.chip').forEach(c=>c.addEventListener('click',()=>{
+ document.querySelectorAll('.chip').forEach(x=>x.classList.remove('active'));c.classList.add('active');
+ const f=c.dataset.filter;document.querySelectorAll('.dish').forEach(d=>d.style.display=(f==='all'||d.dataset.cat===f)?'grid':'none');
+}));
+
+const products={food:{name:'Burger Brasa',price:6900,station:'kitchen'},drink:{name:'Maracuyá Fizz',price:3400,station:'bar'},veg:{name:'Bowl Verde',price:5800,station:'kitchen'}};
+const selected={food:0,drink:0,veg:0},confirmed={food:0,drink:0,veg:0};let orders=0;
+const el=id=>document.getElementById(id), money=n=>'₡'+n.toLocaleString('es-CR');
+function total(items){return Object.keys(products).reduce((s,k)=>s+items[k]*products[k].price,0)}
+function count(items){return Object.values(items).reduce((a,b)=>a+b,0)}
+function update(){Object.keys(products).forEach(k=>{el('qty-'+k).textContent=selected[k];document.querySelector('[data-item="'+k+'"][data-delta="-1"]').disabled=selected[k]===0});el('cartCount').textContent=count(selected)+' productos';el('cartTotal').textContent=money(total(selected));el('send').disabled=!count(selected)}
+function rows(items,station){return Object.keys(products).filter(k=>items[k]>0&&(!station||products[k].station===station)).map(k=>'<div class="lineitem"><span>'+items[k]+' × '+products[k].name+'</span><strong>'+money(items[k]*products[k].price)+'</strong></div>').join('')}
+document.querySelectorAll('[data-delta]').forEach(b=>b.addEventListener('click',()=>{selected[b.dataset.item]=Math.max(0,selected[b.dataset.item]+Number(b.dataset.delta));update();el('status').textContent='Selección actualizada. Confirma el pedido para distribuirlo.'}));
+el('example').addEventListener('click',()=>{selected.food=1;selected.drink=1;selected.veg=0;update();el('status').textContent='Hamburguesa y bebida seleccionadas. Pulsa Confirmar pedido simulado.'});
+el('send').addEventListener('click',()=>{if(!count(selected))return;Object.keys(products).forEach(k=>{confirmed[k]+=selected[k];selected[k]=0});orders++;el('kitchenItems').innerHTML=rows(confirmed,'kitchen')||'Sin platos en este pedido.';el('barItems').innerHTML=rows(confirmed,'bar')||'Sin bebidas en este pedido.';el('billItems').innerHTML=rows(confirmed);el('billTotal').textContent=money(total(confirmed));el('adminItems').innerHTML=orders+' pedido(s) confirmado(s) · '+count(confirmed)+' productos<br>Consumo registrado: <strong>'+money(total(confirmed))+'</strong><br>Mesa 12 · Datos simulados';document.querySelectorAll('.stations .dashboard').forEach(n=>{n.classList.remove('received');requestAnimationFrame(()=>n.classList.add('received'))});el('status').textContent='Pedido simulado distribuido: platos a cocina, bebidas a bar; cuenta y administración actualizadas.';update()});
+el('reset').addEventListener('click',()=>{Object.keys(products).forEach(k=>{selected[k]=0;confirmed[k]=0});orders=0;el('kitchenItems').textContent=el('barItems').textContent='Sin pedidos en esta demo.';el('billItems').textContent='Sin consumos confirmados.';el('billTotal').textContent=money(0);el('adminItems').innerHTML='0 pedidos · 0 productos<br>Esperando confirmación.';document.querySelectorAll('.received').forEach(n=>n.classList.remove('received'));el('status').textContent='Demo reiniciada. Agrega productos para comenzar.';update()});update();
+</script>
+</body>
+</html>

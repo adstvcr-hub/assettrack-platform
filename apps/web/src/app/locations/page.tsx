@@ -1,4 +1,7 @@
-﻿"use client";
+"use client";
+
+import { getSessionValue, removeSessionValue } from "@/lib/session";
+
 
 import { API_URL, authenticatedFetch } from "@/lib/api";
 import { FormEvent, useEffect, useState } from "react";
@@ -71,7 +74,7 @@ export default function LocationsPage() {
     useState<OrganizationLocation | null>(null);
 
   function getToken() {
-    const token = sessionStorage.getItem("assettrack_token");
+    const token = getSessionValue("assettrack_token");
 
     if (!token) {
       router.replace("/?next=/locations");
@@ -123,13 +126,13 @@ export default function LocationsPage() {
   }
 
   useEffect(() => {
-    const storedUser = sessionStorage.getItem("assettrack_user");
+    const storedUser = getSessionValue("assettrack_user");
 
     if (storedUser) {
       try {
         setCurrentUser(JSON.parse(storedUser));
       } catch {
-        sessionStorage.removeItem("assettrack_user");
+        removeSessionValue("assettrack_user");
       }
     }
 

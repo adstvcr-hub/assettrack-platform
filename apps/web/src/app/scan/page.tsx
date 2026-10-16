@@ -1,4 +1,7 @@
-﻿"use client";
+"use client";
+
+import { getSessionValue } from "@/lib/session";
+
 
 import { Suspense, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -62,7 +65,7 @@ function ScanPageContent() {
   useEffect(() => {
     setHydrated(true);
 
-    const token = sessionStorage.getItem("assettrack_token");
+    const token = getSessionValue("assettrack_token");
 
     if (!token) {
       const nextPath = `${window.location.pathname}${window.location.search}`;
@@ -199,7 +202,7 @@ function ScanPageContent() {
   }
 
   async function submitScan() {
-    const token = sessionStorage.getItem("assettrack_token");
+    const token = getSessionValue("assettrack_token");
 
     if (!token) {
       router.replace("/?next=/scan");

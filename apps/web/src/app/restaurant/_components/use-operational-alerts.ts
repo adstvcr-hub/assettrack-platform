@@ -1,0 +1,142 @@
+"use client";
+
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+
+function playTone() {
+  const AudioContextClass = window.AudioContext;
+  if (!AudioContextClass) return;
+  const context = new AudioContextClass();
+  const oscillator = context.createOscillator();
+  const gain = context.createGain();
+  oscillator.type = "square";
+  oscillator.frequency.setValueAtTime(880, context.currentTime);
+  oscillator.frequency.setValueAtTime(1175, context.currentTime + 0.18);
+  gain.gain.setValueAtTime(0.12, context.currentTime);
+  gain.gain.exponentialRampToValueAtTime(0.001, context.currentTime + 0.42);
+  oscillator.connect(gain);
+  gain.connect(context.destination);
+  oscillator.start();
+  oscillator.stop(context.currentTime + 0.42);
+  oscillator.addEventListener("ended", () => void context.close());
+}
+
+type OperationalAlertOptions = {
+  maxAttempts?: number | null;
+  repeatMs?: number;
+  notifyOnce?: boolean;
+};
+
+export function useOperationalAlerts(
+  channel: string,
+  actionKeys: string[],
+  options: OperationalAlertOptions = {},
+) {
+  const { maxAttempts = 3, repeatMs = 12_000, notifyOnce = false } = options;
+  const storageKey = `assettrack_alerts_${channel}`;
+  const attemptsKey = `${storageKey}_attempts`;
+  const attempts = useRef<Record<string, number>>({});
+  const skipNextImmediate = useRef(false);
+  const [enabled, setEnabled] = useState(false);
+  const [visualPending, setVisualPending] = useState(false);
+  const signature = [...new Set(actionKeys)].sort().join("|");
+  const uniqueKeys = useMemo(
+    () => (signature ? signature.split("|") : []),
+    [signature],
+  );
+
+  useEffect(() => {
+    if (uniqueKeys.length) {
+      setVisualPending(true);
+      return;
+    }
+    // A transient empty snapshot must not blink the operational indicator.
+    const timer = window.setTimeout(() => setVisualPending(false), 6000);
+    return () => window.clearTimeout(timer);
+  }, [uniqueKeys]);
+
+  useEffect(() => {
+    setEnabled(window.localStorage.getItem(storageKey) === "enabled");
+    try {
+      attempts.current = JSON.parse(
+        window.sessionStorage.getItem(attemptsKey) ?? "{}",
+      );
+    } catch {
+      attempts.current = {};
+    }
+  }, [attemptsKey, storageKey]);
+
+  const notify = useCallback(() => {
+    playTone();
+    if ("vibrate" in navigator) navigator.vibrate([250, 120, 250]);
+  }, []);
+
+  useEffect(() => {
+    if (!notifyOnce) {
+      const active = new Set(uniqueKeys);
+      for (const key of Object.keys(attempts.current)) {
+        if (!active.has(key)) delete attempts.current[key];
+      }
+    }
+    window.sessionStorage.setItem(
+      attemptsKey,
+      JSON.stringify(attempts.current),
+    );
+    if (!enabled || uniqueKeys.length === 0) return;
+
+    const notifyPending = () => {
+      const eligible = uniqueKeys.filter(
+        (key) =>
+          notifyOnce
+            ? !attempts.current[key]
+            : maxAttempts === null ||
+              (attempts.current[key] ?? 0) < maxAttempts,
+      );
+      if (!eligible.length) return;
+      for (const key of eligible) {
+        attempts.current[key] = (attempts.current[key] ?? 0) + 1;
+      }
+      window.sessionStorage.setItem(
+        attemptsKey,
+        JSON.stringify(attempts.current),
+      );
+      notify();
+    };
+
+    if (skipNextImmediate.current) {
+      skipNextImmediate.current = false;
+    } else {
+      notifyPending();
+    }
+    if (notifyOnce) return;
+    const timer = window.setInterval(notifyPending, repeatMs);
+    return () => window.clearInterval(timer);
+  }, [attemptsKey, enabled, maxAttempts, notify, notifyOnce, repeatMs, uniqueKeys]);
+
+  function enableAndTest() {
+    window.localStorage.setItem(storageKey, "enabled");
+    skipNextImmediate.current = uniqueKeys.length > 0;
+    if (notifyOnce) {
+      for (const key of uniqueKeys) attempts.current[key] = 1;
+      window.sessionStorage.setItem(
+        attemptsKey,
+        JSON.stringify(attempts.current),
+      );
+    }
+    setEnabled(true);
+    notify();
+  }
+
+  function disable() {
+    window.localStorage.removeItem(storageKey);
+    setEnabled(false);
+    if ("vibrate" in navigator) navigator.vibrate(0);
+  }
+
+  return {
+    enabled,
+    flash: visualPending,
+    activeCount: uniqueKeys.length,
+    enableAndTest,
+    disable,
+  };
+}

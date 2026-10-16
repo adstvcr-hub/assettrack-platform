@@ -1,4 +1,7 @@
 "use client";
+
+import { getSessionValue } from "@/lib/session";
+
 import { API_URL, authenticatedFetch } from "@/lib/api";
 import { FormEvent, use, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -52,8 +55,8 @@ export default function AssetDetailPage({
   const [status, setStatus] = useState<Asset["status"]>("ACTIVE");
 
   useEffect(() => {
-    const token = sessionStorage.getItem("assettrack_token");
-const storedUser = sessionStorage.getItem("assettrack_user");
+    const token = getSessionValue("assettrack_token");
+const storedUser = getSessionValue("assettrack_user");
 
 if (storedUser) {
   setCurrentUser(JSON.parse(storedUser));
@@ -125,7 +128,7 @@ if (storedUser) {
   async function updateAsset(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
-    const token = sessionStorage.getItem("assettrack_token");
+    const token = getSessionValue("assettrack_token");
 
     if (!token) {
       router.replace("/");
@@ -178,7 +181,7 @@ if (storedUser) {
   }
 
 async function openQr() {
-  const token = sessionStorage.getItem('assettrack_token');
+  const token = getSessionValue('assettrack_token');
 
   if (!token) {
     return;

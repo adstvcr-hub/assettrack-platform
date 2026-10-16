@@ -1,4 +1,7 @@
-﻿"use client";
+"use client";
+
+import { getSessionValue } from "@/lib/session";
+
 import { API_URL, authenticatedFetch } from "@/lib/api";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -94,7 +97,7 @@ export default function ScansPage() {
     return () => clearTimeout(timeout);
   }, [search]);
   useEffect(() => {
-    const token = sessionStorage.getItem("assettrack_token");
+    const token = getSessionValue("assettrack_token");
 
     if (!token) {
       router.replace("/?next=/scans");
@@ -179,7 +182,7 @@ export default function ScansPage() {
   ]);
 
   useEffect(() => {
-    const token = sessionStorage.getItem("assettrack_token");
+    const token = getSessionValue("assettrack_token");
 
     if (!token) {
       return;

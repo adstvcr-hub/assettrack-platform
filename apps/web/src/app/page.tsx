@@ -1,4 +1,7 @@
-﻿"use client";
+"use client";
+
+import { setSessionValue } from "@/lib/session";
+
 
 import { FormEvent, useState } from "react";
 import { API_URL } from "@/lib/api";
@@ -10,43 +13,93 @@ export default function Home() {
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
 
+  function currentLocation() {
+    return new Promise<{
+      latitude: number;
+      longitude: number;
+      locationAccuracy: number;
+    }>((resolve, reject) => {
+      if (!navigator.geolocation) {
+        reject(
+          new Error("Este dispositivo no permite verificar la ubicación."),
+        );
+        return;
+      }
+      navigator.geolocation.getCurrentPosition(
+        (position) =>
+          resolve({
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude,
+            locationAccuracy: position.coords.accuracy,
+          }),
+        () =>
+          reject(
+            new Error(
+              "Debe permitir el acceso a su ubicación para iniciar su jornada.",
+            ),
+          ),
+        { enableHighAccuracy: true, timeout: 15000, maximumAge: 30000 },
+      );
+    });
+  }
+
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setLoading(true);
     setMessage("");
 
     try {
-      const response = await fetch(`${API_URL}/api/v1/auth/login`, {
-        method: "POST",
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          organizationSlug,
-          email,
-          password,
-        }),
-      });
-
-      const data = await response.json();
+      const requestLogin = (location?: {
+        latitude: number;
+        longitude: number;
+        locationAccuracy: number;
+      }) =>
+        fetch(`${API_URL}/api/v1/auth/login`, {
+          method: "POST",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            organizationSlug,
+            email,
+            password,
+            ...location,
+          }),
+        });
+      let response = await requestLogin();
+      let data = await response.json();
+      if (
+        response.status === 403 &&
+        data.message ===
+          "Debe confirmar su ubicación para acceder al puesto de trabajo"
+      ) {
+        const location = await currentLocation();
+        response = await requestLogin(location);
+        data = await response.json();
+      }
 
       if (!response.ok) {
         setMessage(data.message ?? "Login failed");
         return;
       }
 
-      sessionStorage.setItem("assettrack_token", data.accessToken);
-      sessionStorage.setItem("assettrack_user", JSON.stringify(data.user));
+      setSessionValue("assettrack_token", data.accessToken);
+      setSessionValue("assettrack_user", JSON.stringify(data.user));
 
       const next =
         typeof window !== "undefined"
           ? new URLSearchParams(window.location.search).get("next")
           : null;
 
-      window.location.href = next || "/dashboard";
-    } catch {
-      setMessage("Unable to connect to AssetTrack API");
+      window.location.href =
+        next || (data.user.restaurantRole ? "/restaurant/staff" : "/dashboard");
+    } catch (reason) {
+      setMessage(
+        reason instanceof Error
+          ? reason.message
+          : "Unable to connect to AssetTrack API",
+      );
     } finally {
       setLoading(false);
     }

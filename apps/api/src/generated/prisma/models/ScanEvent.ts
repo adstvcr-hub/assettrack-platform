@@ -777,14 +777,6 @@ export type NullableEnumLocationSourceFieldUpdateOperationsInput = {
   set?: $Enums.LocationSource | null
 }
 
-export type NullableIntFieldUpdateOperationsInput = {
-  set?: number | null
-  increment?: number
-  decrement?: number
-  multiply?: number
-  divide?: number
-}
-
 export type ScanEventCreateWithoutOrganizationLocationInput = {
   id?: string
   locationSource?: $Enums.LocationSource | null
