@@ -22,3 +22,6 @@ La HSD01 Android 15 de Bar Mariposa imprimió físicamente por Chrome -> RawBT -
 
 ## Limitaciones
 RawBT funciona solo en equipos Android con RawBT instalado y configurado. La aplicación NO puede garantizar que la hoja haya salido: el diálogo de RawBT debe confirmarse y la reimpresión puede generar copias. Evitar confundir este recibo con una factura fiscal. La versión gratuita de RawBT puede añadir una marca en el papel.
+
+## Activación por dispositivo
+La impresión al cierre está desactivada por defecto para no afectar otros restaurantes. En la pantalla HSD01 con RawBT conectado, pulsar **Activar recibos PR-100 aquí** en la barra de sesión. Solo este navegador conserva la preferencia en almacenamiento local. En otros teléfonos no aparecerá el diálogo automáticamente. La reimpresión desde Historial se permite por acción explícita.

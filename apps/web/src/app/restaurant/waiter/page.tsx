@@ -9,6 +9,7 @@ import {
   fetchClosedRestaurantReceipt,
 } from "../_components/closed-receipt-dialog";
 import type { ClosedRestaurantReceipt } from "@/lib/restaurant-receipt";
+import { isReceiptPrinterEnabled } from "@/lib/restaurant-printer-settings";
 import { API_URL, authenticatedFetch } from "@/lib/api";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -237,7 +238,7 @@ export default function WaiterPage() {
       return;
     }
     setClosingVisitId(null);
-    await showClosedReceipt(visitId);
+    if (isReceiptPrinterEnabled()) await showClosedReceipt(visitId);
     await load();
   }
 
@@ -284,7 +285,7 @@ export default function WaiterPage() {
       setError(body.message ?? "No se pudo cerrar la entrega");
       return;
     }
-    await showClosedReceipt(visitId);
+    if (isReceiptPrinterEnabled()) await showClosedReceipt(visitId);
     await load();
   }
 

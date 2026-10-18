@@ -55,3 +55,8 @@ test("renders inclusive IVA without adding it to the total", () => {
   assert.match(output, /IVA incluido/);
   assert.match(output, /TOTAL\s+CRC 2,090/);
 });
+
+test("receipt printing is disabled by default without a browser", async () => {
+  const { isReceiptPrinterEnabled } = await import("../src/lib/restaurant-printer-settings.ts");
+  assert.equal(isReceiptPrinterEnabled(), false);
+});

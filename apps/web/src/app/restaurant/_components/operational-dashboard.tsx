@@ -9,6 +9,7 @@ import {
   fetchClosedRestaurantReceipt,
 } from "./closed-receipt-dialog";
 import type { ClosedRestaurantReceipt } from "@/lib/restaurant-receipt";
+import { isReceiptPrinterEnabled } from "@/lib/restaurant-printer-settings";
 import { BarOrderEntry } from "./bar-order-entry";
 import { API_URL, authenticatedFetch } from "@/lib/api";
 import { useRouter } from "next/navigation";
@@ -242,7 +243,7 @@ export function OperationalDashboard({ station }: { station: Station }) {
       return;
     }
     setClosingVisitId(null);
-    await showClosedReceipt(visitId);
+    if (isReceiptPrinterEnabled()) await showClosedReceipt(visitId);
     await load();
   }
 
@@ -273,7 +274,7 @@ export function OperationalDashboard({ station }: { station: Station }) {
       setError(body.message ?? "No se pudo cerrar la entrega");
       return;
     }
-    await showClosedReceipt(visitId);
+    if (isReceiptPrinterEnabled()) await showClosedReceipt(visitId);
     await load();
   }
 

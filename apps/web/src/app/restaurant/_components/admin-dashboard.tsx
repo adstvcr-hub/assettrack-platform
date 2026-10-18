@@ -13,6 +13,7 @@ import {
   fetchClosedRestaurantReceipt,
 } from "./closed-receipt-dialog";
 import type { ClosedRestaurantReceipt } from "@/lib/restaurant-receipt";
+import { isReceiptPrinterEnabled } from "@/lib/restaurant-printer-settings";
 import {
   PaymentMethodDialog,
   type RestaurantPaymentDetails,
@@ -976,7 +977,7 @@ export default function RestaurantAdminDashboard({
 
   async function handoffDeliveryForReceipt(visitId: string) {
     if (await post(`visits/${visitId}/delivery-handoff`, {}, "PATCH")) {
-      await showClosedReceipt(visitId);
+      if (isReceiptPrinterEnabled()) await showClosedReceipt(visitId);
     }
   }
 
@@ -986,7 +987,7 @@ export default function RestaurantAdminDashboard({
   ) {
     if (await post(`visits/${visitId}/close`, payment, "PATCH")) {
       setClosingVisitId(null);
-      await showClosedReceipt(visitId);
+      if (isReceiptPrinterEnabled()) await showClosedReceipt(visitId);
     }
   }
 
