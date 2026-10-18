@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useEffect, useState } from "react";
+import { isReceiptPrinterEnabled } from "@/lib/restaurant-printer-settings";
 
 export type RestaurantPaymentDetails = {
   paymentMethod: "CASH" | "SINPE" | "CARD" | "OTHER";
@@ -14,27 +15,34 @@ export function PaymentMethodDialog({
 }: {
   open: boolean;
   onCancel: () => void;
-  onConfirm: (payment: RestaurantPaymentDetails) => void | Promise<void>;
+  onConfirm: (
+    payment: RestaurantPaymentDetails,
+    printReceipt: boolean,
+  ) => void | Promise<void>;
 }) {
-  const [paymentMethod, setPaymentMethod] = useState<
-    RestaurantPaymentDetails["paymentMethod"]
-  >("CASH");
+  const [paymentMethod, setPaymentMethod] =
+    useState<RestaurantPaymentDetails["paymentMethod"]>("CASH");
   const [paymentReference, setPaymentReference] = useState("");
+  const [printReceipt, setPrintReceipt] = useState(false);
 
   useEffect(() => {
     if (!open) return;
     setPaymentMethod("CASH");
     setPaymentReference("");
+    setPrintReceipt(isReceiptPrinterEnabled());
   }, [open]);
 
   if (!open) return null;
 
   function submit(event: FormEvent) {
     event.preventDefault();
-    void onConfirm({
-      paymentMethod,
-      paymentReference: paymentReference.trim() || undefined,
-    });
+    void onConfirm(
+      {
+        paymentMethod,
+        paymentReference: paymentReference.trim() || undefined,
+      },
+      printReceipt,
+    );
   }
 
   return (
@@ -83,7 +91,22 @@ export function PaymentMethodDialog({
             />
           </label>
         )}
-        <div className="mt-6 flex justify-end gap-3">
+        <label className="mt-5 flex cursor-pointer items-start gap-3 rounded-lg border border-emerald-200 bg-emerald-50 p-4">
+          <input
+            type="checkbox"
+            checked={printReceipt}
+            onChange={(event) => setPrintReceipt(event.target.checked)}
+            className="mt-1 h-5 w-5 shrink-0 accent-emerald-800"
+          />
+          <span>
+            <span className="block font-bold">Imprimir recibo al cerrar</span>
+            <span className="mt-1 block text-sm text-slate-600">
+              Después de confirmar el pago podrás enviar el recibo a RawBT en
+              este equipo.
+            </span>
+          </span>
+        </label>
+        <div className="mt-6 flex flex-wrap justify-end gap-3">
           <button
             type="button"
             onClick={onCancel}
@@ -92,7 +115,7 @@ export function PaymentMethodDialog({
             Cancelar
           </button>
           <button className="rounded-lg bg-emerald-800 px-5 py-3 font-black text-white">
-            Confirmar cierre
+            {printReceipt ? "Confirmar cierre e imprimir" : "Confirmar cierre"}
           </button>
         </div>
       </form>

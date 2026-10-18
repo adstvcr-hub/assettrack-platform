@@ -8,12 +8,8 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { RestaurantSessionActions } from "./restaurant-session-actions";
-import {
-  ClosedReceiptDialog,
-  fetchClosedRestaurantReceipt,
-} from "./closed-receipt-dialog";
-import type { ClosedRestaurantReceipt } from "@/lib/restaurant-receipt";
-import { autoSendClosedReceipt } from "./closed-receipt-dialog";
+import { ClosedReceiptDialog } from "./closed-receipt-dialog";
+import { isReceiptPrinterEnabled } from "@/lib/restaurant-printer-settings";
 import {
   PaymentMethodDialog,
   type RestaurantPaymentDetails,
@@ -535,7 +531,7 @@ export default function RestaurantAdminDashboard({
 }) {
   const router = useRouter();
   const [closingVisitId, setClosingVisitId] = useState<string | null>(null);
-  const [closedReceipt, setClosedReceipt] = useState<ClosedRestaurantReceipt | null>(null);
+  const [closedReceiptVisitId, setClosedReceiptVisitId] = useState<string | null>(null);
   const closeInProgress = useRef(false);
   const [tables, setTables] = useState<Table[]>([]);
   const [menu, setMenu] = useState<MenuItem[]>([]);
@@ -968,20 +964,8 @@ export default function RestaurantAdminDashboard({
     }
   }
 
-  async function showClosedReceipt(visitId: string) {
-    try {
-      setClosedReceipt(await fetchClosedRestaurantReceipt(visitId));
-    } catch {
-      setError("La cuenta quedó cerrada, pero no se pudo recuperar el recibo para imprimir.");
-    }
-  }
-
-  async function sendAfterClose(visitId: string) {
-    try {
-      await autoSendClosedReceipt(visitId);
-    } catch {
-      setError("Cuenta cerrada, pero no fue posible enviar a RawBT. Reimprima desde Historial de ventas.");
-    }
+  function showClosedReceipt(visitId: string) {
+    setClosedReceiptVisitId(visitId);
   }
 
   async function handoffDeliveryForReceipt(visitId: string) {
@@ -998,7 +982,7 @@ export default function RestaurantAdminDashboard({
         return;
       }
       void load();
-      await sendAfterClose(visitId);
+      if (isReceiptPrinterEnabled()) showClosedReceipt(visitId);
     } catch {
       setError("No se pudo verificar el cierre. Revise la cuenta antes de reintentar.");
     } finally {
@@ -1009,6 +993,7 @@ export default function RestaurantAdminDashboard({
   async function closeVisit(
     visitId: string,
     payment: RestaurantPaymentDetails,
+    printReceipt: boolean,
   ) {
     if (closeInProgress.current) return;
     closeInProgress.current = true;
@@ -1028,7 +1013,7 @@ export default function RestaurantAdminDashboard({
       }
       setClosingVisitId(null);
       void load();
-      await sendAfterClose(visitId);
+      if (printReceipt) showClosedReceipt(visitId);
     } catch {
       setError("No se pudo verificar el cierre. Revise la cuenta antes de reintentar.");
     } finally {
@@ -5622,15 +5607,15 @@ export default function RestaurantAdminDashboard({
         )}
       </section>
       <ClosedReceiptDialog
-        key={closedReceipt?.receiptNumber ?? "empty"}
-        receipt={closedReceipt}
-        onDismiss={() => setClosedReceipt(null)}
+        key={closedReceiptVisitId ?? "empty"}
+        visitId={closedReceiptVisitId}
+        onDismiss={() => setClosedReceiptVisitId(null)}
       />
       <PaymentMethodDialog
         open={Boolean(closingVisitId)}
         onCancel={() => setClosingVisitId(null)}
-        onConfirm={(payment) => {
-          if (closingVisitId) return closeVisit(closingVisitId, payment);
+        onConfirm={(payment, printReceipt) => {
+          if (closingVisitId) return closeVisit(closingVisitId, payment, printReceipt);
         }}
       />
     </main>
