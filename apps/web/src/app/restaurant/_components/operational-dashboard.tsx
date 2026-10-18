@@ -4,6 +4,11 @@ import { getSessionValue } from "@/lib/session";
 
 
 import { StaffAccountDetail } from "./staff-account-detail";
+import {
+  ClosedReceiptDialog,
+  fetchClosedRestaurantReceipt,
+} from "./closed-receipt-dialog";
+import type { ClosedRestaurantReceipt } from "@/lib/restaurant-receipt";
 import { BarOrderEntry } from "./bar-order-entry";
 import { API_URL, authenticatedFetch } from "@/lib/api";
 import { useRouter } from "next/navigation";
@@ -114,6 +119,7 @@ export function OperationalDashboard({ station }: { station: Station }) {
   const [error, setError] = useState("");
   const [now, setNow] = useState(0);
   const [closingVisitId, setClosingVisitId] = useState<string | null>(null);
+  const [closedReceipt, setClosedReceipt] = useState<ClosedRestaurantReceipt | null>(null);
   const loadSequence = useRef(0);
 
   const load = useCallback(async () => {
@@ -210,6 +216,14 @@ export function OperationalDashboard({ station }: { station: Station }) {
     await load();
   }
 
+  async function showClosedReceipt(visitId: string) {
+    try {
+      setClosedReceipt(await fetchClosedRestaurantReceipt(visitId));
+    } catch {
+      setError("La cuenta quedó cerrada, pero no se pudo recuperar el recibo para imprimir.");
+    }
+  }
+
   async function closeVisit(
     visitId: string,
     payment: RestaurantPaymentDetails,
@@ -228,6 +242,7 @@ export function OperationalDashboard({ station }: { station: Station }) {
       return;
     }
     setClosingVisitId(null);
+    await showClosedReceipt(visitId);
     await load();
   }
 
@@ -258,6 +273,7 @@ export function OperationalDashboard({ station }: { station: Station }) {
       setError(body.message ?? "No se pudo cerrar la entrega");
       return;
     }
+    await showClosedReceipt(visitId);
     await load();
   }
 
@@ -624,6 +640,11 @@ export function OperationalDashboard({ station }: { station: Station }) {
           </article>
         ))}
       </section>
+      <ClosedReceiptDialog
+        key={closedReceipt?.receiptNumber ?? "empty"}
+        receipt={closedReceipt}
+        onDismiss={() => setClosedReceipt(null)}
+      />
       <PaymentMethodDialog
         open={Boolean(closingVisitId)}
         onCancel={() => setClosingVisitId(null)}

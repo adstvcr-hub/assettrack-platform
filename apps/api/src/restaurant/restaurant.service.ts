@@ -5094,6 +5094,47 @@ export class RestaurantService {
     };
   }
 
+  /**
+   * Final receipt: staff may read only a closed account in their organization.
+   * Monetary amounts and effective menu items reuse the existing receipt logic.
+   */
+  async closedVisitReceipt(actor: RestaurantActor, visitId: string) {
+    const visit = await this.prisma.restaurantVisit.findFirst({
+      where: {
+        id: visitId,
+        organizationId: actor.organizationId,
+        status: RestaurantVisitStatus.CLOSED,
+      },
+      select: {
+        accessCode: true,
+        closedById: true,
+        responsibleStaffId: true,
+        paymentMethod: true,
+        organization: {
+          select: { name: true, restaurantDisplayName: true },
+        },
+      },
+    });
+    if (!visit) throw new NotFoundException("Closed receipt not found");
+    const role = this.effectiveRole(actor);
+    if (
+      role !== RestaurantStaffRole.RESTAURANT_ADMIN &&
+      actor.id !== visit.responsibleStaffId &&
+      actor.id !== visit.closedById
+    ) {
+      throw new ForbiddenException("Not allowed to access this receipt");
+    }
+    const receipt = await this.guestReceipt(visit.accessCode);
+    return {
+      ...receipt,
+      restaurant:
+        visit.organization.restaurantDisplayName ||
+        visit.organization.name ||
+        receipt.restaurant,
+      paymentMethod: visit.paymentMethod,
+    };
+  }
+
   async guestReceipt(accessCode: string) {
     const account = await this.guestOrder(accessCode);
     return {

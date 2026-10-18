@@ -9,6 +9,11 @@ import Image from "next/image";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { RestaurantSessionActions } from "./restaurant-session-actions";
 import {
+  ClosedReceiptDialog,
+  fetchClosedRestaurantReceipt,
+} from "./closed-receipt-dialog";
+import type { ClosedRestaurantReceipt } from "@/lib/restaurant-receipt";
+import {
   PaymentMethodDialog,
   type RestaurantPaymentDetails,
 } from "./payment-method-dialog";
@@ -529,6 +534,7 @@ export default function RestaurantAdminDashboard({
 }) {
   const router = useRouter();
   const [closingVisitId, setClosingVisitId] = useState<string | null>(null);
+  const [closedReceipt, setClosedReceipt] = useState<ClosedRestaurantReceipt | null>(null);
   const [tables, setTables] = useState<Table[]>([]);
   const [menu, setMenu] = useState<MenuItem[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
@@ -960,12 +966,27 @@ export default function RestaurantAdminDashboard({
     }
   }
 
+  async function showClosedReceipt(visitId: string) {
+    try {
+      setClosedReceipt(await fetchClosedRestaurantReceipt(visitId));
+    } catch {
+      setError("La cuenta quedó cerrada, pero no se pudo recuperar el recibo para imprimir.");
+    }
+  }
+
+  async function handoffDeliveryForReceipt(visitId: string) {
+    if (await post(`visits/${visitId}/delivery-handoff`, {}, "PATCH")) {
+      await showClosedReceipt(visitId);
+    }
+  }
+
   async function closeVisit(
     visitId: string,
     payment: RestaurantPaymentDetails,
   ) {
     if (await post(`visits/${visitId}/close`, payment, "PATCH")) {
       setClosingVisitId(null);
+      await showClosedReceipt(visitId);
     }
   }
 
@@ -2071,11 +2092,7 @@ export default function RestaurantAdminDashboard({
                       className="rounded bg-violet-800 px-4 py-3 font-bold text-white disabled:cursor-not-allowed disabled:opacity-40"
                       onClick={() =>
                         visit.canHandoffDelivery &&
-                        void post(
-                          `visits/${visit.id}/delivery-handoff`,
-                          {},
-                          "PATCH",
-                        )
+                        void handoffDeliveryForReceipt(visit.id)
                       }
                     >
                       {visit.canHandoffDelivery
@@ -2872,6 +2889,13 @@ export default function RestaurantAdminDashboard({
                       Total: ₡{sale.billing.total.toLocaleString()}
                     </strong>
                   </div>
+                  <button
+                    type="button"
+                    onClick={() => void showClosedReceipt(sale.id)}
+                    className="mt-3 rounded-lg bg-emerald-700 px-4 py-3 font-semibold text-white"
+                  >
+                    Reimprimir recibo
+                  </button>
                   {sale.invoice.status !== "NOT_REQUESTED" && (
                     <div className="mt-3 rounded border border-indigo-200 bg-indigo-50 p-3 text-sm">
                       <strong>
@@ -5551,6 +5575,11 @@ export default function RestaurantAdminDashboard({
           </div>
         )}
       </section>
+      <ClosedReceiptDialog
+        key={closedReceipt?.receiptNumber ?? "empty"}
+        receipt={closedReceipt}
+        onDismiss={() => setClosedReceipt(null)}
+      />
       <PaymentMethodDialog
         open={Boolean(closingVisitId)}
         onCancel={() => setClosingVisitId(null)}

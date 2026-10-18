@@ -3235,3 +3235,51 @@ describe("RestaurantService", () => {
     ).rejects.toBeInstanceOf(ForbiddenException);
   });
 });
+
+describe("closed visit receipt access", () => {
+  it("does not return open accounts or accounts from other organizations", async () => {
+    const { prisma, service } = createService();
+    prisma.restaurantVisit.findFirst.mockResolvedValue(null);
+    await expect(service.closedVisitReceipt(waiterActor, "visit-a"))
+      .rejects.toBeInstanceOf(NotFoundException);
+    expect(prisma.restaurantVisit.findFirst).toHaveBeenCalledWith({
+      where: { id: "visit-a", organizationId: "org-a", status: "CLOSED" },
+      select: expect.objectContaining({ accessCode: true, closedById: true }),
+    });
+  });
+
+  it("denies unrelated staff without reading the customer receipt", async () => {
+    const { prisma, service } = createService();
+    prisma.restaurantVisit.findFirst.mockResolvedValue({
+      accessCode: "secret",
+      closedById: "cashier-a",
+      responsibleStaffId: "waiter-a",
+      paymentMethod: RestaurantPaymentMethod.CASH,
+      organization: { name: "Bar Mariposa", restaurantDisplayName: null },
+    });
+    const guestReceipt = vi.spyOn(service, "guestReceipt");
+    await expect(service.closedVisitReceipt(kitchenActor, "visit-a"))
+      .rejects.toBeInstanceOf(ForbiddenException);
+    expect(guestReceipt).not.toHaveBeenCalled();
+  });
+
+  it("returns the saved receipt to the responsible staff without modifying a close", async () => {
+    const { prisma, service } = createService();
+    prisma.restaurantVisit.findFirst.mockResolvedValue({
+      accessCode: "secret",
+      closedById: "cashier-a",
+      responsibleStaffId: "waiter-a",
+      paymentMethod: RestaurantPaymentMethod.SINPE,
+      organization: { name: "Restaurant", restaurantDisplayName: "Bar Mariposa" },
+    });
+    vi.spyOn(service, "guestReceipt").mockResolvedValue({
+      restaurant: "Restaurant", status: "CLOSED", receiptNumber: "AT-123",
+    } as never);
+    await expect(service.closedVisitReceipt(waiterActor, "visit-a"))
+      .resolves.toEqual(expect.objectContaining({
+        restaurant: "Bar Mariposa", paymentMethod: "SINPE",
+        receiptNumber: "AT-123",
+      }));
+    expect(prisma.restaurantVisit.update).not.toHaveBeenCalled();
+  });
+});

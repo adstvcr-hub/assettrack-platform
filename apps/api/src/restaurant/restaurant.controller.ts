@@ -661,6 +661,11 @@ export class RestaurantStaffController {
     return this.restaurant.cancelOrder(req.user, id, dto.reason);
   }
 
+  @Get("visits/:id/receipt")
+  closedVisitReceipt(@Req() req: StaffRequest, @Param("id") id: string) {
+    return this.restaurant.closedVisitReceipt(req.user, id);
+  }
+
   @Patch("visits/:id/close")
   closeVisit(
     @Req() req: StaffRequest,
