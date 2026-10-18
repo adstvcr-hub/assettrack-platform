@@ -13,7 +13,7 @@ import {
   fetchClosedRestaurantReceipt,
 } from "./closed-receipt-dialog";
 import type { ClosedRestaurantReceipt } from "@/lib/restaurant-receipt";
-import { isReceiptPrinterEnabled } from "@/lib/restaurant-printer-settings";
+import { autoSendClosedReceipt } from "./closed-receipt-dialog";
 import {
   PaymentMethodDialog,
   type RestaurantPaymentDetails,
@@ -536,6 +536,7 @@ export default function RestaurantAdminDashboard({
   const router = useRouter();
   const [closingVisitId, setClosingVisitId] = useState<string | null>(null);
   const [closedReceipt, setClosedReceipt] = useState<ClosedRestaurantReceipt | null>(null);
+  const closeInProgress = useRef(false);
   const [tables, setTables] = useState<Table[]>([]);
   const [menu, setMenu] = useState<MenuItem[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
@@ -975,9 +976,33 @@ export default function RestaurantAdminDashboard({
     }
   }
 
+  async function sendAfterClose(visitId: string) {
+    try {
+      await autoSendClosedReceipt(visitId);
+    } catch {
+      setError("Cuenta cerrada, pero no fue posible enviar a RawBT. Reimprima desde Historial de ventas.");
+    }
+  }
+
   async function handoffDeliveryForReceipt(visitId: string) {
-    if (await post(`visits/${visitId}/delivery-handoff`, {}, "PATCH")) {
-      if (isReceiptPrinterEnabled()) await showClosedReceipt(visitId);
+    if (closeInProgress.current) return;
+    closeInProgress.current = true;
+    try {
+      const response = await authenticatedFetch(
+        `${API_URL}/api/v1/restaurant/visits/${visitId}/delivery-handoff`,
+        { method: "PATCH" },
+      );
+      if (!response.ok) {
+        const body = await response.json().catch(() => ({}));
+        setError(body.message ?? "No se pudo cerrar la entrega");
+        return;
+      }
+      void load();
+      await sendAfterClose(visitId);
+    } catch {
+      setError("No se pudo verificar el cierre. Revise la cuenta antes de reintentar.");
+    } finally {
+      closeInProgress.current = false;
     }
   }
 
@@ -985,9 +1010,29 @@ export default function RestaurantAdminDashboard({
     visitId: string,
     payment: RestaurantPaymentDetails,
   ) {
-    if (await post(`visits/${visitId}/close`, payment, "PATCH")) {
+    if (closeInProgress.current) return;
+    closeInProgress.current = true;
+    try {
+      const response = await authenticatedFetch(
+        `${API_URL}/api/v1/restaurant/visits/${visitId}/close`,
+        {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payment),
+        },
+      );
+      if (!response.ok) {
+        const body = await response.json().catch(() => ({}));
+        setError(body.message ?? "No se pudo cerrar la cuenta");
+        return;
+      }
       setClosingVisitId(null);
-      if (isReceiptPrinterEnabled()) await showClosedReceipt(visitId);
+      void load();
+      await sendAfterClose(visitId);
+    } catch {
+      setError("No se pudo verificar el cierre. Revise la cuenta antes de reintentar.");
+    } finally {
+      closeInProgress.current = false;
     }
   }
 

@@ -60,3 +60,31 @@ test("receipt printing is disabled by default without a browser", async () => {
   const { isReceiptPrinterEnabled } = await import("../src/lib/restaurant-printer-settings.ts");
   assert.equal(isReceiptPrinterEnabled(), false);
 });
+
+test("disabled receipt printer does not fetch or send a receipt", async () => {
+  const { dispatchReceiptAfterConfirmedClose } = await import("../src/lib/receipt-close-dispatch.ts");
+  let fetched = 0, sent = 0;
+  const didSend = await dispatchReceiptAfterConfirmedClose(false, async () => { fetched++; return sample(); }, () => { sent++; });
+  assert.equal(didSend, false);
+  assert.equal(fetched, 0);
+  assert.equal(sent, 0);
+});
+
+test("enabled printer dispatches once for a confirmed closed receipt", async () => {
+  const { dispatchReceiptAfterConfirmedClose } = await import("../src/lib/receipt-close-dispatch.ts");
+  let sent = 0;
+  const didSend = await dispatchReceiptAfterConfirmedClose(true, async () => sample(), receipt => {
+    assert.equal(receipt.receiptNumber, "AT-001-2026");
+    sent++;
+  });
+  assert.equal(didSend, true);
+  assert.equal(sent, 1);
+});
+
+test("open accounts and receipt fetch failures never dispatch", async () => {
+  const { dispatchReceiptAfterConfirmedClose } = await import("../src/lib/receipt-close-dispatch.ts");
+  let sent = 0;
+  await assert.rejects(() => dispatchReceiptAfterConfirmedClose(true, async () => ({...sample(),status:"OPEN"}), () => { sent++; }));
+  await assert.rejects(() => dispatchReceiptAfterConfirmedClose(true, async () => { throw new Error("network"); }, () => { sent++; }));
+  assert.equal(sent, 0);
+});

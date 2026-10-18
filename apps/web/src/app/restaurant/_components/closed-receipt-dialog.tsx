@@ -6,6 +6,8 @@ import {
   type ClosedRestaurantReceipt,
 } from "@/lib/restaurant-receipt";
 import { useState } from "react";
+import { isReceiptPrinterEnabled } from "@/lib/restaurant-printer-settings";
+import { dispatchReceiptAfterConfirmedClose } from "@/lib/receipt-close-dispatch";
 
 /** Returns only a previously closed account authorized for this operator. */
 export async function fetchClosedRestaurantReceipt(
@@ -20,6 +22,19 @@ export async function fetchClosedRestaurantReceipt(
     throw new Error("La cuenta todavía no está cerrada");
   }
   return receipt;
+}
+
+/** The close button itself triggers this after the successful PATCH response. */
+export async function autoSendClosedReceipt(visitId: string): Promise<boolean> {
+  return dispatchReceiptAfterConfirmedClose(
+    isReceiptPrinterEnabled(),
+    () => fetchClosedRestaurantReceipt(visitId),
+    (receipt) => {
+      // Proven Chrome -> RawBT scheme on the pilot terminal. Chrome may still
+      // block an asynchronous external app launch without a user gesture.
+      window.location.assign(closedRestaurantReceiptRawBtHref(receipt));
+    },
+  );
 }
 
 export function ClosedReceiptDialog({

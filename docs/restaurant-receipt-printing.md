@@ -5,13 +5,14 @@ Solo comprobantes **internos** de cuentas efectivamente cerradas. No se imprimen
 
 La HSD01 Android 15 de Bar Mariposa imprimió físicamente por Chrome -> RawBT -> USB -> PR-100 el 18 de octubre de 2026 con RawBT esc_general, 203 dpi, 384 dots (58 mm).
 
-## Comportamiento
-- En administración, mesero y barra, un cierre exitoso muestra **Imprimir recibo**.
-- El enlace RawBT se abre por gesto del usuario. En la prueba física RawBT exigió pulsar **IMPRIMIR**; la impresión silenciosa NO está implementada.
-- Después del cierre, el error de impresión no revierte cobros ni inventarios.
-- Administración puede **Reimprimir recibo** desde Historial de ventas durante el plazo existente de retención.
-- El backend comprueba organización, estado CLOSED y acceso del administrador/responsable/operador que cerró. Reutiliza el cálculo existente y excluye ítems cancelados y componentes internos de combos.
-- No se altera la base de datos ni el proceso de cierre original.
+## Comportamiento del interruptor PR-100
+- **ACTIVA**: al confirmar exitosamente cierre de cuenta/orden, el cliente obtiene el recibo `CLOSED` del servidor e intenta invocar RawBT directamente desde la acción de cierre, sin un segundo botón «Imprimir recibo».
+- **DESACTIVADA**: no se pide recibo ni se intenta invocar RawBT.
+- En administración, mesero y barra el envío es posterior a la confirmación de cierre, sin modificar cobros ni inventarios.
+- Reimpresión: botón manual exclusivamente desde Historial de ventas.
+- Si falla la recuperación del recibo, el cierre ya efectuado nunca se revierte.
+- Chrome para Android puede bloquear intentos asíncronos de abrir aplicaciones externas sin gesto del usuario: el lanzamiento automático es best-effort y requiere prueba en HSD01. Si lo bloquea, se necesitará puente nativo Android para impresión sin segundo paso.
+- La prueba anterior de RawBT necesitó pulsar IMPRIMIR en su ventana. No se promete salida de papel silenciosa hasta probar una integración nativa.
 
 ## Pruebas
 - `pnpm --filter web test` comprueba ancho, monto, cancelados, descuentos, enlace RawBT, casos inválidos e IVA incluido.
