@@ -350,7 +350,15 @@ describe("cash business days with PostgreSQL", () => {
     const day = await prisma.restaurantCashDay.findUniqueOrThrow({
       where: { id: session.cashDayId! },
     });
-    expect(await prisma.platformAdminEvent.count({ where: { organizationId, action: "RESTAURANT_CASH_DAY_CONTINUED", actorId: actor.id } })).toBe(1);
+    expect(
+      await prisma.platformAdminEvent.count({
+        where: {
+          organizationId,
+          action: "RESTAURANT_CASH_DAY_CONTINUED",
+          actorId: actor.id,
+        },
+      }),
+    ).toBe(1);
     expect(day).toMatchObject({
       continuedById: actor.id,
       lastConfirmedDate: "2026-10-18",
@@ -491,6 +499,45 @@ describe("cash business days with PostgreSQL", () => {
     expect(
       await prisma.restaurantCashDayClose.count({ where: { organizationId } }),
     ).toBe(1);
+  });
+
+  it("keeps all four regular payment methods available and rejects an unconfirmed platform method", async () => {
+    clock("2026-10-18T20:00:00Z");
+    const { actor, visit } = await fixture();
+    const session = await cash.assume(actor, 100);
+    for (const method of ["CASH", "SINPE", "CARD", "OTHER"] as const) {
+      const sale = await visit(1000);
+      const closed = await restaurant.closeVisit(actor, sale.id, method);
+      expect(closed).toMatchObject({
+        paymentMethod: method,
+        status: "CLOSED",
+        cashDayId: session.cashDayId,
+      });
+    }
+    const unpaid = await visit(1000);
+    await expect(
+      restaurant.closeVisit(actor, unpaid.id, "TILOPAY" as never),
+    ).rejects.toThrow("pendiente de activación");
+    expect(
+      await prisma.restaurantVisit.findUniqueOrThrow({
+        where: { id: unpaid.id },
+      }),
+    ).toMatchObject({
+      status: "OPEN",
+      receiptNumber: null,
+      paymentMethod: null,
+    });
+    expect(await cash.current(actor)).toMatchObject({
+      currentSummary: {
+        accountCount: 4,
+        salesTotal: 4000,
+        cashSales: 1000,
+        sinpeSales: 1000,
+        cardSales: 1000,
+        otherSales: 1000,
+      },
+      currentReconciliation: { expectedCash: 1100 },
+    });
   });
 
   it("retries serialization conflicts but never retries unrelated failures", async () => {

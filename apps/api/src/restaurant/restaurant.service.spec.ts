@@ -1947,57 +1947,78 @@ describe("RestaurantService", () => {
     expect(prisma.restaurantVisit.update).not.toHaveBeenCalled();
   });
 
-  it("allows the responsible bartender to close a fully delivered account", async () => {
-    const { prisma, service } = createService();
-    const bartender = {
-      id: "bartender-a",
-      organizationId: "org-a",
-      role: UserRole.USER,
-      restaurantRole: RestaurantStaffRole.BAR,
-      restaurantAvailability: RestaurantStaffAvailability.AVAILABLE,
-    };
-    prisma.restaurantVisit.findFirst.mockResolvedValue({
-      id: "visit-a",
-      organizationId: "org-a",
-      responsibleStaffId: "bartender-a",
-      responsibleStaff: {
+  it.each([
+    RestaurantPaymentMethod.CASH,
+    RestaurantPaymentMethod.SINPE,
+    RestaurantPaymentMethod.CARD,
+    RestaurantPaymentMethod.OTHER,
+  ])(
+    "allows the responsible bartender to close an account paid by %s",
+    async (paymentMethod) => {
+      const { prisma, service } = createService();
+      const bartender = {
         id: "bartender-a",
+        organizationId: "org-a",
+        role: UserRole.USER,
+        restaurantRole: RestaurantStaffRole.BAR,
         restaurantAvailability: RestaurantStaffAvailability.AVAILABLE,
-      },
-      table: { waiterId: null },
-      orders: [{ items: [{ status: "DELIVERED" }] }],
-    });
-    prisma.restaurantVisit.update.mockResolvedValue({
-      id: "visit-a",
-      status: "CLOSED",
-    });
+      };
+      prisma.restaurantVisit.findFirst.mockResolvedValue({
+        id: "visit-a",
+        organizationId: "org-a",
+        responsibleStaffId: "bartender-a",
+        responsibleStaff: {
+          id: "bartender-a",
+          restaurantAvailability: RestaurantStaffAvailability.AVAILABLE,
+        },
+        table: { waiterId: null },
+        orders: [{ items: [{ status: "DELIVERED" }] }],
+      });
+      prisma.restaurantVisit.update.mockResolvedValue({
+        id: "visit-a",
+        status: "CLOSED",
+      });
 
-    prisma.restaurantCashSession.findFirst.mockResolvedValue({
-      id: "session-a",
-      cashDay: {
-        id: "day-a",
-        openGuard: "register-a",
-        timezone: "UTC",
-        lastConfirmedDate: new Date().toISOString().slice(0, 10),
-      },
-    });
-    await service.closeVisit(bartender, "visit-a");
+      prisma.restaurantCashSession.findFirst.mockResolvedValue({
+        id: "session-a",
+        cashDay: {
+          id: "day-a",
+          openGuard: "register-a",
+          timezone: "UTC",
+          lastConfirmedDate: new Date().toISOString().slice(0, 10),
+        },
+      });
+      await service.closeVisit(bartender, "visit-a", paymentMethod);
 
-    expect(prisma.restaurantVisit.update).toHaveBeenCalledWith(
-      expect.objectContaining({
-        where: { id: "visit-a" },
-        data: expect.objectContaining({
-          status: "CLOSED",
-          closedAt: expect.any(Date),
-          closedById: "bartender-a",
-          closedByRole: RestaurantStaffRole.BAR,
-          paymentMethod: RestaurantPaymentMethod.CASH,
-          cashDayId: "day-a",
-          cashSessionId: "session-a",
-          receiptNumber: expect.stringMatching(/^AT-/),
+      expect(prisma.restaurantVisit.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { id: "visit-a" },
+          data: expect.objectContaining({
+            status: "CLOSED",
+            closedAt: expect.any(Date),
+            closedById: "bartender-a",
+            closedByRole: RestaurantStaffRole.BAR,
+            paymentMethod,
+            cashDayId: "day-a",
+            cashSessionId: "session-a",
+            receiptNumber: expect.stringMatching(/^AT-/),
+          }),
         }),
-      }),
-    );
+      );
+    },
+  );
+
+  it("does not record a Tilopay selection as a received manual payment", async () => {
+    const { prisma, service } = createService();
+    await expect(
+      service.closeVisit(
+        waiterActor,
+        "visit-a",
+        "TILOPAY" as RestaurantPaymentMethod,
+      ),
+    ).rejects.toThrow("Tilopay está pendiente de activación");
+    expect(prisma.restaurantVisit.update).not.toHaveBeenCalled();
+    expect(prisma.$transaction).not.toHaveBeenCalled();
   });
 
   it("returns the existing order when the same request is retried", async () => {

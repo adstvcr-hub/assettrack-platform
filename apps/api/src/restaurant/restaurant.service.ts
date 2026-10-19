@@ -1,4 +1,5 @@
 import { activeCashContext, cashTransaction } from "./cash-day-context";
+import { REGULAR_RESTAURANT_PAYMENT_METHODS } from "./restaurant-payment-options";
 import {
   BadRequestException,
   ConflictException,
@@ -1819,6 +1820,11 @@ export class RestaurantService {
     paymentMethod: RestaurantPaymentMethod = RestaurantPaymentMethod.CASH,
     paymentReference?: string,
   ) {
+    if (!REGULAR_RESTAURANT_PAYMENT_METHODS.includes(paymentMethod)) {
+      throw new BadRequestException(
+        "Use un método de cobro regular. Tilopay está pendiente de activación y requiere una confirmación de pago de la plataforma.",
+      );
+    }
     const role = this.effectiveRole(actor);
     return cashTransaction(this.prisma, async (tx) => {
       const visit = await tx.restaurantVisit.findFirst({

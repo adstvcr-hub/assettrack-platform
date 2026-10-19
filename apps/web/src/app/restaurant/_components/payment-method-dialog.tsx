@@ -2,9 +2,16 @@
 
 import { FormEvent, useEffect, useState } from "react";
 import { isReceiptPrinterEnabled } from "@/lib/restaurant-printer-settings";
+import { API_URL, authenticatedFetch } from "@/lib/api";
+import {
+  isRegularRestaurantPaymentMethod,
+  regularRestaurantPaymentOptions,
+  tilopayPreparationMessage,
+  type RegularRestaurantPaymentMethod,
+} from "@/lib/restaurant-payment-options";
 
 export type RestaurantPaymentDetails = {
-  paymentMethod: "CASH" | "SINPE" | "CARD" | "OTHER";
+  paymentMethod: RegularRestaurantPaymentMethod;
   paymentReference?: string;
 };
 
@@ -24,12 +31,32 @@ export function PaymentMethodDialog({
     useState<RestaurantPaymentDetails["paymentMethod"]>("CASH");
   const [paymentReference, setPaymentReference] = useState("");
   const [printReceipt, setPrintReceipt] = useState(false);
+  const [tilopayMessage, setTilopayMessage] = useState(
+    "Tilopay está pendiente de activación. Puede cobrar con los métodos regulares.",
+  );
 
   useEffect(() => {
     if (!open) return;
     setPaymentMethod("CASH");
     setPaymentReference("");
     setPrintReceipt(isReceiptPrinterEnabled());
+    setTilopayMessage(
+      "Tilopay está pendiente de activación. Puede cobrar con los métodos regulares.",
+    );
+    const controller = new AbortController();
+    void authenticatedFetch(`${API_URL}/api/v1/restaurant/payment-options`, {
+      signal: controller.signal,
+    })
+      .then(async (response) => (response.ok ? response.json() : null))
+      .then((body: unknown) => {
+        if (!controller.signal.aborted)
+          setTilopayMessage(tilopayPreparationMessage(body));
+      })
+      .catch(() => {
+        if (!controller.signal.aborted)
+          setTilopayMessage(tilopayPreparationMessage(null));
+      });
+    return () => controller.abort();
   }, [open]);
 
   if (!open) return null;
@@ -54,7 +81,7 @@ export function PaymentMethodDialog({
     >
       <form
         onSubmit={submit}
-        className="w-full max-w-md rounded-2xl bg-white p-6 text-slate-950 shadow-2xl"
+        className="max-h-[calc(100dvh-2rem)] w-full max-w-md overflow-y-auto rounded-2xl bg-white p-6 text-slate-950 shadow-2xl"
       >
         <h2 id="payment-method-title" className="text-2xl font-black">
           Registrar cobro y cerrar cuenta
@@ -66,19 +93,33 @@ export function PaymentMethodDialog({
           Método de cobro
           <select
             value={paymentMethod}
-            onChange={(event) =>
-              setPaymentMethod(
-                event.target.value as RestaurantPaymentDetails["paymentMethod"],
-              )
-            }
+            onChange={(event) => {
+              if (isRegularRestaurantPaymentMethod(event.target.value)) {
+                setPaymentMethod(event.target.value);
+              }
+            }}
             className="mt-2 w-full rounded-lg border p-3"
           >
-            <option value="CASH">Efectivo</option>
-            <option value="SINPE">SINPE</option>
-            <option value="CARD">Tarjeta</option>
-            <option value="OTHER">Otro</option>
+            <optgroup label="Pagos regulares">
+              {regularRestaurantPaymentOptions.map((option) => (
+                <option key={option.code} value={option.code}>
+                  {option.label}
+                </option>
+              ))}
+            </optgroup>
+            <optgroup label="Pago por plataforma">
+              <option value="TILOPAY" disabled>
+                Tilopay — pendiente de activación
+              </option>
+            </optgroup>
           </select>
         </label>
+        <div className="mt-4 rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm">
+          <p className="font-bold">Pagos por Tilopay</p>
+          <p role="status" className="mt-1 text-slate-600">
+            {tilopayMessage}
+          </p>
+        </div>
         {paymentMethod !== "CASH" && (
           <label className="mt-4 block font-semibold">
             Referencia del cobro

@@ -64,6 +64,7 @@ import {
 import { RestaurantActor, RestaurantService } from "./restaurant.service";
 import { RestaurantCashService } from "./restaurant-cash.service";
 import { RestaurantAccessGuard } from "./restaurant-access.guard";
+import { restaurantPaymentOptions } from "./restaurant-payment-options";
 import { UsersService } from "../users/users.service";
 import { RestaurantStaffRole, UserRole } from "../generated/prisma/enums";
 
@@ -160,6 +161,11 @@ export class RestaurantStaffController {
   @Get("profile")
   profile(@Req() req: StaffRequest) {
     return this.restaurant.profile(req.user);
+  }
+
+  @Get("payment-options")
+  paymentOptions() {
+    return restaurantPaymentOptions();
   }
 
   @Get("cash-registers/current")
