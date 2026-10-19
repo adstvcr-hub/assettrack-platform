@@ -25,6 +25,7 @@ Los cierres históricos sellados conservan sus fechas y totales. Esta migración
 
 - `pnpm --filter @assettrack/api test`: pruebas unitarias del servicio.
 - `pnpm --filter @assettrack/api test:cash-days`: integración con PostgreSQL. Requiere `DATABASE_URL` y un rol local con permiso `CREATEDB`. Crea una base temporal aislada, aplica las migraciones anteriores, inserta datos de una caja pendiente y un cierre histórico, aplica la nueva migración y prueba el flujo real. Elimina únicamente su base temporal al terminar.
+- `pnpm --filter @assettrack/api start`: aplica las migraciones con la configuración del repositorio y arranca la API. La comprobación `GET /api/v1/health` debe devolver `status: ok`. La dependencia directa `dotenv` permite cargar la configuración de Prisma durante generación y arranque.
 - `pnpm --filter @assettrack/api build`, `pnpm --filter web typecheck`, `pnpm --filter web build` y `pnpm lint`.
 
 La integración cubre jornadas de varios días, relevos, fecha local cerca de medianoche UTC, zona horaria congelada, autorización para continuar, pagos del día siguiente incluidos en el cierre original, nueva apertura, entregas de domicilio, cierre repetido y cobro concurrente con cierre final.
