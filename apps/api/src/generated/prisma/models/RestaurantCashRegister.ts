@@ -191,6 +191,7 @@ export type RestaurantCashRegisterWhereInput = {
   createdAt?: Prisma.DateTimeFilter<"RestaurantCashRegister"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"RestaurantCashRegister"> | Date | string
   organization?: Prisma.XOR<Prisma.OrganizationScalarRelationFilter, Prisma.OrganizationWhereInput>
+  days?: Prisma.RestaurantCashDayListRelationFilter
   sessions?: Prisma.RestaurantCashSessionListRelationFilter
   dayCloses?: Prisma.RestaurantCashDayCloseListRelationFilter
 }
@@ -203,6 +204,7 @@ export type RestaurantCashRegisterOrderByWithRelationInput = {
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   organization?: Prisma.OrganizationOrderByWithRelationInput
+  days?: Prisma.RestaurantCashDayOrderByRelationAggregateInput
   sessions?: Prisma.RestaurantCashSessionOrderByRelationAggregateInput
   dayCloses?: Prisma.RestaurantCashDayCloseOrderByRelationAggregateInput
 }
@@ -219,6 +221,7 @@ export type RestaurantCashRegisterWhereUniqueInput = Prisma.AtLeast<{
   createdAt?: Prisma.DateTimeFilter<"RestaurantCashRegister"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"RestaurantCashRegister"> | Date | string
   organization?: Prisma.XOR<Prisma.OrganizationScalarRelationFilter, Prisma.OrganizationWhereInput>
+  days?: Prisma.RestaurantCashDayListRelationFilter
   sessions?: Prisma.RestaurantCashSessionListRelationFilter
   dayCloses?: Prisma.RestaurantCashDayCloseListRelationFilter
 }, "id" | "organizationId_name">
@@ -254,6 +257,7 @@ export type RestaurantCashRegisterCreateInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   organization: Prisma.OrganizationCreateNestedOneWithoutRestaurantCashRegistersInput
+  days?: Prisma.RestaurantCashDayCreateNestedManyWithoutCashRegisterInput
   sessions?: Prisma.RestaurantCashSessionCreateNestedManyWithoutCashRegisterInput
   dayCloses?: Prisma.RestaurantCashDayCloseCreateNestedManyWithoutCashRegisterInput
 }
@@ -265,6 +269,7 @@ export type RestaurantCashRegisterUncheckedCreateInput = {
   active?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  days?: Prisma.RestaurantCashDayUncheckedCreateNestedManyWithoutCashRegisterInput
   sessions?: Prisma.RestaurantCashSessionUncheckedCreateNestedManyWithoutCashRegisterInput
   dayCloses?: Prisma.RestaurantCashDayCloseUncheckedCreateNestedManyWithoutCashRegisterInput
 }
@@ -276,6 +281,7 @@ export type RestaurantCashRegisterUpdateInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutRestaurantCashRegistersNestedInput
+  days?: Prisma.RestaurantCashDayUpdateManyWithoutCashRegisterNestedInput
   sessions?: Prisma.RestaurantCashSessionUpdateManyWithoutCashRegisterNestedInput
   dayCloses?: Prisma.RestaurantCashDayCloseUpdateManyWithoutCashRegisterNestedInput
 }
@@ -287,6 +293,7 @@ export type RestaurantCashRegisterUncheckedUpdateInput = {
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  days?: Prisma.RestaurantCashDayUncheckedUpdateManyWithoutCashRegisterNestedInput
   sessions?: Prisma.RestaurantCashSessionUncheckedUpdateManyWithoutCashRegisterNestedInput
   dayCloses?: Prisma.RestaurantCashDayCloseUncheckedUpdateManyWithoutCashRegisterNestedInput
 }
@@ -406,6 +413,20 @@ export type RestaurantCashRegisterUncheckedUpdateManyWithoutOrganizationNestedIn
   deleteMany?: Prisma.RestaurantCashRegisterScalarWhereInput | Prisma.RestaurantCashRegisterScalarWhereInput[]
 }
 
+export type RestaurantCashRegisterCreateNestedOneWithoutDaysInput = {
+  create?: Prisma.XOR<Prisma.RestaurantCashRegisterCreateWithoutDaysInput, Prisma.RestaurantCashRegisterUncheckedCreateWithoutDaysInput>
+  connectOrCreate?: Prisma.RestaurantCashRegisterCreateOrConnectWithoutDaysInput
+  connect?: Prisma.RestaurantCashRegisterWhereUniqueInput
+}
+
+export type RestaurantCashRegisterUpdateOneRequiredWithoutDaysNestedInput = {
+  create?: Prisma.XOR<Prisma.RestaurantCashRegisterCreateWithoutDaysInput, Prisma.RestaurantCashRegisterUncheckedCreateWithoutDaysInput>
+  connectOrCreate?: Prisma.RestaurantCashRegisterCreateOrConnectWithoutDaysInput
+  upsert?: Prisma.RestaurantCashRegisterUpsertWithoutDaysInput
+  connect?: Prisma.RestaurantCashRegisterWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.RestaurantCashRegisterUpdateToOneWithWhereWithoutDaysInput, Prisma.RestaurantCashRegisterUpdateWithoutDaysInput>, Prisma.RestaurantCashRegisterUncheckedUpdateWithoutDaysInput>
+}
+
 export type RestaurantCashRegisterCreateNestedOneWithoutSessionsInput = {
   create?: Prisma.XOR<Prisma.RestaurantCashRegisterCreateWithoutSessionsInput, Prisma.RestaurantCashRegisterUncheckedCreateWithoutSessionsInput>
   connectOrCreate?: Prisma.RestaurantCashRegisterCreateOrConnectWithoutSessionsInput
@@ -440,6 +461,7 @@ export type RestaurantCashRegisterCreateWithoutOrganizationInput = {
   active?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  days?: Prisma.RestaurantCashDayCreateNestedManyWithoutCashRegisterInput
   sessions?: Prisma.RestaurantCashSessionCreateNestedManyWithoutCashRegisterInput
   dayCloses?: Prisma.RestaurantCashDayCloseCreateNestedManyWithoutCashRegisterInput
 }
@@ -450,6 +472,7 @@ export type RestaurantCashRegisterUncheckedCreateWithoutOrganizationInput = {
   active?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  days?: Prisma.RestaurantCashDayUncheckedCreateNestedManyWithoutCashRegisterInput
   sessions?: Prisma.RestaurantCashSessionUncheckedCreateNestedManyWithoutCashRegisterInput
   dayCloses?: Prisma.RestaurantCashDayCloseUncheckedCreateNestedManyWithoutCashRegisterInput
 }
@@ -492,6 +515,66 @@ export type RestaurantCashRegisterScalarWhereInput = {
   updatedAt?: Prisma.DateTimeFilter<"RestaurantCashRegister"> | Date | string
 }
 
+export type RestaurantCashRegisterCreateWithoutDaysInput = {
+  id?: string
+  name: string
+  active?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  organization: Prisma.OrganizationCreateNestedOneWithoutRestaurantCashRegistersInput
+  sessions?: Prisma.RestaurantCashSessionCreateNestedManyWithoutCashRegisterInput
+  dayCloses?: Prisma.RestaurantCashDayCloseCreateNestedManyWithoutCashRegisterInput
+}
+
+export type RestaurantCashRegisterUncheckedCreateWithoutDaysInput = {
+  id?: string
+  organizationId: string
+  name: string
+  active?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  sessions?: Prisma.RestaurantCashSessionUncheckedCreateNestedManyWithoutCashRegisterInput
+  dayCloses?: Prisma.RestaurantCashDayCloseUncheckedCreateNestedManyWithoutCashRegisterInput
+}
+
+export type RestaurantCashRegisterCreateOrConnectWithoutDaysInput = {
+  where: Prisma.RestaurantCashRegisterWhereUniqueInput
+  create: Prisma.XOR<Prisma.RestaurantCashRegisterCreateWithoutDaysInput, Prisma.RestaurantCashRegisterUncheckedCreateWithoutDaysInput>
+}
+
+export type RestaurantCashRegisterUpsertWithoutDaysInput = {
+  update: Prisma.XOR<Prisma.RestaurantCashRegisterUpdateWithoutDaysInput, Prisma.RestaurantCashRegisterUncheckedUpdateWithoutDaysInput>
+  create: Prisma.XOR<Prisma.RestaurantCashRegisterCreateWithoutDaysInput, Prisma.RestaurantCashRegisterUncheckedCreateWithoutDaysInput>
+  where?: Prisma.RestaurantCashRegisterWhereInput
+}
+
+export type RestaurantCashRegisterUpdateToOneWithWhereWithoutDaysInput = {
+  where?: Prisma.RestaurantCashRegisterWhereInput
+  data: Prisma.XOR<Prisma.RestaurantCashRegisterUpdateWithoutDaysInput, Prisma.RestaurantCashRegisterUncheckedUpdateWithoutDaysInput>
+}
+
+export type RestaurantCashRegisterUpdateWithoutDaysInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  organization?: Prisma.OrganizationUpdateOneRequiredWithoutRestaurantCashRegistersNestedInput
+  sessions?: Prisma.RestaurantCashSessionUpdateManyWithoutCashRegisterNestedInput
+  dayCloses?: Prisma.RestaurantCashDayCloseUpdateManyWithoutCashRegisterNestedInput
+}
+
+export type RestaurantCashRegisterUncheckedUpdateWithoutDaysInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  organizationId?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  sessions?: Prisma.RestaurantCashSessionUncheckedUpdateManyWithoutCashRegisterNestedInput
+  dayCloses?: Prisma.RestaurantCashDayCloseUncheckedUpdateManyWithoutCashRegisterNestedInput
+}
+
 export type RestaurantCashRegisterCreateWithoutSessionsInput = {
   id?: string
   name: string
@@ -499,6 +582,7 @@ export type RestaurantCashRegisterCreateWithoutSessionsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   organization: Prisma.OrganizationCreateNestedOneWithoutRestaurantCashRegistersInput
+  days?: Prisma.RestaurantCashDayCreateNestedManyWithoutCashRegisterInput
   dayCloses?: Prisma.RestaurantCashDayCloseCreateNestedManyWithoutCashRegisterInput
 }
 
@@ -509,6 +593,7 @@ export type RestaurantCashRegisterUncheckedCreateWithoutSessionsInput = {
   active?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  days?: Prisma.RestaurantCashDayUncheckedCreateNestedManyWithoutCashRegisterInput
   dayCloses?: Prisma.RestaurantCashDayCloseUncheckedCreateNestedManyWithoutCashRegisterInput
 }
 
@@ -535,6 +620,7 @@ export type RestaurantCashRegisterUpdateWithoutSessionsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutRestaurantCashRegistersNestedInput
+  days?: Prisma.RestaurantCashDayUpdateManyWithoutCashRegisterNestedInput
   dayCloses?: Prisma.RestaurantCashDayCloseUpdateManyWithoutCashRegisterNestedInput
 }
 
@@ -545,6 +631,7 @@ export type RestaurantCashRegisterUncheckedUpdateWithoutSessionsInput = {
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  days?: Prisma.RestaurantCashDayUncheckedUpdateManyWithoutCashRegisterNestedInput
   dayCloses?: Prisma.RestaurantCashDayCloseUncheckedUpdateManyWithoutCashRegisterNestedInput
 }
 
@@ -555,6 +642,7 @@ export type RestaurantCashRegisterCreateWithoutDayClosesInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   organization: Prisma.OrganizationCreateNestedOneWithoutRestaurantCashRegistersInput
+  days?: Prisma.RestaurantCashDayCreateNestedManyWithoutCashRegisterInput
   sessions?: Prisma.RestaurantCashSessionCreateNestedManyWithoutCashRegisterInput
 }
 
@@ -565,6 +653,7 @@ export type RestaurantCashRegisterUncheckedCreateWithoutDayClosesInput = {
   active?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  days?: Prisma.RestaurantCashDayUncheckedCreateNestedManyWithoutCashRegisterInput
   sessions?: Prisma.RestaurantCashSessionUncheckedCreateNestedManyWithoutCashRegisterInput
 }
 
@@ -591,6 +680,7 @@ export type RestaurantCashRegisterUpdateWithoutDayClosesInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutRestaurantCashRegistersNestedInput
+  days?: Prisma.RestaurantCashDayUpdateManyWithoutCashRegisterNestedInput
   sessions?: Prisma.RestaurantCashSessionUpdateManyWithoutCashRegisterNestedInput
 }
 
@@ -601,6 +691,7 @@ export type RestaurantCashRegisterUncheckedUpdateWithoutDayClosesInput = {
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  days?: Prisma.RestaurantCashDayUncheckedUpdateManyWithoutCashRegisterNestedInput
   sessions?: Prisma.RestaurantCashSessionUncheckedUpdateManyWithoutCashRegisterNestedInput
 }
 
@@ -618,6 +709,7 @@ export type RestaurantCashRegisterUpdateWithoutOrganizationInput = {
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  days?: Prisma.RestaurantCashDayUpdateManyWithoutCashRegisterNestedInput
   sessions?: Prisma.RestaurantCashSessionUpdateManyWithoutCashRegisterNestedInput
   dayCloses?: Prisma.RestaurantCashDayCloseUpdateManyWithoutCashRegisterNestedInput
 }
@@ -628,6 +720,7 @@ export type RestaurantCashRegisterUncheckedUpdateWithoutOrganizationInput = {
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  days?: Prisma.RestaurantCashDayUncheckedUpdateManyWithoutCashRegisterNestedInput
   sessions?: Prisma.RestaurantCashSessionUncheckedUpdateManyWithoutCashRegisterNestedInput
   dayCloses?: Prisma.RestaurantCashDayCloseUncheckedUpdateManyWithoutCashRegisterNestedInput
 }
@@ -646,11 +739,13 @@ export type RestaurantCashRegisterUncheckedUpdateManyWithoutOrganizationInput = 
  */
 
 export type RestaurantCashRegisterCountOutputType = {
+  days: number
   sessions: number
   dayCloses: number
 }
 
 export type RestaurantCashRegisterCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  days?: boolean | RestaurantCashRegisterCountOutputTypeCountDaysArgs
   sessions?: boolean | RestaurantCashRegisterCountOutputTypeCountSessionsArgs
   dayCloses?: boolean | RestaurantCashRegisterCountOutputTypeCountDayClosesArgs
 }
@@ -663,6 +758,13 @@ export type RestaurantCashRegisterCountOutputTypeDefaultArgs<ExtArgs extends run
    * Select specific fields to fetch from the RestaurantCashRegisterCountOutputType
    */
   select?: Prisma.RestaurantCashRegisterCountOutputTypeSelect<ExtArgs> | null
+}
+
+/**
+ * RestaurantCashRegisterCountOutputType without action
+ */
+export type RestaurantCashRegisterCountOutputTypeCountDaysArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.RestaurantCashDayWhereInput
 }
 
 /**
@@ -688,6 +790,7 @@ export type RestaurantCashRegisterSelect<ExtArgs extends runtime.Types.Extension
   createdAt?: boolean
   updatedAt?: boolean
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
+  days?: boolean | Prisma.RestaurantCashRegister$daysArgs<ExtArgs>
   sessions?: boolean | Prisma.RestaurantCashRegister$sessionsArgs<ExtArgs>
   dayCloses?: boolean | Prisma.RestaurantCashRegister$dayClosesArgs<ExtArgs>
   _count?: boolean | Prisma.RestaurantCashRegisterCountOutputTypeDefaultArgs<ExtArgs>
@@ -725,6 +828,7 @@ export type RestaurantCashRegisterSelectScalar = {
 export type RestaurantCashRegisterOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "organizationId" | "name" | "active" | "createdAt" | "updatedAt", ExtArgs["result"]["restaurantCashRegister"]>
 export type RestaurantCashRegisterInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
+  days?: boolean | Prisma.RestaurantCashRegister$daysArgs<ExtArgs>
   sessions?: boolean | Prisma.RestaurantCashRegister$sessionsArgs<ExtArgs>
   dayCloses?: boolean | Prisma.RestaurantCashRegister$dayClosesArgs<ExtArgs>
   _count?: boolean | Prisma.RestaurantCashRegisterCountOutputTypeDefaultArgs<ExtArgs>
@@ -740,6 +844,7 @@ export type $RestaurantCashRegisterPayload<ExtArgs extends runtime.Types.Extensi
   name: "RestaurantCashRegister"
   objects: {
     organization: Prisma.$OrganizationPayload<ExtArgs>
+    days: Prisma.$RestaurantCashDayPayload<ExtArgs>[]
     sessions: Prisma.$RestaurantCashSessionPayload<ExtArgs>[]
     dayCloses: Prisma.$RestaurantCashDayClosePayload<ExtArgs>[]
   }
@@ -1145,6 +1250,7 @@ readonly fields: RestaurantCashRegisterFieldRefs;
 export interface Prisma__RestaurantCashRegisterClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
   organization<T extends Prisma.OrganizationDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.OrganizationDefaultArgs<ExtArgs>>): Prisma.Prisma__OrganizationClient<runtime.Types.Result.GetResult<Prisma.$OrganizationPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+  days<T extends Prisma.RestaurantCashRegister$daysArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.RestaurantCashRegister$daysArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$RestaurantCashDayPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   sessions<T extends Prisma.RestaurantCashRegister$sessionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.RestaurantCashRegister$sessionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$RestaurantCashSessionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   dayCloses<T extends Prisma.RestaurantCashRegister$dayClosesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.RestaurantCashRegister$dayClosesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$RestaurantCashDayClosePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
@@ -1580,6 +1686,30 @@ export type RestaurantCashRegisterDeleteManyArgs<ExtArgs extends runtime.Types.E
    * Limit how many RestaurantCashRegisters to delete.
    */
   limit?: number
+}
+
+/**
+ * RestaurantCashRegister.days
+ */
+export type RestaurantCashRegister$daysArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the RestaurantCashDay
+   */
+  select?: Prisma.RestaurantCashDaySelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the RestaurantCashDay
+   */
+  omit?: Prisma.RestaurantCashDayOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.RestaurantCashDayInclude<ExtArgs> | null
+  where?: Prisma.RestaurantCashDayWhereInput
+  orderBy?: Prisma.RestaurantCashDayOrderByWithRelationInput | Prisma.RestaurantCashDayOrderByWithRelationInput[]
+  cursor?: Prisma.RestaurantCashDayWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.RestaurantCashDayScalarFieldEnum | Prisma.RestaurantCashDayScalarFieldEnum[]
 }
 
 /**

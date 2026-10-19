@@ -37,6 +37,8 @@ export type RestaurantVisitSumAggregateOutputType = {
 }
 
 export type RestaurantVisitMinAggregateOutputType = {
+  cashDayId: string | null
+  cashSessionId: string | null
   id: string | null
   organizationId: string | null
   tableId: string | null
@@ -75,6 +77,8 @@ export type RestaurantVisitMinAggregateOutputType = {
 }
 
 export type RestaurantVisitMaxAggregateOutputType = {
+  cashDayId: string | null
+  cashSessionId: string | null
   id: string | null
   organizationId: string | null
   tableId: string | null
@@ -113,6 +117,8 @@ export type RestaurantVisitMaxAggregateOutputType = {
 }
 
 export type RestaurantVisitCountAggregateOutputType = {
+  cashDayId: number
+  cashSessionId: number
   id: number
   organizationId: number
   tableId: number
@@ -163,6 +169,8 @@ export type RestaurantVisitSumAggregateInputType = {
 }
 
 export type RestaurantVisitMinAggregateInputType = {
+  cashDayId?: true
+  cashSessionId?: true
   id?: true
   organizationId?: true
   tableId?: true
@@ -201,6 +209,8 @@ export type RestaurantVisitMinAggregateInputType = {
 }
 
 export type RestaurantVisitMaxAggregateInputType = {
+  cashDayId?: true
+  cashSessionId?: true
   id?: true
   organizationId?: true
   tableId?: true
@@ -239,6 +249,8 @@ export type RestaurantVisitMaxAggregateInputType = {
 }
 
 export type RestaurantVisitCountAggregateInputType = {
+  cashDayId?: true
+  cashSessionId?: true
   id?: true
   organizationId?: true
   tableId?: true
@@ -364,6 +376,8 @@ export type RestaurantVisitGroupByArgs<ExtArgs extends runtime.Types.Extensions.
 }
 
 export type RestaurantVisitGroupByOutputType = {
+  cashDayId: string | null
+  cashSessionId: string | null
   id: string
   organizationId: string
   tableId: string
@@ -425,6 +439,8 @@ export type RestaurantVisitWhereInput = {
   AND?: Prisma.RestaurantVisitWhereInput | Prisma.RestaurantVisitWhereInput[]
   OR?: Prisma.RestaurantVisitWhereInput[]
   NOT?: Prisma.RestaurantVisitWhereInput | Prisma.RestaurantVisitWhereInput[]
+  cashDayId?: Prisma.StringNullableFilter<"RestaurantVisit"> | string | null
+  cashSessionId?: Prisma.StringNullableFilter<"RestaurantVisit"> | string | null
   id?: Prisma.StringFilter<"RestaurantVisit"> | string
   organizationId?: Prisma.StringFilter<"RestaurantVisit"> | string
   tableId?: Prisma.StringFilter<"RestaurantVisit"> | string
@@ -460,6 +476,8 @@ export type RestaurantVisitWhereInput = {
   receiptNumber?: Prisma.StringNullableFilter<"RestaurantVisit"> | string | null
   openedAnalyticsConsolidatedAt?: Prisma.DateTimeNullableFilter<"RestaurantVisit"> | Date | string | null
   closedAnalyticsConsolidatedAt?: Prisma.DateTimeNullableFilter<"RestaurantVisit"> | Date | string | null
+  cashDay?: Prisma.XOR<Prisma.RestaurantCashDayNullableScalarRelationFilter, Prisma.RestaurantCashDayWhereInput> | null
+  cashSession?: Prisma.XOR<Prisma.RestaurantCashSessionNullableScalarRelationFilter, Prisma.RestaurantCashSessionWhereInput> | null
   organization?: Prisma.XOR<Prisma.OrganizationScalarRelationFilter, Prisma.OrganizationWhereInput>
   table?: Prisma.XOR<Prisma.RestaurantTableScalarRelationFilter, Prisma.RestaurantTableWhereInput>
   responsibleStaff?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
@@ -470,6 +488,8 @@ export type RestaurantVisitWhereInput = {
 }
 
 export type RestaurantVisitOrderByWithRelationInput = {
+  cashDayId?: Prisma.SortOrderInput | Prisma.SortOrder
+  cashSessionId?: Prisma.SortOrderInput | Prisma.SortOrder
   id?: Prisma.SortOrder
   organizationId?: Prisma.SortOrder
   tableId?: Prisma.SortOrder
@@ -505,6 +525,8 @@ export type RestaurantVisitOrderByWithRelationInput = {
   receiptNumber?: Prisma.SortOrderInput | Prisma.SortOrder
   openedAnalyticsConsolidatedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   closedAnalyticsConsolidatedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  cashDay?: Prisma.RestaurantCashDayOrderByWithRelationInput
+  cashSession?: Prisma.RestaurantCashSessionOrderByWithRelationInput
   organization?: Prisma.OrganizationOrderByWithRelationInput
   table?: Prisma.RestaurantTableOrderByWithRelationInput
   responsibleStaff?: Prisma.UserOrderByWithRelationInput
@@ -521,6 +543,8 @@ export type RestaurantVisitWhereUniqueInput = Prisma.AtLeast<{
   AND?: Prisma.RestaurantVisitWhereInput | Prisma.RestaurantVisitWhereInput[]
   OR?: Prisma.RestaurantVisitWhereInput[]
   NOT?: Prisma.RestaurantVisitWhereInput | Prisma.RestaurantVisitWhereInput[]
+  cashDayId?: Prisma.StringNullableFilter<"RestaurantVisit"> | string | null
+  cashSessionId?: Prisma.StringNullableFilter<"RestaurantVisit"> | string | null
   organizationId?: Prisma.StringFilter<"RestaurantVisit"> | string
   tableId?: Prisma.StringFilter<"RestaurantVisit"> | string
   status?: Prisma.EnumRestaurantVisitStatusFilter<"RestaurantVisit"> | $Enums.RestaurantVisitStatus
@@ -553,6 +577,8 @@ export type RestaurantVisitWhereUniqueInput = Prisma.AtLeast<{
   fallbackStaffId?: Prisma.StringNullableFilter<"RestaurantVisit"> | string | null
   openedAnalyticsConsolidatedAt?: Prisma.DateTimeNullableFilter<"RestaurantVisit"> | Date | string | null
   closedAnalyticsConsolidatedAt?: Prisma.DateTimeNullableFilter<"RestaurantVisit"> | Date | string | null
+  cashDay?: Prisma.XOR<Prisma.RestaurantCashDayNullableScalarRelationFilter, Prisma.RestaurantCashDayWhereInput> | null
+  cashSession?: Prisma.XOR<Prisma.RestaurantCashSessionNullableScalarRelationFilter, Prisma.RestaurantCashSessionWhereInput> | null
   organization?: Prisma.XOR<Prisma.OrganizationScalarRelationFilter, Prisma.OrganizationWhereInput>
   table?: Prisma.XOR<Prisma.RestaurantTableScalarRelationFilter, Prisma.RestaurantTableWhereInput>
   responsibleStaff?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
@@ -563,6 +589,8 @@ export type RestaurantVisitWhereUniqueInput = Prisma.AtLeast<{
 }, "id" | "accessCode" | "receiptNumber">
 
 export type RestaurantVisitOrderByWithAggregationInput = {
+  cashDayId?: Prisma.SortOrderInput | Prisma.SortOrder
+  cashSessionId?: Prisma.SortOrderInput | Prisma.SortOrder
   id?: Prisma.SortOrder
   organizationId?: Prisma.SortOrder
   tableId?: Prisma.SortOrder
@@ -609,6 +637,8 @@ export type RestaurantVisitScalarWhereWithAggregatesInput = {
   AND?: Prisma.RestaurantVisitScalarWhereWithAggregatesInput | Prisma.RestaurantVisitScalarWhereWithAggregatesInput[]
   OR?: Prisma.RestaurantVisitScalarWhereWithAggregatesInput[]
   NOT?: Prisma.RestaurantVisitScalarWhereWithAggregatesInput | Prisma.RestaurantVisitScalarWhereWithAggregatesInput[]
+  cashDayId?: Prisma.StringNullableWithAggregatesFilter<"RestaurantVisit"> | string | null
+  cashSessionId?: Prisma.StringNullableWithAggregatesFilter<"RestaurantVisit"> | string | null
   id?: Prisma.StringWithAggregatesFilter<"RestaurantVisit"> | string
   organizationId?: Prisma.StringWithAggregatesFilter<"RestaurantVisit"> | string
   tableId?: Prisma.StringWithAggregatesFilter<"RestaurantVisit"> | string
@@ -678,6 +708,8 @@ export type RestaurantVisitCreateInput = {
   receiptNumber?: string | null
   openedAnalyticsConsolidatedAt?: Date | string | null
   closedAnalyticsConsolidatedAt?: Date | string | null
+  cashDay?: Prisma.RestaurantCashDayCreateNestedOneWithoutVisitsInput
+  cashSession?: Prisma.RestaurantCashSessionCreateNestedOneWithoutVisitsInput
   organization: Prisma.OrganizationCreateNestedOneWithoutRestaurantVisitsInput
   table: Prisma.RestaurantTableCreateNestedOneWithoutVisitsInput
   responsibleStaff?: Prisma.UserCreateNestedOneWithoutResponsibleRestaurantVisitsInput
@@ -688,6 +720,8 @@ export type RestaurantVisitCreateInput = {
 }
 
 export type RestaurantVisitUncheckedCreateInput = {
+  cashDayId?: string | null
+  cashSessionId?: string | null
   id?: string
   organizationId: string
   tableId: string
@@ -760,6 +794,8 @@ export type RestaurantVisitUpdateInput = {
   receiptNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   openedAnalyticsConsolidatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   closedAnalyticsConsolidatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  cashDay?: Prisma.RestaurantCashDayUpdateOneWithoutVisitsNestedInput
+  cashSession?: Prisma.RestaurantCashSessionUpdateOneWithoutVisitsNestedInput
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutRestaurantVisitsNestedInput
   table?: Prisma.RestaurantTableUpdateOneRequiredWithoutVisitsNestedInput
   responsibleStaff?: Prisma.UserUpdateOneWithoutResponsibleRestaurantVisitsNestedInput
@@ -770,6 +806,8 @@ export type RestaurantVisitUpdateInput = {
 }
 
 export type RestaurantVisitUncheckedUpdateInput = {
+  cashDayId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cashSessionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   id?: Prisma.StringFieldUpdateOperationsInput | string
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   tableId?: Prisma.StringFieldUpdateOperationsInput | string
@@ -811,6 +849,8 @@ export type RestaurantVisitUncheckedUpdateInput = {
 }
 
 export type RestaurantVisitCreateManyInput = {
+  cashDayId?: string | null
+  cashSessionId?: string | null
   id?: string
   organizationId: string
   tableId: string
@@ -883,6 +923,8 @@ export type RestaurantVisitUpdateManyMutationInput = {
 }
 
 export type RestaurantVisitUncheckedUpdateManyInput = {
+  cashDayId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cashSessionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   id?: Prisma.StringFieldUpdateOperationsInput | string
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   tableId?: Prisma.StringFieldUpdateOperationsInput | string
@@ -931,6 +973,8 @@ export type RestaurantVisitOrderByRelationAggregateInput = {
 }
 
 export type RestaurantVisitCountOrderByAggregateInput = {
+  cashDayId?: Prisma.SortOrder
+  cashSessionId?: Prisma.SortOrder
   id?: Prisma.SortOrder
   organizationId?: Prisma.SortOrder
   tableId?: Prisma.SortOrder
@@ -974,6 +1018,8 @@ export type RestaurantVisitAvgOrderByAggregateInput = {
 }
 
 export type RestaurantVisitMaxOrderByAggregateInput = {
+  cashDayId?: Prisma.SortOrder
+  cashSessionId?: Prisma.SortOrder
   id?: Prisma.SortOrder
   organizationId?: Prisma.SortOrder
   tableId?: Prisma.SortOrder
@@ -1012,6 +1058,8 @@ export type RestaurantVisitMaxOrderByAggregateInput = {
 }
 
 export type RestaurantVisitMinOrderByAggregateInput = {
+  cashDayId?: Prisma.SortOrder
+  cashSessionId?: Prisma.SortOrder
   id?: Prisma.SortOrder
   organizationId?: Prisma.SortOrder
   tableId?: Prisma.SortOrder
@@ -1218,6 +1266,90 @@ export type RestaurantVisitUpdateOneWithoutOrdersNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.RestaurantVisitUpdateToOneWithWhereWithoutOrdersInput, Prisma.RestaurantVisitUpdateWithoutOrdersInput>, Prisma.RestaurantVisitUncheckedUpdateWithoutOrdersInput>
 }
 
+export type RestaurantVisitCreateNestedManyWithoutCashDayInput = {
+  create?: Prisma.XOR<Prisma.RestaurantVisitCreateWithoutCashDayInput, Prisma.RestaurantVisitUncheckedCreateWithoutCashDayInput> | Prisma.RestaurantVisitCreateWithoutCashDayInput[] | Prisma.RestaurantVisitUncheckedCreateWithoutCashDayInput[]
+  connectOrCreate?: Prisma.RestaurantVisitCreateOrConnectWithoutCashDayInput | Prisma.RestaurantVisitCreateOrConnectWithoutCashDayInput[]
+  createMany?: Prisma.RestaurantVisitCreateManyCashDayInputEnvelope
+  connect?: Prisma.RestaurantVisitWhereUniqueInput | Prisma.RestaurantVisitWhereUniqueInput[]
+}
+
+export type RestaurantVisitUncheckedCreateNestedManyWithoutCashDayInput = {
+  create?: Prisma.XOR<Prisma.RestaurantVisitCreateWithoutCashDayInput, Prisma.RestaurantVisitUncheckedCreateWithoutCashDayInput> | Prisma.RestaurantVisitCreateWithoutCashDayInput[] | Prisma.RestaurantVisitUncheckedCreateWithoutCashDayInput[]
+  connectOrCreate?: Prisma.RestaurantVisitCreateOrConnectWithoutCashDayInput | Prisma.RestaurantVisitCreateOrConnectWithoutCashDayInput[]
+  createMany?: Prisma.RestaurantVisitCreateManyCashDayInputEnvelope
+  connect?: Prisma.RestaurantVisitWhereUniqueInput | Prisma.RestaurantVisitWhereUniqueInput[]
+}
+
+export type RestaurantVisitUpdateManyWithoutCashDayNestedInput = {
+  create?: Prisma.XOR<Prisma.RestaurantVisitCreateWithoutCashDayInput, Prisma.RestaurantVisitUncheckedCreateWithoutCashDayInput> | Prisma.RestaurantVisitCreateWithoutCashDayInput[] | Prisma.RestaurantVisitUncheckedCreateWithoutCashDayInput[]
+  connectOrCreate?: Prisma.RestaurantVisitCreateOrConnectWithoutCashDayInput | Prisma.RestaurantVisitCreateOrConnectWithoutCashDayInput[]
+  upsert?: Prisma.RestaurantVisitUpsertWithWhereUniqueWithoutCashDayInput | Prisma.RestaurantVisitUpsertWithWhereUniqueWithoutCashDayInput[]
+  createMany?: Prisma.RestaurantVisitCreateManyCashDayInputEnvelope
+  set?: Prisma.RestaurantVisitWhereUniqueInput | Prisma.RestaurantVisitWhereUniqueInput[]
+  disconnect?: Prisma.RestaurantVisitWhereUniqueInput | Prisma.RestaurantVisitWhereUniqueInput[]
+  delete?: Prisma.RestaurantVisitWhereUniqueInput | Prisma.RestaurantVisitWhereUniqueInput[]
+  connect?: Prisma.RestaurantVisitWhereUniqueInput | Prisma.RestaurantVisitWhereUniqueInput[]
+  update?: Prisma.RestaurantVisitUpdateWithWhereUniqueWithoutCashDayInput | Prisma.RestaurantVisitUpdateWithWhereUniqueWithoutCashDayInput[]
+  updateMany?: Prisma.RestaurantVisitUpdateManyWithWhereWithoutCashDayInput | Prisma.RestaurantVisitUpdateManyWithWhereWithoutCashDayInput[]
+  deleteMany?: Prisma.RestaurantVisitScalarWhereInput | Prisma.RestaurantVisitScalarWhereInput[]
+}
+
+export type RestaurantVisitUncheckedUpdateManyWithoutCashDayNestedInput = {
+  create?: Prisma.XOR<Prisma.RestaurantVisitCreateWithoutCashDayInput, Prisma.RestaurantVisitUncheckedCreateWithoutCashDayInput> | Prisma.RestaurantVisitCreateWithoutCashDayInput[] | Prisma.RestaurantVisitUncheckedCreateWithoutCashDayInput[]
+  connectOrCreate?: Prisma.RestaurantVisitCreateOrConnectWithoutCashDayInput | Prisma.RestaurantVisitCreateOrConnectWithoutCashDayInput[]
+  upsert?: Prisma.RestaurantVisitUpsertWithWhereUniqueWithoutCashDayInput | Prisma.RestaurantVisitUpsertWithWhereUniqueWithoutCashDayInput[]
+  createMany?: Prisma.RestaurantVisitCreateManyCashDayInputEnvelope
+  set?: Prisma.RestaurantVisitWhereUniqueInput | Prisma.RestaurantVisitWhereUniqueInput[]
+  disconnect?: Prisma.RestaurantVisitWhereUniqueInput | Prisma.RestaurantVisitWhereUniqueInput[]
+  delete?: Prisma.RestaurantVisitWhereUniqueInput | Prisma.RestaurantVisitWhereUniqueInput[]
+  connect?: Prisma.RestaurantVisitWhereUniqueInput | Prisma.RestaurantVisitWhereUniqueInput[]
+  update?: Prisma.RestaurantVisitUpdateWithWhereUniqueWithoutCashDayInput | Prisma.RestaurantVisitUpdateWithWhereUniqueWithoutCashDayInput[]
+  updateMany?: Prisma.RestaurantVisitUpdateManyWithWhereWithoutCashDayInput | Prisma.RestaurantVisitUpdateManyWithWhereWithoutCashDayInput[]
+  deleteMany?: Prisma.RestaurantVisitScalarWhereInput | Prisma.RestaurantVisitScalarWhereInput[]
+}
+
+export type RestaurantVisitCreateNestedManyWithoutCashSessionInput = {
+  create?: Prisma.XOR<Prisma.RestaurantVisitCreateWithoutCashSessionInput, Prisma.RestaurantVisitUncheckedCreateWithoutCashSessionInput> | Prisma.RestaurantVisitCreateWithoutCashSessionInput[] | Prisma.RestaurantVisitUncheckedCreateWithoutCashSessionInput[]
+  connectOrCreate?: Prisma.RestaurantVisitCreateOrConnectWithoutCashSessionInput | Prisma.RestaurantVisitCreateOrConnectWithoutCashSessionInput[]
+  createMany?: Prisma.RestaurantVisitCreateManyCashSessionInputEnvelope
+  connect?: Prisma.RestaurantVisitWhereUniqueInput | Prisma.RestaurantVisitWhereUniqueInput[]
+}
+
+export type RestaurantVisitUncheckedCreateNestedManyWithoutCashSessionInput = {
+  create?: Prisma.XOR<Prisma.RestaurantVisitCreateWithoutCashSessionInput, Prisma.RestaurantVisitUncheckedCreateWithoutCashSessionInput> | Prisma.RestaurantVisitCreateWithoutCashSessionInput[] | Prisma.RestaurantVisitUncheckedCreateWithoutCashSessionInput[]
+  connectOrCreate?: Prisma.RestaurantVisitCreateOrConnectWithoutCashSessionInput | Prisma.RestaurantVisitCreateOrConnectWithoutCashSessionInput[]
+  createMany?: Prisma.RestaurantVisitCreateManyCashSessionInputEnvelope
+  connect?: Prisma.RestaurantVisitWhereUniqueInput | Prisma.RestaurantVisitWhereUniqueInput[]
+}
+
+export type RestaurantVisitUpdateManyWithoutCashSessionNestedInput = {
+  create?: Prisma.XOR<Prisma.RestaurantVisitCreateWithoutCashSessionInput, Prisma.RestaurantVisitUncheckedCreateWithoutCashSessionInput> | Prisma.RestaurantVisitCreateWithoutCashSessionInput[] | Prisma.RestaurantVisitUncheckedCreateWithoutCashSessionInput[]
+  connectOrCreate?: Prisma.RestaurantVisitCreateOrConnectWithoutCashSessionInput | Prisma.RestaurantVisitCreateOrConnectWithoutCashSessionInput[]
+  upsert?: Prisma.RestaurantVisitUpsertWithWhereUniqueWithoutCashSessionInput | Prisma.RestaurantVisitUpsertWithWhereUniqueWithoutCashSessionInput[]
+  createMany?: Prisma.RestaurantVisitCreateManyCashSessionInputEnvelope
+  set?: Prisma.RestaurantVisitWhereUniqueInput | Prisma.RestaurantVisitWhereUniqueInput[]
+  disconnect?: Prisma.RestaurantVisitWhereUniqueInput | Prisma.RestaurantVisitWhereUniqueInput[]
+  delete?: Prisma.RestaurantVisitWhereUniqueInput | Prisma.RestaurantVisitWhereUniqueInput[]
+  connect?: Prisma.RestaurantVisitWhereUniqueInput | Prisma.RestaurantVisitWhereUniqueInput[]
+  update?: Prisma.RestaurantVisitUpdateWithWhereUniqueWithoutCashSessionInput | Prisma.RestaurantVisitUpdateWithWhereUniqueWithoutCashSessionInput[]
+  updateMany?: Prisma.RestaurantVisitUpdateManyWithWhereWithoutCashSessionInput | Prisma.RestaurantVisitUpdateManyWithWhereWithoutCashSessionInput[]
+  deleteMany?: Prisma.RestaurantVisitScalarWhereInput | Prisma.RestaurantVisitScalarWhereInput[]
+}
+
+export type RestaurantVisitUncheckedUpdateManyWithoutCashSessionNestedInput = {
+  create?: Prisma.XOR<Prisma.RestaurantVisitCreateWithoutCashSessionInput, Prisma.RestaurantVisitUncheckedCreateWithoutCashSessionInput> | Prisma.RestaurantVisitCreateWithoutCashSessionInput[] | Prisma.RestaurantVisitUncheckedCreateWithoutCashSessionInput[]
+  connectOrCreate?: Prisma.RestaurantVisitCreateOrConnectWithoutCashSessionInput | Prisma.RestaurantVisitCreateOrConnectWithoutCashSessionInput[]
+  upsert?: Prisma.RestaurantVisitUpsertWithWhereUniqueWithoutCashSessionInput | Prisma.RestaurantVisitUpsertWithWhereUniqueWithoutCashSessionInput[]
+  createMany?: Prisma.RestaurantVisitCreateManyCashSessionInputEnvelope
+  set?: Prisma.RestaurantVisitWhereUniqueInput | Prisma.RestaurantVisitWhereUniqueInput[]
+  disconnect?: Prisma.RestaurantVisitWhereUniqueInput | Prisma.RestaurantVisitWhereUniqueInput[]
+  delete?: Prisma.RestaurantVisitWhereUniqueInput | Prisma.RestaurantVisitWhereUniqueInput[]
+  connect?: Prisma.RestaurantVisitWhereUniqueInput | Prisma.RestaurantVisitWhereUniqueInput[]
+  update?: Prisma.RestaurantVisitUpdateWithWhereUniqueWithoutCashSessionInput | Prisma.RestaurantVisitUpdateWithWhereUniqueWithoutCashSessionInput[]
+  updateMany?: Prisma.RestaurantVisitUpdateManyWithWhereWithoutCashSessionInput | Prisma.RestaurantVisitUpdateManyWithWhereWithoutCashSessionInput[]
+  deleteMany?: Prisma.RestaurantVisitScalarWhereInput | Prisma.RestaurantVisitScalarWhereInput[]
+}
+
 export type RestaurantVisitCreateNestedManyWithoutResponsibleStaffInput = {
   create?: Prisma.XOR<Prisma.RestaurantVisitCreateWithoutResponsibleStaffInput, Prisma.RestaurantVisitUncheckedCreateWithoutResponsibleStaffInput> | Prisma.RestaurantVisitCreateWithoutResponsibleStaffInput[] | Prisma.RestaurantVisitUncheckedCreateWithoutResponsibleStaffInput[]
   connectOrCreate?: Prisma.RestaurantVisitCreateOrConnectWithoutResponsibleStaffInput | Prisma.RestaurantVisitCreateOrConnectWithoutResponsibleStaffInput[]
@@ -1334,6 +1466,8 @@ export type RestaurantVisitCreateWithoutOrganizationInput = {
   receiptNumber?: string | null
   openedAnalyticsConsolidatedAt?: Date | string | null
   closedAnalyticsConsolidatedAt?: Date | string | null
+  cashDay?: Prisma.RestaurantCashDayCreateNestedOneWithoutVisitsInput
+  cashSession?: Prisma.RestaurantCashSessionCreateNestedOneWithoutVisitsInput
   table: Prisma.RestaurantTableCreateNestedOneWithoutVisitsInput
   responsibleStaff?: Prisma.UserCreateNestedOneWithoutResponsibleRestaurantVisitsInput
   fallbackStaff?: Prisma.UserCreateNestedOneWithoutFallbackRestaurantVisitsInput
@@ -1343,6 +1477,8 @@ export type RestaurantVisitCreateWithoutOrganizationInput = {
 }
 
 export type RestaurantVisitUncheckedCreateWithoutOrganizationInput = {
+  cashDayId?: string | null
+  cashSessionId?: string | null
   id?: string
   tableId: string
   accessCode?: string
@@ -1412,6 +1548,8 @@ export type RestaurantVisitScalarWhereInput = {
   AND?: Prisma.RestaurantVisitScalarWhereInput | Prisma.RestaurantVisitScalarWhereInput[]
   OR?: Prisma.RestaurantVisitScalarWhereInput[]
   NOT?: Prisma.RestaurantVisitScalarWhereInput | Prisma.RestaurantVisitScalarWhereInput[]
+  cashDayId?: Prisma.StringNullableFilter<"RestaurantVisit"> | string | null
+  cashSessionId?: Prisma.StringNullableFilter<"RestaurantVisit"> | string | null
   id?: Prisma.StringFilter<"RestaurantVisit"> | string
   organizationId?: Prisma.StringFilter<"RestaurantVisit"> | string
   tableId?: Prisma.StringFilter<"RestaurantVisit"> | string
@@ -1481,6 +1619,8 @@ export type RestaurantVisitCreateWithoutTableInput = {
   receiptNumber?: string | null
   openedAnalyticsConsolidatedAt?: Date | string | null
   closedAnalyticsConsolidatedAt?: Date | string | null
+  cashDay?: Prisma.RestaurantCashDayCreateNestedOneWithoutVisitsInput
+  cashSession?: Prisma.RestaurantCashSessionCreateNestedOneWithoutVisitsInput
   organization: Prisma.OrganizationCreateNestedOneWithoutRestaurantVisitsInput
   responsibleStaff?: Prisma.UserCreateNestedOneWithoutResponsibleRestaurantVisitsInput
   fallbackStaff?: Prisma.UserCreateNestedOneWithoutFallbackRestaurantVisitsInput
@@ -1490,6 +1630,8 @@ export type RestaurantVisitCreateWithoutTableInput = {
 }
 
 export type RestaurantVisitUncheckedCreateWithoutTableInput = {
+  cashDayId?: string | null
+  cashSessionId?: string | null
   id?: string
   organizationId: string
   accessCode?: string
@@ -1587,6 +1729,8 @@ export type RestaurantVisitCreateWithoutLoyaltyActivitiesInput = {
   receiptNumber?: string | null
   openedAnalyticsConsolidatedAt?: Date | string | null
   closedAnalyticsConsolidatedAt?: Date | string | null
+  cashDay?: Prisma.RestaurantCashDayCreateNestedOneWithoutVisitsInput
+  cashSession?: Prisma.RestaurantCashSessionCreateNestedOneWithoutVisitsInput
   organization: Prisma.OrganizationCreateNestedOneWithoutRestaurantVisitsInput
   table: Prisma.RestaurantTableCreateNestedOneWithoutVisitsInput
   responsibleStaff?: Prisma.UserCreateNestedOneWithoutResponsibleRestaurantVisitsInput
@@ -1596,6 +1740,8 @@ export type RestaurantVisitCreateWithoutLoyaltyActivitiesInput = {
 }
 
 export type RestaurantVisitUncheckedCreateWithoutLoyaltyActivitiesInput = {
+  cashDayId?: string | null
+  cashSessionId?: string | null
   id?: string
   organizationId: string
   tableId: string
@@ -1683,6 +1829,8 @@ export type RestaurantVisitUpdateWithoutLoyaltyActivitiesInput = {
   receiptNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   openedAnalyticsConsolidatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   closedAnalyticsConsolidatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  cashDay?: Prisma.RestaurantCashDayUpdateOneWithoutVisitsNestedInput
+  cashSession?: Prisma.RestaurantCashSessionUpdateOneWithoutVisitsNestedInput
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutRestaurantVisitsNestedInput
   table?: Prisma.RestaurantTableUpdateOneRequiredWithoutVisitsNestedInput
   responsibleStaff?: Prisma.UserUpdateOneWithoutResponsibleRestaurantVisitsNestedInput
@@ -1692,6 +1840,8 @@ export type RestaurantVisitUpdateWithoutLoyaltyActivitiesInput = {
 }
 
 export type RestaurantVisitUncheckedUpdateWithoutLoyaltyActivitiesInput = {
+  cashDayId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cashSessionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   id?: Prisma.StringFieldUpdateOperationsInput | string
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   tableId?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1763,6 +1913,8 @@ export type RestaurantVisitCreateWithoutTransfersInput = {
   receiptNumber?: string | null
   openedAnalyticsConsolidatedAt?: Date | string | null
   closedAnalyticsConsolidatedAt?: Date | string | null
+  cashDay?: Prisma.RestaurantCashDayCreateNestedOneWithoutVisitsInput
+  cashSession?: Prisma.RestaurantCashSessionCreateNestedOneWithoutVisitsInput
   organization: Prisma.OrganizationCreateNestedOneWithoutRestaurantVisitsInput
   table: Prisma.RestaurantTableCreateNestedOneWithoutVisitsInput
   responsibleStaff?: Prisma.UserCreateNestedOneWithoutResponsibleRestaurantVisitsInput
@@ -1772,6 +1924,8 @@ export type RestaurantVisitCreateWithoutTransfersInput = {
 }
 
 export type RestaurantVisitUncheckedCreateWithoutTransfersInput = {
+  cashDayId?: string | null
+  cashSessionId?: string | null
   id?: string
   organizationId: string
   tableId: string
@@ -1859,6 +2013,8 @@ export type RestaurantVisitUpdateWithoutTransfersInput = {
   receiptNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   openedAnalyticsConsolidatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   closedAnalyticsConsolidatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  cashDay?: Prisma.RestaurantCashDayUpdateOneWithoutVisitsNestedInput
+  cashSession?: Prisma.RestaurantCashSessionUpdateOneWithoutVisitsNestedInput
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutRestaurantVisitsNestedInput
   table?: Prisma.RestaurantTableUpdateOneRequiredWithoutVisitsNestedInput
   responsibleStaff?: Prisma.UserUpdateOneWithoutResponsibleRestaurantVisitsNestedInput
@@ -1868,6 +2024,8 @@ export type RestaurantVisitUpdateWithoutTransfersInput = {
 }
 
 export type RestaurantVisitUncheckedUpdateWithoutTransfersInput = {
+  cashDayId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cashSessionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   id?: Prisma.StringFieldUpdateOperationsInput | string
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   tableId?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1939,6 +2097,8 @@ export type RestaurantVisitCreateWithoutOrdersInput = {
   receiptNumber?: string | null
   openedAnalyticsConsolidatedAt?: Date | string | null
   closedAnalyticsConsolidatedAt?: Date | string | null
+  cashDay?: Prisma.RestaurantCashDayCreateNestedOneWithoutVisitsInput
+  cashSession?: Prisma.RestaurantCashSessionCreateNestedOneWithoutVisitsInput
   organization: Prisma.OrganizationCreateNestedOneWithoutRestaurantVisitsInput
   table: Prisma.RestaurantTableCreateNestedOneWithoutVisitsInput
   responsibleStaff?: Prisma.UserCreateNestedOneWithoutResponsibleRestaurantVisitsInput
@@ -1948,6 +2108,8 @@ export type RestaurantVisitCreateWithoutOrdersInput = {
 }
 
 export type RestaurantVisitUncheckedCreateWithoutOrdersInput = {
+  cashDayId?: string | null
+  cashSessionId?: string | null
   id?: string
   organizationId: string
   tableId: string
@@ -2035,6 +2197,8 @@ export type RestaurantVisitUpdateWithoutOrdersInput = {
   receiptNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   openedAnalyticsConsolidatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   closedAnalyticsConsolidatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  cashDay?: Prisma.RestaurantCashDayUpdateOneWithoutVisitsNestedInput
+  cashSession?: Prisma.RestaurantCashSessionUpdateOneWithoutVisitsNestedInput
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutRestaurantVisitsNestedInput
   table?: Prisma.RestaurantTableUpdateOneRequiredWithoutVisitsNestedInput
   responsibleStaff?: Prisma.UserUpdateOneWithoutResponsibleRestaurantVisitsNestedInput
@@ -2044,6 +2208,8 @@ export type RestaurantVisitUpdateWithoutOrdersInput = {
 }
 
 export type RestaurantVisitUncheckedUpdateWithoutOrdersInput = {
+  cashDayId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cashSessionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   id?: Prisma.StringFieldUpdateOperationsInput | string
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   tableId?: Prisma.StringFieldUpdateOperationsInput | string
@@ -2083,6 +2249,226 @@ export type RestaurantVisitUncheckedUpdateWithoutOrdersInput = {
   transfers?: Prisma.RestaurantVisitTransferUncheckedUpdateManyWithoutVisitNestedInput
 }
 
+export type RestaurantVisitCreateWithoutCashDayInput = {
+  id?: string
+  accessCode?: string
+  status?: $Enums.RestaurantVisitStatus
+  openedAt?: Date | string
+  closedAt?: Date | string | null
+  closedById?: string | null
+  closedByRole?: $Enums.RestaurantStaffRole | null
+  taxRateBps?: number
+  taxIncluded?: boolean
+  serviceRateBps?: number
+  serviceChargeEnabled?: boolean
+  occupiesTable?: boolean
+  deliveryPhone?: string | null
+  deliveryAddress?: string | null
+  paymentStatus?: $Enums.RestaurantPaymentStatus
+  paymentConfirmedAt?: Date | string | null
+  paymentConfirmedById?: string | null
+  paymentMethod?: $Enums.RestaurantPaymentMethod | null
+  paymentReference?: string | null
+  deliveryHandedOffAt?: Date | string | null
+  deliveryHandedOffById?: string | null
+  invoiceRequestStatus?: $Enums.RestaurantInvoiceRequestStatus
+  invoiceRequestedAt?: Date | string | null
+  invoiceName?: string | null
+  invoiceEmail?: string | null
+  invoicePhone?: string | null
+  invoiceTaxId?: string | null
+  invoiceReference?: string | null
+  receiptNumber?: string | null
+  openedAnalyticsConsolidatedAt?: Date | string | null
+  closedAnalyticsConsolidatedAt?: Date | string | null
+  cashSession?: Prisma.RestaurantCashSessionCreateNestedOneWithoutVisitsInput
+  organization: Prisma.OrganizationCreateNestedOneWithoutRestaurantVisitsInput
+  table: Prisma.RestaurantTableCreateNestedOneWithoutVisitsInput
+  responsibleStaff?: Prisma.UserCreateNestedOneWithoutResponsibleRestaurantVisitsInput
+  fallbackStaff?: Prisma.UserCreateNestedOneWithoutFallbackRestaurantVisitsInput
+  orders?: Prisma.RestaurantOrderCreateNestedManyWithoutVisitInput
+  loyaltyActivities?: Prisma.RestaurantLoyaltyActivityCreateNestedManyWithoutVisitInput
+  transfers?: Prisma.RestaurantVisitTransferCreateNestedManyWithoutVisitInput
+}
+
+export type RestaurantVisitUncheckedCreateWithoutCashDayInput = {
+  cashSessionId?: string | null
+  id?: string
+  organizationId: string
+  tableId: string
+  accessCode?: string
+  status?: $Enums.RestaurantVisitStatus
+  openedAt?: Date | string
+  closedAt?: Date | string | null
+  closedById?: string | null
+  closedByRole?: $Enums.RestaurantStaffRole | null
+  taxRateBps?: number
+  taxIncluded?: boolean
+  serviceRateBps?: number
+  serviceChargeEnabled?: boolean
+  occupiesTable?: boolean
+  deliveryPhone?: string | null
+  deliveryAddress?: string | null
+  paymentStatus?: $Enums.RestaurantPaymentStatus
+  paymentConfirmedAt?: Date | string | null
+  paymentConfirmedById?: string | null
+  paymentMethod?: $Enums.RestaurantPaymentMethod | null
+  paymentReference?: string | null
+  deliveryHandedOffAt?: Date | string | null
+  deliveryHandedOffById?: string | null
+  invoiceRequestStatus?: $Enums.RestaurantInvoiceRequestStatus
+  invoiceRequestedAt?: Date | string | null
+  invoiceName?: string | null
+  invoiceEmail?: string | null
+  invoicePhone?: string | null
+  invoiceTaxId?: string | null
+  invoiceReference?: string | null
+  responsibleStaffId?: string | null
+  fallbackStaffId?: string | null
+  receiptNumber?: string | null
+  openedAnalyticsConsolidatedAt?: Date | string | null
+  closedAnalyticsConsolidatedAt?: Date | string | null
+  orders?: Prisma.RestaurantOrderUncheckedCreateNestedManyWithoutVisitInput
+  loyaltyActivities?: Prisma.RestaurantLoyaltyActivityUncheckedCreateNestedManyWithoutVisitInput
+  transfers?: Prisma.RestaurantVisitTransferUncheckedCreateNestedManyWithoutVisitInput
+}
+
+export type RestaurantVisitCreateOrConnectWithoutCashDayInput = {
+  where: Prisma.RestaurantVisitWhereUniqueInput
+  create: Prisma.XOR<Prisma.RestaurantVisitCreateWithoutCashDayInput, Prisma.RestaurantVisitUncheckedCreateWithoutCashDayInput>
+}
+
+export type RestaurantVisitCreateManyCashDayInputEnvelope = {
+  data: Prisma.RestaurantVisitCreateManyCashDayInput | Prisma.RestaurantVisitCreateManyCashDayInput[]
+  skipDuplicates?: boolean
+}
+
+export type RestaurantVisitUpsertWithWhereUniqueWithoutCashDayInput = {
+  where: Prisma.RestaurantVisitWhereUniqueInput
+  update: Prisma.XOR<Prisma.RestaurantVisitUpdateWithoutCashDayInput, Prisma.RestaurantVisitUncheckedUpdateWithoutCashDayInput>
+  create: Prisma.XOR<Prisma.RestaurantVisitCreateWithoutCashDayInput, Prisma.RestaurantVisitUncheckedCreateWithoutCashDayInput>
+}
+
+export type RestaurantVisitUpdateWithWhereUniqueWithoutCashDayInput = {
+  where: Prisma.RestaurantVisitWhereUniqueInput
+  data: Prisma.XOR<Prisma.RestaurantVisitUpdateWithoutCashDayInput, Prisma.RestaurantVisitUncheckedUpdateWithoutCashDayInput>
+}
+
+export type RestaurantVisitUpdateManyWithWhereWithoutCashDayInput = {
+  where: Prisma.RestaurantVisitScalarWhereInput
+  data: Prisma.XOR<Prisma.RestaurantVisitUpdateManyMutationInput, Prisma.RestaurantVisitUncheckedUpdateManyWithoutCashDayInput>
+}
+
+export type RestaurantVisitCreateWithoutCashSessionInput = {
+  id?: string
+  accessCode?: string
+  status?: $Enums.RestaurantVisitStatus
+  openedAt?: Date | string
+  closedAt?: Date | string | null
+  closedById?: string | null
+  closedByRole?: $Enums.RestaurantStaffRole | null
+  taxRateBps?: number
+  taxIncluded?: boolean
+  serviceRateBps?: number
+  serviceChargeEnabled?: boolean
+  occupiesTable?: boolean
+  deliveryPhone?: string | null
+  deliveryAddress?: string | null
+  paymentStatus?: $Enums.RestaurantPaymentStatus
+  paymentConfirmedAt?: Date | string | null
+  paymentConfirmedById?: string | null
+  paymentMethod?: $Enums.RestaurantPaymentMethod | null
+  paymentReference?: string | null
+  deliveryHandedOffAt?: Date | string | null
+  deliveryHandedOffById?: string | null
+  invoiceRequestStatus?: $Enums.RestaurantInvoiceRequestStatus
+  invoiceRequestedAt?: Date | string | null
+  invoiceName?: string | null
+  invoiceEmail?: string | null
+  invoicePhone?: string | null
+  invoiceTaxId?: string | null
+  invoiceReference?: string | null
+  receiptNumber?: string | null
+  openedAnalyticsConsolidatedAt?: Date | string | null
+  closedAnalyticsConsolidatedAt?: Date | string | null
+  cashDay?: Prisma.RestaurantCashDayCreateNestedOneWithoutVisitsInput
+  organization: Prisma.OrganizationCreateNestedOneWithoutRestaurantVisitsInput
+  table: Prisma.RestaurantTableCreateNestedOneWithoutVisitsInput
+  responsibleStaff?: Prisma.UserCreateNestedOneWithoutResponsibleRestaurantVisitsInput
+  fallbackStaff?: Prisma.UserCreateNestedOneWithoutFallbackRestaurantVisitsInput
+  orders?: Prisma.RestaurantOrderCreateNestedManyWithoutVisitInput
+  loyaltyActivities?: Prisma.RestaurantLoyaltyActivityCreateNestedManyWithoutVisitInput
+  transfers?: Prisma.RestaurantVisitTransferCreateNestedManyWithoutVisitInput
+}
+
+export type RestaurantVisitUncheckedCreateWithoutCashSessionInput = {
+  cashDayId?: string | null
+  id?: string
+  organizationId: string
+  tableId: string
+  accessCode?: string
+  status?: $Enums.RestaurantVisitStatus
+  openedAt?: Date | string
+  closedAt?: Date | string | null
+  closedById?: string | null
+  closedByRole?: $Enums.RestaurantStaffRole | null
+  taxRateBps?: number
+  taxIncluded?: boolean
+  serviceRateBps?: number
+  serviceChargeEnabled?: boolean
+  occupiesTable?: boolean
+  deliveryPhone?: string | null
+  deliveryAddress?: string | null
+  paymentStatus?: $Enums.RestaurantPaymentStatus
+  paymentConfirmedAt?: Date | string | null
+  paymentConfirmedById?: string | null
+  paymentMethod?: $Enums.RestaurantPaymentMethod | null
+  paymentReference?: string | null
+  deliveryHandedOffAt?: Date | string | null
+  deliveryHandedOffById?: string | null
+  invoiceRequestStatus?: $Enums.RestaurantInvoiceRequestStatus
+  invoiceRequestedAt?: Date | string | null
+  invoiceName?: string | null
+  invoiceEmail?: string | null
+  invoicePhone?: string | null
+  invoiceTaxId?: string | null
+  invoiceReference?: string | null
+  responsibleStaffId?: string | null
+  fallbackStaffId?: string | null
+  receiptNumber?: string | null
+  openedAnalyticsConsolidatedAt?: Date | string | null
+  closedAnalyticsConsolidatedAt?: Date | string | null
+  orders?: Prisma.RestaurantOrderUncheckedCreateNestedManyWithoutVisitInput
+  loyaltyActivities?: Prisma.RestaurantLoyaltyActivityUncheckedCreateNestedManyWithoutVisitInput
+  transfers?: Prisma.RestaurantVisitTransferUncheckedCreateNestedManyWithoutVisitInput
+}
+
+export type RestaurantVisitCreateOrConnectWithoutCashSessionInput = {
+  where: Prisma.RestaurantVisitWhereUniqueInput
+  create: Prisma.XOR<Prisma.RestaurantVisitCreateWithoutCashSessionInput, Prisma.RestaurantVisitUncheckedCreateWithoutCashSessionInput>
+}
+
+export type RestaurantVisitCreateManyCashSessionInputEnvelope = {
+  data: Prisma.RestaurantVisitCreateManyCashSessionInput | Prisma.RestaurantVisitCreateManyCashSessionInput[]
+  skipDuplicates?: boolean
+}
+
+export type RestaurantVisitUpsertWithWhereUniqueWithoutCashSessionInput = {
+  where: Prisma.RestaurantVisitWhereUniqueInput
+  update: Prisma.XOR<Prisma.RestaurantVisitUpdateWithoutCashSessionInput, Prisma.RestaurantVisitUncheckedUpdateWithoutCashSessionInput>
+  create: Prisma.XOR<Prisma.RestaurantVisitCreateWithoutCashSessionInput, Prisma.RestaurantVisitUncheckedCreateWithoutCashSessionInput>
+}
+
+export type RestaurantVisitUpdateWithWhereUniqueWithoutCashSessionInput = {
+  where: Prisma.RestaurantVisitWhereUniqueInput
+  data: Prisma.XOR<Prisma.RestaurantVisitUpdateWithoutCashSessionInput, Prisma.RestaurantVisitUncheckedUpdateWithoutCashSessionInput>
+}
+
+export type RestaurantVisitUpdateManyWithWhereWithoutCashSessionInput = {
+  where: Prisma.RestaurantVisitScalarWhereInput
+  data: Prisma.XOR<Prisma.RestaurantVisitUpdateManyMutationInput, Prisma.RestaurantVisitUncheckedUpdateManyWithoutCashSessionInput>
+}
+
 export type RestaurantVisitCreateWithoutResponsibleStaffInput = {
   id?: string
   accessCode?: string
@@ -2115,6 +2501,8 @@ export type RestaurantVisitCreateWithoutResponsibleStaffInput = {
   receiptNumber?: string | null
   openedAnalyticsConsolidatedAt?: Date | string | null
   closedAnalyticsConsolidatedAt?: Date | string | null
+  cashDay?: Prisma.RestaurantCashDayCreateNestedOneWithoutVisitsInput
+  cashSession?: Prisma.RestaurantCashSessionCreateNestedOneWithoutVisitsInput
   organization: Prisma.OrganizationCreateNestedOneWithoutRestaurantVisitsInput
   table: Prisma.RestaurantTableCreateNestedOneWithoutVisitsInput
   fallbackStaff?: Prisma.UserCreateNestedOneWithoutFallbackRestaurantVisitsInput
@@ -2124,6 +2512,8 @@ export type RestaurantVisitCreateWithoutResponsibleStaffInput = {
 }
 
 export type RestaurantVisitUncheckedCreateWithoutResponsibleStaffInput = {
+  cashDayId?: string | null
+  cashSessionId?: string | null
   id?: string
   organizationId: string
   tableId: string
@@ -2205,6 +2595,8 @@ export type RestaurantVisitCreateWithoutFallbackStaffInput = {
   receiptNumber?: string | null
   openedAnalyticsConsolidatedAt?: Date | string | null
   closedAnalyticsConsolidatedAt?: Date | string | null
+  cashDay?: Prisma.RestaurantCashDayCreateNestedOneWithoutVisitsInput
+  cashSession?: Prisma.RestaurantCashSessionCreateNestedOneWithoutVisitsInput
   organization: Prisma.OrganizationCreateNestedOneWithoutRestaurantVisitsInput
   table: Prisma.RestaurantTableCreateNestedOneWithoutVisitsInput
   responsibleStaff?: Prisma.UserCreateNestedOneWithoutResponsibleRestaurantVisitsInput
@@ -2214,6 +2606,8 @@ export type RestaurantVisitCreateWithoutFallbackStaffInput = {
 }
 
 export type RestaurantVisitUncheckedCreateWithoutFallbackStaffInput = {
+  cashDayId?: string | null
+  cashSessionId?: string | null
   id?: string
   organizationId: string
   tableId: string
@@ -2296,6 +2690,8 @@ export type RestaurantVisitUpdateManyWithWhereWithoutFallbackStaffInput = {
 }
 
 export type RestaurantVisitCreateManyOrganizationInput = {
+  cashDayId?: string | null
+  cashSessionId?: string | null
   id?: string
   tableId: string
   accessCode?: string
@@ -2364,6 +2760,8 @@ export type RestaurantVisitUpdateWithoutOrganizationInput = {
   receiptNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   openedAnalyticsConsolidatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   closedAnalyticsConsolidatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  cashDay?: Prisma.RestaurantCashDayUpdateOneWithoutVisitsNestedInput
+  cashSession?: Prisma.RestaurantCashSessionUpdateOneWithoutVisitsNestedInput
   table?: Prisma.RestaurantTableUpdateOneRequiredWithoutVisitsNestedInput
   responsibleStaff?: Prisma.UserUpdateOneWithoutResponsibleRestaurantVisitsNestedInput
   fallbackStaff?: Prisma.UserUpdateOneWithoutFallbackRestaurantVisitsNestedInput
@@ -2373,6 +2771,8 @@ export type RestaurantVisitUpdateWithoutOrganizationInput = {
 }
 
 export type RestaurantVisitUncheckedUpdateWithoutOrganizationInput = {
+  cashDayId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cashSessionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   id?: Prisma.StringFieldUpdateOperationsInput | string
   tableId?: Prisma.StringFieldUpdateOperationsInput | string
   accessCode?: Prisma.StringFieldUpdateOperationsInput | string
@@ -2413,6 +2813,8 @@ export type RestaurantVisitUncheckedUpdateWithoutOrganizationInput = {
 }
 
 export type RestaurantVisitUncheckedUpdateManyWithoutOrganizationInput = {
+  cashDayId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cashSessionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   id?: Prisma.StringFieldUpdateOperationsInput | string
   tableId?: Prisma.StringFieldUpdateOperationsInput | string
   accessCode?: Prisma.StringFieldUpdateOperationsInput | string
@@ -2450,6 +2852,8 @@ export type RestaurantVisitUncheckedUpdateManyWithoutOrganizationInput = {
 }
 
 export type RestaurantVisitCreateManyTableInput = {
+  cashDayId?: string | null
+  cashSessionId?: string | null
   id?: string
   organizationId: string
   accessCode?: string
@@ -2518,6 +2922,8 @@ export type RestaurantVisitUpdateWithoutTableInput = {
   receiptNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   openedAnalyticsConsolidatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   closedAnalyticsConsolidatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  cashDay?: Prisma.RestaurantCashDayUpdateOneWithoutVisitsNestedInput
+  cashSession?: Prisma.RestaurantCashSessionUpdateOneWithoutVisitsNestedInput
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutRestaurantVisitsNestedInput
   responsibleStaff?: Prisma.UserUpdateOneWithoutResponsibleRestaurantVisitsNestedInput
   fallbackStaff?: Prisma.UserUpdateOneWithoutFallbackRestaurantVisitsNestedInput
@@ -2527,6 +2933,8 @@ export type RestaurantVisitUpdateWithoutTableInput = {
 }
 
 export type RestaurantVisitUncheckedUpdateWithoutTableInput = {
+  cashDayId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cashSessionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   id?: Prisma.StringFieldUpdateOperationsInput | string
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   accessCode?: Prisma.StringFieldUpdateOperationsInput | string
@@ -2567,6 +2975,8 @@ export type RestaurantVisitUncheckedUpdateWithoutTableInput = {
 }
 
 export type RestaurantVisitUncheckedUpdateManyWithoutTableInput = {
+  cashDayId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cashSessionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   id?: Prisma.StringFieldUpdateOperationsInput | string
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   accessCode?: Prisma.StringFieldUpdateOperationsInput | string
@@ -2603,7 +3013,333 @@ export type RestaurantVisitUncheckedUpdateManyWithoutTableInput = {
   closedAnalyticsConsolidatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
+export type RestaurantVisitCreateManyCashDayInput = {
+  cashSessionId?: string | null
+  id?: string
+  organizationId: string
+  tableId: string
+  accessCode?: string
+  status?: $Enums.RestaurantVisitStatus
+  openedAt?: Date | string
+  closedAt?: Date | string | null
+  closedById?: string | null
+  closedByRole?: $Enums.RestaurantStaffRole | null
+  taxRateBps?: number
+  taxIncluded?: boolean
+  serviceRateBps?: number
+  serviceChargeEnabled?: boolean
+  occupiesTable?: boolean
+  deliveryPhone?: string | null
+  deliveryAddress?: string | null
+  paymentStatus?: $Enums.RestaurantPaymentStatus
+  paymentConfirmedAt?: Date | string | null
+  paymentConfirmedById?: string | null
+  paymentMethod?: $Enums.RestaurantPaymentMethod | null
+  paymentReference?: string | null
+  deliveryHandedOffAt?: Date | string | null
+  deliveryHandedOffById?: string | null
+  invoiceRequestStatus?: $Enums.RestaurantInvoiceRequestStatus
+  invoiceRequestedAt?: Date | string | null
+  invoiceName?: string | null
+  invoiceEmail?: string | null
+  invoicePhone?: string | null
+  invoiceTaxId?: string | null
+  invoiceReference?: string | null
+  responsibleStaffId?: string | null
+  fallbackStaffId?: string | null
+  receiptNumber?: string | null
+  openedAnalyticsConsolidatedAt?: Date | string | null
+  closedAnalyticsConsolidatedAt?: Date | string | null
+}
+
+export type RestaurantVisitUpdateWithoutCashDayInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  accessCode?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumRestaurantVisitStatusFieldUpdateOperationsInput | $Enums.RestaurantVisitStatus
+  openedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  closedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  closedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  closedByRole?: Prisma.NullableEnumRestaurantStaffRoleFieldUpdateOperationsInput | $Enums.RestaurantStaffRole | null
+  taxRateBps?: Prisma.IntFieldUpdateOperationsInput | number
+  taxIncluded?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  serviceRateBps?: Prisma.IntFieldUpdateOperationsInput | number
+  serviceChargeEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  occupiesTable?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  deliveryPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  deliveryAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  paymentStatus?: Prisma.EnumRestaurantPaymentStatusFieldUpdateOperationsInput | $Enums.RestaurantPaymentStatus
+  paymentConfirmedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  paymentConfirmedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  paymentMethod?: Prisma.NullableEnumRestaurantPaymentMethodFieldUpdateOperationsInput | $Enums.RestaurantPaymentMethod | null
+  paymentReference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  deliveryHandedOffAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deliveryHandedOffById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  invoiceRequestStatus?: Prisma.EnumRestaurantInvoiceRequestStatusFieldUpdateOperationsInput | $Enums.RestaurantInvoiceRequestStatus
+  invoiceRequestedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  invoiceName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  invoiceEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  invoicePhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  invoiceTaxId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  invoiceReference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  receiptNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  openedAnalyticsConsolidatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  closedAnalyticsConsolidatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  cashSession?: Prisma.RestaurantCashSessionUpdateOneWithoutVisitsNestedInput
+  organization?: Prisma.OrganizationUpdateOneRequiredWithoutRestaurantVisitsNestedInput
+  table?: Prisma.RestaurantTableUpdateOneRequiredWithoutVisitsNestedInput
+  responsibleStaff?: Prisma.UserUpdateOneWithoutResponsibleRestaurantVisitsNestedInput
+  fallbackStaff?: Prisma.UserUpdateOneWithoutFallbackRestaurantVisitsNestedInput
+  orders?: Prisma.RestaurantOrderUpdateManyWithoutVisitNestedInput
+  loyaltyActivities?: Prisma.RestaurantLoyaltyActivityUpdateManyWithoutVisitNestedInput
+  transfers?: Prisma.RestaurantVisitTransferUpdateManyWithoutVisitNestedInput
+}
+
+export type RestaurantVisitUncheckedUpdateWithoutCashDayInput = {
+  cashSessionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  organizationId?: Prisma.StringFieldUpdateOperationsInput | string
+  tableId?: Prisma.StringFieldUpdateOperationsInput | string
+  accessCode?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumRestaurantVisitStatusFieldUpdateOperationsInput | $Enums.RestaurantVisitStatus
+  openedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  closedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  closedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  closedByRole?: Prisma.NullableEnumRestaurantStaffRoleFieldUpdateOperationsInput | $Enums.RestaurantStaffRole | null
+  taxRateBps?: Prisma.IntFieldUpdateOperationsInput | number
+  taxIncluded?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  serviceRateBps?: Prisma.IntFieldUpdateOperationsInput | number
+  serviceChargeEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  occupiesTable?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  deliveryPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  deliveryAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  paymentStatus?: Prisma.EnumRestaurantPaymentStatusFieldUpdateOperationsInput | $Enums.RestaurantPaymentStatus
+  paymentConfirmedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  paymentConfirmedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  paymentMethod?: Prisma.NullableEnumRestaurantPaymentMethodFieldUpdateOperationsInput | $Enums.RestaurantPaymentMethod | null
+  paymentReference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  deliveryHandedOffAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deliveryHandedOffById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  invoiceRequestStatus?: Prisma.EnumRestaurantInvoiceRequestStatusFieldUpdateOperationsInput | $Enums.RestaurantInvoiceRequestStatus
+  invoiceRequestedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  invoiceName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  invoiceEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  invoicePhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  invoiceTaxId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  invoiceReference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  responsibleStaffId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  fallbackStaffId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  receiptNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  openedAnalyticsConsolidatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  closedAnalyticsConsolidatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  orders?: Prisma.RestaurantOrderUncheckedUpdateManyWithoutVisitNestedInput
+  loyaltyActivities?: Prisma.RestaurantLoyaltyActivityUncheckedUpdateManyWithoutVisitNestedInput
+  transfers?: Prisma.RestaurantVisitTransferUncheckedUpdateManyWithoutVisitNestedInput
+}
+
+export type RestaurantVisitUncheckedUpdateManyWithoutCashDayInput = {
+  cashSessionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  organizationId?: Prisma.StringFieldUpdateOperationsInput | string
+  tableId?: Prisma.StringFieldUpdateOperationsInput | string
+  accessCode?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumRestaurantVisitStatusFieldUpdateOperationsInput | $Enums.RestaurantVisitStatus
+  openedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  closedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  closedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  closedByRole?: Prisma.NullableEnumRestaurantStaffRoleFieldUpdateOperationsInput | $Enums.RestaurantStaffRole | null
+  taxRateBps?: Prisma.IntFieldUpdateOperationsInput | number
+  taxIncluded?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  serviceRateBps?: Prisma.IntFieldUpdateOperationsInput | number
+  serviceChargeEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  occupiesTable?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  deliveryPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  deliveryAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  paymentStatus?: Prisma.EnumRestaurantPaymentStatusFieldUpdateOperationsInput | $Enums.RestaurantPaymentStatus
+  paymentConfirmedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  paymentConfirmedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  paymentMethod?: Prisma.NullableEnumRestaurantPaymentMethodFieldUpdateOperationsInput | $Enums.RestaurantPaymentMethod | null
+  paymentReference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  deliveryHandedOffAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deliveryHandedOffById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  invoiceRequestStatus?: Prisma.EnumRestaurantInvoiceRequestStatusFieldUpdateOperationsInput | $Enums.RestaurantInvoiceRequestStatus
+  invoiceRequestedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  invoiceName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  invoiceEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  invoicePhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  invoiceTaxId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  invoiceReference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  responsibleStaffId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  fallbackStaffId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  receiptNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  openedAnalyticsConsolidatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  closedAnalyticsConsolidatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+}
+
+export type RestaurantVisitCreateManyCashSessionInput = {
+  cashDayId?: string | null
+  id?: string
+  organizationId: string
+  tableId: string
+  accessCode?: string
+  status?: $Enums.RestaurantVisitStatus
+  openedAt?: Date | string
+  closedAt?: Date | string | null
+  closedById?: string | null
+  closedByRole?: $Enums.RestaurantStaffRole | null
+  taxRateBps?: number
+  taxIncluded?: boolean
+  serviceRateBps?: number
+  serviceChargeEnabled?: boolean
+  occupiesTable?: boolean
+  deliveryPhone?: string | null
+  deliveryAddress?: string | null
+  paymentStatus?: $Enums.RestaurantPaymentStatus
+  paymentConfirmedAt?: Date | string | null
+  paymentConfirmedById?: string | null
+  paymentMethod?: $Enums.RestaurantPaymentMethod | null
+  paymentReference?: string | null
+  deliveryHandedOffAt?: Date | string | null
+  deliveryHandedOffById?: string | null
+  invoiceRequestStatus?: $Enums.RestaurantInvoiceRequestStatus
+  invoiceRequestedAt?: Date | string | null
+  invoiceName?: string | null
+  invoiceEmail?: string | null
+  invoicePhone?: string | null
+  invoiceTaxId?: string | null
+  invoiceReference?: string | null
+  responsibleStaffId?: string | null
+  fallbackStaffId?: string | null
+  receiptNumber?: string | null
+  openedAnalyticsConsolidatedAt?: Date | string | null
+  closedAnalyticsConsolidatedAt?: Date | string | null
+}
+
+export type RestaurantVisitUpdateWithoutCashSessionInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  accessCode?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumRestaurantVisitStatusFieldUpdateOperationsInput | $Enums.RestaurantVisitStatus
+  openedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  closedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  closedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  closedByRole?: Prisma.NullableEnumRestaurantStaffRoleFieldUpdateOperationsInput | $Enums.RestaurantStaffRole | null
+  taxRateBps?: Prisma.IntFieldUpdateOperationsInput | number
+  taxIncluded?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  serviceRateBps?: Prisma.IntFieldUpdateOperationsInput | number
+  serviceChargeEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  occupiesTable?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  deliveryPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  deliveryAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  paymentStatus?: Prisma.EnumRestaurantPaymentStatusFieldUpdateOperationsInput | $Enums.RestaurantPaymentStatus
+  paymentConfirmedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  paymentConfirmedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  paymentMethod?: Prisma.NullableEnumRestaurantPaymentMethodFieldUpdateOperationsInput | $Enums.RestaurantPaymentMethod | null
+  paymentReference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  deliveryHandedOffAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deliveryHandedOffById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  invoiceRequestStatus?: Prisma.EnumRestaurantInvoiceRequestStatusFieldUpdateOperationsInput | $Enums.RestaurantInvoiceRequestStatus
+  invoiceRequestedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  invoiceName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  invoiceEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  invoicePhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  invoiceTaxId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  invoiceReference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  receiptNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  openedAnalyticsConsolidatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  closedAnalyticsConsolidatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  cashDay?: Prisma.RestaurantCashDayUpdateOneWithoutVisitsNestedInput
+  organization?: Prisma.OrganizationUpdateOneRequiredWithoutRestaurantVisitsNestedInput
+  table?: Prisma.RestaurantTableUpdateOneRequiredWithoutVisitsNestedInput
+  responsibleStaff?: Prisma.UserUpdateOneWithoutResponsibleRestaurantVisitsNestedInput
+  fallbackStaff?: Prisma.UserUpdateOneWithoutFallbackRestaurantVisitsNestedInput
+  orders?: Prisma.RestaurantOrderUpdateManyWithoutVisitNestedInput
+  loyaltyActivities?: Prisma.RestaurantLoyaltyActivityUpdateManyWithoutVisitNestedInput
+  transfers?: Prisma.RestaurantVisitTransferUpdateManyWithoutVisitNestedInput
+}
+
+export type RestaurantVisitUncheckedUpdateWithoutCashSessionInput = {
+  cashDayId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  organizationId?: Prisma.StringFieldUpdateOperationsInput | string
+  tableId?: Prisma.StringFieldUpdateOperationsInput | string
+  accessCode?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumRestaurantVisitStatusFieldUpdateOperationsInput | $Enums.RestaurantVisitStatus
+  openedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  closedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  closedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  closedByRole?: Prisma.NullableEnumRestaurantStaffRoleFieldUpdateOperationsInput | $Enums.RestaurantStaffRole | null
+  taxRateBps?: Prisma.IntFieldUpdateOperationsInput | number
+  taxIncluded?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  serviceRateBps?: Prisma.IntFieldUpdateOperationsInput | number
+  serviceChargeEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  occupiesTable?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  deliveryPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  deliveryAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  paymentStatus?: Prisma.EnumRestaurantPaymentStatusFieldUpdateOperationsInput | $Enums.RestaurantPaymentStatus
+  paymentConfirmedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  paymentConfirmedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  paymentMethod?: Prisma.NullableEnumRestaurantPaymentMethodFieldUpdateOperationsInput | $Enums.RestaurantPaymentMethod | null
+  paymentReference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  deliveryHandedOffAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deliveryHandedOffById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  invoiceRequestStatus?: Prisma.EnumRestaurantInvoiceRequestStatusFieldUpdateOperationsInput | $Enums.RestaurantInvoiceRequestStatus
+  invoiceRequestedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  invoiceName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  invoiceEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  invoicePhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  invoiceTaxId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  invoiceReference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  responsibleStaffId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  fallbackStaffId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  receiptNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  openedAnalyticsConsolidatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  closedAnalyticsConsolidatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  orders?: Prisma.RestaurantOrderUncheckedUpdateManyWithoutVisitNestedInput
+  loyaltyActivities?: Prisma.RestaurantLoyaltyActivityUncheckedUpdateManyWithoutVisitNestedInput
+  transfers?: Prisma.RestaurantVisitTransferUncheckedUpdateManyWithoutVisitNestedInput
+}
+
+export type RestaurantVisitUncheckedUpdateManyWithoutCashSessionInput = {
+  cashDayId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  organizationId?: Prisma.StringFieldUpdateOperationsInput | string
+  tableId?: Prisma.StringFieldUpdateOperationsInput | string
+  accessCode?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumRestaurantVisitStatusFieldUpdateOperationsInput | $Enums.RestaurantVisitStatus
+  openedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  closedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  closedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  closedByRole?: Prisma.NullableEnumRestaurantStaffRoleFieldUpdateOperationsInput | $Enums.RestaurantStaffRole | null
+  taxRateBps?: Prisma.IntFieldUpdateOperationsInput | number
+  taxIncluded?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  serviceRateBps?: Prisma.IntFieldUpdateOperationsInput | number
+  serviceChargeEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  occupiesTable?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  deliveryPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  deliveryAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  paymentStatus?: Prisma.EnumRestaurantPaymentStatusFieldUpdateOperationsInput | $Enums.RestaurantPaymentStatus
+  paymentConfirmedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  paymentConfirmedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  paymentMethod?: Prisma.NullableEnumRestaurantPaymentMethodFieldUpdateOperationsInput | $Enums.RestaurantPaymentMethod | null
+  paymentReference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  deliveryHandedOffAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deliveryHandedOffById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  invoiceRequestStatus?: Prisma.EnumRestaurantInvoiceRequestStatusFieldUpdateOperationsInput | $Enums.RestaurantInvoiceRequestStatus
+  invoiceRequestedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  invoiceName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  invoiceEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  invoicePhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  invoiceTaxId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  invoiceReference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  responsibleStaffId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  fallbackStaffId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  receiptNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  openedAnalyticsConsolidatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  closedAnalyticsConsolidatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+}
+
 export type RestaurantVisitCreateManyResponsibleStaffInput = {
+  cashDayId?: string | null
+  cashSessionId?: string | null
   id?: string
   organizationId: string
   tableId: string
@@ -2641,6 +3377,8 @@ export type RestaurantVisitCreateManyResponsibleStaffInput = {
 }
 
 export type RestaurantVisitCreateManyFallbackStaffInput = {
+  cashDayId?: string | null
+  cashSessionId?: string | null
   id?: string
   organizationId: string
   tableId: string
@@ -2709,6 +3447,8 @@ export type RestaurantVisitUpdateWithoutResponsibleStaffInput = {
   receiptNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   openedAnalyticsConsolidatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   closedAnalyticsConsolidatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  cashDay?: Prisma.RestaurantCashDayUpdateOneWithoutVisitsNestedInput
+  cashSession?: Prisma.RestaurantCashSessionUpdateOneWithoutVisitsNestedInput
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutRestaurantVisitsNestedInput
   table?: Prisma.RestaurantTableUpdateOneRequiredWithoutVisitsNestedInput
   fallbackStaff?: Prisma.UserUpdateOneWithoutFallbackRestaurantVisitsNestedInput
@@ -2718,6 +3458,8 @@ export type RestaurantVisitUpdateWithoutResponsibleStaffInput = {
 }
 
 export type RestaurantVisitUncheckedUpdateWithoutResponsibleStaffInput = {
+  cashDayId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cashSessionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   id?: Prisma.StringFieldUpdateOperationsInput | string
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   tableId?: Prisma.StringFieldUpdateOperationsInput | string
@@ -2758,6 +3500,8 @@ export type RestaurantVisitUncheckedUpdateWithoutResponsibleStaffInput = {
 }
 
 export type RestaurantVisitUncheckedUpdateManyWithoutResponsibleStaffInput = {
+  cashDayId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cashSessionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   id?: Prisma.StringFieldUpdateOperationsInput | string
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   tableId?: Prisma.StringFieldUpdateOperationsInput | string
@@ -2826,6 +3570,8 @@ export type RestaurantVisitUpdateWithoutFallbackStaffInput = {
   receiptNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   openedAnalyticsConsolidatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   closedAnalyticsConsolidatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  cashDay?: Prisma.RestaurantCashDayUpdateOneWithoutVisitsNestedInput
+  cashSession?: Prisma.RestaurantCashSessionUpdateOneWithoutVisitsNestedInput
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutRestaurantVisitsNestedInput
   table?: Prisma.RestaurantTableUpdateOneRequiredWithoutVisitsNestedInput
   responsibleStaff?: Prisma.UserUpdateOneWithoutResponsibleRestaurantVisitsNestedInput
@@ -2835,6 +3581,8 @@ export type RestaurantVisitUpdateWithoutFallbackStaffInput = {
 }
 
 export type RestaurantVisitUncheckedUpdateWithoutFallbackStaffInput = {
+  cashDayId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cashSessionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   id?: Prisma.StringFieldUpdateOperationsInput | string
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   tableId?: Prisma.StringFieldUpdateOperationsInput | string
@@ -2875,6 +3623,8 @@ export type RestaurantVisitUncheckedUpdateWithoutFallbackStaffInput = {
 }
 
 export type RestaurantVisitUncheckedUpdateManyWithoutFallbackStaffInput = {
+  cashDayId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cashSessionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   id?: Prisma.StringFieldUpdateOperationsInput | string
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   tableId?: Prisma.StringFieldUpdateOperationsInput | string
@@ -2961,6 +3711,8 @@ export type RestaurantVisitCountOutputTypeCountTransfersArgs<ExtArgs extends run
 
 
 export type RestaurantVisitSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
+  cashDayId?: boolean
+  cashSessionId?: boolean
   id?: boolean
   organizationId?: boolean
   tableId?: boolean
@@ -2996,6 +3748,8 @@ export type RestaurantVisitSelect<ExtArgs extends runtime.Types.Extensions.Inter
   receiptNumber?: boolean
   openedAnalyticsConsolidatedAt?: boolean
   closedAnalyticsConsolidatedAt?: boolean
+  cashDay?: boolean | Prisma.RestaurantVisit$cashDayArgs<ExtArgs>
+  cashSession?: boolean | Prisma.RestaurantVisit$cashSessionArgs<ExtArgs>
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
   table?: boolean | Prisma.RestaurantTableDefaultArgs<ExtArgs>
   responsibleStaff?: boolean | Prisma.RestaurantVisit$responsibleStaffArgs<ExtArgs>
@@ -3007,6 +3761,8 @@ export type RestaurantVisitSelect<ExtArgs extends runtime.Types.Extensions.Inter
 }, ExtArgs["result"]["restaurantVisit"]>
 
 export type RestaurantVisitSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
+  cashDayId?: boolean
+  cashSessionId?: boolean
   id?: boolean
   organizationId?: boolean
   tableId?: boolean
@@ -3042,6 +3798,8 @@ export type RestaurantVisitSelectCreateManyAndReturn<ExtArgs extends runtime.Typ
   receiptNumber?: boolean
   openedAnalyticsConsolidatedAt?: boolean
   closedAnalyticsConsolidatedAt?: boolean
+  cashDay?: boolean | Prisma.RestaurantVisit$cashDayArgs<ExtArgs>
+  cashSession?: boolean | Prisma.RestaurantVisit$cashSessionArgs<ExtArgs>
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
   table?: boolean | Prisma.RestaurantTableDefaultArgs<ExtArgs>
   responsibleStaff?: boolean | Prisma.RestaurantVisit$responsibleStaffArgs<ExtArgs>
@@ -3049,6 +3807,8 @@ export type RestaurantVisitSelectCreateManyAndReturn<ExtArgs extends runtime.Typ
 }, ExtArgs["result"]["restaurantVisit"]>
 
 export type RestaurantVisitSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
+  cashDayId?: boolean
+  cashSessionId?: boolean
   id?: boolean
   organizationId?: boolean
   tableId?: boolean
@@ -3084,6 +3844,8 @@ export type RestaurantVisitSelectUpdateManyAndReturn<ExtArgs extends runtime.Typ
   receiptNumber?: boolean
   openedAnalyticsConsolidatedAt?: boolean
   closedAnalyticsConsolidatedAt?: boolean
+  cashDay?: boolean | Prisma.RestaurantVisit$cashDayArgs<ExtArgs>
+  cashSession?: boolean | Prisma.RestaurantVisit$cashSessionArgs<ExtArgs>
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
   table?: boolean | Prisma.RestaurantTableDefaultArgs<ExtArgs>
   responsibleStaff?: boolean | Prisma.RestaurantVisit$responsibleStaffArgs<ExtArgs>
@@ -3091,6 +3853,8 @@ export type RestaurantVisitSelectUpdateManyAndReturn<ExtArgs extends runtime.Typ
 }, ExtArgs["result"]["restaurantVisit"]>
 
 export type RestaurantVisitSelectScalar = {
+  cashDayId?: boolean
+  cashSessionId?: boolean
   id?: boolean
   organizationId?: boolean
   tableId?: boolean
@@ -3128,8 +3892,10 @@ export type RestaurantVisitSelectScalar = {
   closedAnalyticsConsolidatedAt?: boolean
 }
 
-export type RestaurantVisitOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "organizationId" | "tableId" | "accessCode" | "status" | "openedAt" | "closedAt" | "closedById" | "closedByRole" | "taxRateBps" | "taxIncluded" | "serviceRateBps" | "serviceChargeEnabled" | "occupiesTable" | "deliveryPhone" | "deliveryAddress" | "paymentStatus" | "paymentConfirmedAt" | "paymentConfirmedById" | "paymentMethod" | "paymentReference" | "deliveryHandedOffAt" | "deliveryHandedOffById" | "invoiceRequestStatus" | "invoiceRequestedAt" | "invoiceName" | "invoiceEmail" | "invoicePhone" | "invoiceTaxId" | "invoiceReference" | "responsibleStaffId" | "fallbackStaffId" | "receiptNumber" | "openedAnalyticsConsolidatedAt" | "closedAnalyticsConsolidatedAt", ExtArgs["result"]["restaurantVisit"]>
+export type RestaurantVisitOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"cashDayId" | "cashSessionId" | "id" | "organizationId" | "tableId" | "accessCode" | "status" | "openedAt" | "closedAt" | "closedById" | "closedByRole" | "taxRateBps" | "taxIncluded" | "serviceRateBps" | "serviceChargeEnabled" | "occupiesTable" | "deliveryPhone" | "deliveryAddress" | "paymentStatus" | "paymentConfirmedAt" | "paymentConfirmedById" | "paymentMethod" | "paymentReference" | "deliveryHandedOffAt" | "deliveryHandedOffById" | "invoiceRequestStatus" | "invoiceRequestedAt" | "invoiceName" | "invoiceEmail" | "invoicePhone" | "invoiceTaxId" | "invoiceReference" | "responsibleStaffId" | "fallbackStaffId" | "receiptNumber" | "openedAnalyticsConsolidatedAt" | "closedAnalyticsConsolidatedAt", ExtArgs["result"]["restaurantVisit"]>
 export type RestaurantVisitInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  cashDay?: boolean | Prisma.RestaurantVisit$cashDayArgs<ExtArgs>
+  cashSession?: boolean | Prisma.RestaurantVisit$cashSessionArgs<ExtArgs>
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
   table?: boolean | Prisma.RestaurantTableDefaultArgs<ExtArgs>
   responsibleStaff?: boolean | Prisma.RestaurantVisit$responsibleStaffArgs<ExtArgs>
@@ -3140,12 +3906,16 @@ export type RestaurantVisitInclude<ExtArgs extends runtime.Types.Extensions.Inte
   _count?: boolean | Prisma.RestaurantVisitCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type RestaurantVisitIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  cashDay?: boolean | Prisma.RestaurantVisit$cashDayArgs<ExtArgs>
+  cashSession?: boolean | Prisma.RestaurantVisit$cashSessionArgs<ExtArgs>
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
   table?: boolean | Prisma.RestaurantTableDefaultArgs<ExtArgs>
   responsibleStaff?: boolean | Prisma.RestaurantVisit$responsibleStaffArgs<ExtArgs>
   fallbackStaff?: boolean | Prisma.RestaurantVisit$fallbackStaffArgs<ExtArgs>
 }
 export type RestaurantVisitIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  cashDay?: boolean | Prisma.RestaurantVisit$cashDayArgs<ExtArgs>
+  cashSession?: boolean | Prisma.RestaurantVisit$cashSessionArgs<ExtArgs>
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
   table?: boolean | Prisma.RestaurantTableDefaultArgs<ExtArgs>
   responsibleStaff?: boolean | Prisma.RestaurantVisit$responsibleStaffArgs<ExtArgs>
@@ -3155,6 +3925,8 @@ export type RestaurantVisitIncludeUpdateManyAndReturn<ExtArgs extends runtime.Ty
 export type $RestaurantVisitPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "RestaurantVisit"
   objects: {
+    cashDay: Prisma.$RestaurantCashDayPayload<ExtArgs> | null
+    cashSession: Prisma.$RestaurantCashSessionPayload<ExtArgs> | null
     organization: Prisma.$OrganizationPayload<ExtArgs>
     table: Prisma.$RestaurantTablePayload<ExtArgs>
     responsibleStaff: Prisma.$UserPayload<ExtArgs> | null
@@ -3164,6 +3936,8 @@ export type $RestaurantVisitPayload<ExtArgs extends runtime.Types.Extensions.Int
     transfers: Prisma.$RestaurantVisitTransferPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
+    cashDayId: string | null
+    cashSessionId: string | null
     id: string
     organizationId: string
     tableId: string
@@ -3282,8 +4056,8 @@ export interface RestaurantVisitDelegate<ExtArgs extends runtime.Types.Extension
    * // Get first 10 RestaurantVisits
    * const restaurantVisits = await prisma.restaurantVisit.findMany({ take: 10 })
    * 
-   * // Only select the `id`
-   * const restaurantVisitWithIdOnly = await prisma.restaurantVisit.findMany({ select: { id: true } })
+   * // Only select the `cashDayId`
+   * const restaurantVisitWithCashDayIdOnly = await prisma.restaurantVisit.findMany({ select: { cashDayId: true } })
    * 
    */
   findMany<T extends RestaurantVisitFindManyArgs>(args?: Prisma.SelectSubset<T, RestaurantVisitFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$RestaurantVisitPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
@@ -3327,9 +4101,9 @@ export interface RestaurantVisitDelegate<ExtArgs extends runtime.Types.Extension
    *   ]
    * })
    * 
-   * // Create many RestaurantVisits and only return the `id`
-   * const restaurantVisitWithIdOnly = await prisma.restaurantVisit.createManyAndReturn({
-   *   select: { id: true },
+   * // Create many RestaurantVisits and only return the `cashDayId`
+   * const restaurantVisitWithCashDayIdOnly = await prisma.restaurantVisit.createManyAndReturn({
+   *   select: { cashDayId: true },
    *   data: [
    *     // ... provide data here
    *   ]
@@ -3418,9 +4192,9 @@ export interface RestaurantVisitDelegate<ExtArgs extends runtime.Types.Extension
    *   ]
    * })
    * 
-   * // Update zero or more RestaurantVisits and only return the `id`
-   * const restaurantVisitWithIdOnly = await prisma.restaurantVisit.updateManyAndReturn({
-   *   select: { id: true },
+   * // Update zero or more RestaurantVisits and only return the `cashDayId`
+   * const restaurantVisitWithCashDayIdOnly = await prisma.restaurantVisit.updateManyAndReturn({
+   *   select: { cashDayId: true },
    *   where: {
    *     // ... provide filter here
    *   },
@@ -3593,6 +4367,8 @@ readonly fields: RestaurantVisitFieldRefs;
  */
 export interface Prisma__RestaurantVisitClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
+  cashDay<T extends Prisma.RestaurantVisit$cashDayArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.RestaurantVisit$cashDayArgs<ExtArgs>>): Prisma.Prisma__RestaurantCashDayClient<runtime.Types.Result.GetResult<Prisma.$RestaurantCashDayPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  cashSession<T extends Prisma.RestaurantVisit$cashSessionArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.RestaurantVisit$cashSessionArgs<ExtArgs>>): Prisma.Prisma__RestaurantCashSessionClient<runtime.Types.Result.GetResult<Prisma.$RestaurantCashSessionPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   organization<T extends Prisma.OrganizationDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.OrganizationDefaultArgs<ExtArgs>>): Prisma.Prisma__OrganizationClient<runtime.Types.Result.GetResult<Prisma.$OrganizationPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   table<T extends Prisma.RestaurantTableDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.RestaurantTableDefaultArgs<ExtArgs>>): Prisma.Prisma__RestaurantTableClient<runtime.Types.Result.GetResult<Prisma.$RestaurantTablePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   responsibleStaff<T extends Prisma.RestaurantVisit$responsibleStaffArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.RestaurantVisit$responsibleStaffArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
@@ -3629,6 +4405,8 @@ export interface Prisma__RestaurantVisitClient<T, Null = never, ExtArgs extends 
  * Fields of the RestaurantVisit model
  */
 export interface RestaurantVisitFieldRefs {
+  readonly cashDayId: Prisma.FieldRef<"RestaurantVisit", 'String'>
+  readonly cashSessionId: Prisma.FieldRef<"RestaurantVisit", 'String'>
   readonly id: Prisma.FieldRef<"RestaurantVisit", 'String'>
   readonly organizationId: Prisma.FieldRef<"RestaurantVisit", 'String'>
   readonly tableId: Prisma.FieldRef<"RestaurantVisit", 'String'>
@@ -4062,6 +4840,44 @@ export type RestaurantVisitDeleteManyArgs<ExtArgs extends runtime.Types.Extensio
    * Limit how many RestaurantVisits to delete.
    */
   limit?: number
+}
+
+/**
+ * RestaurantVisit.cashDay
+ */
+export type RestaurantVisit$cashDayArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the RestaurantCashDay
+   */
+  select?: Prisma.RestaurantCashDaySelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the RestaurantCashDay
+   */
+  omit?: Prisma.RestaurantCashDayOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.RestaurantCashDayInclude<ExtArgs> | null
+  where?: Prisma.RestaurantCashDayWhereInput
+}
+
+/**
+ * RestaurantVisit.cashSession
+ */
+export type RestaurantVisit$cashSessionArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the RestaurantCashSession
+   */
+  select?: Prisma.RestaurantCashSessionSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the RestaurantCashSession
+   */
+  omit?: Prisma.RestaurantCashSessionOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.RestaurantCashSessionInclude<ExtArgs> | null
+  where?: Prisma.RestaurantCashSessionWhereInput
 }
 
 /**

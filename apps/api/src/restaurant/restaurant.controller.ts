@@ -181,12 +181,18 @@ export class RestaurantStaffController {
     return this.cash.close(req.user, id, dto);
   }
 
+  @Post("cash-days/:id/continue")
+  continueCashDay(@Req() req: StaffRequest, @Param("id") id: string) {
+    return this.cash.continueDay(req.user, id);
+  }
+
   @Get("cash-registers/daily")
   cashDaily(
     @Req() req: StaffRequest,
     @Query("date") date?: string,
+    @Query("cashDayId") cashDayId?: string,
   ) {
-    return this.cash.daily(req.user, date);
+    return this.cash.daily(req.user, date, cashDayId);
   }
 
   @Get("cash-registers/history")
@@ -224,8 +230,9 @@ export class RestaurantStaffController {
     @Req() req: StaffRequest,
     @Query("date") date?: string,
     @Query("userId") userId?: string,
+    @Query("cashDayId") cashDayId?: string,
   ) {
-    return this.cash.employeeDaily(req.user, date, userId);
+    return this.cash.employeeDaily(req.user, date, userId, cashDayId);
   }
 
   @Get("tables")

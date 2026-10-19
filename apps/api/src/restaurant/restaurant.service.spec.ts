@@ -1972,6 +1972,15 @@ describe("RestaurantService", () => {
       status: "CLOSED",
     });
 
+    prisma.restaurantCashSession.findFirst.mockResolvedValue({
+      id: "session-a",
+      cashDay: {
+        id: "day-a",
+        openGuard: "register-a",
+        timezone: "UTC",
+        lastConfirmedDate: new Date().toISOString().slice(0, 10),
+      },
+    });
     await service.closeVisit(bartender, "visit-a");
 
     expect(prisma.restaurantVisit.update).toHaveBeenCalledWith(
@@ -1983,6 +1992,8 @@ describe("RestaurantService", () => {
           closedById: "bartender-a",
           closedByRole: RestaurantStaffRole.BAR,
           paymentMethod: RestaurantPaymentMethod.CASH,
+          cashDayId: "day-a",
+          cashSessionId: "session-a",
           receiptNumber: expect.stringMatching(/^AT-/),
         }),
       }),

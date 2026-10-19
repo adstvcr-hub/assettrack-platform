@@ -1,3 +1,4 @@
+import { activeCashContext, cashTransaction } from "./cash-day-context";
 import {
   BadRequestException,
   ConflictException,
@@ -1819,58 +1820,63 @@ export class RestaurantService {
     paymentReference?: string,
   ) {
     const role = this.effectiveRole(actor);
-    const visit = await this.prisma.restaurantVisit.findFirst({
-      where: { id: visitId, organizationId: actor.organizationId },
-      include: {
-        table: { select: { waiterId: true } },
-        responsibleStaff: {
-          select: { id: true, restaurantAvailability: true },
+    return cashTransaction(this.prisma, async (tx) => {
+      const visit = await tx.restaurantVisit.findFirst({
+        where: { id: visitId, organizationId: actor.organizationId },
+        include: {
+          table: { select: { waiterId: true } },
+          responsibleStaff: {
+            select: { id: true, restaurantAvailability: true },
+          },
+          orders: {
+            select: { items: { select: { status: true } } },
+          },
         },
-        orders: {
-          select: { items: { select: { status: true } } },
+      });
+      if (!visit) throw new NotFoundException("Restaurant account not found");
+      const isAdmin = role === RestaurantStaffRole.RESTAURANT_ADMIN;
+      const isResponsibleStaff =
+        (role === RestaurantStaffRole.WAITER ||
+          role === RestaurantStaffRole.BAR) &&
+        (visit.responsibleStaffId === actor.id ||
+          (!visit.responsibleStaffId && visit.table.waiterId === actor.id)) &&
+        actor.restaurantAvailability === RestaurantStaffAvailability.AVAILABLE;
+      if (!isAdmin && !isResponsibleStaff) {
+        throw new ForbiddenException(
+          "Only the staff member responsible for this account can close it",
+        );
+      }
+      if (visit.occupiesTable === false && !visit.deliveryHandedOffAt) {
+        throw new ConflictException(
+          "Confirme la entrega a la persona repartidora para cerrar este pedido",
+        );
+      }
+      const hasOpenItems = visit.orders.some((order) =>
+        order.items.some(
+          (item) =>
+            item.status !== RestaurantItemStatus.DELIVERED &&
+            item.status !== RestaurantItemStatus.CANCELLED,
+        ),
+      );
+      if (hasOpenItems) {
+        throw new ConflictException("Deliver or cancel all items before closing");
+      }
+      if (visit.status === RestaurantVisitStatus.CLOSED) return visit;
+      const cashContext = await activeCashContext(tx, actor.organizationId);
+      const closedAt = new Date();
+      return tx.restaurantVisit.update({
+        where: { id: visitId },
+        data: {
+          ...cashContext,
+          status: RestaurantVisitStatus.CLOSED,
+          closedAt,
+          closedById: actor.id,
+          closedByRole: role,
+          paymentMethod,
+          paymentReference: paymentReference?.trim() || null,
+          receiptNumber: this.receiptNumber(visitId, closedAt),
         },
-      },
-    });
-    if (!visit) throw new NotFoundException("Restaurant account not found");
-    const isAdmin = role === RestaurantStaffRole.RESTAURANT_ADMIN;
-    const isResponsibleStaff =
-      (role === RestaurantStaffRole.WAITER ||
-        role === RestaurantStaffRole.BAR) &&
-      (visit.responsibleStaffId === actor.id ||
-        (!visit.responsibleStaffId && visit.table.waiterId === actor.id)) &&
-      actor.restaurantAvailability === RestaurantStaffAvailability.AVAILABLE;
-    if (!isAdmin && !isResponsibleStaff) {
-      throw new ForbiddenException(
-        "Only the staff member responsible for this account can close it",
-      );
-    }
-    if (visit.occupiesTable === false && !visit.deliveryHandedOffAt) {
-      throw new ConflictException(
-        "Confirme la entrega a la persona repartidora para cerrar este pedido",
-      );
-    }
-    const hasOpenItems = visit.orders.some((order) =>
-      order.items.some(
-        (item) =>
-          item.status !== RestaurantItemStatus.DELIVERED &&
-          item.status !== RestaurantItemStatus.CANCELLED,
-      ),
-    );
-    if (hasOpenItems) {
-      throw new ConflictException("Deliver or cancel all items before closing");
-    }
-    const closedAt = new Date();
-    return this.prisma.restaurantVisit.update({
-      where: { id: visitId },
-      data: {
-        status: RestaurantVisitStatus.CLOSED,
-        closedAt,
-        closedById: actor.id,
-        closedByRole: role,
-        paymentMethod,
-        paymentReference: paymentReference?.trim() || null,
-        receiptNumber: this.receiptNumber(visitId, closedAt),
-      },
+      });
     });
   }
 
@@ -1914,55 +1920,60 @@ export class RestaurantService {
   }
 
   async handoffDelivery(actor: RestaurantActor, visitId: string) {
-    const visit = await this.prisma.restaurantVisit.findFirst({
-      where: { id: visitId, organizationId: actor.organizationId },
-      include: {
-        table: { select: { waiterId: true } },
-        orders: { select: { items: { select: { status: true } } } },
-      },
-    });
-    if (!visit) throw new NotFoundException("Restaurant account not found");
-    if (visit.occupiesTable !== false) {
-      throw new BadRequestException("This account is not a delivery order");
-    }
-    const role = this.effectiveRole(actor);
-    const allowed =
-      role === RestaurantStaffRole.RESTAURANT_ADMIN ||
-      ((role === RestaurantStaffRole.WAITER ||
-        role === RestaurantStaffRole.BAR) &&
-        (visit.responsibleStaffId === actor.id ||
-          (!visit.responsibleStaffId && visit.table.waiterId === actor.id)) &&
-        actor.restaurantAvailability === RestaurantStaffAvailability.AVAILABLE);
-    if (!allowed) {
-      throw new ForbiddenException(
-        "Only the staff member responsible for this delivery can close it",
+    return cashTransaction(this.prisma, async (tx) => {
+      const visit = await tx.restaurantVisit.findFirst({
+        where: { id: visitId, organizationId: actor.organizationId },
+        include: {
+          table: { select: { waiterId: true } },
+          orders: { select: { items: { select: { status: true } } } },
+        },
+      });
+      if (!visit) throw new NotFoundException("Restaurant account not found");
+      if (visit.occupiesTable !== false) {
+        throw new BadRequestException("This account is not a delivery order");
+      }
+      const role = this.effectiveRole(actor);
+      const allowed =
+        role === RestaurantStaffRole.RESTAURANT_ADMIN ||
+        ((role === RestaurantStaffRole.WAITER ||
+          role === RestaurantStaffRole.BAR) &&
+          (visit.responsibleStaffId === actor.id ||
+            (!visit.responsibleStaffId && visit.table.waiterId === actor.id)) &&
+          actor.restaurantAvailability === RestaurantStaffAvailability.AVAILABLE);
+      if (!allowed) {
+        throw new ForbiddenException(
+          "Only the staff member responsible for this delivery can close it",
+        );
+      }
+      if (visit.paymentStatus !== RestaurantPaymentStatus.CONFIRMED) {
+        throw new ConflictException("Confirm payment before delivery handoff");
+      }
+      const hasOpenItems = visit.orders.some((order) =>
+        order.items.some(
+          (item) =>
+            item.status !== RestaurantItemStatus.DELIVERED &&
+            item.status !== RestaurantItemStatus.CANCELLED,
+        ),
       );
-    }
-    if (visit.paymentStatus !== RestaurantPaymentStatus.CONFIRMED) {
-      throw new ConflictException("Confirm payment before delivery handoff");
-    }
-    const hasOpenItems = visit.orders.some((order) =>
-      order.items.some(
-        (item) =>
-          item.status !== RestaurantItemStatus.DELIVERED &&
-          item.status !== RestaurantItemStatus.CANCELLED,
-      ),
-    );
-    if (hasOpenItems) {
-      throw new ConflictException("Deliver or cancel all items before handoff");
-    }
-    const now = new Date();
-    return this.prisma.restaurantVisit.update({
-      where: { id: visitId },
-      data: {
-        deliveryHandedOffAt: now,
-        deliveryHandedOffById: actor.id,
-        status: RestaurantVisitStatus.CLOSED,
-        closedAt: now,
-        closedById: actor.id,
-        closedByRole: role,
-        receiptNumber: this.receiptNumber(visitId, now),
-      },
+      if (hasOpenItems) {
+        throw new ConflictException("Deliver or cancel all items before handoff");
+      }
+      if (visit.status === RestaurantVisitStatus.CLOSED) return visit;
+      const cashContext = await activeCashContext(tx, actor.organizationId);
+      const now = new Date();
+      return tx.restaurantVisit.update({
+        where: { id: visitId },
+        data: {
+          ...cashContext,
+          deliveryHandedOffAt: now,
+          deliveryHandedOffById: actor.id,
+          status: RestaurantVisitStatus.CLOSED,
+          closedAt: now,
+          closedById: actor.id,
+          closedByRole: role,
+          receiptNumber: this.receiptNumber(visitId, now),
+        },
+      });
     });
   }
 

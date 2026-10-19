@@ -197,6 +197,7 @@ model Organization {
   restaurantInventoryProducts   RestaurantInventoryProduct[]
   restaurantInventoryMovements  RestaurantInventoryMovement[]
   restaurantLiquorWeighings     RestaurantLiquorWeighing[]
+  restaurantCashDays            RestaurantCashDay[]
   restaurantCashRegisters       RestaurantCashRegister[]
   restaurantCashSessions        RestaurantCashSession[]
   restaurantCashDayCloses       RestaurantCashDayClose[]
@@ -255,6 +256,10 @@ model RestaurantTable {
 }
 
 model RestaurantVisit {
+  cashDayId                     String?
+  cashSessionId                 String?
+  cashDay                       RestaurantCashDay?             @relation(fields: [cashDayId], references: [id], onDelete: Restrict)
+  cashSession                   RestaurantCashSession?         @relation(fields: [cashSessionId], references: [id], onDelete: Restrict)
   id                            String                         @id @default(uuid())
   organizationId                String
   tableId                       String
@@ -301,6 +306,8 @@ model RestaurantVisit {
   @@index([organizationId, status])
   @@index([tableId, status])
   @@index([responsibleStaffId, status])
+  @@index([cashDayId])
+  @@index([cashSessionId])
   @@index([organizationId, closedAt])
   @@index([receiptNumber])
   @@map("restaurant_visits")
@@ -580,6 +587,7 @@ model RestaurantCashRegister {
   createdAt      DateTime                 @default(now())
   updatedAt      DateTime                 @updatedAt
   organization   Organization             @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  days           RestaurantCashDay[]
   sessions       RestaurantCashSession[]
   dayCloses      RestaurantCashDayClose[]
 
@@ -588,7 +596,36 @@ model RestaurantCashRegister {
   @@map("restaurant_cash_registers")
 }
 
+// A business day survives midnight and responsibility handoffs.
+model RestaurantCashDay {
+  id                String                  @id @default(uuid())
+  organizationId    String
+  cashRegisterId    String
+  businessDate      String
+  timezone          String
+  openedAt          DateTime                @default(now())
+  closedAt          DateTime?
+  openingCash       Int                     @default(0)
+  openGuard         String?                 @unique
+  lastConfirmedDate String
+  continuedAt       DateTime?
+  continuedById     String?
+  organization      Organization            @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  cashRegister      RestaurantCashRegister  @relation(fields: [cashRegisterId], references: [id], onDelete: Cascade)
+  continuedBy       User?                   @relation("CashDayContinuedBy", fields: [continuedById], references: [id], onDelete: Restrict)
+  sessions          RestaurantCashSession[]
+  visits            RestaurantVisit[]
+  close             RestaurantCashDayClose?
+
+  @@index([organizationId, businessDate])
+  @@index([cashRegisterId, businessDate])
+  @@map("restaurant_cash_days")
+}
+
 model RestaurantCashSession {
+  cashDayId         String?
+  cashDay           RestaurantCashDay?          @relation(fields: [cashDayId], references: [id], onDelete: Restrict)
+  visits            RestaurantVisit[]
   id                String                      @id @default(uuid())
   organizationId    String
   cashRegisterId    String
@@ -610,6 +647,7 @@ model RestaurantCashSession {
   supplierInvoices  RestaurantSupplierInvoice[]
   employeePayments  RestaurantEmployeePayment[]
 
+  @@index([cashDayId])
   @@index([organizationId, startedAt])
   @@index([cashRegisterId, startedAt])
   @@index([responsibleUserId, startedAt])
@@ -617,6 +655,8 @@ model RestaurantCashSession {
 }
 
 model RestaurantCashDayClose {
+  cashDayId             String?                @unique
+  cashDay               RestaurantCashDay?     @relation(fields: [cashDayId], references: [id], onDelete: Restrict)
   id                    String                 @id @default(uuid())
   organizationId        String
   cashRegisterId        String
@@ -642,7 +682,7 @@ model RestaurantCashDayClose {
   cashRegister          RestaurantCashRegister @relation(fields: [cashRegisterId], references: [id], onDelete: Cascade)
   responsibleUser       User                   @relation("CashDayCloseResponsible", fields: [responsibleUserId], references: [id], onDelete: Restrict)
 
-  @@unique([cashRegisterId, businessDate])
+  @@index([cashRegisterId, businessDate])
   @@index([organizationId, businessDate])
   @@index([responsibleUserId, businessDate])
   @@map("restaurant_cash_day_closes")
@@ -960,6 +1000,7 @@ model User {
   fallbackRestaurantVisits           RestaurantVisit[]           @relation("RestaurantVisitFallback")
   staffAccessCode                    StaffAccessCode?
   restaurantStaffSessions            RestaurantStaffSession[]
+  continuedCashDays                  RestaurantCashDay[]         @relation("CashDayContinuedBy")
   restaurantCashSessions             RestaurantCashSession[]     @relation("CashSessionResponsible")
   restaurantCashDayCloses            RestaurantCashDayClose[]    @relation("CashDayCloseResponsible")
   restaurantSupplierInvoicesRecorded RestaurantSupplierInvoice[] @relation("SupplierInvoiceRecordedBy")

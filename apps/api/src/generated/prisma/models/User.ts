@@ -360,6 +360,7 @@ export type UserWhereInput = {
   fallbackRestaurantVisits?: Prisma.RestaurantVisitListRelationFilter
   staffAccessCode?: Prisma.XOR<Prisma.StaffAccessCodeNullableScalarRelationFilter, Prisma.StaffAccessCodeWhereInput> | null
   restaurantStaffSessions?: Prisma.RestaurantStaffSessionListRelationFilter
+  continuedCashDays?: Prisma.RestaurantCashDayListRelationFilter
   restaurantCashSessions?: Prisma.RestaurantCashSessionListRelationFilter
   restaurantCashDayCloses?: Prisma.RestaurantCashDayCloseListRelationFilter
   restaurantSupplierInvoicesRecorded?: Prisma.RestaurantSupplierInvoiceListRelationFilter
@@ -397,6 +398,7 @@ export type UserOrderByWithRelationInput = {
   fallbackRestaurantVisits?: Prisma.RestaurantVisitOrderByRelationAggregateInput
   staffAccessCode?: Prisma.StaffAccessCodeOrderByWithRelationInput
   restaurantStaffSessions?: Prisma.RestaurantStaffSessionOrderByRelationAggregateInput
+  continuedCashDays?: Prisma.RestaurantCashDayOrderByRelationAggregateInput
   restaurantCashSessions?: Prisma.RestaurantCashSessionOrderByRelationAggregateInput
   restaurantCashDayCloses?: Prisma.RestaurantCashDayCloseOrderByRelationAggregateInput
   restaurantSupplierInvoicesRecorded?: Prisma.RestaurantSupplierInvoiceOrderByRelationAggregateInput
@@ -438,6 +440,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   fallbackRestaurantVisits?: Prisma.RestaurantVisitListRelationFilter
   staffAccessCode?: Prisma.XOR<Prisma.StaffAccessCodeNullableScalarRelationFilter, Prisma.StaffAccessCodeWhereInput> | null
   restaurantStaffSessions?: Prisma.RestaurantStaffSessionListRelationFilter
+  continuedCashDays?: Prisma.RestaurantCashDayListRelationFilter
   restaurantCashSessions?: Prisma.RestaurantCashSessionListRelationFilter
   restaurantCashDayCloses?: Prisma.RestaurantCashDayCloseListRelationFilter
   restaurantSupplierInvoicesRecorded?: Prisma.RestaurantSupplierInvoiceListRelationFilter
@@ -528,6 +531,7 @@ export type UserCreateInput = {
   fallbackRestaurantVisits?: Prisma.RestaurantVisitCreateNestedManyWithoutFallbackStaffInput
   staffAccessCode?: Prisma.StaffAccessCodeCreateNestedOneWithoutUserInput
   restaurantStaffSessions?: Prisma.RestaurantStaffSessionCreateNestedManyWithoutUserInput
+  continuedCashDays?: Prisma.RestaurantCashDayCreateNestedManyWithoutContinuedByInput
   restaurantCashSessions?: Prisma.RestaurantCashSessionCreateNestedManyWithoutResponsibleUserInput
   restaurantCashDayCloses?: Prisma.RestaurantCashDayCloseCreateNestedManyWithoutResponsibleUserInput
   restaurantSupplierInvoicesRecorded?: Prisma.RestaurantSupplierInvoiceCreateNestedManyWithoutRecordedByInput
@@ -564,6 +568,7 @@ export type UserUncheckedCreateInput = {
   fallbackRestaurantVisits?: Prisma.RestaurantVisitUncheckedCreateNestedManyWithoutFallbackStaffInput
   staffAccessCode?: Prisma.StaffAccessCodeUncheckedCreateNestedOneWithoutUserInput
   restaurantStaffSessions?: Prisma.RestaurantStaffSessionUncheckedCreateNestedManyWithoutUserInput
+  continuedCashDays?: Prisma.RestaurantCashDayUncheckedCreateNestedManyWithoutContinuedByInput
   restaurantCashSessions?: Prisma.RestaurantCashSessionUncheckedCreateNestedManyWithoutResponsibleUserInput
   restaurantCashDayCloses?: Prisma.RestaurantCashDayCloseUncheckedCreateNestedManyWithoutResponsibleUserInput
   restaurantSupplierInvoicesRecorded?: Prisma.RestaurantSupplierInvoiceUncheckedCreateNestedManyWithoutRecordedByInput
@@ -600,6 +605,7 @@ export type UserUpdateInput = {
   fallbackRestaurantVisits?: Prisma.RestaurantVisitUpdateManyWithoutFallbackStaffNestedInput
   staffAccessCode?: Prisma.StaffAccessCodeUpdateOneWithoutUserNestedInput
   restaurantStaffSessions?: Prisma.RestaurantStaffSessionUpdateManyWithoutUserNestedInput
+  continuedCashDays?: Prisma.RestaurantCashDayUpdateManyWithoutContinuedByNestedInput
   restaurantCashSessions?: Prisma.RestaurantCashSessionUpdateManyWithoutResponsibleUserNestedInput
   restaurantCashDayCloses?: Prisma.RestaurantCashDayCloseUpdateManyWithoutResponsibleUserNestedInput
   restaurantSupplierInvoicesRecorded?: Prisma.RestaurantSupplierInvoiceUpdateManyWithoutRecordedByNestedInput
@@ -636,6 +642,7 @@ export type UserUncheckedUpdateInput = {
   fallbackRestaurantVisits?: Prisma.RestaurantVisitUncheckedUpdateManyWithoutFallbackStaffNestedInput
   staffAccessCode?: Prisma.StaffAccessCodeUncheckedUpdateOneWithoutUserNestedInput
   restaurantStaffSessions?: Prisma.RestaurantStaffSessionUncheckedUpdateManyWithoutUserNestedInput
+  continuedCashDays?: Prisma.RestaurantCashDayUncheckedUpdateManyWithoutContinuedByNestedInput
   restaurantCashSessions?: Prisma.RestaurantCashSessionUncheckedUpdateManyWithoutResponsibleUserNestedInput
   restaurantCashDayCloses?: Prisma.RestaurantCashDayCloseUncheckedUpdateManyWithoutResponsibleUserNestedInput
   restaurantSupplierInvoicesRecorded?: Prisma.RestaurantSupplierInvoiceUncheckedUpdateManyWithoutRecordedByNestedInput
@@ -912,6 +919,22 @@ export type UserUpdateOneWithoutFallbackRestaurantVisitsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutFallbackRestaurantVisitsInput, Prisma.UserUpdateWithoutFallbackRestaurantVisitsInput>, Prisma.UserUncheckedUpdateWithoutFallbackRestaurantVisitsInput>
 }
 
+export type UserCreateNestedOneWithoutContinuedCashDaysInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutContinuedCashDaysInput, Prisma.UserUncheckedCreateWithoutContinuedCashDaysInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutContinuedCashDaysInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneWithoutContinuedCashDaysNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutContinuedCashDaysInput, Prisma.UserUncheckedCreateWithoutContinuedCashDaysInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutContinuedCashDaysInput
+  upsert?: Prisma.UserUpsertWithoutContinuedCashDaysInput
+  disconnect?: Prisma.UserWhereInput | boolean
+  delete?: Prisma.UserWhereInput | boolean
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutContinuedCashDaysInput, Prisma.UserUpdateWithoutContinuedCashDaysInput>, Prisma.UserUncheckedUpdateWithoutContinuedCashDaysInput>
+}
+
 export type UserCreateNestedOneWithoutRestaurantCashSessionsInput = {
   create?: Prisma.XOR<Prisma.UserCreateWithoutRestaurantCashSessionsInput, Prisma.UserUncheckedCreateWithoutRestaurantCashSessionsInput>
   connectOrCreate?: Prisma.UserCreateOrConnectWithoutRestaurantCashSessionsInput
@@ -1089,6 +1112,7 @@ export type UserCreateWithoutOrganizationInput = {
   fallbackRestaurantVisits?: Prisma.RestaurantVisitCreateNestedManyWithoutFallbackStaffInput
   staffAccessCode?: Prisma.StaffAccessCodeCreateNestedOneWithoutUserInput
   restaurantStaffSessions?: Prisma.RestaurantStaffSessionCreateNestedManyWithoutUserInput
+  continuedCashDays?: Prisma.RestaurantCashDayCreateNestedManyWithoutContinuedByInput
   restaurantCashSessions?: Prisma.RestaurantCashSessionCreateNestedManyWithoutResponsibleUserInput
   restaurantCashDayCloses?: Prisma.RestaurantCashDayCloseCreateNestedManyWithoutResponsibleUserInput
   restaurantSupplierInvoicesRecorded?: Prisma.RestaurantSupplierInvoiceCreateNestedManyWithoutRecordedByInput
@@ -1124,6 +1148,7 @@ export type UserUncheckedCreateWithoutOrganizationInput = {
   fallbackRestaurantVisits?: Prisma.RestaurantVisitUncheckedCreateNestedManyWithoutFallbackStaffInput
   staffAccessCode?: Prisma.StaffAccessCodeUncheckedCreateNestedOneWithoutUserInput
   restaurantStaffSessions?: Prisma.RestaurantStaffSessionUncheckedCreateNestedManyWithoutUserInput
+  continuedCashDays?: Prisma.RestaurantCashDayUncheckedCreateNestedManyWithoutContinuedByInput
   restaurantCashSessions?: Prisma.RestaurantCashSessionUncheckedCreateNestedManyWithoutResponsibleUserInput
   restaurantCashDayCloses?: Prisma.RestaurantCashDayCloseUncheckedCreateNestedManyWithoutResponsibleUserInput
   restaurantSupplierInvoicesRecorded?: Prisma.RestaurantSupplierInvoiceUncheckedCreateNestedManyWithoutRecordedByInput
@@ -1211,6 +1236,7 @@ export type UserCreateWithoutRestaurantTablesInput = {
   fallbackRestaurantVisits?: Prisma.RestaurantVisitCreateNestedManyWithoutFallbackStaffInput
   staffAccessCode?: Prisma.StaffAccessCodeCreateNestedOneWithoutUserInput
   restaurantStaffSessions?: Prisma.RestaurantStaffSessionCreateNestedManyWithoutUserInput
+  continuedCashDays?: Prisma.RestaurantCashDayCreateNestedManyWithoutContinuedByInput
   restaurantCashSessions?: Prisma.RestaurantCashSessionCreateNestedManyWithoutResponsibleUserInput
   restaurantCashDayCloses?: Prisma.RestaurantCashDayCloseCreateNestedManyWithoutResponsibleUserInput
   restaurantSupplierInvoicesRecorded?: Prisma.RestaurantSupplierInvoiceCreateNestedManyWithoutRecordedByInput
@@ -1246,6 +1272,7 @@ export type UserUncheckedCreateWithoutRestaurantTablesInput = {
   fallbackRestaurantVisits?: Prisma.RestaurantVisitUncheckedCreateNestedManyWithoutFallbackStaffInput
   staffAccessCode?: Prisma.StaffAccessCodeUncheckedCreateNestedOneWithoutUserInput
   restaurantStaffSessions?: Prisma.RestaurantStaffSessionUncheckedCreateNestedManyWithoutUserInput
+  continuedCashDays?: Prisma.RestaurantCashDayUncheckedCreateNestedManyWithoutContinuedByInput
   restaurantCashSessions?: Prisma.RestaurantCashSessionUncheckedCreateNestedManyWithoutResponsibleUserInput
   restaurantCashDayCloses?: Prisma.RestaurantCashDayCloseUncheckedCreateNestedManyWithoutResponsibleUserInput
   restaurantSupplierInvoicesRecorded?: Prisma.RestaurantSupplierInvoiceUncheckedCreateNestedManyWithoutRecordedByInput
@@ -1297,6 +1324,7 @@ export type UserUpdateWithoutRestaurantTablesInput = {
   fallbackRestaurantVisits?: Prisma.RestaurantVisitUpdateManyWithoutFallbackStaffNestedInput
   staffAccessCode?: Prisma.StaffAccessCodeUpdateOneWithoutUserNestedInput
   restaurantStaffSessions?: Prisma.RestaurantStaffSessionUpdateManyWithoutUserNestedInput
+  continuedCashDays?: Prisma.RestaurantCashDayUpdateManyWithoutContinuedByNestedInput
   restaurantCashSessions?: Prisma.RestaurantCashSessionUpdateManyWithoutResponsibleUserNestedInput
   restaurantCashDayCloses?: Prisma.RestaurantCashDayCloseUpdateManyWithoutResponsibleUserNestedInput
   restaurantSupplierInvoicesRecorded?: Prisma.RestaurantSupplierInvoiceUpdateManyWithoutRecordedByNestedInput
@@ -1332,6 +1360,7 @@ export type UserUncheckedUpdateWithoutRestaurantTablesInput = {
   fallbackRestaurantVisits?: Prisma.RestaurantVisitUncheckedUpdateManyWithoutFallbackStaffNestedInput
   staffAccessCode?: Prisma.StaffAccessCodeUncheckedUpdateOneWithoutUserNestedInput
   restaurantStaffSessions?: Prisma.RestaurantStaffSessionUncheckedUpdateManyWithoutUserNestedInput
+  continuedCashDays?: Prisma.RestaurantCashDayUncheckedUpdateManyWithoutContinuedByNestedInput
   restaurantCashSessions?: Prisma.RestaurantCashSessionUncheckedUpdateManyWithoutResponsibleUserNestedInput
   restaurantCashDayCloses?: Prisma.RestaurantCashDayCloseUncheckedUpdateManyWithoutResponsibleUserNestedInput
   restaurantSupplierInvoicesRecorded?: Prisma.RestaurantSupplierInvoiceUncheckedUpdateManyWithoutRecordedByNestedInput
@@ -1367,6 +1396,7 @@ export type UserCreateWithoutResponsibleRestaurantVisitsInput = {
   fallbackRestaurantVisits?: Prisma.RestaurantVisitCreateNestedManyWithoutFallbackStaffInput
   staffAccessCode?: Prisma.StaffAccessCodeCreateNestedOneWithoutUserInput
   restaurantStaffSessions?: Prisma.RestaurantStaffSessionCreateNestedManyWithoutUserInput
+  continuedCashDays?: Prisma.RestaurantCashDayCreateNestedManyWithoutContinuedByInput
   restaurantCashSessions?: Prisma.RestaurantCashSessionCreateNestedManyWithoutResponsibleUserInput
   restaurantCashDayCloses?: Prisma.RestaurantCashDayCloseCreateNestedManyWithoutResponsibleUserInput
   restaurantSupplierInvoicesRecorded?: Prisma.RestaurantSupplierInvoiceCreateNestedManyWithoutRecordedByInput
@@ -1402,6 +1432,7 @@ export type UserUncheckedCreateWithoutResponsibleRestaurantVisitsInput = {
   fallbackRestaurantVisits?: Prisma.RestaurantVisitUncheckedCreateNestedManyWithoutFallbackStaffInput
   staffAccessCode?: Prisma.StaffAccessCodeUncheckedCreateNestedOneWithoutUserInput
   restaurantStaffSessions?: Prisma.RestaurantStaffSessionUncheckedCreateNestedManyWithoutUserInput
+  continuedCashDays?: Prisma.RestaurantCashDayUncheckedCreateNestedManyWithoutContinuedByInput
   restaurantCashSessions?: Prisma.RestaurantCashSessionUncheckedCreateNestedManyWithoutResponsibleUserInput
   restaurantCashDayCloses?: Prisma.RestaurantCashDayCloseUncheckedCreateNestedManyWithoutResponsibleUserInput
   restaurantSupplierInvoicesRecorded?: Prisma.RestaurantSupplierInvoiceUncheckedCreateNestedManyWithoutRecordedByInput
@@ -1442,6 +1473,7 @@ export type UserCreateWithoutFallbackRestaurantVisitsInput = {
   responsibleRestaurantVisits?: Prisma.RestaurantVisitCreateNestedManyWithoutResponsibleStaffInput
   staffAccessCode?: Prisma.StaffAccessCodeCreateNestedOneWithoutUserInput
   restaurantStaffSessions?: Prisma.RestaurantStaffSessionCreateNestedManyWithoutUserInput
+  continuedCashDays?: Prisma.RestaurantCashDayCreateNestedManyWithoutContinuedByInput
   restaurantCashSessions?: Prisma.RestaurantCashSessionCreateNestedManyWithoutResponsibleUserInput
   restaurantCashDayCloses?: Prisma.RestaurantCashDayCloseCreateNestedManyWithoutResponsibleUserInput
   restaurantSupplierInvoicesRecorded?: Prisma.RestaurantSupplierInvoiceCreateNestedManyWithoutRecordedByInput
@@ -1477,6 +1509,7 @@ export type UserUncheckedCreateWithoutFallbackRestaurantVisitsInput = {
   responsibleRestaurantVisits?: Prisma.RestaurantVisitUncheckedCreateNestedManyWithoutResponsibleStaffInput
   staffAccessCode?: Prisma.StaffAccessCodeUncheckedCreateNestedOneWithoutUserInput
   restaurantStaffSessions?: Prisma.RestaurantStaffSessionUncheckedCreateNestedManyWithoutUserInput
+  continuedCashDays?: Prisma.RestaurantCashDayUncheckedCreateNestedManyWithoutContinuedByInput
   restaurantCashSessions?: Prisma.RestaurantCashSessionUncheckedCreateNestedManyWithoutResponsibleUserInput
   restaurantCashDayCloses?: Prisma.RestaurantCashDayCloseUncheckedCreateNestedManyWithoutResponsibleUserInput
   restaurantSupplierInvoicesRecorded?: Prisma.RestaurantSupplierInvoiceUncheckedCreateNestedManyWithoutRecordedByInput
@@ -1528,6 +1561,7 @@ export type UserUpdateWithoutResponsibleRestaurantVisitsInput = {
   fallbackRestaurantVisits?: Prisma.RestaurantVisitUpdateManyWithoutFallbackStaffNestedInput
   staffAccessCode?: Prisma.StaffAccessCodeUpdateOneWithoutUserNestedInput
   restaurantStaffSessions?: Prisma.RestaurantStaffSessionUpdateManyWithoutUserNestedInput
+  continuedCashDays?: Prisma.RestaurantCashDayUpdateManyWithoutContinuedByNestedInput
   restaurantCashSessions?: Prisma.RestaurantCashSessionUpdateManyWithoutResponsibleUserNestedInput
   restaurantCashDayCloses?: Prisma.RestaurantCashDayCloseUpdateManyWithoutResponsibleUserNestedInput
   restaurantSupplierInvoicesRecorded?: Prisma.RestaurantSupplierInvoiceUpdateManyWithoutRecordedByNestedInput
@@ -1563,6 +1597,7 @@ export type UserUncheckedUpdateWithoutResponsibleRestaurantVisitsInput = {
   fallbackRestaurantVisits?: Prisma.RestaurantVisitUncheckedUpdateManyWithoutFallbackStaffNestedInput
   staffAccessCode?: Prisma.StaffAccessCodeUncheckedUpdateOneWithoutUserNestedInput
   restaurantStaffSessions?: Prisma.RestaurantStaffSessionUncheckedUpdateManyWithoutUserNestedInput
+  continuedCashDays?: Prisma.RestaurantCashDayUncheckedUpdateManyWithoutContinuedByNestedInput
   restaurantCashSessions?: Prisma.RestaurantCashSessionUncheckedUpdateManyWithoutResponsibleUserNestedInput
   restaurantCashDayCloses?: Prisma.RestaurantCashDayCloseUncheckedUpdateManyWithoutResponsibleUserNestedInput
   restaurantSupplierInvoicesRecorded?: Prisma.RestaurantSupplierInvoiceUncheckedUpdateManyWithoutRecordedByNestedInput
@@ -1609,6 +1644,7 @@ export type UserUpdateWithoutFallbackRestaurantVisitsInput = {
   responsibleRestaurantVisits?: Prisma.RestaurantVisitUpdateManyWithoutResponsibleStaffNestedInput
   staffAccessCode?: Prisma.StaffAccessCodeUpdateOneWithoutUserNestedInput
   restaurantStaffSessions?: Prisma.RestaurantStaffSessionUpdateManyWithoutUserNestedInput
+  continuedCashDays?: Prisma.RestaurantCashDayUpdateManyWithoutContinuedByNestedInput
   restaurantCashSessions?: Prisma.RestaurantCashSessionUpdateManyWithoutResponsibleUserNestedInput
   restaurantCashDayCloses?: Prisma.RestaurantCashDayCloseUpdateManyWithoutResponsibleUserNestedInput
   restaurantSupplierInvoicesRecorded?: Prisma.RestaurantSupplierInvoiceUpdateManyWithoutRecordedByNestedInput
@@ -1642,6 +1678,167 @@ export type UserUncheckedUpdateWithoutFallbackRestaurantVisitsInput = {
   refreshTokens?: Prisma.RefreshTokenUncheckedUpdateManyWithoutUserNestedInput
   restaurantTables?: Prisma.RestaurantTableUncheckedUpdateManyWithoutWaiterNestedInput
   responsibleRestaurantVisits?: Prisma.RestaurantVisitUncheckedUpdateManyWithoutResponsibleStaffNestedInput
+  staffAccessCode?: Prisma.StaffAccessCodeUncheckedUpdateOneWithoutUserNestedInput
+  restaurantStaffSessions?: Prisma.RestaurantStaffSessionUncheckedUpdateManyWithoutUserNestedInput
+  continuedCashDays?: Prisma.RestaurantCashDayUncheckedUpdateManyWithoutContinuedByNestedInput
+  restaurantCashSessions?: Prisma.RestaurantCashSessionUncheckedUpdateManyWithoutResponsibleUserNestedInput
+  restaurantCashDayCloses?: Prisma.RestaurantCashDayCloseUncheckedUpdateManyWithoutResponsibleUserNestedInput
+  restaurantSupplierInvoicesRecorded?: Prisma.RestaurantSupplierInvoiceUncheckedUpdateManyWithoutRecordedByNestedInput
+  restaurantEmployeePaymentsReceived?: Prisma.RestaurantEmployeePaymentUncheckedUpdateManyWithoutEmployeeNestedInput
+  restaurantEmployeePaymentsRecorded?: Prisma.RestaurantEmployeePaymentUncheckedUpdateManyWithoutRecordedByNestedInput
+  serviceFeedbackCampaignsCreated?: Prisma.ServiceFeedbackCampaignUncheckedUpdateManyWithoutCreatedByNestedInput
+}
+
+export type UserCreateWithoutContinuedCashDaysInput = {
+  id?: string
+  email: string
+  name: string
+  passwordHash: string
+  role?: $Enums.UserRole
+  restaurantRole?: $Enums.RestaurantStaffRole | null
+  restaurantAvailability?: $Enums.RestaurantStaffAvailability
+  restaurantCashAuthorized?: boolean
+  restaurantPayPeriod?: $Enums.RestaurantPayPeriod | null
+  restaurantPayRate?: number | null
+  restaurantStandardMinutesPerDay?: number
+  restaurantWorkDaysPerMonth?: number
+  restaurantCcssDeductionEnabled?: boolean
+  restaurantCcssDeductionBps?: number
+  active?: boolean
+  deactivatedAt?: Date | string | null
+  sessionVersion?: number
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  organization: Prisma.OrganizationCreateNestedOneWithoutUsersInput
+  scanEvents?: Prisma.ScanEventCreateNestedManyWithoutUserInput
+  refreshTokens?: Prisma.RefreshTokenCreateNestedManyWithoutUserInput
+  restaurantTables?: Prisma.RestaurantTableCreateNestedManyWithoutWaiterInput
+  responsibleRestaurantVisits?: Prisma.RestaurantVisitCreateNestedManyWithoutResponsibleStaffInput
+  fallbackRestaurantVisits?: Prisma.RestaurantVisitCreateNestedManyWithoutFallbackStaffInput
+  staffAccessCode?: Prisma.StaffAccessCodeCreateNestedOneWithoutUserInput
+  restaurantStaffSessions?: Prisma.RestaurantStaffSessionCreateNestedManyWithoutUserInput
+  restaurantCashSessions?: Prisma.RestaurantCashSessionCreateNestedManyWithoutResponsibleUserInput
+  restaurantCashDayCloses?: Prisma.RestaurantCashDayCloseCreateNestedManyWithoutResponsibleUserInput
+  restaurantSupplierInvoicesRecorded?: Prisma.RestaurantSupplierInvoiceCreateNestedManyWithoutRecordedByInput
+  restaurantEmployeePaymentsReceived?: Prisma.RestaurantEmployeePaymentCreateNestedManyWithoutEmployeeInput
+  restaurantEmployeePaymentsRecorded?: Prisma.RestaurantEmployeePaymentCreateNestedManyWithoutRecordedByInput
+  serviceFeedbackCampaignsCreated?: Prisma.ServiceFeedbackCampaignCreateNestedManyWithoutCreatedByInput
+}
+
+export type UserUncheckedCreateWithoutContinuedCashDaysInput = {
+  id?: string
+  organizationId: string
+  email: string
+  name: string
+  passwordHash: string
+  role?: $Enums.UserRole
+  restaurantRole?: $Enums.RestaurantStaffRole | null
+  restaurantAvailability?: $Enums.RestaurantStaffAvailability
+  restaurantCashAuthorized?: boolean
+  restaurantPayPeriod?: $Enums.RestaurantPayPeriod | null
+  restaurantPayRate?: number | null
+  restaurantStandardMinutesPerDay?: number
+  restaurantWorkDaysPerMonth?: number
+  restaurantCcssDeductionEnabled?: boolean
+  restaurantCcssDeductionBps?: number
+  active?: boolean
+  deactivatedAt?: Date | string | null
+  sessionVersion?: number
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  scanEvents?: Prisma.ScanEventUncheckedCreateNestedManyWithoutUserInput
+  refreshTokens?: Prisma.RefreshTokenUncheckedCreateNestedManyWithoutUserInput
+  restaurantTables?: Prisma.RestaurantTableUncheckedCreateNestedManyWithoutWaiterInput
+  responsibleRestaurantVisits?: Prisma.RestaurantVisitUncheckedCreateNestedManyWithoutResponsibleStaffInput
+  fallbackRestaurantVisits?: Prisma.RestaurantVisitUncheckedCreateNestedManyWithoutFallbackStaffInput
+  staffAccessCode?: Prisma.StaffAccessCodeUncheckedCreateNestedOneWithoutUserInput
+  restaurantStaffSessions?: Prisma.RestaurantStaffSessionUncheckedCreateNestedManyWithoutUserInput
+  restaurantCashSessions?: Prisma.RestaurantCashSessionUncheckedCreateNestedManyWithoutResponsibleUserInput
+  restaurantCashDayCloses?: Prisma.RestaurantCashDayCloseUncheckedCreateNestedManyWithoutResponsibleUserInput
+  restaurantSupplierInvoicesRecorded?: Prisma.RestaurantSupplierInvoiceUncheckedCreateNestedManyWithoutRecordedByInput
+  restaurantEmployeePaymentsReceived?: Prisma.RestaurantEmployeePaymentUncheckedCreateNestedManyWithoutEmployeeInput
+  restaurantEmployeePaymentsRecorded?: Prisma.RestaurantEmployeePaymentUncheckedCreateNestedManyWithoutRecordedByInput
+  serviceFeedbackCampaignsCreated?: Prisma.ServiceFeedbackCampaignUncheckedCreateNestedManyWithoutCreatedByInput
+}
+
+export type UserCreateOrConnectWithoutContinuedCashDaysInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutContinuedCashDaysInput, Prisma.UserUncheckedCreateWithoutContinuedCashDaysInput>
+}
+
+export type UserUpsertWithoutContinuedCashDaysInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutContinuedCashDaysInput, Prisma.UserUncheckedUpdateWithoutContinuedCashDaysInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutContinuedCashDaysInput, Prisma.UserUncheckedCreateWithoutContinuedCashDaysInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutContinuedCashDaysInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutContinuedCashDaysInput, Prisma.UserUncheckedUpdateWithoutContinuedCashDaysInput>
+}
+
+export type UserUpdateWithoutContinuedCashDaysInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  restaurantRole?: Prisma.NullableEnumRestaurantStaffRoleFieldUpdateOperationsInput | $Enums.RestaurantStaffRole | null
+  restaurantAvailability?: Prisma.EnumRestaurantStaffAvailabilityFieldUpdateOperationsInput | $Enums.RestaurantStaffAvailability
+  restaurantCashAuthorized?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  restaurantPayPeriod?: Prisma.NullableEnumRestaurantPayPeriodFieldUpdateOperationsInput | $Enums.RestaurantPayPeriod | null
+  restaurantPayRate?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  restaurantStandardMinutesPerDay?: Prisma.IntFieldUpdateOperationsInput | number
+  restaurantWorkDaysPerMonth?: Prisma.IntFieldUpdateOperationsInput | number
+  restaurantCcssDeductionEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  restaurantCcssDeductionBps?: Prisma.IntFieldUpdateOperationsInput | number
+  active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  deactivatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  sessionVersion?: Prisma.IntFieldUpdateOperationsInput | number
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  organization?: Prisma.OrganizationUpdateOneRequiredWithoutUsersNestedInput
+  scanEvents?: Prisma.ScanEventUpdateManyWithoutUserNestedInput
+  refreshTokens?: Prisma.RefreshTokenUpdateManyWithoutUserNestedInput
+  restaurantTables?: Prisma.RestaurantTableUpdateManyWithoutWaiterNestedInput
+  responsibleRestaurantVisits?: Prisma.RestaurantVisitUpdateManyWithoutResponsibleStaffNestedInput
+  fallbackRestaurantVisits?: Prisma.RestaurantVisitUpdateManyWithoutFallbackStaffNestedInput
+  staffAccessCode?: Prisma.StaffAccessCodeUpdateOneWithoutUserNestedInput
+  restaurantStaffSessions?: Prisma.RestaurantStaffSessionUpdateManyWithoutUserNestedInput
+  restaurantCashSessions?: Prisma.RestaurantCashSessionUpdateManyWithoutResponsibleUserNestedInput
+  restaurantCashDayCloses?: Prisma.RestaurantCashDayCloseUpdateManyWithoutResponsibleUserNestedInput
+  restaurantSupplierInvoicesRecorded?: Prisma.RestaurantSupplierInvoiceUpdateManyWithoutRecordedByNestedInput
+  restaurantEmployeePaymentsReceived?: Prisma.RestaurantEmployeePaymentUpdateManyWithoutEmployeeNestedInput
+  restaurantEmployeePaymentsRecorded?: Prisma.RestaurantEmployeePaymentUpdateManyWithoutRecordedByNestedInput
+  serviceFeedbackCampaignsCreated?: Prisma.ServiceFeedbackCampaignUpdateManyWithoutCreatedByNestedInput
+}
+
+export type UserUncheckedUpdateWithoutContinuedCashDaysInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  organizationId?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  restaurantRole?: Prisma.NullableEnumRestaurantStaffRoleFieldUpdateOperationsInput | $Enums.RestaurantStaffRole | null
+  restaurantAvailability?: Prisma.EnumRestaurantStaffAvailabilityFieldUpdateOperationsInput | $Enums.RestaurantStaffAvailability
+  restaurantCashAuthorized?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  restaurantPayPeriod?: Prisma.NullableEnumRestaurantPayPeriodFieldUpdateOperationsInput | $Enums.RestaurantPayPeriod | null
+  restaurantPayRate?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  restaurantStandardMinutesPerDay?: Prisma.IntFieldUpdateOperationsInput | number
+  restaurantWorkDaysPerMonth?: Prisma.IntFieldUpdateOperationsInput | number
+  restaurantCcssDeductionEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  restaurantCcssDeductionBps?: Prisma.IntFieldUpdateOperationsInput | number
+  active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  deactivatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  sessionVersion?: Prisma.IntFieldUpdateOperationsInput | number
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  scanEvents?: Prisma.ScanEventUncheckedUpdateManyWithoutUserNestedInput
+  refreshTokens?: Prisma.RefreshTokenUncheckedUpdateManyWithoutUserNestedInput
+  restaurantTables?: Prisma.RestaurantTableUncheckedUpdateManyWithoutWaiterNestedInput
+  responsibleRestaurantVisits?: Prisma.RestaurantVisitUncheckedUpdateManyWithoutResponsibleStaffNestedInput
+  fallbackRestaurantVisits?: Prisma.RestaurantVisitUncheckedUpdateManyWithoutFallbackStaffNestedInput
   staffAccessCode?: Prisma.StaffAccessCodeUncheckedUpdateOneWithoutUserNestedInput
   restaurantStaffSessions?: Prisma.RestaurantStaffSessionUncheckedUpdateManyWithoutUserNestedInput
   restaurantCashSessions?: Prisma.RestaurantCashSessionUncheckedUpdateManyWithoutResponsibleUserNestedInput
@@ -1680,6 +1877,7 @@ export type UserCreateWithoutRestaurantCashSessionsInput = {
   fallbackRestaurantVisits?: Prisma.RestaurantVisitCreateNestedManyWithoutFallbackStaffInput
   staffAccessCode?: Prisma.StaffAccessCodeCreateNestedOneWithoutUserInput
   restaurantStaffSessions?: Prisma.RestaurantStaffSessionCreateNestedManyWithoutUserInput
+  continuedCashDays?: Prisma.RestaurantCashDayCreateNestedManyWithoutContinuedByInput
   restaurantCashDayCloses?: Prisma.RestaurantCashDayCloseCreateNestedManyWithoutResponsibleUserInput
   restaurantSupplierInvoicesRecorded?: Prisma.RestaurantSupplierInvoiceCreateNestedManyWithoutRecordedByInput
   restaurantEmployeePaymentsReceived?: Prisma.RestaurantEmployeePaymentCreateNestedManyWithoutEmployeeInput
@@ -1715,6 +1913,7 @@ export type UserUncheckedCreateWithoutRestaurantCashSessionsInput = {
   fallbackRestaurantVisits?: Prisma.RestaurantVisitUncheckedCreateNestedManyWithoutFallbackStaffInput
   staffAccessCode?: Prisma.StaffAccessCodeUncheckedCreateNestedOneWithoutUserInput
   restaurantStaffSessions?: Prisma.RestaurantStaffSessionUncheckedCreateNestedManyWithoutUserInput
+  continuedCashDays?: Prisma.RestaurantCashDayUncheckedCreateNestedManyWithoutContinuedByInput
   restaurantCashDayCloses?: Prisma.RestaurantCashDayCloseUncheckedCreateNestedManyWithoutResponsibleUserInput
   restaurantSupplierInvoicesRecorded?: Prisma.RestaurantSupplierInvoiceUncheckedCreateNestedManyWithoutRecordedByInput
   restaurantEmployeePaymentsReceived?: Prisma.RestaurantEmployeePaymentUncheckedCreateNestedManyWithoutEmployeeInput
@@ -1766,6 +1965,7 @@ export type UserUpdateWithoutRestaurantCashSessionsInput = {
   fallbackRestaurantVisits?: Prisma.RestaurantVisitUpdateManyWithoutFallbackStaffNestedInput
   staffAccessCode?: Prisma.StaffAccessCodeUpdateOneWithoutUserNestedInput
   restaurantStaffSessions?: Prisma.RestaurantStaffSessionUpdateManyWithoutUserNestedInput
+  continuedCashDays?: Prisma.RestaurantCashDayUpdateManyWithoutContinuedByNestedInput
   restaurantCashDayCloses?: Prisma.RestaurantCashDayCloseUpdateManyWithoutResponsibleUserNestedInput
   restaurantSupplierInvoicesRecorded?: Prisma.RestaurantSupplierInvoiceUpdateManyWithoutRecordedByNestedInput
   restaurantEmployeePaymentsReceived?: Prisma.RestaurantEmployeePaymentUpdateManyWithoutEmployeeNestedInput
@@ -1801,6 +2001,7 @@ export type UserUncheckedUpdateWithoutRestaurantCashSessionsInput = {
   fallbackRestaurantVisits?: Prisma.RestaurantVisitUncheckedUpdateManyWithoutFallbackStaffNestedInput
   staffAccessCode?: Prisma.StaffAccessCodeUncheckedUpdateOneWithoutUserNestedInput
   restaurantStaffSessions?: Prisma.RestaurantStaffSessionUncheckedUpdateManyWithoutUserNestedInput
+  continuedCashDays?: Prisma.RestaurantCashDayUncheckedUpdateManyWithoutContinuedByNestedInput
   restaurantCashDayCloses?: Prisma.RestaurantCashDayCloseUncheckedUpdateManyWithoutResponsibleUserNestedInput
   restaurantSupplierInvoicesRecorded?: Prisma.RestaurantSupplierInvoiceUncheckedUpdateManyWithoutRecordedByNestedInput
   restaurantEmployeePaymentsReceived?: Prisma.RestaurantEmployeePaymentUncheckedUpdateManyWithoutEmployeeNestedInput
@@ -1836,6 +2037,7 @@ export type UserCreateWithoutRestaurantCashDayClosesInput = {
   fallbackRestaurantVisits?: Prisma.RestaurantVisitCreateNestedManyWithoutFallbackStaffInput
   staffAccessCode?: Prisma.StaffAccessCodeCreateNestedOneWithoutUserInput
   restaurantStaffSessions?: Prisma.RestaurantStaffSessionCreateNestedManyWithoutUserInput
+  continuedCashDays?: Prisma.RestaurantCashDayCreateNestedManyWithoutContinuedByInput
   restaurantCashSessions?: Prisma.RestaurantCashSessionCreateNestedManyWithoutResponsibleUserInput
   restaurantSupplierInvoicesRecorded?: Prisma.RestaurantSupplierInvoiceCreateNestedManyWithoutRecordedByInput
   restaurantEmployeePaymentsReceived?: Prisma.RestaurantEmployeePaymentCreateNestedManyWithoutEmployeeInput
@@ -1871,6 +2073,7 @@ export type UserUncheckedCreateWithoutRestaurantCashDayClosesInput = {
   fallbackRestaurantVisits?: Prisma.RestaurantVisitUncheckedCreateNestedManyWithoutFallbackStaffInput
   staffAccessCode?: Prisma.StaffAccessCodeUncheckedCreateNestedOneWithoutUserInput
   restaurantStaffSessions?: Prisma.RestaurantStaffSessionUncheckedCreateNestedManyWithoutUserInput
+  continuedCashDays?: Prisma.RestaurantCashDayUncheckedCreateNestedManyWithoutContinuedByInput
   restaurantCashSessions?: Prisma.RestaurantCashSessionUncheckedCreateNestedManyWithoutResponsibleUserInput
   restaurantSupplierInvoicesRecorded?: Prisma.RestaurantSupplierInvoiceUncheckedCreateNestedManyWithoutRecordedByInput
   restaurantEmployeePaymentsReceived?: Prisma.RestaurantEmployeePaymentUncheckedCreateNestedManyWithoutEmployeeInput
@@ -1922,6 +2125,7 @@ export type UserUpdateWithoutRestaurantCashDayClosesInput = {
   fallbackRestaurantVisits?: Prisma.RestaurantVisitUpdateManyWithoutFallbackStaffNestedInput
   staffAccessCode?: Prisma.StaffAccessCodeUpdateOneWithoutUserNestedInput
   restaurantStaffSessions?: Prisma.RestaurantStaffSessionUpdateManyWithoutUserNestedInput
+  continuedCashDays?: Prisma.RestaurantCashDayUpdateManyWithoutContinuedByNestedInput
   restaurantCashSessions?: Prisma.RestaurantCashSessionUpdateManyWithoutResponsibleUserNestedInput
   restaurantSupplierInvoicesRecorded?: Prisma.RestaurantSupplierInvoiceUpdateManyWithoutRecordedByNestedInput
   restaurantEmployeePaymentsReceived?: Prisma.RestaurantEmployeePaymentUpdateManyWithoutEmployeeNestedInput
@@ -1957,6 +2161,7 @@ export type UserUncheckedUpdateWithoutRestaurantCashDayClosesInput = {
   fallbackRestaurantVisits?: Prisma.RestaurantVisitUncheckedUpdateManyWithoutFallbackStaffNestedInput
   staffAccessCode?: Prisma.StaffAccessCodeUncheckedUpdateOneWithoutUserNestedInput
   restaurantStaffSessions?: Prisma.RestaurantStaffSessionUncheckedUpdateManyWithoutUserNestedInput
+  continuedCashDays?: Prisma.RestaurantCashDayUncheckedUpdateManyWithoutContinuedByNestedInput
   restaurantCashSessions?: Prisma.RestaurantCashSessionUncheckedUpdateManyWithoutResponsibleUserNestedInput
   restaurantSupplierInvoicesRecorded?: Prisma.RestaurantSupplierInvoiceUncheckedUpdateManyWithoutRecordedByNestedInput
   restaurantEmployeePaymentsReceived?: Prisma.RestaurantEmployeePaymentUncheckedUpdateManyWithoutEmployeeNestedInput
@@ -1992,6 +2197,7 @@ export type UserCreateWithoutRestaurantSupplierInvoicesRecordedInput = {
   fallbackRestaurantVisits?: Prisma.RestaurantVisitCreateNestedManyWithoutFallbackStaffInput
   staffAccessCode?: Prisma.StaffAccessCodeCreateNestedOneWithoutUserInput
   restaurantStaffSessions?: Prisma.RestaurantStaffSessionCreateNestedManyWithoutUserInput
+  continuedCashDays?: Prisma.RestaurantCashDayCreateNestedManyWithoutContinuedByInput
   restaurantCashSessions?: Prisma.RestaurantCashSessionCreateNestedManyWithoutResponsibleUserInput
   restaurantCashDayCloses?: Prisma.RestaurantCashDayCloseCreateNestedManyWithoutResponsibleUserInput
   restaurantEmployeePaymentsReceived?: Prisma.RestaurantEmployeePaymentCreateNestedManyWithoutEmployeeInput
@@ -2027,6 +2233,7 @@ export type UserUncheckedCreateWithoutRestaurantSupplierInvoicesRecordedInput = 
   fallbackRestaurantVisits?: Prisma.RestaurantVisitUncheckedCreateNestedManyWithoutFallbackStaffInput
   staffAccessCode?: Prisma.StaffAccessCodeUncheckedCreateNestedOneWithoutUserInput
   restaurantStaffSessions?: Prisma.RestaurantStaffSessionUncheckedCreateNestedManyWithoutUserInput
+  continuedCashDays?: Prisma.RestaurantCashDayUncheckedCreateNestedManyWithoutContinuedByInput
   restaurantCashSessions?: Prisma.RestaurantCashSessionUncheckedCreateNestedManyWithoutResponsibleUserInput
   restaurantCashDayCloses?: Prisma.RestaurantCashDayCloseUncheckedCreateNestedManyWithoutResponsibleUserInput
   restaurantEmployeePaymentsReceived?: Prisma.RestaurantEmployeePaymentUncheckedCreateNestedManyWithoutEmployeeInput
@@ -2078,6 +2285,7 @@ export type UserUpdateWithoutRestaurantSupplierInvoicesRecordedInput = {
   fallbackRestaurantVisits?: Prisma.RestaurantVisitUpdateManyWithoutFallbackStaffNestedInput
   staffAccessCode?: Prisma.StaffAccessCodeUpdateOneWithoutUserNestedInput
   restaurantStaffSessions?: Prisma.RestaurantStaffSessionUpdateManyWithoutUserNestedInput
+  continuedCashDays?: Prisma.RestaurantCashDayUpdateManyWithoutContinuedByNestedInput
   restaurantCashSessions?: Prisma.RestaurantCashSessionUpdateManyWithoutResponsibleUserNestedInput
   restaurantCashDayCloses?: Prisma.RestaurantCashDayCloseUpdateManyWithoutResponsibleUserNestedInput
   restaurantEmployeePaymentsReceived?: Prisma.RestaurantEmployeePaymentUpdateManyWithoutEmployeeNestedInput
@@ -2113,6 +2321,7 @@ export type UserUncheckedUpdateWithoutRestaurantSupplierInvoicesRecordedInput = 
   fallbackRestaurantVisits?: Prisma.RestaurantVisitUncheckedUpdateManyWithoutFallbackStaffNestedInput
   staffAccessCode?: Prisma.StaffAccessCodeUncheckedUpdateOneWithoutUserNestedInput
   restaurantStaffSessions?: Prisma.RestaurantStaffSessionUncheckedUpdateManyWithoutUserNestedInput
+  continuedCashDays?: Prisma.RestaurantCashDayUncheckedUpdateManyWithoutContinuedByNestedInput
   restaurantCashSessions?: Prisma.RestaurantCashSessionUncheckedUpdateManyWithoutResponsibleUserNestedInput
   restaurantCashDayCloses?: Prisma.RestaurantCashDayCloseUncheckedUpdateManyWithoutResponsibleUserNestedInput
   restaurantEmployeePaymentsReceived?: Prisma.RestaurantEmployeePaymentUncheckedUpdateManyWithoutEmployeeNestedInput
@@ -2148,6 +2357,7 @@ export type UserCreateWithoutRestaurantEmployeePaymentsReceivedInput = {
   fallbackRestaurantVisits?: Prisma.RestaurantVisitCreateNestedManyWithoutFallbackStaffInput
   staffAccessCode?: Prisma.StaffAccessCodeCreateNestedOneWithoutUserInput
   restaurantStaffSessions?: Prisma.RestaurantStaffSessionCreateNestedManyWithoutUserInput
+  continuedCashDays?: Prisma.RestaurantCashDayCreateNestedManyWithoutContinuedByInput
   restaurantCashSessions?: Prisma.RestaurantCashSessionCreateNestedManyWithoutResponsibleUserInput
   restaurantCashDayCloses?: Prisma.RestaurantCashDayCloseCreateNestedManyWithoutResponsibleUserInput
   restaurantSupplierInvoicesRecorded?: Prisma.RestaurantSupplierInvoiceCreateNestedManyWithoutRecordedByInput
@@ -2183,6 +2393,7 @@ export type UserUncheckedCreateWithoutRestaurantEmployeePaymentsReceivedInput = 
   fallbackRestaurantVisits?: Prisma.RestaurantVisitUncheckedCreateNestedManyWithoutFallbackStaffInput
   staffAccessCode?: Prisma.StaffAccessCodeUncheckedCreateNestedOneWithoutUserInput
   restaurantStaffSessions?: Prisma.RestaurantStaffSessionUncheckedCreateNestedManyWithoutUserInput
+  continuedCashDays?: Prisma.RestaurantCashDayUncheckedCreateNestedManyWithoutContinuedByInput
   restaurantCashSessions?: Prisma.RestaurantCashSessionUncheckedCreateNestedManyWithoutResponsibleUserInput
   restaurantCashDayCloses?: Prisma.RestaurantCashDayCloseUncheckedCreateNestedManyWithoutResponsibleUserInput
   restaurantSupplierInvoicesRecorded?: Prisma.RestaurantSupplierInvoiceUncheckedCreateNestedManyWithoutRecordedByInput
@@ -2223,6 +2434,7 @@ export type UserCreateWithoutRestaurantEmployeePaymentsRecordedInput = {
   fallbackRestaurantVisits?: Prisma.RestaurantVisitCreateNestedManyWithoutFallbackStaffInput
   staffAccessCode?: Prisma.StaffAccessCodeCreateNestedOneWithoutUserInput
   restaurantStaffSessions?: Prisma.RestaurantStaffSessionCreateNestedManyWithoutUserInput
+  continuedCashDays?: Prisma.RestaurantCashDayCreateNestedManyWithoutContinuedByInput
   restaurantCashSessions?: Prisma.RestaurantCashSessionCreateNestedManyWithoutResponsibleUserInput
   restaurantCashDayCloses?: Prisma.RestaurantCashDayCloseCreateNestedManyWithoutResponsibleUserInput
   restaurantSupplierInvoicesRecorded?: Prisma.RestaurantSupplierInvoiceCreateNestedManyWithoutRecordedByInput
@@ -2258,6 +2470,7 @@ export type UserUncheckedCreateWithoutRestaurantEmployeePaymentsRecordedInput = 
   fallbackRestaurantVisits?: Prisma.RestaurantVisitUncheckedCreateNestedManyWithoutFallbackStaffInput
   staffAccessCode?: Prisma.StaffAccessCodeUncheckedCreateNestedOneWithoutUserInput
   restaurantStaffSessions?: Prisma.RestaurantStaffSessionUncheckedCreateNestedManyWithoutUserInput
+  continuedCashDays?: Prisma.RestaurantCashDayUncheckedCreateNestedManyWithoutContinuedByInput
   restaurantCashSessions?: Prisma.RestaurantCashSessionUncheckedCreateNestedManyWithoutResponsibleUserInput
   restaurantCashDayCloses?: Prisma.RestaurantCashDayCloseUncheckedCreateNestedManyWithoutResponsibleUserInput
   restaurantSupplierInvoicesRecorded?: Prisma.RestaurantSupplierInvoiceUncheckedCreateNestedManyWithoutRecordedByInput
@@ -2309,6 +2522,7 @@ export type UserUpdateWithoutRestaurantEmployeePaymentsReceivedInput = {
   fallbackRestaurantVisits?: Prisma.RestaurantVisitUpdateManyWithoutFallbackStaffNestedInput
   staffAccessCode?: Prisma.StaffAccessCodeUpdateOneWithoutUserNestedInput
   restaurantStaffSessions?: Prisma.RestaurantStaffSessionUpdateManyWithoutUserNestedInput
+  continuedCashDays?: Prisma.RestaurantCashDayUpdateManyWithoutContinuedByNestedInput
   restaurantCashSessions?: Prisma.RestaurantCashSessionUpdateManyWithoutResponsibleUserNestedInput
   restaurantCashDayCloses?: Prisma.RestaurantCashDayCloseUpdateManyWithoutResponsibleUserNestedInput
   restaurantSupplierInvoicesRecorded?: Prisma.RestaurantSupplierInvoiceUpdateManyWithoutRecordedByNestedInput
@@ -2344,6 +2558,7 @@ export type UserUncheckedUpdateWithoutRestaurantEmployeePaymentsReceivedInput = 
   fallbackRestaurantVisits?: Prisma.RestaurantVisitUncheckedUpdateManyWithoutFallbackStaffNestedInput
   staffAccessCode?: Prisma.StaffAccessCodeUncheckedUpdateOneWithoutUserNestedInput
   restaurantStaffSessions?: Prisma.RestaurantStaffSessionUncheckedUpdateManyWithoutUserNestedInput
+  continuedCashDays?: Prisma.RestaurantCashDayUncheckedUpdateManyWithoutContinuedByNestedInput
   restaurantCashSessions?: Prisma.RestaurantCashSessionUncheckedUpdateManyWithoutResponsibleUserNestedInput
   restaurantCashDayCloses?: Prisma.RestaurantCashDayCloseUncheckedUpdateManyWithoutResponsibleUserNestedInput
   restaurantSupplierInvoicesRecorded?: Prisma.RestaurantSupplierInvoiceUncheckedUpdateManyWithoutRecordedByNestedInput
@@ -2390,6 +2605,7 @@ export type UserUpdateWithoutRestaurantEmployeePaymentsRecordedInput = {
   fallbackRestaurantVisits?: Prisma.RestaurantVisitUpdateManyWithoutFallbackStaffNestedInput
   staffAccessCode?: Prisma.StaffAccessCodeUpdateOneWithoutUserNestedInput
   restaurantStaffSessions?: Prisma.RestaurantStaffSessionUpdateManyWithoutUserNestedInput
+  continuedCashDays?: Prisma.RestaurantCashDayUpdateManyWithoutContinuedByNestedInput
   restaurantCashSessions?: Prisma.RestaurantCashSessionUpdateManyWithoutResponsibleUserNestedInput
   restaurantCashDayCloses?: Prisma.RestaurantCashDayCloseUpdateManyWithoutResponsibleUserNestedInput
   restaurantSupplierInvoicesRecorded?: Prisma.RestaurantSupplierInvoiceUpdateManyWithoutRecordedByNestedInput
@@ -2425,6 +2641,7 @@ export type UserUncheckedUpdateWithoutRestaurantEmployeePaymentsRecordedInput = 
   fallbackRestaurantVisits?: Prisma.RestaurantVisitUncheckedUpdateManyWithoutFallbackStaffNestedInput
   staffAccessCode?: Prisma.StaffAccessCodeUncheckedUpdateOneWithoutUserNestedInput
   restaurantStaffSessions?: Prisma.RestaurantStaffSessionUncheckedUpdateManyWithoutUserNestedInput
+  continuedCashDays?: Prisma.RestaurantCashDayUncheckedUpdateManyWithoutContinuedByNestedInput
   restaurantCashSessions?: Prisma.RestaurantCashSessionUncheckedUpdateManyWithoutResponsibleUserNestedInput
   restaurantCashDayCloses?: Prisma.RestaurantCashDayCloseUncheckedUpdateManyWithoutResponsibleUserNestedInput
   restaurantSupplierInvoicesRecorded?: Prisma.RestaurantSupplierInvoiceUncheckedUpdateManyWithoutRecordedByNestedInput
@@ -2459,6 +2676,7 @@ export type UserCreateWithoutRestaurantStaffSessionsInput = {
   responsibleRestaurantVisits?: Prisma.RestaurantVisitCreateNestedManyWithoutResponsibleStaffInput
   fallbackRestaurantVisits?: Prisma.RestaurantVisitCreateNestedManyWithoutFallbackStaffInput
   staffAccessCode?: Prisma.StaffAccessCodeCreateNestedOneWithoutUserInput
+  continuedCashDays?: Prisma.RestaurantCashDayCreateNestedManyWithoutContinuedByInput
   restaurantCashSessions?: Prisma.RestaurantCashSessionCreateNestedManyWithoutResponsibleUserInput
   restaurantCashDayCloses?: Prisma.RestaurantCashDayCloseCreateNestedManyWithoutResponsibleUserInput
   restaurantSupplierInvoicesRecorded?: Prisma.RestaurantSupplierInvoiceCreateNestedManyWithoutRecordedByInput
@@ -2494,6 +2712,7 @@ export type UserUncheckedCreateWithoutRestaurantStaffSessionsInput = {
   responsibleRestaurantVisits?: Prisma.RestaurantVisitUncheckedCreateNestedManyWithoutResponsibleStaffInput
   fallbackRestaurantVisits?: Prisma.RestaurantVisitUncheckedCreateNestedManyWithoutFallbackStaffInput
   staffAccessCode?: Prisma.StaffAccessCodeUncheckedCreateNestedOneWithoutUserInput
+  continuedCashDays?: Prisma.RestaurantCashDayUncheckedCreateNestedManyWithoutContinuedByInput
   restaurantCashSessions?: Prisma.RestaurantCashSessionUncheckedCreateNestedManyWithoutResponsibleUserInput
   restaurantCashDayCloses?: Prisma.RestaurantCashDayCloseUncheckedCreateNestedManyWithoutResponsibleUserInput
   restaurantSupplierInvoicesRecorded?: Prisma.RestaurantSupplierInvoiceUncheckedCreateNestedManyWithoutRecordedByInput
@@ -2545,6 +2764,7 @@ export type UserUpdateWithoutRestaurantStaffSessionsInput = {
   responsibleRestaurantVisits?: Prisma.RestaurantVisitUpdateManyWithoutResponsibleStaffNestedInput
   fallbackRestaurantVisits?: Prisma.RestaurantVisitUpdateManyWithoutFallbackStaffNestedInput
   staffAccessCode?: Prisma.StaffAccessCodeUpdateOneWithoutUserNestedInput
+  continuedCashDays?: Prisma.RestaurantCashDayUpdateManyWithoutContinuedByNestedInput
   restaurantCashSessions?: Prisma.RestaurantCashSessionUpdateManyWithoutResponsibleUserNestedInput
   restaurantCashDayCloses?: Prisma.RestaurantCashDayCloseUpdateManyWithoutResponsibleUserNestedInput
   restaurantSupplierInvoicesRecorded?: Prisma.RestaurantSupplierInvoiceUpdateManyWithoutRecordedByNestedInput
@@ -2580,6 +2800,7 @@ export type UserUncheckedUpdateWithoutRestaurantStaffSessionsInput = {
   responsibleRestaurantVisits?: Prisma.RestaurantVisitUncheckedUpdateManyWithoutResponsibleStaffNestedInput
   fallbackRestaurantVisits?: Prisma.RestaurantVisitUncheckedUpdateManyWithoutFallbackStaffNestedInput
   staffAccessCode?: Prisma.StaffAccessCodeUncheckedUpdateOneWithoutUserNestedInput
+  continuedCashDays?: Prisma.RestaurantCashDayUncheckedUpdateManyWithoutContinuedByNestedInput
   restaurantCashSessions?: Prisma.RestaurantCashSessionUncheckedUpdateManyWithoutResponsibleUserNestedInput
   restaurantCashDayCloses?: Prisma.RestaurantCashDayCloseUncheckedUpdateManyWithoutResponsibleUserNestedInput
   restaurantSupplierInvoicesRecorded?: Prisma.RestaurantSupplierInvoiceUncheckedUpdateManyWithoutRecordedByNestedInput
@@ -2616,6 +2837,7 @@ export type UserCreateWithoutServiceFeedbackCampaignsCreatedInput = {
   fallbackRestaurantVisits?: Prisma.RestaurantVisitCreateNestedManyWithoutFallbackStaffInput
   staffAccessCode?: Prisma.StaffAccessCodeCreateNestedOneWithoutUserInput
   restaurantStaffSessions?: Prisma.RestaurantStaffSessionCreateNestedManyWithoutUserInput
+  continuedCashDays?: Prisma.RestaurantCashDayCreateNestedManyWithoutContinuedByInput
   restaurantCashSessions?: Prisma.RestaurantCashSessionCreateNestedManyWithoutResponsibleUserInput
   restaurantCashDayCloses?: Prisma.RestaurantCashDayCloseCreateNestedManyWithoutResponsibleUserInput
   restaurantSupplierInvoicesRecorded?: Prisma.RestaurantSupplierInvoiceCreateNestedManyWithoutRecordedByInput
@@ -2651,6 +2873,7 @@ export type UserUncheckedCreateWithoutServiceFeedbackCampaignsCreatedInput = {
   fallbackRestaurantVisits?: Prisma.RestaurantVisitUncheckedCreateNestedManyWithoutFallbackStaffInput
   staffAccessCode?: Prisma.StaffAccessCodeUncheckedCreateNestedOneWithoutUserInput
   restaurantStaffSessions?: Prisma.RestaurantStaffSessionUncheckedCreateNestedManyWithoutUserInput
+  continuedCashDays?: Prisma.RestaurantCashDayUncheckedCreateNestedManyWithoutContinuedByInput
   restaurantCashSessions?: Prisma.RestaurantCashSessionUncheckedCreateNestedManyWithoutResponsibleUserInput
   restaurantCashDayCloses?: Prisma.RestaurantCashDayCloseUncheckedCreateNestedManyWithoutResponsibleUserInput
   restaurantSupplierInvoicesRecorded?: Prisma.RestaurantSupplierInvoiceUncheckedCreateNestedManyWithoutRecordedByInput
@@ -2702,6 +2925,7 @@ export type UserUpdateWithoutServiceFeedbackCampaignsCreatedInput = {
   fallbackRestaurantVisits?: Prisma.RestaurantVisitUpdateManyWithoutFallbackStaffNestedInput
   staffAccessCode?: Prisma.StaffAccessCodeUpdateOneWithoutUserNestedInput
   restaurantStaffSessions?: Prisma.RestaurantStaffSessionUpdateManyWithoutUserNestedInput
+  continuedCashDays?: Prisma.RestaurantCashDayUpdateManyWithoutContinuedByNestedInput
   restaurantCashSessions?: Prisma.RestaurantCashSessionUpdateManyWithoutResponsibleUserNestedInput
   restaurantCashDayCloses?: Prisma.RestaurantCashDayCloseUpdateManyWithoutResponsibleUserNestedInput
   restaurantSupplierInvoicesRecorded?: Prisma.RestaurantSupplierInvoiceUpdateManyWithoutRecordedByNestedInput
@@ -2737,6 +2961,7 @@ export type UserUncheckedUpdateWithoutServiceFeedbackCampaignsCreatedInput = {
   fallbackRestaurantVisits?: Prisma.RestaurantVisitUncheckedUpdateManyWithoutFallbackStaffNestedInput
   staffAccessCode?: Prisma.StaffAccessCodeUncheckedUpdateOneWithoutUserNestedInput
   restaurantStaffSessions?: Prisma.RestaurantStaffSessionUncheckedUpdateManyWithoutUserNestedInput
+  continuedCashDays?: Prisma.RestaurantCashDayUncheckedUpdateManyWithoutContinuedByNestedInput
   restaurantCashSessions?: Prisma.RestaurantCashSessionUncheckedUpdateManyWithoutResponsibleUserNestedInput
   restaurantCashDayCloses?: Prisma.RestaurantCashDayCloseUncheckedUpdateManyWithoutResponsibleUserNestedInput
   restaurantSupplierInvoicesRecorded?: Prisma.RestaurantSupplierInvoiceUncheckedUpdateManyWithoutRecordedByNestedInput
@@ -2771,6 +2996,7 @@ export type UserCreateWithoutStaffAccessCodeInput = {
   responsibleRestaurantVisits?: Prisma.RestaurantVisitCreateNestedManyWithoutResponsibleStaffInput
   fallbackRestaurantVisits?: Prisma.RestaurantVisitCreateNestedManyWithoutFallbackStaffInput
   restaurantStaffSessions?: Prisma.RestaurantStaffSessionCreateNestedManyWithoutUserInput
+  continuedCashDays?: Prisma.RestaurantCashDayCreateNestedManyWithoutContinuedByInput
   restaurantCashSessions?: Prisma.RestaurantCashSessionCreateNestedManyWithoutResponsibleUserInput
   restaurantCashDayCloses?: Prisma.RestaurantCashDayCloseCreateNestedManyWithoutResponsibleUserInput
   restaurantSupplierInvoicesRecorded?: Prisma.RestaurantSupplierInvoiceCreateNestedManyWithoutRecordedByInput
@@ -2806,6 +3032,7 @@ export type UserUncheckedCreateWithoutStaffAccessCodeInput = {
   responsibleRestaurantVisits?: Prisma.RestaurantVisitUncheckedCreateNestedManyWithoutResponsibleStaffInput
   fallbackRestaurantVisits?: Prisma.RestaurantVisitUncheckedCreateNestedManyWithoutFallbackStaffInput
   restaurantStaffSessions?: Prisma.RestaurantStaffSessionUncheckedCreateNestedManyWithoutUserInput
+  continuedCashDays?: Prisma.RestaurantCashDayUncheckedCreateNestedManyWithoutContinuedByInput
   restaurantCashSessions?: Prisma.RestaurantCashSessionUncheckedCreateNestedManyWithoutResponsibleUserInput
   restaurantCashDayCloses?: Prisma.RestaurantCashDayCloseUncheckedCreateNestedManyWithoutResponsibleUserInput
   restaurantSupplierInvoicesRecorded?: Prisma.RestaurantSupplierInvoiceUncheckedCreateNestedManyWithoutRecordedByInput
@@ -2857,6 +3084,7 @@ export type UserUpdateWithoutStaffAccessCodeInput = {
   responsibleRestaurantVisits?: Prisma.RestaurantVisitUpdateManyWithoutResponsibleStaffNestedInput
   fallbackRestaurantVisits?: Prisma.RestaurantVisitUpdateManyWithoutFallbackStaffNestedInput
   restaurantStaffSessions?: Prisma.RestaurantStaffSessionUpdateManyWithoutUserNestedInput
+  continuedCashDays?: Prisma.RestaurantCashDayUpdateManyWithoutContinuedByNestedInput
   restaurantCashSessions?: Prisma.RestaurantCashSessionUpdateManyWithoutResponsibleUserNestedInput
   restaurantCashDayCloses?: Prisma.RestaurantCashDayCloseUpdateManyWithoutResponsibleUserNestedInput
   restaurantSupplierInvoicesRecorded?: Prisma.RestaurantSupplierInvoiceUpdateManyWithoutRecordedByNestedInput
@@ -2892,6 +3120,7 @@ export type UserUncheckedUpdateWithoutStaffAccessCodeInput = {
   responsibleRestaurantVisits?: Prisma.RestaurantVisitUncheckedUpdateManyWithoutResponsibleStaffNestedInput
   fallbackRestaurantVisits?: Prisma.RestaurantVisitUncheckedUpdateManyWithoutFallbackStaffNestedInput
   restaurantStaffSessions?: Prisma.RestaurantStaffSessionUncheckedUpdateManyWithoutUserNestedInput
+  continuedCashDays?: Prisma.RestaurantCashDayUncheckedUpdateManyWithoutContinuedByNestedInput
   restaurantCashSessions?: Prisma.RestaurantCashSessionUncheckedUpdateManyWithoutResponsibleUserNestedInput
   restaurantCashDayCloses?: Prisma.RestaurantCashDayCloseUncheckedUpdateManyWithoutResponsibleUserNestedInput
   restaurantSupplierInvoicesRecorded?: Prisma.RestaurantSupplierInvoiceUncheckedUpdateManyWithoutRecordedByNestedInput
@@ -2927,6 +3156,7 @@ export type UserCreateWithoutScanEventsInput = {
   fallbackRestaurantVisits?: Prisma.RestaurantVisitCreateNestedManyWithoutFallbackStaffInput
   staffAccessCode?: Prisma.StaffAccessCodeCreateNestedOneWithoutUserInput
   restaurantStaffSessions?: Prisma.RestaurantStaffSessionCreateNestedManyWithoutUserInput
+  continuedCashDays?: Prisma.RestaurantCashDayCreateNestedManyWithoutContinuedByInput
   restaurantCashSessions?: Prisma.RestaurantCashSessionCreateNestedManyWithoutResponsibleUserInput
   restaurantCashDayCloses?: Prisma.RestaurantCashDayCloseCreateNestedManyWithoutResponsibleUserInput
   restaurantSupplierInvoicesRecorded?: Prisma.RestaurantSupplierInvoiceCreateNestedManyWithoutRecordedByInput
@@ -2962,6 +3192,7 @@ export type UserUncheckedCreateWithoutScanEventsInput = {
   fallbackRestaurantVisits?: Prisma.RestaurantVisitUncheckedCreateNestedManyWithoutFallbackStaffInput
   staffAccessCode?: Prisma.StaffAccessCodeUncheckedCreateNestedOneWithoutUserInput
   restaurantStaffSessions?: Prisma.RestaurantStaffSessionUncheckedCreateNestedManyWithoutUserInput
+  continuedCashDays?: Prisma.RestaurantCashDayUncheckedCreateNestedManyWithoutContinuedByInput
   restaurantCashSessions?: Prisma.RestaurantCashSessionUncheckedCreateNestedManyWithoutResponsibleUserInput
   restaurantCashDayCloses?: Prisma.RestaurantCashDayCloseUncheckedCreateNestedManyWithoutResponsibleUserInput
   restaurantSupplierInvoicesRecorded?: Prisma.RestaurantSupplierInvoiceUncheckedCreateNestedManyWithoutRecordedByInput
@@ -3013,6 +3244,7 @@ export type UserUpdateWithoutScanEventsInput = {
   fallbackRestaurantVisits?: Prisma.RestaurantVisitUpdateManyWithoutFallbackStaffNestedInput
   staffAccessCode?: Prisma.StaffAccessCodeUpdateOneWithoutUserNestedInput
   restaurantStaffSessions?: Prisma.RestaurantStaffSessionUpdateManyWithoutUserNestedInput
+  continuedCashDays?: Prisma.RestaurantCashDayUpdateManyWithoutContinuedByNestedInput
   restaurantCashSessions?: Prisma.RestaurantCashSessionUpdateManyWithoutResponsibleUserNestedInput
   restaurantCashDayCloses?: Prisma.RestaurantCashDayCloseUpdateManyWithoutResponsibleUserNestedInput
   restaurantSupplierInvoicesRecorded?: Prisma.RestaurantSupplierInvoiceUpdateManyWithoutRecordedByNestedInput
@@ -3048,6 +3280,7 @@ export type UserUncheckedUpdateWithoutScanEventsInput = {
   fallbackRestaurantVisits?: Prisma.RestaurantVisitUncheckedUpdateManyWithoutFallbackStaffNestedInput
   staffAccessCode?: Prisma.StaffAccessCodeUncheckedUpdateOneWithoutUserNestedInput
   restaurantStaffSessions?: Prisma.RestaurantStaffSessionUncheckedUpdateManyWithoutUserNestedInput
+  continuedCashDays?: Prisma.RestaurantCashDayUncheckedUpdateManyWithoutContinuedByNestedInput
   restaurantCashSessions?: Prisma.RestaurantCashSessionUncheckedUpdateManyWithoutResponsibleUserNestedInput
   restaurantCashDayCloses?: Prisma.RestaurantCashDayCloseUncheckedUpdateManyWithoutResponsibleUserNestedInput
   restaurantSupplierInvoicesRecorded?: Prisma.RestaurantSupplierInvoiceUncheckedUpdateManyWithoutRecordedByNestedInput
@@ -3083,6 +3316,7 @@ export type UserCreateWithoutRefreshTokensInput = {
   fallbackRestaurantVisits?: Prisma.RestaurantVisitCreateNestedManyWithoutFallbackStaffInput
   staffAccessCode?: Prisma.StaffAccessCodeCreateNestedOneWithoutUserInput
   restaurantStaffSessions?: Prisma.RestaurantStaffSessionCreateNestedManyWithoutUserInput
+  continuedCashDays?: Prisma.RestaurantCashDayCreateNestedManyWithoutContinuedByInput
   restaurantCashSessions?: Prisma.RestaurantCashSessionCreateNestedManyWithoutResponsibleUserInput
   restaurantCashDayCloses?: Prisma.RestaurantCashDayCloseCreateNestedManyWithoutResponsibleUserInput
   restaurantSupplierInvoicesRecorded?: Prisma.RestaurantSupplierInvoiceCreateNestedManyWithoutRecordedByInput
@@ -3118,6 +3352,7 @@ export type UserUncheckedCreateWithoutRefreshTokensInput = {
   fallbackRestaurantVisits?: Prisma.RestaurantVisitUncheckedCreateNestedManyWithoutFallbackStaffInput
   staffAccessCode?: Prisma.StaffAccessCodeUncheckedCreateNestedOneWithoutUserInput
   restaurantStaffSessions?: Prisma.RestaurantStaffSessionUncheckedCreateNestedManyWithoutUserInput
+  continuedCashDays?: Prisma.RestaurantCashDayUncheckedCreateNestedManyWithoutContinuedByInput
   restaurantCashSessions?: Prisma.RestaurantCashSessionUncheckedCreateNestedManyWithoutResponsibleUserInput
   restaurantCashDayCloses?: Prisma.RestaurantCashDayCloseUncheckedCreateNestedManyWithoutResponsibleUserInput
   restaurantSupplierInvoicesRecorded?: Prisma.RestaurantSupplierInvoiceUncheckedCreateNestedManyWithoutRecordedByInput
@@ -3169,6 +3404,7 @@ export type UserUpdateWithoutRefreshTokensInput = {
   fallbackRestaurantVisits?: Prisma.RestaurantVisitUpdateManyWithoutFallbackStaffNestedInput
   staffAccessCode?: Prisma.StaffAccessCodeUpdateOneWithoutUserNestedInput
   restaurantStaffSessions?: Prisma.RestaurantStaffSessionUpdateManyWithoutUserNestedInput
+  continuedCashDays?: Prisma.RestaurantCashDayUpdateManyWithoutContinuedByNestedInput
   restaurantCashSessions?: Prisma.RestaurantCashSessionUpdateManyWithoutResponsibleUserNestedInput
   restaurantCashDayCloses?: Prisma.RestaurantCashDayCloseUpdateManyWithoutResponsibleUserNestedInput
   restaurantSupplierInvoicesRecorded?: Prisma.RestaurantSupplierInvoiceUpdateManyWithoutRecordedByNestedInput
@@ -3204,6 +3440,7 @@ export type UserUncheckedUpdateWithoutRefreshTokensInput = {
   fallbackRestaurantVisits?: Prisma.RestaurantVisitUncheckedUpdateManyWithoutFallbackStaffNestedInput
   staffAccessCode?: Prisma.StaffAccessCodeUncheckedUpdateOneWithoutUserNestedInput
   restaurantStaffSessions?: Prisma.RestaurantStaffSessionUncheckedUpdateManyWithoutUserNestedInput
+  continuedCashDays?: Prisma.RestaurantCashDayUncheckedUpdateManyWithoutContinuedByNestedInput
   restaurantCashSessions?: Prisma.RestaurantCashSessionUncheckedUpdateManyWithoutResponsibleUserNestedInput
   restaurantCashDayCloses?: Prisma.RestaurantCashDayCloseUncheckedUpdateManyWithoutResponsibleUserNestedInput
   restaurantSupplierInvoicesRecorded?: Prisma.RestaurantSupplierInvoiceUncheckedUpdateManyWithoutRecordedByNestedInput
@@ -3261,6 +3498,7 @@ export type UserUpdateWithoutOrganizationInput = {
   fallbackRestaurantVisits?: Prisma.RestaurantVisitUpdateManyWithoutFallbackStaffNestedInput
   staffAccessCode?: Prisma.StaffAccessCodeUpdateOneWithoutUserNestedInput
   restaurantStaffSessions?: Prisma.RestaurantStaffSessionUpdateManyWithoutUserNestedInput
+  continuedCashDays?: Prisma.RestaurantCashDayUpdateManyWithoutContinuedByNestedInput
   restaurantCashSessions?: Prisma.RestaurantCashSessionUpdateManyWithoutResponsibleUserNestedInput
   restaurantCashDayCloses?: Prisma.RestaurantCashDayCloseUpdateManyWithoutResponsibleUserNestedInput
   restaurantSupplierInvoicesRecorded?: Prisma.RestaurantSupplierInvoiceUpdateManyWithoutRecordedByNestedInput
@@ -3296,6 +3534,7 @@ export type UserUncheckedUpdateWithoutOrganizationInput = {
   fallbackRestaurantVisits?: Prisma.RestaurantVisitUncheckedUpdateManyWithoutFallbackStaffNestedInput
   staffAccessCode?: Prisma.StaffAccessCodeUncheckedUpdateOneWithoutUserNestedInput
   restaurantStaffSessions?: Prisma.RestaurantStaffSessionUncheckedUpdateManyWithoutUserNestedInput
+  continuedCashDays?: Prisma.RestaurantCashDayUncheckedUpdateManyWithoutContinuedByNestedInput
   restaurantCashSessions?: Prisma.RestaurantCashSessionUncheckedUpdateManyWithoutResponsibleUserNestedInput
   restaurantCashDayCloses?: Prisma.RestaurantCashDayCloseUncheckedUpdateManyWithoutResponsibleUserNestedInput
   restaurantSupplierInvoicesRecorded?: Prisma.RestaurantSupplierInvoiceUncheckedUpdateManyWithoutRecordedByNestedInput
@@ -3338,6 +3577,7 @@ export type UserCountOutputType = {
   responsibleRestaurantVisits: number
   fallbackRestaurantVisits: number
   restaurantStaffSessions: number
+  continuedCashDays: number
   restaurantCashSessions: number
   restaurantCashDayCloses: number
   restaurantSupplierInvoicesRecorded: number
@@ -3353,6 +3593,7 @@ export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.I
   responsibleRestaurantVisits?: boolean | UserCountOutputTypeCountResponsibleRestaurantVisitsArgs
   fallbackRestaurantVisits?: boolean | UserCountOutputTypeCountFallbackRestaurantVisitsArgs
   restaurantStaffSessions?: boolean | UserCountOutputTypeCountRestaurantStaffSessionsArgs
+  continuedCashDays?: boolean | UserCountOutputTypeCountContinuedCashDaysArgs
   restaurantCashSessions?: boolean | UserCountOutputTypeCountRestaurantCashSessionsArgs
   restaurantCashDayCloses?: boolean | UserCountOutputTypeCountRestaurantCashDayClosesArgs
   restaurantSupplierInvoicesRecorded?: boolean | UserCountOutputTypeCountRestaurantSupplierInvoicesRecordedArgs
@@ -3411,6 +3652,13 @@ export type UserCountOutputTypeCountFallbackRestaurantVisitsArgs<ExtArgs extends
  */
 export type UserCountOutputTypeCountRestaurantStaffSessionsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.RestaurantStaffSessionWhereInput
+}
+
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountContinuedCashDaysArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.RestaurantCashDayWhereInput
 }
 
 /**
@@ -3485,6 +3733,7 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   fallbackRestaurantVisits?: boolean | Prisma.User$fallbackRestaurantVisitsArgs<ExtArgs>
   staffAccessCode?: boolean | Prisma.User$staffAccessCodeArgs<ExtArgs>
   restaurantStaffSessions?: boolean | Prisma.User$restaurantStaffSessionsArgs<ExtArgs>
+  continuedCashDays?: boolean | Prisma.User$continuedCashDaysArgs<ExtArgs>
   restaurantCashSessions?: boolean | Prisma.User$restaurantCashSessionsArgs<ExtArgs>
   restaurantCashDayCloses?: boolean | Prisma.User$restaurantCashDayClosesArgs<ExtArgs>
   restaurantSupplierInvoicesRecorded?: boolean | Prisma.User$restaurantSupplierInvoicesRecordedArgs<ExtArgs>
@@ -3575,6 +3824,7 @@ export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   fallbackRestaurantVisits?: boolean | Prisma.User$fallbackRestaurantVisitsArgs<ExtArgs>
   staffAccessCode?: boolean | Prisma.User$staffAccessCodeArgs<ExtArgs>
   restaurantStaffSessions?: boolean | Prisma.User$restaurantStaffSessionsArgs<ExtArgs>
+  continuedCashDays?: boolean | Prisma.User$continuedCashDaysArgs<ExtArgs>
   restaurantCashSessions?: boolean | Prisma.User$restaurantCashSessionsArgs<ExtArgs>
   restaurantCashDayCloses?: boolean | Prisma.User$restaurantCashDayClosesArgs<ExtArgs>
   restaurantSupplierInvoicesRecorded?: boolean | Prisma.User$restaurantSupplierInvoicesRecordedArgs<ExtArgs>
@@ -3601,6 +3851,7 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     fallbackRestaurantVisits: Prisma.$RestaurantVisitPayload<ExtArgs>[]
     staffAccessCode: Prisma.$StaffAccessCodePayload<ExtArgs> | null
     restaurantStaffSessions: Prisma.$RestaurantStaffSessionPayload<ExtArgs>[]
+    continuedCashDays: Prisma.$RestaurantCashDayPayload<ExtArgs>[]
     restaurantCashSessions: Prisma.$RestaurantCashSessionPayload<ExtArgs>[]
     restaurantCashDayCloses: Prisma.$RestaurantCashDayClosePayload<ExtArgs>[]
     restaurantSupplierInvoicesRecorded: Prisma.$RestaurantSupplierInvoicePayload<ExtArgs>[]
@@ -4031,6 +4282,7 @@ export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Typ
   fallbackRestaurantVisits<T extends Prisma.User$fallbackRestaurantVisitsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$fallbackRestaurantVisitsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$RestaurantVisitPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   staffAccessCode<T extends Prisma.User$staffAccessCodeArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$staffAccessCodeArgs<ExtArgs>>): Prisma.Prisma__StaffAccessCodeClient<runtime.Types.Result.GetResult<Prisma.$StaffAccessCodePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   restaurantStaffSessions<T extends Prisma.User$restaurantStaffSessionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$restaurantStaffSessionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$RestaurantStaffSessionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  continuedCashDays<T extends Prisma.User$continuedCashDaysArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$continuedCashDaysArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$RestaurantCashDayPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   restaurantCashSessions<T extends Prisma.User$restaurantCashSessionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$restaurantCashSessionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$RestaurantCashSessionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   restaurantCashDayCloses<T extends Prisma.User$restaurantCashDayClosesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$restaurantCashDayClosesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$RestaurantCashDayClosePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   restaurantSupplierInvoicesRecorded<T extends Prisma.User$restaurantSupplierInvoicesRecordedArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$restaurantSupplierInvoicesRecordedArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$RestaurantSupplierInvoicePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
@@ -4647,6 +4899,30 @@ export type User$restaurantStaffSessionsArgs<ExtArgs extends runtime.Types.Exten
   take?: number
   skip?: number
   distinct?: Prisma.RestaurantStaffSessionScalarFieldEnum | Prisma.RestaurantStaffSessionScalarFieldEnum[]
+}
+
+/**
+ * User.continuedCashDays
+ */
+export type User$continuedCashDaysArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the RestaurantCashDay
+   */
+  select?: Prisma.RestaurantCashDaySelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the RestaurantCashDay
+   */
+  omit?: Prisma.RestaurantCashDayOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.RestaurantCashDayInclude<ExtArgs> | null
+  where?: Prisma.RestaurantCashDayWhereInput
+  orderBy?: Prisma.RestaurantCashDayOrderByWithRelationInput | Prisma.RestaurantCashDayOrderByWithRelationInput[]
+  cursor?: Prisma.RestaurantCashDayWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.RestaurantCashDayScalarFieldEnum | Prisma.RestaurantCashDayScalarFieldEnum[]
 }
 
 /**

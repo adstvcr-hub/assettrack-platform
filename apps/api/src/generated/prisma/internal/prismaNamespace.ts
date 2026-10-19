@@ -413,6 +413,7 @@ export const ModelName = {
   RestaurantOrder: 'RestaurantOrder',
   RestaurantOrderItem: 'RestaurantOrderItem',
   RestaurantCashRegister: 'RestaurantCashRegister',
+  RestaurantCashDay: 'RestaurantCashDay',
   RestaurantCashSession: 'RestaurantCashSession',
   RestaurantCashDayClose: 'RestaurantCashDayClose',
   RestaurantSupplierInvoice: 'RestaurantSupplierInvoice',
@@ -453,7 +454,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "organization" | "restaurantTable" | "restaurantVisit" | "restaurantQrAccess" | "restaurantLoyaltyMember" | "restaurantLoyaltyActivity" | "restaurantRewardProgram" | "restaurantVisitTransfer" | "platformAdminEvent" | "restaurantAnalyticsDaily" | "restaurantAnalyticsProductDaily" | "userManagementEvent" | "restaurantMenuItem" | "restaurantOrder" | "restaurantOrderItem" | "restaurantCashRegister" | "restaurantCashSession" | "restaurantCashDayClose" | "restaurantSupplierInvoice" | "restaurantEmployeePayment" | "restaurantInventoryCategory" | "restaurantInventoryProduct" | "restaurantRecipeIngredient" | "restaurantRecipeRevision" | "restaurantMenuComboComponent" | "restaurantInventoryMovement" | "restaurantLiquorWeighing" | "restaurantPromotion" | "restaurantItemEvent" | "restaurantStaffEvent" | "restaurantStaffSession" | "organizationLocation" | "user" | "serviceFeedbackCampaign" | "serviceFeedbackPromoter" | "serviceFeedbackVote" | "staffAccessCode" | "asset" | "qrCode" | "scanEvent" | "refreshToken"
+    modelProps: "organization" | "restaurantTable" | "restaurantVisit" | "restaurantQrAccess" | "restaurantLoyaltyMember" | "restaurantLoyaltyActivity" | "restaurantRewardProgram" | "restaurantVisitTransfer" | "platformAdminEvent" | "restaurantAnalyticsDaily" | "restaurantAnalyticsProductDaily" | "userManagementEvent" | "restaurantMenuItem" | "restaurantOrder" | "restaurantOrderItem" | "restaurantCashRegister" | "restaurantCashDay" | "restaurantCashSession" | "restaurantCashDayClose" | "restaurantSupplierInvoice" | "restaurantEmployeePayment" | "restaurantInventoryCategory" | "restaurantInventoryProduct" | "restaurantRecipeIngredient" | "restaurantRecipeRevision" | "restaurantMenuComboComponent" | "restaurantInventoryMovement" | "restaurantLiquorWeighing" | "restaurantPromotion" | "restaurantItemEvent" | "restaurantStaffEvent" | "restaurantStaffSession" | "organizationLocation" | "user" | "serviceFeedbackCampaign" | "serviceFeedbackPromoter" | "serviceFeedbackVote" | "staffAccessCode" | "asset" | "qrCode" | "scanEvent" | "refreshToken"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1638,6 +1639,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.RestaurantCashRegisterCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.RestaurantCashRegisterCountAggregateOutputType> | number
+        }
+      }
+    }
+    RestaurantCashDay: {
+      payload: Prisma.$RestaurantCashDayPayload<ExtArgs>
+      fields: Prisma.RestaurantCashDayFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.RestaurantCashDayFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RestaurantCashDayPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.RestaurantCashDayFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RestaurantCashDayPayload>
+        }
+        findFirst: {
+          args: Prisma.RestaurantCashDayFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RestaurantCashDayPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.RestaurantCashDayFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RestaurantCashDayPayload>
+        }
+        findMany: {
+          args: Prisma.RestaurantCashDayFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RestaurantCashDayPayload>[]
+        }
+        create: {
+          args: Prisma.RestaurantCashDayCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RestaurantCashDayPayload>
+        }
+        createMany: {
+          args: Prisma.RestaurantCashDayCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.RestaurantCashDayCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RestaurantCashDayPayload>[]
+        }
+        delete: {
+          args: Prisma.RestaurantCashDayDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RestaurantCashDayPayload>
+        }
+        update: {
+          args: Prisma.RestaurantCashDayUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RestaurantCashDayPayload>
+        }
+        deleteMany: {
+          args: Prisma.RestaurantCashDayDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.RestaurantCashDayUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.RestaurantCashDayUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RestaurantCashDayPayload>[]
+        }
+        upsert: {
+          args: Prisma.RestaurantCashDayUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RestaurantCashDayPayload>
+        }
+        aggregate: {
+          args: Prisma.RestaurantCashDayAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateRestaurantCashDay>
+        }
+        groupBy: {
+          args: Prisma.RestaurantCashDayGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.RestaurantCashDayGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.RestaurantCashDayCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.RestaurantCashDayCountAggregateOutputType> | number
         }
       }
     }
@@ -3573,6 +3648,8 @@ export type RestaurantTableScalarFieldEnum = (typeof RestaurantTableScalarFieldE
 
 
 export const RestaurantVisitScalarFieldEnum = {
+  cashDayId: 'cashDayId',
+  cashSessionId: 'cashSessionId',
   id: 'id',
   organizationId: 'organizationId',
   tableId: 'tableId',
@@ -3843,7 +3920,26 @@ export const RestaurantCashRegisterScalarFieldEnum = {
 export type RestaurantCashRegisterScalarFieldEnum = (typeof RestaurantCashRegisterScalarFieldEnum)[keyof typeof RestaurantCashRegisterScalarFieldEnum]
 
 
+export const RestaurantCashDayScalarFieldEnum = {
+  id: 'id',
+  organizationId: 'organizationId',
+  cashRegisterId: 'cashRegisterId',
+  businessDate: 'businessDate',
+  timezone: 'timezone',
+  openedAt: 'openedAt',
+  closedAt: 'closedAt',
+  openingCash: 'openingCash',
+  openGuard: 'openGuard',
+  lastConfirmedDate: 'lastConfirmedDate',
+  continuedAt: 'continuedAt',
+  continuedById: 'continuedById'
+} as const
+
+export type RestaurantCashDayScalarFieldEnum = (typeof RestaurantCashDayScalarFieldEnum)[keyof typeof RestaurantCashDayScalarFieldEnum]
+
+
 export const RestaurantCashSessionScalarFieldEnum = {
+  cashDayId: 'cashDayId',
   id: 'id',
   organizationId: 'organizationId',
   cashRegisterId: 'cashRegisterId',
@@ -3865,6 +3961,7 @@ export type RestaurantCashSessionScalarFieldEnum = (typeof RestaurantCashSession
 
 
 export const RestaurantCashDayCloseScalarFieldEnum = {
+  cashDayId: 'cashDayId',
   id: 'id',
   organizationId: 'organizationId',
   cashRegisterId: 'cashRegisterId',
@@ -4915,6 +5012,7 @@ export type GlobalOmitConfig = {
   restaurantOrder?: Prisma.RestaurantOrderOmit
   restaurantOrderItem?: Prisma.RestaurantOrderItemOmit
   restaurantCashRegister?: Prisma.RestaurantCashRegisterOmit
+  restaurantCashDay?: Prisma.RestaurantCashDayOmit
   restaurantCashSession?: Prisma.RestaurantCashSessionOmit
   restaurantCashDayClose?: Prisma.RestaurantCashDayCloseOmit
   restaurantSupplierInvoice?: Prisma.RestaurantSupplierInvoiceOmit

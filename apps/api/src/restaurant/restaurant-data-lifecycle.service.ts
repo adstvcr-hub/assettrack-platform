@@ -413,6 +413,7 @@ export class RestaurantDataLifecycleService
         where: {
           organizationId: organization.id,
           status: RestaurantVisitStatus.CLOSED,
+          OR: [{ cashDayId: null }, { cashDay: { closedAt: { not: null } } }],
           closedAt: { lt: cutoff },
           openedAnalyticsConsolidatedAt: { not: null },
           closedAnalyticsConsolidatedAt: { not: null },

@@ -76,6 +76,7 @@ describe("RestaurantCashService", () => {
       restaurantCashSession: {
         findFirst: vi.fn().mockResolvedValue({
           id: "session-a",
+          cashDay: { id: "day-a", openGuard: "register-a", businessDate: "2026-10-08" },
           organizationId: "org-a",
           cashRegisterId: "register-a",
           responsibleUserId: actor.id,
@@ -140,7 +141,8 @@ describe("RestaurantCashService", () => {
         ]),
       },
     };
-    const service = new RestaurantCashService(prisma as never);
+    const transactionalPrisma = { ...prisma, $transaction: vi.fn((callback) => callback(prisma)) };
+    const service = new RestaurantCashService(transactionalPrisma as never);
 
     await service.close(actor, "session-a", {
       finalDailyClose: false,
