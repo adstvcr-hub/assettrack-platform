@@ -215,6 +215,246 @@ export class RestaurantCashService {
     return summary;
   }
 
+  private summarizeSupplierInvoices(
+    invoices: Array<{
+      amount: number;
+      status: RestaurantSupplierInvoiceStatus;
+      paymentMethod: RestaurantPaymentMethod | null;
+      paidAt: Date | null;
+    }>,
+    payments = invoices.filter(
+      (invoice) =>
+        invoice.status === RestaurantSupplierInvoiceStatus.PAID &&
+        invoice.paidAt,
+    ),
+  ) {
+    const methods = this.summarizeEmployeePayments(
+      payments.map((invoice) => ({
+        amount: invoice.amount,
+        paymentMethod: invoice.paymentMethod ?? RestaurantPaymentMethod.OTHER,
+      })),
+    );
+    return {
+      invoiceCount: invoices.length,
+      supplierInvoicesTotal: invoices.reduce(
+        (sum, invoice) => sum + invoice.amount,
+        0,
+      ),
+      pendingInvoicesTotal: invoices
+        .filter(
+          (invoice) =>
+            invoice.status === RestaurantSupplierInvoiceStatus.PENDING,
+        )
+        .reduce((sum, invoice) => sum + invoice.amount, 0),
+      supplierPaymentsTotal: methods.employeePaymentsTotal,
+      cashSupplierPayments: methods.cashEmployeePayments,
+      sinpeSupplierPayments: methods.sinpeEmployeePayments,
+      cardSupplierPayments: methods.cardEmployeePayments,
+      otherSupplierPayments:
+        methods.otherEmployeePayments -
+        payments
+          .filter((invoice) => !invoice.paymentMethod)
+          .reduce((sum, invoice) => sum + invoice.amount, 0),
+      unclassifiedSupplierPayments: payments
+        .filter((invoice) => !invoice.paymentMethod)
+        .reduce((sum, invoice) => sum + invoice.amount, 0),
+    };
+  }
+
+  private historyRange(
+    timezone: string,
+    requestedFrom?: string,
+    requestedTo?: string,
+  ) {
+    const to = requestedTo ?? this.localDate(new Date(), timezone);
+    const defaultFrom = new Date(`${to}T12:00:00.000Z`);
+    defaultFrom.setUTCDate(defaultFrom.getUTCDate() - 29);
+    const from =
+      requestedFrom ??
+      (Number.isNaN(defaultFrom.getTime())
+        ? ""
+        : defaultFrom.toISOString().slice(0, 10));
+    const datePattern = /^\d{4}-\d{2}-\d{2}$/;
+    const fromDate = new Date(`${from}T00:00:00.000Z`);
+    const toDate = new Date(`${to}T00:00:00.000Z`);
+    if (
+      !datePattern.test(from) ||
+      !datePattern.test(to) ||
+      Number.isNaN(fromDate.getTime()) ||
+      Number.isNaN(toDate.getTime()) ||
+      fromDate.toISOString().slice(0, 10) !== from ||
+      toDate.toISOString().slice(0, 10) !== to
+    )
+      throw new BadRequestException("Use dates in YYYY-MM-DD format");
+    if (from > to)
+      throw new BadRequestException(
+        "La fecha inicial no puede ser posterior a la fecha final",
+      );
+    if (
+      Math.floor((toDate.getTime() - fromDate.getTime()) / 86400000) + 1 >
+      366
+    )
+      throw new BadRequestException(
+        "El historial permite consultar un máximo de 366 días",
+      );
+    return { from, to };
+  }
+
+  async supplierHistory(
+    actor: RestaurantActor,
+    query: {
+      from?: string;
+      to?: string;
+      dateBy?: string;
+      supplier?: string;
+      status?: string;
+      paymentMethod?: string;
+      page?: string;
+    } = {},
+  ) {
+    const user = await this.currentUser(actor);
+    if (!this.canAssume(actor, user))
+      throw new ForbiddenException("Cash register access required");
+    if (
+      Object.values(query).some(
+        (value) => value !== undefined && typeof value !== "string",
+      )
+    )
+      throw new BadRequestException("Los filtros deben contener un solo valor");
+    const timezone = await this.timezone(actor.organizationId);
+    const { from, to } = this.historyRange(timezone, query.from, query.to);
+    const dateBy = query.dateBy ?? "JOURNAL";
+    if (dateBy !== "JOURNAL" && dateBy !== "INVOICE")
+      throw new BadRequestException("Seleccione fecha de jornada o de factura");
+    if (
+      query.status &&
+      !Object.values(RestaurantSupplierInvoiceStatus).includes(
+        query.status as RestaurantSupplierInvoiceStatus,
+      )
+    )
+      throw new BadRequestException("Estado de factura inválido");
+    if (
+      query.paymentMethod &&
+      !Object.values(RestaurantPaymentMethod).includes(
+        query.paymentMethod as RestaurantPaymentMethod,
+      )
+    )
+      throw new BadRequestException("Método de pago inválido");
+    const page = Number(query.page ?? "1");
+    if (!Number.isSafeInteger(page) || page < 1 || page > 100000)
+      throw new BadRequestException("Página inválida");
+    const supplier = query.supplier?.trim() ?? "";
+    if (supplier.length > 120)
+      throw new BadRequestException(
+        "El proveedor permite un máximo de 120 caracteres",
+      );
+    const { start } = getUtcDateRangeForLocalDate(from, timezone);
+    const { end } = getUtcDateRangeForLocalDate(to, timezone);
+    const where: Prisma.RestaurantSupplierInvoiceWhereInput = {
+      organizationId: actor.organizationId,
+      ...(dateBy === "INVOICE"
+        ? { invoiceDate: { gte: from, lte: to } }
+        : {
+            OR: [
+              {
+                cashSession: {
+                  cashDay: { businessDate: { gte: from, lte: to } },
+                },
+              },
+              {
+                cashSession: { cashDayId: null },
+                createdAt: { gte: start, lt: end },
+              },
+            ],
+          }),
+      ...(supplier
+        ? { supplierName: { contains: supplier, mode: "insensitive" } }
+        : {}),
+      ...(query.status
+        ? { status: query.status as RestaurantSupplierInvoiceStatus }
+        : {}),
+      ...(query.paymentMethod
+        ? {
+            paymentMethod: query.paymentMethod as RestaurantPaymentMethod,
+            AND: [{ status: RestaurantSupplierInvoiceStatus.PAID }],
+          }
+        : {}),
+    };
+    const pageSize = 50;
+    const [invoices, groups] = await this.prisma.$transaction(
+      async (tx) =>
+        Promise.all([
+          tx.restaurantSupplierInvoice.findMany({
+            where,
+            include: {
+              recordedBy: { select: { id: true, name: true } },
+              cashSession: {
+                select: {
+                  id: true,
+                  cashDay: {
+                    select: { id: true, businessDate: true, timezone: true },
+                  },
+                  cashRegister: { select: { id: true, name: true } },
+                  responsibleUser: { select: { id: true, name: true } },
+                },
+              },
+            },
+            orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+            skip: (page - 1) * pageSize,
+            take: pageSize,
+          }),
+          tx.restaurantSupplierInvoice.groupBy({
+            by: ["status", "paymentMethod"],
+            where,
+            _sum: { amount: true },
+            _count: { _all: true },
+          }),
+        ]),
+      { isolationLevel: "RepeatableRead" },
+    );
+    const totals = {
+      invoiceCount: 0,
+      supplierInvoicesTotal: 0,
+      pendingInvoicesTotal: 0,
+      supplierPaymentsTotal: 0,
+      cashSupplierPayments: 0,
+      sinpeSupplierPayments: 0,
+      cardSupplierPayments: 0,
+      otherSupplierPayments: 0,
+      unclassifiedSupplierPayments: 0,
+    };
+    for (const group of groups) {
+      const amount = group._sum.amount ?? 0;
+      totals.invoiceCount += group._count._all;
+      totals.supplierInvoicesTotal += amount;
+      if (group.status === RestaurantSupplierInvoiceStatus.PENDING)
+        totals.pendingInvoicesTotal += amount;
+      else {
+        totals.supplierPaymentsTotal += amount;
+        if (group.paymentMethod === RestaurantPaymentMethod.CASH)
+          totals.cashSupplierPayments += amount;
+        else if (group.paymentMethod === RestaurantPaymentMethod.SINPE)
+          totals.sinpeSupplierPayments += amount;
+        else if (group.paymentMethod === RestaurantPaymentMethod.CARD)
+          totals.cardSupplierPayments += amount;
+        else if (group.paymentMethod === RestaurantPaymentMethod.OTHER)
+          totals.otherSupplierPayments += amount;
+        else totals.unclassifiedSupplierPayments += amount;
+      }
+    }
+    return {
+      from,
+      to,
+      timezone,
+      dateBy,
+      page,
+      pageSize,
+      totalPages: Math.max(1, Math.ceil(totals.invoiceCount / pageSize)),
+      invoices,
+      totals,
+    };
+  }
+
   private async cashMovements(
     organizationId: string,
     start: Date,
@@ -1127,78 +1367,78 @@ export class RestaurantCashService {
       throw new ForbiddenException("Cash register access required");
     }
     const timezone = await this.timezone(actor.organizationId);
-    const today = this.localDate(new Date(), timezone);
-    const to = requestedTo ?? today;
-    const defaultFromDate = new Date(`${to}T12:00:00.000Z`);
-    defaultFromDate.setUTCDate(defaultFromDate.getUTCDate() - 29);
-    const from = requestedFrom ?? defaultFromDate.toISOString().slice(0, 10);
-    const datePattern = /^\d{4}-\d{2}-\d{2}$/;
-    const fromDate = new Date(`${from}T00:00:00.000Z`);
-    const toDate = new Date(`${to}T00:00:00.000Z`);
-    if (
-      !datePattern.test(from) ||
-      !datePattern.test(to) ||
-      Number.isNaN(fromDate.getTime()) ||
-      Number.isNaN(toDate.getTime()) ||
-      fromDate.toISOString().slice(0, 10) !== from ||
-      toDate.toISOString().slice(0, 10) !== to
-    ) {
-      throw new BadRequestException("Use dates in YYYY-MM-DD format");
-    }
-    if (from > to) {
-      throw new BadRequestException(
-        "La fecha inicial no puede ser posterior a la fecha final",
-      );
-    }
-    const rangeDays =
-      Math.floor((toDate.getTime() - fromDate.getTime()) / 86400000) + 1;
-    if (rangeDays > 366) {
-      throw new BadRequestException(
-        "El historial permite consultar un máximo de 366 días",
-      );
-    }
+    const { from, to } = this.historyRange(
+      timezone,
+      requestedFrom,
+      requestedTo,
+    );
 
     const { start: historyStart } = getUtcDateRangeForLocalDate(from, timezone);
     const { end: historyEnd } = getUtcDateRangeForLocalDate(to, timezone);
-    const [storedCloses, employeePayments] = await Promise.all([
-      this.prisma.restaurantCashDayClose.findMany({
-        where: {
-          organizationId: actor.organizationId,
-          businessDate: { gte: from, lte: to },
-        },
-        include: {
-          cashRegister: { select: { id: true, name: true } },
-          responsibleUser: {
-            select: { id: true, name: true, restaurantRole: true },
+    const [storedCloses, employeePayments, supplierInvoices] =
+      await Promise.all([
+        this.prisma.restaurantCashDayClose.findMany({
+          where: {
+            organizationId: actor.organizationId,
+            businessDate: { gte: from, lte: to },
           },
-        },
-        orderBy: [{ businessDate: "desc" }, { closedAt: "desc" }],
-      }),
-      this.prisma.restaurantEmployeePayment.findMany({
-        where: {
-          organizationId: actor.organizationId,
-          OR: [
-            {
-              cashSession: {
-                cashDay: { businessDate: { gte: from, lte: to } },
+          include: {
+            cashRegister: { select: { id: true, name: true } },
+            responsibleUser: {
+              select: { id: true, name: true, restaurantRole: true },
+            },
+          },
+          orderBy: [{ businessDate: "desc" }, { closedAt: "desc" }],
+        }),
+        this.prisma.restaurantEmployeePayment.findMany({
+          where: {
+            organizationId: actor.organizationId,
+            OR: [
+              {
+                cashSession: {
+                  cashDay: { businessDate: { gte: from, lte: to } },
+                },
               },
-            },
-            {
-              cashSession: { cashDayId: null },
-              paidAt: { gte: historyStart, lt: historyEnd },
-            },
-          ],
-        },
-        include: {
-          cashSession: { select: { cashRegisterId: true, cashDayId: true } },
-          employee: {
-            select: { id: true, name: true, restaurantRole: true },
+              {
+                cashSession: { cashDayId: null },
+                paidAt: { gte: historyStart, lt: historyEnd },
+              },
+            ],
           },
-          recordedBy: { select: { id: true, name: true } },
-        },
-        orderBy: { paidAt: "asc" },
-      }),
-    ]);
+          include: {
+            cashSession: { select: { cashRegisterId: true, cashDayId: true } },
+            employee: {
+              select: { id: true, name: true, restaurantRole: true },
+            },
+            recordedBy: { select: { id: true, name: true } },
+          },
+          orderBy: { paidAt: "asc" },
+        }),
+        this.prisma.restaurantSupplierInvoice.findMany({
+          where: {
+            organizationId: actor.organizationId,
+            OR: [
+              {
+                cashSession: {
+                  cashDay: { businessDate: { gte: from, lte: to } },
+                },
+              },
+              {
+                cashSession: { cashDayId: null },
+                OR: [
+                  { createdAt: { gte: historyStart, lt: historyEnd } },
+                  { paidAt: { gte: historyStart, lt: historyEnd } },
+                ],
+              },
+            ],
+          },
+          include: {
+            cashSession: { select: { cashRegisterId: true, cashDayId: true } },
+            recordedBy: { select: { id: true, name: true } },
+          },
+          orderBy: [{ createdAt: "asc" }, { id: "asc" }],
+        }),
+      ]);
     const paymentsByClose = new Map<string, typeof employeePayments>();
     for (const payment of employeePayments) {
       const key =
@@ -1208,6 +1448,26 @@ export class RestaurantCashService {
       group.push(payment);
       paymentsByClose.set(key, group);
     }
+    const invoicesByClose = new Map<string, typeof supplierInvoices>();
+    for (const invoice of supplierInvoices) {
+      const keys = invoice.cashSession.cashDayId
+        ? [invoice.cashSession.cashDayId]
+        : [
+            ...new Set([
+              `${invoice.cashSession.cashRegisterId}:${this.localDate(invoice.createdAt, timezone)}`,
+              ...(invoice.paidAt
+                ? [
+                    `${invoice.cashSession.cashRegisterId}:${this.localDate(invoice.paidAt, timezone)}`,
+                  ]
+                : []),
+            ]),
+          ];
+      for (const key of keys) {
+        const group = invoicesByClose.get(key) ?? [];
+        group.push(invoice);
+        invoicesByClose.set(key, group);
+      }
+    }
     const closes = storedCloses.map((close) => {
       const payments =
         paymentsByClose.get(
@@ -1216,8 +1476,53 @@ export class RestaurantCashService {
       const detailSummary = this.summarizeEmployeePayments(payments);
       const breakdownComplete =
         detailSummary.employeePaymentsTotal === close.employeePaymentsTotal;
+      const invoices =
+        invoicesByClose.get(
+          close.cashDayId ?? `${close.cashRegisterId}:${close.businessDate}`,
+        ) ?? [];
+      const received = invoices.filter(
+        (invoice) =>
+          close.cashDayId ||
+          this.localDate(invoice.createdAt, timezone) === close.businessDate,
+      );
+      const paid = invoices.filter(
+        (invoice) =>
+          invoice.status === RestaurantSupplierInvoiceStatus.PAID &&
+          invoice.paidAt &&
+          (close.cashDayId ||
+            this.localDate(invoice.paidAt, timezone) === close.businessDate),
+      );
+      const supplierSummary = this.summarizeSupplierInvoices(received, paid);
       return {
         ...close,
+        supplierInvoices: invoices.map((invoice) => ({
+          ...invoice,
+          cashImpactInClose: paid.some((payment) => payment.id === invoice.id)
+            ? invoice.paymentMethod
+              ? invoice.paymentMethod === RestaurantPaymentMethod.CASH
+                ? invoice.amount
+                : 0
+              : null
+            : invoice.status === RestaurantSupplierInvoiceStatus.PAID &&
+                !invoice.paidAt
+              ? null
+              : 0,
+        })),
+        supplierPaymentSummary: {
+          ...supplierSummary,
+          supplierInvoicesTotal: close.supplierInvoicesTotal,
+          supplierPaymentsTotal: close.supplierPaymentsTotal,
+          breakdownComplete:
+            supplierSummary.supplierInvoicesTotal ===
+              close.supplierInvoicesTotal &&
+            supplierSummary.supplierPaymentsTotal ===
+              close.supplierPaymentsTotal &&
+            invoices.every(
+              (invoice) =>
+                invoice.status !== RestaurantSupplierInvoiceStatus.PAID ||
+                Boolean(invoice.paidAt && invoice.paymentMethod),
+            ),
+        },
         employeePayments: payments.map((payment) => ({
           id: payment.id,
           amount: payment.amount,

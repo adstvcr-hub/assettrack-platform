@@ -540,6 +540,347 @@ describe("cash business days with PostgreSQL", () => {
     });
   });
 
+  it("audits supplier invoices across overnight handoffs and keeps the original closing breakdown", async () => {
+    clock("2026-10-19T23:00:00Z");
+    const { actor, organizationId } = await fixture();
+    const session = await cash.assume(actor, 10000);
+    await cash.close(actor, session.id, {
+      finalDailyClose: false,
+      countedCash: 10000,
+    });
+    clock("2026-10-21T07:00:00Z");
+    const second = await cash.assume(actor, 10000);
+    await cash.continueDay(actor, second.cashDayId!);
+    for (const [invoiceNumber, amount, paymentMethod] of [
+      ["CASH-1", 1200, "CASH"],
+      ["SINPE-1", 800, "SINPE"],
+      ["CARD-1", 500, "CARD"],
+      ["OTHER-1", 200, "OTHER"],
+    ] as const) {
+      await cash.addSupplierInvoice(actor, {
+        supplierName: "Verduras del Valle",
+        invoiceNumber,
+        invoiceDate: "2026-10-18",
+        amount,
+        status: "PAID",
+        paymentMethod,
+        note: `Compra de productos ${invoiceNumber}`,
+      });
+    }
+    await cash.addSupplierInvoice(actor, {
+      supplierName: "Panadería",
+      invoiceNumber: "PENDING-1",
+      invoiceDate: "2026-10-21",
+      amount: 700,
+      status: "PENDING",
+      note: "Pan recibido a crédito",
+    });
+    const openReport = await cash.supplierHistory(actor, {
+      from: "2026-10-19",
+      to: "2026-10-19",
+    });
+    expect(openReport.totals).toMatchObject({
+      invoiceCount: 5,
+      supplierInvoicesTotal: 3400,
+      supplierPaymentsTotal: 2700,
+      pendingInvoicesTotal: 700,
+      cashSupplierPayments: 1200,
+      sinpeSupplierPayments: 800,
+      cardSupplierPayments: 500,
+      otherSupplierPayments: 200,
+    });
+    expect(
+      openReport.invoices.every(
+        (invoice) => invoice.cashSession.cashDay?.businessDate === "2026-10-19",
+      ),
+    ).toBe(true);
+    const filtered = await cash.supplierHistory(actor, {
+      from: "2026-10-18",
+      to: "2026-10-18",
+      dateBy: "INVOICE",
+      supplier: "verduras",
+      paymentMethod: "SINPE",
+    });
+    expect(filtered.invoices.map((invoice) => invoice.invoiceNumber)).toEqual([
+      "SINPE-1",
+    ]);
+    expect(filtered.totals.supplierPaymentsTotal).toBe(800);
+    const contradictory = await cash.supplierHistory(actor, {
+      from: "2026-10-19",
+      to: "2026-10-19",
+      status: "PENDING",
+      paymentMethod: "CASH",
+    });
+    expect(contradictory.invoices).toEqual([]);
+    expect(contradictory.totals.invoiceCount).toBe(0);
+    await cash.close(actor, second.id, {
+      finalDailyClose: true,
+      countedCash: 8800,
+    });
+    const next = await cash.assume(actor, 8800);
+    await cash.addSupplierInvoice(actor, {
+      supplierName: "Verduras del Valle",
+      invoiceNumber: "NEXT-1",
+      invoiceDate: "2026-10-21",
+      amount: 50,
+      status: "PAID",
+      paymentMethod: "CASH",
+    });
+    const history = await cash.history(actor, "2026-10-19", "2026-10-19");
+    expect(history.closes).toHaveLength(1);
+    expect(history.closes[0].supplierInvoices).toHaveLength(5);
+    expect(history.closes[0].supplierPaymentSummary).toMatchObject({
+      supplierInvoicesTotal: 3400,
+      supplierPaymentsTotal: 2700,
+      cashSupplierPayments: 1200,
+      breakdownComplete: true,
+    });
+    expect(
+      history.closes[0].supplierInvoices.find(
+        (invoice) => invoice.invoiceNumber === "CASH-1",
+      ),
+    ).toMatchObject({
+      note: "Compra de productos CASH-1",
+      recordedBy: { id: actor.id },
+    });
+    expect(history.closes[0].expectedCash).toBe(8800);
+    expect(next.cashDayId).not.toBe(second.cashDayId);
+    expect(
+      (
+        await cash.supplierHistory(actor, {
+          from: "2026-10-21",
+          to: "2026-10-21",
+        })
+      ).invoices.map((invoice) => invoice.invoiceNumber),
+    ).toEqual(["NEXT-1"]);
+    expect(
+      await prisma.restaurantSupplierInvoice.count({
+        where: { organizationId },
+      }),
+    ).toBe(6);
+  });
+
+  it("keeps supplier invoices separate when two jornadas are closed on the same business date", async () => {
+    clock("2026-10-22T16:00:00Z");
+    const { actor } = await fixture();
+    const first = await cash.assume(actor, 1000);
+    await cash.addSupplierInvoice(actor, {
+      supplierName: "Proveedor",
+      invoiceNumber: "FIRST",
+      invoiceDate: "2026-10-22",
+      amount: 100,
+      status: "PAID",
+      paymentMethod: "CASH",
+    });
+    await cash.close(actor, first.id, {
+      finalDailyClose: true,
+      countedCash: 900,
+    });
+    const second = await cash.assume(actor, 900);
+    await cash.addSupplierInvoice(actor, {
+      supplierName: "Proveedor",
+      invoiceNumber: "SECOND",
+      invoiceDate: "2026-10-22",
+      amount: 200,
+      status: "PAID",
+      paymentMethod: "CASH",
+    });
+    await cash.close(actor, second.id, {
+      finalDailyClose: true,
+      countedCash: 700,
+    });
+    const history = await cash.history(actor, "2026-10-22", "2026-10-22");
+    expect(history.closes).toHaveLength(2);
+    for (const [session, number, cashAmount] of [
+      [first, "FIRST", 100],
+      [second, "SECOND", 200],
+    ] as const) {
+      const close = history.closes.find(
+        (row) => row.cashDayId === session.cashDayId,
+      )!;
+      expect(
+        close.supplierInvoices.map((invoice) => invoice.invoiceNumber),
+      ).toEqual([number]);
+      expect(close.supplierPaymentSummary).toMatchObject({
+        cashSupplierPayments: cashAmount,
+        breakdownComplete: true,
+      });
+    }
+    expect(
+      (
+        await cash.supplierHistory(actor, {
+          from: "2026-10-22",
+          to: "2026-10-22",
+        })
+      ).totals.cashSupplierPayments,
+    ).toBe(300);
+  });
+
+  it("paginates supplier history while totaling every matching invoice and isolates restaurants", async () => {
+    clock("2026-10-22T16:00:00Z");
+    const { actor, organizationId } = await fixture();
+    const session = await cash.assume(actor, 10000);
+    await prisma.restaurantSupplierInvoice.createMany({
+      data: Array.from({ length: 60 }, (_, i) => ({
+        organizationId,
+        cashSessionId: session.id,
+        recordedById: actor.id,
+        supplierName: "Proveedor paginado",
+        invoiceNumber: `P-${i}`,
+        invoiceDate: "2026-10-22",
+        amount: 100 + i,
+        status: "PAID",
+        paymentMethod: "CASH",
+        paidAt: new Date(),
+        createdAt: new Date(Date.now() + i * 1000),
+      })),
+    });
+    const other = await fixture();
+    await cash.assume(other.actor, 10000);
+    await cash.addSupplierInvoice(other.actor, {
+      supplierName: "Proveedor paginado",
+      invoiceNumber: "FOREIGN",
+      invoiceDate: "2026-10-22",
+      amount: 9999,
+      status: "PAID",
+      paymentMethod: "CASH",
+    });
+    const first = await cash.supplierHistory(actor, {
+      from: "2026-10-22",
+      to: "2026-10-22",
+      supplier: "PAGINADO",
+    });
+    const second = await cash.supplierHistory(actor, {
+      from: "2026-10-22",
+      to: "2026-10-22",
+      supplier: "PAGINADO",
+      page: "2",
+    });
+    expect(first.invoices).toHaveLength(50);
+    expect(second.invoices).toHaveLength(10);
+    expect(first.totalPages).toBe(2);
+    expect(first.totals).toEqual(second.totals);
+    expect(first.totals).toMatchObject({
+      invoiceCount: 60,
+      supplierInvoicesTotal: 7770,
+      cashSupplierPayments: 7770,
+    });
+    expect(
+      new Set(
+        [...first.invoices, ...second.invoices].map((invoice) => invoice.id),
+      ).size,
+    ).toBe(60);
+    expect(
+      [...first.invoices, ...second.invoices].every(
+        (invoice) => invoice.organizationId === organizationId,
+      ),
+    ).toBe(true);
+  });
+
+  it("shows legacy supplier evidence by local date without changing a stored close or inventing missing methods", async () => {
+    const { actor, organizationId } = await fixture();
+    const register = await prisma.restaurantCashRegister.create({
+      data: { organizationId, name: "Caja principal" },
+    });
+    const session = await prisma.restaurantCashSession.create({
+      data: {
+        organizationId,
+        cashRegisterId: register.id,
+        responsibleUserId: actor.id,
+        startedAt: new Date("2026-10-19T18:00:00Z"),
+        endedAt: new Date("2026-10-20T05:45:00Z"),
+        status: "CLOSED_DAY",
+      },
+    });
+    const stored = await prisma.restaurantCashDayClose.create({
+      data: {
+        organizationId,
+        cashRegisterId: register.id,
+        responsibleUserId: actor.id,
+        businessDate: "2026-10-19",
+        supplierInvoicesTotal: 3000,
+        supplierPaymentsTotal: 3000,
+        closedAt: new Date("2026-10-20T05:45:00Z"),
+        openingCash: 5000,
+        expectedCash: 2000,
+        countedCash: 2000,
+      },
+    });
+    await prisma.restaurantSupplierInvoice.create({
+      data: {
+        organizationId,
+        cashSessionId: session.id,
+        recordedById: actor.id,
+        supplierName: "Proveedor anterior",
+        invoiceNumber: "LEGACY",
+        invoiceDate: "2026-10-18",
+        amount: 1000,
+        status: "PAID",
+        paymentMethod: null,
+        createdAt: new Date("2026-10-20T05:30:00Z"),
+        paidAt: new Date("2026-10-20T05:30:00Z"),
+        note: "Detalle parcial anterior",
+      },
+    });
+    const report = await cash.supplierHistory(actor, {
+      from: "2026-10-19",
+      to: "2026-10-19",
+    });
+    expect(report.invoices).toHaveLength(1);
+    expect(report.totals).toMatchObject({
+      cashSupplierPayments: 0,
+      otherSupplierPayments: 0,
+      unclassifiedSupplierPayments: 1000,
+    });
+    expect(
+      (
+        await cash.supplierHistory(actor, {
+          from: "2026-10-20",
+          to: "2026-10-20",
+        })
+      ).invoices,
+    ).toEqual([]);
+    const history = await cash.history(actor, "2026-10-19", "2026-10-19");
+    expect(history.closes[0].supplierPaymentSummary).toMatchObject({
+      supplierInvoicesTotal: 3000,
+      supplierPaymentsTotal: 3000,
+      cashSupplierPayments: 0,
+      unclassifiedSupplierPayments: 1000,
+      breakdownComplete: false,
+    });
+    expect(history.closes[0].supplierInvoices[0].note).toBe(
+      "Detalle parcial anterior",
+    );
+    expect(
+      await prisma.restaurantCashDayClose.findUnique({
+        where: { id: stored.id },
+      }),
+    ).toEqual(stored);
+  });
+
+  it("protects supplier history permissions and rejects invalid filters before reading invoices", async () => {
+    const { actor } = await fixture();
+    await expect(
+      cash.supplierHistory({
+        ...actor,
+        restaurantRole: RestaurantStaffRole.WAITER,
+      }),
+    ).rejects.toThrow("Cash register access required");
+    for (const query of [
+      { from: "2026-02-30", to: "2026-03-01" },
+      { from: "2026-10-22", to: "2026-10-21" },
+      { from: "2024-01-01", to: "2026-01-01" },
+      { to: "invalid" },
+      { dateBy: "OTHER" },
+      { status: "UNKNOWN" },
+      { paymentMethod: "TILOPAY" },
+      { page: "1.5" },
+      { page: "0" },
+      { supplier: "A".repeat(121) },
+    ])
+      await expect(cash.supplierHistory(actor, query)).rejects.toThrow();
+  });
+
   it("retries serialization conflicts but never retries unrelated failures", async () => {
     const conflict = Object.assign(new Error("serialization"), {
       code: "P2034",

@@ -4,6 +4,12 @@ import { API_URL, authenticatedFetch } from "@/lib/api";
 import { useRouter } from "next/navigation";
 import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
 import { RestaurantSessionActions } from "../_components/restaurant-session-actions";
+import {
+  SupplierInvoiceHistory,
+  SupplierInvoiceTable,
+  SupplierPaymentMetrics,
+  type SupplierPaymentSummary,
+} from "../_components/supplier-invoice-history";
 
 type PaymentMethod = "CASH" | "SINPE" | "CARD" | "OTHER";
 type SupplierInvoiceStatus = "PENDING" | "PAID";
@@ -204,6 +210,8 @@ type CashCloseHistory = {
       breakdownComplete: boolean;
     };
     employeePayments: EmployeePayment[];
+    supplierInvoices?: SupplierInvoice[];
+    supplierPaymentSummary?: SupplierPaymentSummary;
   }>;
   totals: {
     accountCount: number;
@@ -288,9 +296,11 @@ function HistoryMetric({
 function CashCloseHistoryCard({
   close,
   initiallyOpen,
+  timezone,
 }: {
   close: CashCloseHistory["closes"][number];
   initiallyOpen: boolean;
+  timezone: string;
 }) {
   const totalCashOutflows = Math.max(
     0,
@@ -298,7 +308,9 @@ function CashCloseHistoryCard({
   );
   const otherCashOutflows = Math.max(
     0,
-    totalCashOutflows - close.employeePaymentSummary.cashEmployeePayments,
+    totalCashOutflows -
+      (close.employeePaymentSummary.breakdownComplete ? close.employeePaymentSummary.cashEmployeePayments : 0) -
+      (close.supplierPaymentSummary?.cashSupplierPayments ?? 0),
   );
   const reconciled = close.discrepancy === 0;
 
@@ -346,7 +358,8 @@ function CashCloseHistoryCard({
               <div className="flex justify-between gap-4 border-b p-3"><span>Efectivo inicial</span><strong>{money(close.openingCash)}</strong></div>
               <div className="flex justify-between gap-4 border-b p-3 text-emerald-800"><span>Ventas en efectivo</span><strong>+ {money(close.cashSales)}</strong></div>
               <div className="flex justify-between gap-4 border-b bg-red-50 p-3 text-red-800"><span>Pagos al personal en efectivo</span><strong>− {close.employeePaymentSummary.breakdownComplete ? money(close.employeePaymentSummary.cashEmployeePayments) : "Sin desglose"}</strong></div>
-              <div className="flex justify-between gap-4 border-b bg-red-50 p-3 text-red-800"><span>Otros egresos en efectivo</span><strong>− {close.employeePaymentSummary.breakdownComplete ? money(otherCashOutflows) : money(totalCashOutflows)}</strong></div>
+              {close.supplierPaymentSummary && <div className="flex justify-between gap-4 border-b bg-red-50 p-3 text-red-800"><span>Pagos a proveedores en efectivo{!close.supplierPaymentSummary.breakdownComplete && " (detalle disponible)"}</span><strong>− {money(close.supplierPaymentSummary.cashSupplierPayments)}</strong></div>}
+              <div className="flex justify-between gap-4 border-b bg-red-50 p-3 text-red-800"><span>Otros egresos en efectivo</span><strong>− {money(otherCashOutflows)}</strong></div>
               <div className="flex justify-between gap-4 bg-slate-950 p-4 text-white"><span className="font-black">Efectivo esperado</span><strong className="text-lg">{money(close.expectedCash)}</strong></div>
             </div>
             <div className={`grid content-center rounded-xl border p-5 text-center ${reconciled ? "border-emerald-200 bg-emerald-50 text-emerald-950" : "border-red-200 bg-red-50 text-red-950"}`}>
@@ -397,6 +410,16 @@ function CashCloseHistoryCard({
           {close.employeePaymentSummary.employeePaymentsTotal === 0 && <p className="mt-4 rounded-xl border border-dashed p-4 text-sm text-slate-500">No se registraron pagos inmediatos al personal en este cierre.</p>}
         </section>
 
+        <section>
+          <h4 className="font-black">Facturas y pagos a proveedores</h4>
+          {close.supplierPaymentSummary ? <>
+            <p className="mt-1 text-sm text-slate-600">El detalle identifica el proveedor y el motivo registrado. Solo los pagos en efectivo reducen la caja.</p>
+            <SupplierPaymentMetrics summary={close.supplierPaymentSummary} />
+            {!close.supplierPaymentSummary.breakdownComplete && <p className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-950">El cierre conserva sus totales originales, pero parte del detalle de proveedores no está disponible o no coincide con esos totales. Los métodos de pago mostrados corresponden únicamente a los registros disponibles.</p>}
+            <SupplierInvoiceTable invoices={close.supplierInvoices ?? []} timezone={timezone} />
+          </> : <p className="mt-3 rounded-xl bg-amber-50 p-4 text-sm text-amber-950">El desglose histórico de proveedores está pendiente de actualizar en el servicio.</p>}
+        </section>
+
         {close.note && <p className="rounded-xl bg-slate-100 p-4 text-sm"><strong>Observación:</strong> {close.note}</p>}
       </div>
     </details>
@@ -432,6 +455,7 @@ export default function RestaurantCashierPage() {
   const [closeHistory, setCloseHistory] = useState<CashCloseHistory | null>(null);
   const [historyError, setHistoryError] = useState("");
   const [historyBusy, setHistoryBusy] = useState(false);
+  const [supplierHistoryRevision, setSupplierHistoryRevision] = useState(0);
   const historyLoaded = useRef(false);
 
   const load = useCallback(async () => {
@@ -575,7 +599,7 @@ export default function RestaurantCashierPage() {
 
   async function submitSupplierInvoice(event: FormEvent) {
     event.preventDefault();
-    await runMutation(
+    const completed = await runMutation(
       "cash-registers/supplier-invoices",
       {
         supplierName,
@@ -596,6 +620,7 @@ export default function RestaurantCashierPage() {
         setInvoiceNote("");
       },
     );
+    if (completed) setSupplierHistoryRevision((value) => value + 1);
   }
 
   async function submitEmployeePayment(event: FormEvent) {
@@ -784,7 +809,7 @@ export default function RestaurantCashierPage() {
                   )}
                   <div className="mt-6 space-y-5">
                     {closeHistory.closes.map((close, index) => (
-                      <CashCloseHistoryCard key={close.id} close={close} initiallyOpen={index === 0} />
+                      <CashCloseHistoryCard key={close.id} close={close} initiallyOpen={index === 0} timezone={closeHistory.timezone} />
                     ))}
                     {closeHistory.closes.length === 0 && (
                       <p className="rounded-xl border border-dashed p-5 text-sm text-slate-500">No existen cierres generales en el rango seleccionado.</p>
@@ -793,6 +818,8 @@ export default function RestaurantCashierPage() {
                 </>
               )}
             </section>
+
+            <SupplierInvoiceHistory today={cash.today} refreshKey={supplierHistoryRevision} />
 
             {cash.currentUserIsResponsible && !cash.requiresContinuation && (
               <section className="grid gap-5 lg:grid-cols-2">

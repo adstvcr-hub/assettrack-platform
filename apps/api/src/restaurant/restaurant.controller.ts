@@ -210,6 +210,28 @@ export class RestaurantStaffController {
     return this.cash.history(req.user, from, to);
   }
 
+  @Get("cash-registers/supplier-invoices")
+  supplierInvoiceHistory(
+    @Req() req: StaffRequest,
+    @Query("from") from?: string,
+    @Query("to") to?: string,
+    @Query("dateBy") dateBy?: string,
+    @Query("supplier") supplier?: string,
+    @Query("status") status?: string,
+    @Query("paymentMethod") paymentMethod?: string,
+    @Query("page") page?: string,
+  ) {
+    return this.cash.supplierHistory(req.user, {
+      from,
+      to,
+      dateBy,
+      supplier,
+      status,
+      paymentMethod,
+      page,
+    });
+  }
+
   @Post("cash-registers/supplier-invoices")
   addSupplierInvoice(
     @Req() req: StaffRequest,

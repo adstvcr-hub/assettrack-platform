@@ -21,6 +21,19 @@ La migración recupera solo los turnos pendientes posteriores al último cierre 
 
 Los cierres históricos sellados conservan sus fechas y totales. Esta migración no corrige cierres antiguos que ya hubieran sido guardados con una fecha equivocada; esas correcciones necesitan un proceso de ajuste auditado. El historial mantiene compatibilidad con registros anteriores sin identificador de jornada. La retención de datos no elimina ventas de una jornada que siga abierta.
 
+## Consulta de proveedores
+
+En **Caja → Historial de facturas de proveedores** se consultan facturas de jornadas abiertas y cerradas. Se puede filtrar por rango de hasta 366 días, proveedor (sin distinguir mayúsculas), estado y método de pago. La fecha se interpreta según la opción elegida:
+
+- **Fecha de jornada de caja**: usa la fecha original de apertura, incluso con relevos o cierres posteriores. Los registros anteriores sin jornada usan su fecha local de registro.
+- **Fecha de factura**: usa la fecha que se ingresó en el documento, independientemente de cuándo se registró o pagó.
+
+El listado incluye proveedor, número, fecha de factura, fechas de registro y pago, monto, estado, método, impacto en efectivo, usuario que registró, observación y contexto de caja. Los totales abarcan todos los resultados del filtro, con páginas de 50 facturas. Solo un pago en efectivo con evidencia del método se atribuye al efectivo; los métodos desconocidos se presentan por separado. La observación conserva el texto original; no se inventa una descripción de productos cuando falta.
+
+Cada tarjeta del **Historial de cierres** incorpora las facturas y pagos a proveedores de esa jornada. Los métodos de pago se desglosan y los pagos en efectivo se separan de otros egresos en la conciliación. Los cierres mantienen sus importes guardados. Si falta detalle o no coincide con el total sellado, se muestra un aviso y únicamente se atribuyen los métodos conocidos. Los documentos anteriores sin jornada se asocian por caja y fecha local, distinguiendo el registro del pago.
+
+La consulta usa `GET /api/v1/restaurant/cash-registers/supplier-invoices` con `from`, `to`, `dateBy=JOURNAL|INVOICE`, `supplier`, `status`, `paymentMethod` y `page`. Requiere autenticación y el mismo permiso de consulta de Caja; siempre limita los datos al restaurante de la sesión. No necesita migraciones adicionales. La API y la web deben actualizarse juntas; una API anterior produce un aviso en la consulta de proveedores y mantiene las demás operaciones disponibles.
+
 ## Validación
 
 - `pnpm --filter @assettrack/api test`: pruebas unitarias del servicio.
