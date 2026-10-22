@@ -8,6 +8,8 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { RestaurantSessionActions } from "./restaurant-session-actions";
+import { ClosedReceiptDialog } from "./closed-receipt-dialog";
+import { isReceiptPrinterEnabled } from "@/lib/restaurant-printer-settings";
 import {
   PaymentMethodDialog,
   type RestaurantPaymentDetails,
@@ -529,6 +531,8 @@ export default function RestaurantAdminDashboard({
 }) {
   const router = useRouter();
   const [closingVisitId, setClosingVisitId] = useState<string | null>(null);
+  const [closedReceiptVisitId, setClosedReceiptVisitId] = useState<string | null>(null);
+  const closeInProgress = useRef(false);
   const [tables, setTables] = useState<Table[]>([]);
   const [menu, setMenu] = useState<MenuItem[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
@@ -960,12 +964,60 @@ export default function RestaurantAdminDashboard({
     }
   }
 
+  function showClosedReceipt(visitId: string) {
+    setClosedReceiptVisitId(visitId);
+  }
+
+  async function handoffDeliveryForReceipt(visitId: string) {
+    if (closeInProgress.current) return;
+    closeInProgress.current = true;
+    try {
+      const response = await authenticatedFetch(
+        `${API_URL}/api/v1/restaurant/visits/${visitId}/delivery-handoff`,
+        { method: "PATCH" },
+      );
+      if (!response.ok) {
+        const body = await response.json().catch(() => ({}));
+        setError(body.message ?? "No se pudo cerrar la entrega");
+        return;
+      }
+      void load();
+      if (isReceiptPrinterEnabled()) showClosedReceipt(visitId);
+    } catch {
+      setError("No se pudo verificar el cierre. Revise la cuenta antes de reintentar.");
+    } finally {
+      closeInProgress.current = false;
+    }
+  }
+
   async function closeVisit(
     visitId: string,
     payment: RestaurantPaymentDetails,
+    printReceipt: boolean,
   ) {
-    if (await post(`visits/${visitId}/close`, payment, "PATCH")) {
+    if (closeInProgress.current) return;
+    closeInProgress.current = true;
+    try {
+      const response = await authenticatedFetch(
+        `${API_URL}/api/v1/restaurant/visits/${visitId}/close`,
+        {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payment),
+        },
+      );
+      if (!response.ok) {
+        const body = await response.json().catch(() => ({}));
+        setError(body.message ?? "No se pudo cerrar la cuenta");
+        return;
+      }
       setClosingVisitId(null);
+      void load();
+      if (printReceipt) showClosedReceipt(visitId);
+    } catch {
+      setError("No se pudo verificar el cierre. Revise la cuenta antes de reintentar.");
+    } finally {
+      closeInProgress.current = false;
     }
   }
 
@@ -2071,11 +2123,7 @@ export default function RestaurantAdminDashboard({
                       className="rounded bg-violet-800 px-4 py-3 font-bold text-white disabled:cursor-not-allowed disabled:opacity-40"
                       onClick={() =>
                         visit.canHandoffDelivery &&
-                        void post(
-                          `visits/${visit.id}/delivery-handoff`,
-                          {},
-                          "PATCH",
-                        )
+                        void handoffDeliveryForReceipt(visit.id)
                       }
                     >
                       {visit.canHandoffDelivery
@@ -2872,6 +2920,13 @@ export default function RestaurantAdminDashboard({
                       Total: ₡{sale.billing.total.toLocaleString()}
                     </strong>
                   </div>
+                  <button
+                    type="button"
+                    onClick={() => void showClosedReceipt(sale.id)}
+                    className="mt-3 rounded-lg bg-emerald-700 px-4 py-3 font-semibold text-white"
+                  >
+                    Reimprimir recibo
+                  </button>
                   {sale.invoice.status !== "NOT_REQUESTED" && (
                     <div className="mt-3 rounded border border-indigo-200 bg-indigo-50 p-3 text-sm">
                       <strong>
@@ -5551,11 +5606,16 @@ export default function RestaurantAdminDashboard({
           </div>
         )}
       </section>
+      <ClosedReceiptDialog
+        key={closedReceiptVisitId ?? "empty"}
+        visitId={closedReceiptVisitId}
+        onDismiss={() => setClosedReceiptVisitId(null)}
+      />
       <PaymentMethodDialog
         open={Boolean(closingVisitId)}
         onCancel={() => setClosingVisitId(null)}
-        onConfirm={(payment) => {
-          if (closingVisitId) return closeVisit(closingVisitId, payment);
+        onConfirm={(payment, printReceipt) => {
+          if (closingVisitId) return closeVisit(closingVisitId, payment, printReceipt);
         }}
       />
     </main>

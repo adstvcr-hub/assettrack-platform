@@ -1,6 +1,7 @@
 "use client";
 
 import { removeSessionValue } from "@/lib/session";
+import { isReceiptPrinterEnabled, setReceiptPrinterEnabled } from "@/lib/restaurant-printer-settings";
 import { API_URL, authenticatedFetch } from "@/lib/api";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -53,6 +54,7 @@ export function RestaurantSessionActions({
   const [error, setError] = useState("");
   const [profile, setProfile] = useState<SessionProfile | null>(null);
   const [cashState, setCashState] = useState<CashState | null>(null);
+  const [receiptPrinterEnabled, setReceiptPrinterEnabledState] = useState(false);
 
   async function refreshIdentity() {
     const [profileResponse, cashResponse] = await Promise.all([
@@ -66,6 +68,7 @@ export function RestaurantSessionActions({
   }
 
   useEffect(() => {
+    setReceiptPrinterEnabledState(isReceiptPrinterEnabled());
     void refreshIdentity();
     const timer = window.setInterval(() => {
       void refreshIdentity();
@@ -200,6 +203,24 @@ export function RestaurantSessionActions({
           {cashState.currentUserIsResponsible
             ? cashState.register.name
             : "Caja"}
+        </button>
+      )}
+
+      {profile && ["RESTAURANT_ADMIN", "WAITER", "BAR"].includes(profile.restaurantRole) && (
+        <button
+          type="button"
+          title="Solo activa los recibos al cierre en este navegador. Requiere RawBT instalado en Android."
+          className={receiptPrinterEnabled ? "rounded border border-emerald-300 px-3 py-2 text-sm font-semibold text-emerald-100" : "rounded border border-white/30 px-3 py-2 text-sm font-semibold text-white"}
+          onClick={() => {
+            const next = !receiptPrinterEnabled;
+            if (setReceiptPrinterEnabled(next)) {
+              setReceiptPrinterEnabledState(next);
+            } else {
+              setError("No se pudo guardar la preferencia de impresión en este navegador.");
+            }
+          }}
+        >
+          {receiptPrinterEnabled ? "PR-100 activa · Desactivar" : "Activar recibos PR-100 aquí"}
         </button>
       )}
 

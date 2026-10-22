@@ -6,7 +6,8 @@
     "build": "nest build",
     "start": "prisma migrate deploy && node dist/main.js",
     "dev": "nest start --watch",
-    "test": "vitest run src"
+    "test": "vitest run src",
+    "test:cash-days": "vitest run test/cash-day.integration.spec.ts --maxWorkers=1"
   },
   "dependencies": {
     "@nestjs/common": "^11.1.6",
@@ -23,6 +24,7 @@
     "class-transformer": "^0.5.1",
     "class-validator": "^0.15.1",
     "cookie-parser": "^1.4.7",
+    "dotenv": "17.4.2",
     "express": "^5.2.1",
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.1",

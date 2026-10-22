@@ -57,6 +57,7 @@ describe("RestaurantDataLifecycleService", () => {
     expect(prisma.restaurantVisit.findMany).toHaveBeenCalledWith({
       where: expect.objectContaining({
         organizationId: "org-a",
+        OR: [{ cashDayId: null }, { cashDay: { closedAt: { not: null } } }],
         closedAnalyticsConsolidatedAt: { not: null },
         openedAnalyticsConsolidatedAt: { not: null },
         orders: { every: { analyticsConsolidatedAt: { not: null } } },

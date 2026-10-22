@@ -76,6 +76,7 @@ describe("RestaurantCashService", () => {
       restaurantCashSession: {
         findFirst: vi.fn().mockResolvedValue({
           id: "session-a",
+          cashDay: { id: "day-a", openGuard: "register-a", businessDate: "2026-10-08" },
           organizationId: "org-a",
           cashRegisterId: "register-a",
           responsibleUserId: actor.id,
@@ -140,7 +141,8 @@ describe("RestaurantCashService", () => {
         ]),
       },
     };
-    const service = new RestaurantCashService(prisma as never);
+    const transactionalPrisma = { ...prisma, $transaction: vi.fn((callback) => callback(prisma)) };
+    const service = new RestaurantCashService(transactionalPrisma as never);
 
     await service.close(actor, "session-a", {
       finalDailyClose: false,
@@ -190,6 +192,8 @@ describe("RestaurantCashService", () => {
         sinpeSales: 5000,
         cardSales: 8000,
         otherSales: 0,
+        supplierInvoicesTotal: 0,
+        supplierPaymentsTotal: 0,
         employeePaymentsTotal: 3000,
         discrepancy: -100,
       },
@@ -203,6 +207,8 @@ describe("RestaurantCashService", () => {
         sinpeSales: 4000,
         cardSales: 3000,
         otherSales: 2000,
+        supplierInvoicesTotal: 0,
+        supplierPaymentsTotal: 0,
         employeePaymentsTotal: 1500,
         discrepancy: 100,
       },
@@ -223,6 +229,7 @@ describe("RestaurantCashService", () => {
         }),
       },
       restaurantCashDayClose: { findMany },
+      restaurantSupplierInvoice: { findMany: vi.fn().mockResolvedValue([]) },
       restaurantEmployeePayment: {
         findMany: vi.fn().mockResolvedValue([
           {

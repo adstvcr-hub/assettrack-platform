@@ -4,6 +4,8 @@ import { getSessionValue } from "@/lib/session";
 
 
 import { StaffAccountDetail } from "./staff-account-detail";
+import { ClosedReceiptDialog } from "./closed-receipt-dialog";
+import { isReceiptPrinterEnabled } from "@/lib/restaurant-printer-settings";
 import { BarOrderEntry } from "./bar-order-entry";
 import { API_URL, authenticatedFetch } from "@/lib/api";
 import { useRouter } from "next/navigation";
@@ -114,7 +116,9 @@ export function OperationalDashboard({ station }: { station: Station }) {
   const [error, setError] = useState("");
   const [now, setNow] = useState(0);
   const [closingVisitId, setClosingVisitId] = useState<string | null>(null);
+  const [closedReceiptVisitId, setClosedReceiptVisitId] = useState<string | null>(null);
   const loadSequence = useRef(0);
+  const closeInProgress = useRef(false);
 
   const load = useCallback(async () => {
     const sequence = ++loadSequence.current;
@@ -213,7 +217,11 @@ export function OperationalDashboard({ station }: { station: Station }) {
   async function closeVisit(
     visitId: string,
     payment: RestaurantPaymentDetails,
+    printReceipt: boolean,
   ) {
+    if (closeInProgress.current) return;
+    closeInProgress.current = true;
+    try {
     const response = await authenticatedFetch(
       `${API_URL}/api/v1/restaurant/visits/${visitId}/close`,
       {
@@ -228,7 +236,13 @@ export function OperationalDashboard({ station }: { station: Station }) {
       return;
     }
     setClosingVisitId(null);
-    await load();
+    void load();
+    if (printReceipt) setClosedReceiptVisitId(visitId);
+    } catch {
+      setError("No se confirmó el cierre; verifique el estado de la cuenta antes de reintentar.");
+    } finally {
+      closeInProgress.current = false;
+    }
   }
 
   async function updatePayment(visit: Visit, status: "CONFIRMED" | "REJECTED") {
@@ -258,7 +272,8 @@ export function OperationalDashboard({ station }: { station: Station }) {
       setError(body.message ?? "No se pudo cerrar la entrega");
       return;
     }
-    await load();
+    void load();
+    if (isReceiptPrinterEnabled()) setClosedReceiptVisitId(visitId);
   }
 
   async function transferVisit(visitId: string, destinationTableId: string) {
@@ -624,11 +639,16 @@ export function OperationalDashboard({ station }: { station: Station }) {
           </article>
         ))}
       </section>
+      <ClosedReceiptDialog
+        key={closedReceiptVisitId ?? "empty"}
+        visitId={closedReceiptVisitId}
+        onDismiss={() => setClosedReceiptVisitId(null)}
+      />
       <PaymentMethodDialog
         open={Boolean(closingVisitId)}
         onCancel={() => setClosingVisitId(null)}
-        onConfirm={(payment) => {
-          if (closingVisitId) return closeVisit(closingVisitId, payment);
+        onConfirm={(payment, printReceipt) => {
+          if (closingVisitId) return closeVisit(closingVisitId, payment, printReceipt);
         }}
       />
     </main>

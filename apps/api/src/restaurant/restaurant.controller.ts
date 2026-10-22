@@ -64,6 +64,7 @@ import {
 import { RestaurantActor, RestaurantService } from "./restaurant.service";
 import { RestaurantCashService } from "./restaurant-cash.service";
 import { RestaurantAccessGuard } from "./restaurant-access.guard";
+import { restaurantPaymentOptions } from "./restaurant-payment-options";
 import { UsersService } from "../users/users.service";
 import { RestaurantStaffRole, UserRole } from "../generated/prisma/enums";
 
@@ -162,6 +163,11 @@ export class RestaurantStaffController {
     return this.restaurant.profile(req.user);
   }
 
+  @Get("payment-options")
+  paymentOptions() {
+    return restaurantPaymentOptions();
+  }
+
   @Get("cash-registers/current")
   cashCurrent(@Req() req: StaffRequest) {
     return this.cash.current(req.user);
@@ -181,12 +187,18 @@ export class RestaurantStaffController {
     return this.cash.close(req.user, id, dto);
   }
 
+  @Post("cash-days/:id/continue")
+  continueCashDay(@Req() req: StaffRequest, @Param("id") id: string) {
+    return this.cash.continueDay(req.user, id);
+  }
+
   @Get("cash-registers/daily")
   cashDaily(
     @Req() req: StaffRequest,
     @Query("date") date?: string,
+    @Query("cashDayId") cashDayId?: string,
   ) {
-    return this.cash.daily(req.user, date);
+    return this.cash.daily(req.user, date, cashDayId);
   }
 
   @Get("cash-registers/history")
@@ -196,6 +208,28 @@ export class RestaurantStaffController {
     @Query("to") to?: string,
   ) {
     return this.cash.history(req.user, from, to);
+  }
+
+  @Get("cash-registers/supplier-invoices")
+  supplierInvoiceHistory(
+    @Req() req: StaffRequest,
+    @Query("from") from?: string,
+    @Query("to") to?: string,
+    @Query("dateBy") dateBy?: string,
+    @Query("supplier") supplier?: string,
+    @Query("status") status?: string,
+    @Query("paymentMethod") paymentMethod?: string,
+    @Query("page") page?: string,
+  ) {
+    return this.cash.supplierHistory(req.user, {
+      from,
+      to,
+      dateBy,
+      supplier,
+      status,
+      paymentMethod,
+      page,
+    });
   }
 
   @Post("cash-registers/supplier-invoices")
@@ -224,8 +258,9 @@ export class RestaurantStaffController {
     @Req() req: StaffRequest,
     @Query("date") date?: string,
     @Query("userId") userId?: string,
+    @Query("cashDayId") cashDayId?: string,
   ) {
-    return this.cash.employeeDaily(req.user, date, userId);
+    return this.cash.employeeDaily(req.user, date, userId, cashDayId);
   }
 
   @Get("tables")
@@ -659,6 +694,11 @@ export class RestaurantStaffController {
     @Body() dto: CancelOrderDto,
   ) {
     return this.restaurant.cancelOrder(req.user, id, dto.reason);
+  }
+
+  @Get("visits/:id/receipt")
+  closedVisitReceipt(@Req() req: StaffRequest, @Param("id") id: string) {
+    return this.restaurant.closedVisitReceipt(req.user, id);
   }
 
   @Patch("visits/:id/close")

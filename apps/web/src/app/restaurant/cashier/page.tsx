@@ -4,6 +4,12 @@ import { API_URL, authenticatedFetch } from "@/lib/api";
 import { useRouter } from "next/navigation";
 import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
 import { RestaurantSessionActions } from "../_components/restaurant-session-actions";
+import {
+  SupplierInvoiceHistory,
+  SupplierInvoiceTable,
+  SupplierPaymentMetrics,
+  type SupplierPaymentSummary,
+} from "../_components/supplier-invoice-history";
 
 type PaymentMethod = "CASH" | "SINPE" | "CARD" | "OTHER";
 type SupplierInvoiceStatus = "PENDING" | "PAID";
@@ -52,6 +58,11 @@ type EmployeePayment = {
 };
 
 type CashState = {
+  cashDayVersion?: number;
+  today: string;
+  timezone: string;
+  requiresContinuation: boolean;
+  cashDay?: { id: string; businessDate: string; openedAt: string; timezone: string } | null;
   canAccess: boolean;
   businessDate: string;
   register: { id: string | null; name: string };
@@ -73,6 +84,7 @@ type CashState = {
     employeePayments: EmployeePayment[];
   } | null;
   dayClose?: {
+    businessDate: string;
     responsibleUser: { name: string };
     closedAt: string;
     accountCount: number;
@@ -106,6 +118,7 @@ type Daily = {
     };
   }>;
   dayClose?: {
+    businessDate: string;
     responsibleUser: { name: string };
     closedAt: string;
     accountCount: number;
@@ -197,6 +210,8 @@ type CashCloseHistory = {
       breakdownComplete: boolean;
     };
     employeePayments: EmployeePayment[];
+    supplierInvoices?: SupplierInvoice[];
+    supplierPaymentSummary?: SupplierPaymentSummary;
   }>;
   totals: {
     accountCount: number;
@@ -281,9 +296,11 @@ function HistoryMetric({
 function CashCloseHistoryCard({
   close,
   initiallyOpen,
+  timezone,
 }: {
   close: CashCloseHistory["closes"][number];
   initiallyOpen: boolean;
+  timezone: string;
 }) {
   const totalCashOutflows = Math.max(
     0,
@@ -291,7 +308,9 @@ function CashCloseHistoryCard({
   );
   const otherCashOutflows = Math.max(
     0,
-    totalCashOutflows - close.employeePaymentSummary.cashEmployeePayments,
+    totalCashOutflows -
+      (close.employeePaymentSummary.breakdownComplete ? close.employeePaymentSummary.cashEmployeePayments : 0) -
+      (close.supplierPaymentSummary?.cashSupplierPayments ?? 0),
   );
   const reconciled = close.discrepancy === 0;
 
@@ -339,7 +358,8 @@ function CashCloseHistoryCard({
               <div className="flex justify-between gap-4 border-b p-3"><span>Efectivo inicial</span><strong>{money(close.openingCash)}</strong></div>
               <div className="flex justify-between gap-4 border-b p-3 text-emerald-800"><span>Ventas en efectivo</span><strong>+ {money(close.cashSales)}</strong></div>
               <div className="flex justify-between gap-4 border-b bg-red-50 p-3 text-red-800"><span>Pagos al personal en efectivo</span><strong>− {close.employeePaymentSummary.breakdownComplete ? money(close.employeePaymentSummary.cashEmployeePayments) : "Sin desglose"}</strong></div>
-              <div className="flex justify-between gap-4 border-b bg-red-50 p-3 text-red-800"><span>Otros egresos en efectivo</span><strong>− {close.employeePaymentSummary.breakdownComplete ? money(otherCashOutflows) : money(totalCashOutflows)}</strong></div>
+              {close.supplierPaymentSummary && <div className="flex justify-between gap-4 border-b bg-red-50 p-3 text-red-800"><span>Pagos a proveedores en efectivo{!close.supplierPaymentSummary.breakdownComplete && " (detalle disponible)"}</span><strong>− {money(close.supplierPaymentSummary.cashSupplierPayments)}</strong></div>}
+              <div className="flex justify-between gap-4 border-b bg-red-50 p-3 text-red-800"><span>Otros egresos en efectivo</span><strong>− {money(otherCashOutflows)}</strong></div>
               <div className="flex justify-between gap-4 bg-slate-950 p-4 text-white"><span className="font-black">Efectivo esperado</span><strong className="text-lg">{money(close.expectedCash)}</strong></div>
             </div>
             <div className={`grid content-center rounded-xl border p-5 text-center ${reconciled ? "border-emerald-200 bg-emerald-50 text-emerald-950" : "border-red-200 bg-red-50 text-red-950"}`}>
@@ -390,6 +410,16 @@ function CashCloseHistoryCard({
           {close.employeePaymentSummary.employeePaymentsTotal === 0 && <p className="mt-4 rounded-xl border border-dashed p-4 text-sm text-slate-500">No se registraron pagos inmediatos al personal en este cierre.</p>}
         </section>
 
+        <section>
+          <h4 className="font-black">Facturas y pagos a proveedores</h4>
+          {close.supplierPaymentSummary ? <>
+            <p className="mt-1 text-sm text-slate-600">El detalle identifica el proveedor y el motivo registrado. Solo los pagos en efectivo reducen la caja.</p>
+            <SupplierPaymentMetrics summary={close.supplierPaymentSummary} />
+            {!close.supplierPaymentSummary.breakdownComplete && <p className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-950">El cierre conserva sus totales originales, pero parte del detalle de proveedores no está disponible o no coincide con esos totales. Los métodos de pago mostrados corresponden únicamente a los registros disponibles.</p>}
+            <SupplierInvoiceTable invoices={close.supplierInvoices ?? []} timezone={timezone} />
+          </> : <p className="mt-3 rounded-xl bg-amber-50 p-4 text-sm text-amber-950">El desglose histórico de proveedores está pendiente de actualizar en el servicio.</p>}
+        </section>
+
         {close.note && <p className="rounded-xl bg-slate-100 p-4 text-sm"><strong>Observación:</strong> {close.note}</p>}
       </div>
     </details>
@@ -403,7 +433,7 @@ export default function RestaurantCashierPage() {
   const [daily, setDaily] = useState<Daily | null>(null);
   const [personal, setPersonal] = useState<EmployeeDaily | null>(null);
   const [employees, setEmployees] = useState<Employee[]>([]);
-  const [openingCash, setOpeningCash] = useState("0");
+  const [openingCash, setOpeningCash] = useState("");
   const [countedCash, setCountedCash] = useState("");
   const [note, setNote] = useState("");
   const [supplierName, setSupplierName] = useState("");
@@ -425,6 +455,7 @@ export default function RestaurantCashierPage() {
   const [closeHistory, setCloseHistory] = useState<CashCloseHistory | null>(null);
   const [historyError, setHistoryError] = useState("");
   const [historyBusy, setHistoryBusy] = useState(false);
+  const [supplierHistoryRevision, setSupplierHistoryRevision] = useState(0);
   const historyLoaded = useRef(false);
 
   const load = useCallback(async () => {
@@ -451,12 +482,13 @@ export default function RestaurantCashierPage() {
     setCash(nextCash);
     if (!nextCash.canAccess) return;
 
+    const dayQuery = nextCash.cashDay ? `&cashDayId=${encodeURIComponent(nextCash.cashDay.id)}` : "";
     const [dailyResponse, personalResponse, employeesResponse] = await Promise.all([
       authenticatedFetch(
-        `${API_URL}/api/v1/restaurant/cash-registers/daily?date=${encodeURIComponent(nextCash.businessDate)}`,
+        `${API_URL}/api/v1/restaurant/cash-registers/daily?date=${encodeURIComponent(nextCash.businessDate)}${dayQuery}`,
       ),
       authenticatedFetch(
-        `${API_URL}/api/v1/restaurant/staff/daily-close?date=${encodeURIComponent(nextCash.businessDate)}`,
+        `${API_URL}/api/v1/restaurant/staff/daily-close?date=${encodeURIComponent(nextCash.businessDate)}${dayQuery}`,
       ),
       authenticatedFetch(`${API_URL}/api/v1/restaurant/cash-registers/employees`),
     ]);
@@ -530,6 +562,10 @@ export default function RestaurantCashierPage() {
   }
 
   async function assume() {
+    if (openingCash.trim() === "" || !Number.isSafeInteger(Number(openingCash)) || Number(openingCash) < 0) {
+      setError("Indique el efectivo recibido para abrir o asumir la caja; puede ser cero.");
+      return;
+    }
     await runMutation(
       "cash-registers/assume",
       { openingCash: Number(openingCash) },
@@ -540,7 +576,7 @@ export default function RestaurantCashierPage() {
   async function close(finalDailyClose: boolean) {
     if (!cash?.session?.id) return;
     const amount = Number(countedCash);
-    if (!Number.isSafeInteger(amount) || amount < 0) {
+    if (countedCash.trim() === "" || !Number.isSafeInteger(amount) || amount < 0) {
       setError("Indique el efectivo contado en caja.");
       return;
     }
@@ -548,19 +584,22 @@ export default function RestaurantCashierPage() {
       `cash-sessions/${cash.session.id}/close`,
       { finalDailyClose, countedCash: amount, note: note.trim() || undefined },
       finalDailyClose
-        ? "Cierre general registrado a su nombre."
+        ? `Jornada del ${cash.businessDate} cerrada. Puede abrir una nueva con la fecha actual.`
         : "Caja entregada. Ya puede ser asumida por otra persona autorizada.",
       () => {
         setNote("");
         setCountedCash("");
       },
     );
-    if (completed && finalDailyClose) setOpeningCash("0");
+    if (completed && finalDailyClose) {
+      setOpeningCash("");
+      await loadCloseHistory(historyFrom, historyTo);
+    }
   }
 
   async function submitSupplierInvoice(event: FormEvent) {
     event.preventDefault();
-    await runMutation(
+    const completed = await runMutation(
       "cash-registers/supplier-invoices",
       {
         supplierName,
@@ -581,6 +620,7 @@ export default function RestaurantCashierPage() {
         setInvoiceNote("");
       },
     );
+    if (completed) setSupplierHistoryRevision((value) => value + 1);
   }
 
   async function submitEmployeePayment(event: FormEvent) {
@@ -621,6 +661,7 @@ export default function RestaurantCashierPage() {
           <div>
             <p className="text-xs font-bold uppercase tracking-[0.2em] text-amber-300">RESPONSABILIDAD DE CAJA</p>
             <h1 className="text-2xl font-black">{cash?.register.name ?? "Caja"}</h1>
+            {cash?.canAccess && cash.cashDayVersion === 1 && <p className="mt-1 text-sm">{cash.cashDay ? `Jornada del ${cash.businessDate}` : `Nueva jornada: ${cash.today}`} · Hoy: {cash.today}</p>}
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <button
@@ -646,7 +687,10 @@ export default function RestaurantCashierPage() {
           </section>
         )}
 
-        {cash?.canAccess && (
+        {cash?.canAccess && cash.cashDayVersion !== 1 && (
+          <p role="alert" className="rounded-xl bg-amber-100 p-4 font-semibold text-amber-950">La actualización de jornadas de caja está pendiente en el servicio. Espere a que esté disponible antes de registrar cierres atrasados.</p>
+        )}
+        {cash?.canAccess && cash.cashDayVersion === 1 && (
           <>
             <section className="rounded-2xl border bg-white p-6 shadow-sm">
               <div className="flex flex-wrap items-start justify-between gap-4">
@@ -658,6 +702,19 @@ export default function RestaurantCashierPage() {
                 {cash.currentUserIsResponsible && <span className="rounded-full bg-amber-100 px-4 py-2 text-sm font-black text-amber-950">Caja a nombre de {profile?.name}</span>}
               </div>
 
+              {cash.cashDay && (
+                <p className="mt-4 text-sm text-slate-600">Fecha de la jornada: <strong>{cash.businessDate}</strong> · Apertura: {new Date(cash.cashDay.openedAt).toLocaleString("es-CR", { timeZone: cash.cashDay.timezone })} ({cash.cashDay.timezone}). Los relevos conservan esta fecha.</p>
+              )}
+              {cash.requiresContinuation && (
+                <div role="alert" className="mt-5 rounded-xl border border-amber-300 bg-amber-50 p-4 text-amber-950">
+                  <h3 className="font-black">Jornada pendiente del {cash.businessDate}</h3>
+                  <p className="mt-2">Hoy es {cash.today}. Si la jornada sigue en curso, continúela con su fecha original. Si terminó, registre el efectivo contado y cierre la jornada pendiente para abrir la de hoy. Los nuevos cobros y movimientos esperan esta decisión.</p>
+                  {cash.currentUserIsResponsible && cash.cashDay && <button disabled={busy} onClick={() => void runMutation(`cash-days/${cash.cashDay!.id}/continue`, {}, `Continúa la jornada del ${cash.businessDate}.`)} className="mt-3 rounded-xl bg-amber-900 px-5 py-3 font-black text-white disabled:opacity-40">Continuar jornada del {cash.businessDate}</button>}
+                  {!cash.session && <p className="mt-2 font-bold">Asuma la caja pendiente para continuarla o cerrarla.</p>}
+                  {cash.session && !cash.currentUserIsResponsible && <p className="mt-2 font-bold">Debe resolverlo el responsable actual: {cash.session.responsibleUser.name}.</p>}
+                </div>
+              )}
+
               {cash.currentSummary && cash.currentReconciliation && (
                 <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
                   <Metric label="Cuentas cerradas" value={cash.currentSummary.accountCount} />
@@ -667,10 +724,10 @@ export default function RestaurantCashierPage() {
                 </div>
               )}
 
-              {!cash.session && !cash.dayClose && (
+              {!cash.session && (
                 <div className="mt-5 flex flex-wrap items-end gap-3">
                   <label className="font-semibold">Efectivo recibido al asumir caja<input type="number" min="0" step="1" value={openingCash} onChange={(event) => setOpeningCash(event.target.value)} className="mt-2 block rounded border p-3" /></label>
-                  <button disabled={busy} onClick={() => void assume()} className="rounded-xl bg-slate-950 px-5 py-3 font-black text-white disabled:opacity-40">Asumir {cash.register.name}</button>
+                  <button disabled={busy} onClick={() => void assume()} className="rounded-xl bg-slate-950 px-5 py-3 font-black text-white disabled:opacity-40">{cash.cashDay ? `Asumir jornada del ${cash.businessDate}` : `Abrir jornada del ${cash.today}`}</button>
                 </div>
               )}
 
@@ -688,14 +745,14 @@ export default function RestaurantCashierPage() {
                   <label className="block font-semibold">Observación<textarea value={note} onChange={(event) => setNote(event.target.value)} className="mt-2 min-h-20 w-full rounded border p-3" placeholder="Opcional: relevo, incidencia, observación de cierre..." /></label>
                   <div className="flex flex-wrap gap-3">
                     <button disabled={busy} onClick={() => void close(false)} className="rounded-xl border border-slate-400 px-5 py-3 font-black disabled:opacity-40">Entregar caja</button>
-                    <button disabled={busy} onClick={() => void close(true)} className="rounded-xl bg-emerald-800 px-5 py-3 font-black text-white disabled:opacity-40">Cierre general del día</button>
+                    <button disabled={busy} onClick={() => void close(true)} className="rounded-xl bg-emerald-800 px-5 py-3 font-black text-white disabled:opacity-40">{cash.requiresContinuation ? `Cerrar jornada pendiente del ${cash.businessDate}` : `Cerrar jornada del ${cash.businessDate}`}</button>
                   </div>
                 </div>
               )}
 
               {cash.dayClose && (
                 <div className="mt-5 rounded-xl bg-emerald-50 p-4 text-emerald-950">
-                  <p className="font-black">Cierre general registrado</p><p>Responsable: {cash.dayClose.responsibleUser.name}</p><p>{cash.dayClose.accountCount} cuentas · {money(cash.dayClose.salesTotal)}</p><p>Efectivo contado: {money(cash.dayClose.countedCash)} · Diferencia: {money(cash.dayClose.discrepancy)}</p>
+                  <p className="font-black">Último cierre: jornada del {cash.dayClose.businessDate}</p><p>Cierre realizado: {new Date(cash.dayClose.closedAt).toLocaleString("es-CR", { timeZone: cash.timezone })}</p><p>Responsable: {cash.dayClose.responsibleUser.name}</p><p>{cash.dayClose.accountCount} cuentas · {money(cash.dayClose.salesTotal)}</p><p>Efectivo contado: {money(cash.dayClose.countedCash)} · Diferencia: {money(cash.dayClose.discrepancy)}</p>
                 </div>
               )}
             </section>
@@ -752,7 +809,7 @@ export default function RestaurantCashierPage() {
                   )}
                   <div className="mt-6 space-y-5">
                     {closeHistory.closes.map((close, index) => (
-                      <CashCloseHistoryCard key={close.id} close={close} initiallyOpen={index === 0} />
+                      <CashCloseHistoryCard key={close.id} close={close} initiallyOpen={index === 0} timezone={closeHistory.timezone} />
                     ))}
                     {closeHistory.closes.length === 0 && (
                       <p className="rounded-xl border border-dashed p-5 text-sm text-slate-500">No existen cierres generales en el rango seleccionado.</p>
@@ -762,7 +819,9 @@ export default function RestaurantCashierPage() {
               )}
             </section>
 
-            {cash.currentUserIsResponsible && (
+            <SupplierInvoiceHistory today={cash.today} refreshKey={supplierHistoryRevision} />
+
+            {cash.currentUserIsResponsible && !cash.requiresContinuation && (
               <section className="grid gap-5 lg:grid-cols-2">
                 <form onSubmit={submitSupplierInvoice} className="rounded-2xl border bg-white p-6 shadow-sm">
                   <h2 className="text-xl font-black">Factura entrante de proveedor</h2>
@@ -781,7 +840,7 @@ export default function RestaurantCashierPage() {
 
                 <form onSubmit={submitEmployeePayment} className="rounded-2xl border bg-white p-6 shadow-sm">
                   <h2 className="text-xl font-black">Pago inmediato a empleado</h2>
-                  <p className="mt-1 text-sm text-slate-600">Registra el pago del día individualmente y conserva quién lo recibió.</p>
+                  <p className="mt-1 text-sm text-slate-600">Registra el pago de la jornada individualmente y conserva quién lo recibió.</p>
                   <div className="mt-4 grid gap-3 sm:grid-cols-2">
                     <label className="font-semibold">Empleado<select required value={employeeId} onChange={(event) => setEmployeeId(event.target.value)} className="mt-1 w-full rounded border p-3">{employees.map((employee) => <option key={employee.id} value={employee.id}>{employee.name}</option>)}</select></label>
                     <label className="font-semibold">Monto<input required type="number" min="1" step="1" value={employeeAmount} onChange={(event) => setEmployeeAmount(event.target.value)} className="mt-1 w-full rounded border p-3" /></label>
@@ -801,7 +860,7 @@ export default function RestaurantCashierPage() {
             </section>
 
             <section className="rounded-2xl border bg-white p-6 shadow-sm">
-              <h2 className="text-xl font-black">Facturas de venta del día</h2>
+              <h2 className="text-xl font-black">Facturas de venta de la jornada</h2>
               <div className="mt-4 overflow-x-auto">
                 <table className="w-full min-w-[760px] text-left text-sm"><thead className="bg-slate-100"><tr><th className="p-3">Factura</th><th className="p-3">Hora</th><th className="p-3">Mesa/posición</th><th className="p-3">Cobro</th><th className="p-3">Referencia</th><th className="p-3 text-right">Total</th></tr></thead><tbody>{daily?.accounts.map((account) => <tr key={account.id} className="border-t"><td className="p-3 font-bold">{account.receiptNumber ?? "Sin número"}</td><td className="p-3">{account.closedAt ? new Date(account.closedAt).toLocaleTimeString("es-CR") : ""}</td><td className="p-3">{account.table.name}</td><td className="p-3">{paymentLabels[account.paymentMethod ?? "OTHER"]}</td><td className="p-3">{account.paymentReference ?? "—"}</td><td className="p-3 text-right font-bold">{money(account.billing.total)}</td></tr>)}</tbody></table>
                 {daily?.accounts.length === 0 && <p className="p-4 text-sm text-slate-500">No hay cuentas cerradas hoy.</p>}
@@ -809,7 +868,7 @@ export default function RestaurantCashierPage() {
             </section>
 
             <section className="grid gap-5 lg:grid-cols-2">
-              <div className="rounded-2xl border bg-white p-6 shadow-sm"><h2 className="text-xl font-black">Facturas entrantes del día</h2><div className="mt-4 space-y-2">{daily?.supplierInvoices.map((invoice) => <article key={invoice.id} className="rounded-xl border p-4"><div className="flex justify-between gap-3"><div><p className="font-black">{invoice.supplierName} · {invoice.invoiceNumber}</p><p className="text-sm text-slate-600">Factura: {invoice.invoiceDate} · Registró: {invoice.recordedBy.name}</p></div><strong>{money(invoice.amount)}</strong></div><p className="mt-2 text-sm font-bold">{invoice.status === "PAID" ? `Pagada · ${paymentLabels[invoice.paymentMethod ?? "OTHER"]}` : "Pendiente de pago"}</p>{invoice.note && <p className="mt-1 text-sm text-slate-600">{invoice.note}</p>}</article>)}{daily?.supplierInvoices.length === 0 && <p className="text-sm text-slate-500">No hay facturas de proveedores registradas hoy.</p>}</div></div>
+              <div className="rounded-2xl border bg-white p-6 shadow-sm"><h2 className="text-xl font-black">Facturas entrantes de la jornada</h2><div className="mt-4 space-y-2">{daily?.supplierInvoices.map((invoice) => <article key={invoice.id} className="rounded-xl border p-4"><div className="flex justify-between gap-3"><div><p className="font-black">{invoice.supplierName} · {invoice.invoiceNumber}</p><p className="text-sm text-slate-600">Factura: {invoice.invoiceDate} · Registró: {invoice.recordedBy.name}</p></div><strong>{money(invoice.amount)}</strong></div><p className="mt-2 text-sm font-bold">{invoice.status === "PAID" ? `Pagada · ${paymentLabels[invoice.paymentMethod ?? "OTHER"]}` : "Pendiente de pago"}</p>{invoice.note && <p className="mt-1 text-sm text-slate-600">{invoice.note}</p>}</article>)}{daily?.supplierInvoices.length === 0 && <p className="text-sm text-slate-500">No hay facturas de proveedores en esta jornada.</p>}</div></div>
               <div className="rounded-2xl border bg-white p-6 shadow-sm"><h2 className="text-xl font-black">Pagos inmediatos a empleados</h2><div className="mt-4 space-y-2">{daily?.employeePayments.map((payment) => <article key={payment.id} className="rounded-xl border p-4"><div className="flex justify-between gap-3"><div><p className="font-black">{payment.employee.name}</p><p className="text-sm text-slate-600">{new Date(payment.paidAt).toLocaleString("es-CR")} · {paymentLabels[payment.paymentMethod]}</p></div><strong>{money(payment.amount)}</strong></div>{payment.note && <p className="mt-1 text-sm text-slate-600">{payment.note}</p>}</article>)}{daily?.employeePayments.length === 0 && <p className="text-sm text-slate-500">No hay pagos inmediatos registrados hoy.</p>}</div></div>
             </section>
 

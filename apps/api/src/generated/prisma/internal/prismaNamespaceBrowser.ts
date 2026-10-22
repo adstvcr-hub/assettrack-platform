@@ -67,6 +67,7 @@ export const ModelName = {
   RestaurantOrder: 'RestaurantOrder',
   RestaurantOrderItem: 'RestaurantOrderItem',
   RestaurantCashRegister: 'RestaurantCashRegister',
+  RestaurantCashDay: 'RestaurantCashDay',
   RestaurantCashSession: 'RestaurantCashSession',
   RestaurantCashDayClose: 'RestaurantCashDayClose',
   RestaurantSupplierInvoice: 'RestaurantSupplierInvoice',
@@ -153,6 +154,8 @@ export type RestaurantTableScalarFieldEnum = (typeof RestaurantTableScalarFieldE
 
 
 export const RestaurantVisitScalarFieldEnum = {
+  cashDayId: 'cashDayId',
+  cashSessionId: 'cashSessionId',
   id: 'id',
   organizationId: 'organizationId',
   tableId: 'tableId',
@@ -423,7 +426,26 @@ export const RestaurantCashRegisterScalarFieldEnum = {
 export type RestaurantCashRegisterScalarFieldEnum = (typeof RestaurantCashRegisterScalarFieldEnum)[keyof typeof RestaurantCashRegisterScalarFieldEnum]
 
 
+export const RestaurantCashDayScalarFieldEnum = {
+  id: 'id',
+  organizationId: 'organizationId',
+  cashRegisterId: 'cashRegisterId',
+  businessDate: 'businessDate',
+  timezone: 'timezone',
+  openedAt: 'openedAt',
+  closedAt: 'closedAt',
+  openingCash: 'openingCash',
+  openGuard: 'openGuard',
+  lastConfirmedDate: 'lastConfirmedDate',
+  continuedAt: 'continuedAt',
+  continuedById: 'continuedById'
+} as const
+
+export type RestaurantCashDayScalarFieldEnum = (typeof RestaurantCashDayScalarFieldEnum)[keyof typeof RestaurantCashDayScalarFieldEnum]
+
+
 export const RestaurantCashSessionScalarFieldEnum = {
+  cashDayId: 'cashDayId',
   id: 'id',
   organizationId: 'organizationId',
   cashRegisterId: 'cashRegisterId',
@@ -445,6 +467,7 @@ export type RestaurantCashSessionScalarFieldEnum = (typeof RestaurantCashSession
 
 
 export const RestaurantCashDayCloseScalarFieldEnum = {
+  cashDayId: 'cashDayId',
   id: 'id',
   organizationId: 'organizationId',
   cashRegisterId: 'cashRegisterId',
